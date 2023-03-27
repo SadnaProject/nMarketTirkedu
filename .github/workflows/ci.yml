@@ -5,6 +5,7 @@ on: [push, pull_request]
 env:
   DATABASE_URL: "https://fake.com"
   NEXTAUTH_URL: "https://fake.com"
+  NEXTAUTH_SECRET: "SECRET"
 
 jobs:
   build:

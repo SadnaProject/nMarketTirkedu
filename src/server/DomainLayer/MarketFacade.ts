@@ -1,4 +1,4 @@
-import { StoreController } from "./StoreController";
+import { StoreController } from "./Store/StoreController";
 
 export class MarketFacade {
   private storeController: StoreController;

@@ -1,5 +1,3 @@
-type Role = "GUEST" | "MEMBER";
-
 interface IAuthController {
   isGuest(userId: string): boolean;
   isMember(userId: string): boolean;

@@ -1,10 +1,13 @@
+import { type DiscountArgs } from "./Discount";
+import { type StoreProductArgs } from "./StoreProduct";
+
 //TODO: Should we also pass storeId together with productId?
 
 interface IStoreController {
   addProductToStore(
     userId: string,
     storeId: string,
-    product: { productName: string; quantity: number }
+    product: StoreProductArgs
   ): string;
   isStoreActive(storeId: string): boolean;
   getStoreProducts(storeId: string): never;
@@ -29,9 +32,7 @@ interface IStoreController {
   addDiscountToStore(
     userId: string,
     storeId: string,
-    discountAmount: number,
-    discountType: "PERCENTAGE" | "FIXED",
-    expirationDate: Date
+    discount: DiscountArgs
   ): string;
   removeDiscountFromStore(
     userId: string,
@@ -51,7 +52,7 @@ export class StoreController implements IStoreController {
   addProductToStore(
     userId: string,
     storeId: string,
-    product: { productName: string; quantity: number }
+    product: StoreProductArgs
   ): string {
     throw new Error("Method not implemented.");
   }
@@ -88,9 +89,7 @@ export class StoreController implements IStoreController {
   addDiscountToStore(
     userId: string,
     storeId: string,
-    discountAmount: number,
-    discountType: "PERCENTAGE" | "FIXED",
-    expirationDate: Date
+    discount: DiscountArgs
   ): string {
     throw new Error("Method not implemented.");
   }

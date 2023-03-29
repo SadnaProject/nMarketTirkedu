@@ -2,25 +2,34 @@ import { Cart } from "./Cart";
 import { type Notification } from "./Notification";
 
 export type UserArgs = {
+  id: string;
   name: string;
-  email: string;
-  password: string;
+};
+
+export type UserDTO = {
+  id: string;
+  name: string;
 };
 
 export class User {
   private id: string;
   private name: string;
-  private email: string;
-  private password: string;
   private notifications: Notification[];
   private cart: Cart;
 
-  constructor({ name, email, password }: UserArgs) {
-    this.id = crypto.randomUUID();
+  constructor({ id, name }: UserArgs) {
+    this.id = id;
     this.name = name;
-    this.email = email;
-    this.password = password;
+
     this.notifications = [];
     this.cart = new Cart();
+  }
+
+  public get Id(): string {
+    return this.id;
+  }
+
+  public get Name(): string {
+    return this.name;
   }
 }

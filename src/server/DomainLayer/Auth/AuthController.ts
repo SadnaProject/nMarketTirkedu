@@ -1,18 +1,18 @@
 interface IAuthController {
-    /**
+  /**
    * Returns true if the provided userId is a guest user.
    * @param userId
    */
 
   isGuest(userId: string): boolean;
-    /**
+  /**
    * Checks if a user is a member of the group.
    * @param userId: string
    * @return boolean
    */
 
   isMember(userId: string): boolean;
-    /**
+  /**
    * Checks whether the user is connected to the system.
    * @param userId The user ID.
    * @returns True if the user is connected, false otherwise.
@@ -24,12 +24,12 @@ interface IAuthController {
    * @param email The user's email.
    * @param password The user's password.
    * @returns The user's ID.
-    */
+   */
   login(email: string, password: string): string;
   /**
    * Logs out the user.
-    * @param userId The user's ID.
-    * @throws Error if the user is not connected.
+   * @param userId The user's ID.
+   * @throws Error if the user is not connected.
    */
 
   logout(userId: string): void;
@@ -55,7 +55,7 @@ interface IAuthController {
    * @param newPassword The new password.
    * @throws Error if the old password is incorrect.
    * @throws Error if the new password is invalid.
-    */
+   */
   changePassword(
     userId: string,
     oldPassword: string,

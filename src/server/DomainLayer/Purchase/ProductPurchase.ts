@@ -1,5 +1,11 @@
-import { type ProductReview } from "./ProductReview";
+import { type ProductReview, type ProductReviewDTO } from "./ProductReview";
 
+export type ProductPurchaseDTO = {
+  productId: string;
+  quantity: number;
+  price: number;
+  review?: ProductReviewDTO;
+};
 type ProductPurchaseArgs = {
   productId: string;
   quantity: number;

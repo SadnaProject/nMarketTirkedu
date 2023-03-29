@@ -1,3 +1,7 @@
+export type BasketProductDTO = {
+  storeProductId: string;
+  quantity: number;
+};
 export class BasketProduct {
   private storeProductId: string;
   private quantity: number;

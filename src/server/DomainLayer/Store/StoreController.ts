@@ -1,4 +1,3 @@
-import { type DiscountArgs } from "./Discount";
 import { type StoreProductArgs } from "./StoreProduct";
 
 //TODO: Should we also pass storeId together with productId?
@@ -87,26 +86,7 @@ interface IStoreController {
    * @throws Error if the expiration date is invalid.
    * @throws Error if user does not have permission to add discount.
    */
-  addDiscountToStore(
-    userId: string,
-    storeId: string,
-    discount: DiscountArgs
-  ): string;
-  /**
-   * This function removes a discount from a store.
-   * @param userId The id of the user that is currently logged in.
-   * @param storeId The id of the store that the discount is being removed from.
-   * @param discountId The id of the discount that is being removed.
-   * @throws Error if the store is not active.
-   * @throws Error if the discount is not in the store.
-   * @throws Error if user does not have permission to remove discount.
-   */
-  removeDiscountFromStore(
-    userId: string,
-    storeId: string,
-    discountId: string
-  ): void;
-  // TODO: Add update discount and add condition to discount
+
   //! Functions related to purchase policy and discount conditions will be determined later
   /**
    * This function adds a new store to the system.
@@ -190,20 +170,7 @@ export class StoreController implements IStoreController {
   ): void {
     throw new Error("Method not implemented.");
   }
-  addDiscountToStore(
-    userId: string,
-    storeId: string,
-    discount: DiscountArgs
-  ): string {
-    throw new Error("Method not implemented.");
-  }
-  removeDiscountFromStore(
-    userId: string,
-    storeId: string,
-    discountId: string
-  ): void {
-    throw new Error("Method not implemented.");
-  }
+
   createStore(founderId: string, storeName: string): string {
     throw new Error("Method not implemented.");
   }

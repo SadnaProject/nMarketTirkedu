@@ -1,9 +1,16 @@
-import { type Basket } from "./Basket";
+import { type BasketDTO, type Basket } from "./Basket";
 
+export type CartDTO = {
+  storeIdToBasketPurchases: Map<string, BasketDTO[]>;
+  totalPrice: number;
+};
 export class Cart {
-  private baskets: Basket[];
+  private storeIdToBasketPurchases: Map<string, Basket[]>;
 
   constructor() {
-    this.baskets = [];
+    throw new Error("Not implemented");
+  }
+  public getTotalPrice(): number {
+    throw new Error("Not implemented");
   }
 }

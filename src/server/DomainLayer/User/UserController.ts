@@ -1,9 +1,11 @@
+import { type CartDTO } from "./Cart";
+
 interface IUserController {
   /**
    * This function gets the notifications of a user.
    * @param userId The id of the user that is currently logged in.
-  * @returns The notifications of the user. 
-  */
+   * @returns The notifications of the user.
+   */
   getNotifications(userId: string): never;
   /**
    * This function adds a product to a user's cart.
@@ -37,12 +39,12 @@ interface IUserController {
    * @param userId The id of the user that is currently logged in.
    * @returns The cart of the user.
    */
-  getCart(userId: string): never;
+  getCart(userId: string): CartDTO;
   /**
    * This function purchases the cart of a user.
    * @param userId The id of the user that is currently logged in.
    */
-  
+
   purchaseCart(userId: string): void;
 }
 

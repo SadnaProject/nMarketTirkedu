@@ -1,13 +1,21 @@
-import { type ProductPurchase } from "./ProductPurchase";
+import {
+  type ProductPurchaseDTO,
+  type ProductPurchase,
+} from "./ProductPurchase";
+import { type ProductReviewDTO } from "./ProductReview";
 import { type Review } from "./Review";
 
+export type BasketPurchaseDTO = {
+  products: ProductPurchaseDTO[];
+  review?: ProductReviewDTO;
+};
 export class BasketPurchase {
-  private storeId: string;
-  private products: ProductPurchase[];
+  private products: Map<string, ProductPurchase>;
   private review?: Review;
+  private price: number;
 
-  constructor(storeId: string) {
-    this.storeId = storeId;
-    this.products = [];
+  constructor(storeId: string, price: number) {
+    this.products = new Map();
+    this.price = price;
   }
 }

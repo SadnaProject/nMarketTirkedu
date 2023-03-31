@@ -1,5 +1,5 @@
 {
-  "name": "super-nir-example",
+  "name": "n-market-tirkedu",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,6 +9,7 @@
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@trpc/server": "^10.18.0",
     "dayjs": "^1.11.7",
     "superjson": "1.12.2",
     "zod": "^3.21.4"

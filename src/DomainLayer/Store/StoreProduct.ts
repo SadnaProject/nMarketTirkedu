@@ -17,10 +17,12 @@ export class StoreProduct {
   private quantity: number;
   private price: number;
 
-  constructor({ name, quantity, price }: StoreProductArgs) {
+  constructor({name, quantity, price}: StoreProductArgs) {
     this.id = crypto.randomUUID();
     this.name = name;
     this.quantity = quantity;
     this.price = price;
   }
 }
+
+

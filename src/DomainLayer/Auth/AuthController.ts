@@ -1,4 +1,4 @@
-interface IAuthController {
+export interface IAuthController {
   /**
    * Returns true if the provided userId is a guest user.
    * @param userId

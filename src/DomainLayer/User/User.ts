@@ -1,4 +1,4 @@
-import { Cart } from "./Cart";
+import { Cart, CartDTO } from "./Cart";
 import { type Notification } from "./Notification";
 
 export type UserArgs = {
@@ -38,8 +38,8 @@ export class User {
   public addNotification(notification: Notification): void {
     this.notifications.push(notification);
   }
-  public get Cart(): Cart {
-    return this.cart;
+  public get Cart(): CartDTO {
+    return this.cart.DTO;
   }
   public addProductToCart(productId: string, quantity: number, storeId:string): void {
     this.cart.addProduct(productId,storeId, quantity);

@@ -23,6 +23,14 @@ export class Basket {
       product.Quantity = quantity;
     }  
   }
+  public get DTO(): BasketDTO {
+    const productsDTO = this.products.map((p) => p.DTO);
+    return {
+      storeId: this.storeId,
+      products: productsDTO,
+    };
+  }
+
 
   getTotalPrice(): number {
     throw new Error("Not implemented");

@@ -80,8 +80,8 @@ export class UserController implements IUserController {
   ): void {
     throw new Error("Method not implemented.");
   }
-  getCart(userId: string): never {
-    throw new Error("Method not implemented.");
+  getCart(userId: string): CartDTO {
+    return this.userRepo.getUser(userId).Cart;  
   }
   purchaseCart(userId: string): void {
     throw new Error("Method not implemented.");
@@ -92,5 +92,4 @@ export class UserController implements IUserController {
   removeUser(userId: string): void {
     this.userRepo.removeUser(userId);
   }
-
 }

@@ -1,21 +1,21 @@
 import { type BasketDTO, Basket } from "./Basket";
 
 export type CartDTO = {
-  storeIdToBasketPurchases: Map<string, BasketDTO>;
+  storeIdToBasket: Map<string, BasketDTO>;
   totalPrice: number;
 };
 export class Cart {
-  private storeIdToBasketPurchases: Map<string, Basket>;
+  private storeIdToBasket: Map<string, Basket>;
 
   constructor() {
-    this.storeIdToBasketPurchases = new Map();
+    this.storeIdToBasket = new Map();
   }
   public addProduct(productId: string, storeId:string, quantity: number): void {
-    const basket = this.storeIdToBasketPurchases.get(storeId);
+    const basket = this.storeIdToBasket.get(storeId);
     if(basket === undefined){
       const new_basket = new Basket(storeId);
       new_basket.addProduct(productId, quantity);
-      this.storeIdToBasketPurchases.set(storeId,new_basket);
+      this.storeIdToBasket.set(storeId,new_basket);
     }else{
       basket.addProduct(productId, quantity);
     }
@@ -23,4 +23,16 @@ export class Cart {
   public getTotalPrice(): number {
     throw new Error("Not implemented");
   }
+  public get DTO(): CartDTO {
+    const storeIdToBasketDTO = new Map<string,BasketDTO>();
+    this.storeIdToBasket.forEach((basket,storeId) => {
+      storeIdToBasketDTO.set(storeId,basket.DTO);
+    });
+    return {
+      storeIdToBasket : storeIdToBasketDTO,
+      totalPrice: this.getTotalPrice(),
+    };
+  }
+
+
 }

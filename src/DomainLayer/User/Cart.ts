@@ -11,9 +11,9 @@ export class Cart {
     this.storeIdToBasketPurchases = new Map();
   }
   public addProduct(productId: string, storeId:string, quantity: number): void {
-    let basket = this.storeIdToBasketPurchases.get(storeId);
+    const basket = this.storeIdToBasketPurchases.get(storeId);
     if(basket === undefined){
-      let new_basket = new Basket(storeId);
+      const new_basket = new Basket(storeId);
       new_basket.addProduct(productId, quantity);
       this.storeIdToBasketPurchases.set(storeId,new_basket);
     }else{

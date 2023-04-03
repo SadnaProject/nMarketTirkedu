@@ -66,7 +66,7 @@ export class UserController implements IUserController {
     throw new Error("Method not implemented.");
   }
   addProductToCart(userId: string, productId: string, quantity: number,storeId:string): void {
-    let user = this.userRepo.getUser(userId); // notice that we get the user from the repo and not from the system
+    const user = this.userRepo.getUser(userId); // notice that we get the user from the repo and not from the system
     user.addProductToCart(productId, quantity,storeId);
   }
   removeProductFromCart(userId: string, productId: string,storeId:string): void {

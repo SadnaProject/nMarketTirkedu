@@ -18,7 +18,7 @@ export class MarketFacade {
   //Checking if user is logged in is done here.
   public addProductToCart(userId: string,productId: string, quantity: number) {
     this.isConnectionValid(userId);
-    let storeId = this.storeController.checkProductAvailability(productId, quantity);
+    const storeId = this.storeController.checkProductAvailability(productId, quantity);
     if(storeId==="")
       throw new Error("Product is not available");
     this.userController.addProductToCart(userId, productId, quantity,storeId);

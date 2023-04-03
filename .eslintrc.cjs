@@ -58,7 +58,7 @@ const config = {
     "jsdoc/require-example": 1,
     // "jsdoc/require-file-overview": 1,
     // "jsdoc/require-hyphen-before-param-description": 1,
-    "jsdoc/require-jsdoc": 1, // Recommended
+    // "jsdoc/require-jsdoc": 1, // Recommended
     "jsdoc/require-param": 1, // Recommended
     "jsdoc/require-param-description": 1, // Recommended
     "jsdoc/require-param-name": 1, // Recommended

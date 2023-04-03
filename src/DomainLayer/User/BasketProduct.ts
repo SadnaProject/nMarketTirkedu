@@ -10,4 +10,21 @@ export class BasketProduct {
     this.storeProductId = storeProductId;
     this.quantity = quantity;
   }
+  public get DTO(): BasketProductDTO {
+    return {
+      storeProductId: this.storeProductId,
+      quantity: this.quantity,
+    };  
+  }
+  
+  public get ProductId(): string {
+    return this.storeProductId;
+  }
+  public get Quantity(): number {
+    return this.quantity;
+  }
+  public set Quantity(quantity: number) {
+    this.quantity = quantity;
+  }
+  
 }

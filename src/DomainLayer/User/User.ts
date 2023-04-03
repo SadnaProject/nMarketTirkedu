@@ -1,4 +1,4 @@
-import { Cart } from "./Cart";
+import { Cart, CartDTO } from "./Cart";
 import { type Notification } from "./Notification";
 
 export type UserArgs = {
@@ -20,7 +20,6 @@ export class User {
   constructor({ id, name }: UserArgs) {
     this.id = id;
     this.name = name;
-
     this.notifications = [];
     this.cart = new Cart();
   }
@@ -32,4 +31,24 @@ export class User {
   public get Name(): string {
     return this.name;
   }
+
+  public get Notifications(): Notification[] {
+    return this.notifications;
+  }
+  public addNotification(notification: Notification): void {
+    this.notifications.push(notification);
+  }
+  public get Cart(): CartDTO {
+    return this.cart.DTO;
+  }
+  public addProductToCart(productId: string, quantity: number, storeId:string): void {
+    this.cart.addProduct(productId,storeId, quantity);
+  }
+  public removeProductFromCart(productId: string, storeId:string): void {
+    throw new Error("Not implemented");
+  }
+  public editProductQuantityInCart( productId: string, storeId:string, quantity: number): void {
+    throw new Error("Not implemented");
+  }
+  
 }

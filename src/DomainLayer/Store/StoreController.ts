@@ -2,7 +2,7 @@ import { type StoreProductArgs } from "./StoreProduct";
 
 //TODO: Should we also pass storeId together with productId?
 
-interface IStoreController {
+export interface IStoreController {
   /**
    * This function adds a product to a store.
    * @param userId The id of the user that is currently logged in.
@@ -130,6 +130,14 @@ interface IStoreController {
    * @throws Error if the product is not in the store.
    */
   getProductPriceInStore(productId: string): number;
+  /**
+   * This function returns the store id that have the product.
+   * @param productId The id of the product.
+   * @returns The id of the store that has the product.
+   * @returns "" if the product is not in any store.
+   * @returns "" if the product quantity is lower then the product quantity in the store.
+   */
+   checkProductAvailability(productId: string,quantity:number): string;
 }
 
 export class StoreController implements IStoreController {
@@ -186,4 +194,8 @@ export class StoreController implements IStoreController {
   getProductPriceInStore(productId: string): number {
     throw new Error("Method not implemented.");
   }
+  checkProductAvailability(productId: string,quantity:number): string {
+    throw new Error("Method not implemented.");
+  }
+  
 }

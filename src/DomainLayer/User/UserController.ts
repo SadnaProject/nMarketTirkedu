@@ -1,6 +1,7 @@
 import { type CartDTO } from "./Cart";
-
-interface IUserController {
+import { UserDTO } from "./User";
+import { UserRepo } from "./UserRepo";
+export interface IUserController {
   /**
    * This function gets the notifications of a user.
    * @param userId The id of the user that is currently logged in.
@@ -13,14 +14,14 @@ interface IUserController {
    * @param productId The id of the product that is being added to the cart.
    * @param quantity The quantity of the product that is being added to the cart.
    */
-  addProductToCart(userId: string, productId: string, quantity: number): void;
+  addProductToCart(userId: string, productId: string, quantity: number,storeId:string): void;
   /**
    * This function removes a product from a user's cart.
    * @param userId The id of the user that is currently logged in.
    * @param productId The id of the product that is being removed from the cart.
    * @throws Error if the product is not in the cart.
    */
-  removeProductFromCart(userId: string, productId: string): void;
+  removeProductFromCart(userId: string, productId: string, storeId:string): void;
   /**
    * This function edits the quantity of a product in a user's cart.
    * @param userId The id of the user that is currently logged in.
@@ -32,6 +33,7 @@ interface IUserController {
   editProductQuantityInCart(
     userId: string,
     productId: string,
+    storeId:string,
     quantity: number
   ): void;
   /**
@@ -44,23 +46,36 @@ interface IUserController {
    * This function purchases the cart of a user.
    * @param userId The id of the user that is currently logged in.
    */
-
   purchaseCart(userId: string): void;
+  /**
+   * This function adds a user to the system.
+   * @param user The user that is being added to the system.
+   */
+  addUser(user: UserDTO): void;
+  /**
+   * This function removes a user from the system.
+   * @param userId The id of the user that is being removed from the system.
+   */
+  removeUser(userId: string): void;
+  
 }
 
 export class UserController implements IUserController {
+  private userRepo: UserRepo = new UserRepo();
   getNotifications(userId: string): never {
     throw new Error("Method not implemented.");
   }
-  addProductToCart(userId: string, productId: string, quantity: number): void {
-    throw new Error("Method not implemented.");
+  addProductToCart(userId: string, productId: string, quantity: number,storeId:string): void {
+    let user = this.userRepo.getUser(userId); // notice that we get the user from the repo and not from the system
+    user.addProductToCart(productId, quantity,storeId);
   }
-  removeProductFromCart(userId: string, productId: string): void {
+  removeProductFromCart(userId: string, productId: string,storeId:string): void {
     throw new Error("Method not implemented.");
   }
   editProductQuantityInCart(
     userId: string,
     productId: string,
+    storeId:string,
     quantity: number
   ): void {
     throw new Error("Method not implemented.");
@@ -71,4 +86,11 @@ export class UserController implements IUserController {
   purchaseCart(userId: string): void {
     throw new Error("Method not implemented.");
   }
+  addUser(user: UserDTO): void {
+    this.userRepo.addUser(user);
+  }
+  removeUser(userId: string): void {
+    this.userRepo.removeUser(userId);
+  }
+
 }

@@ -1,25 +1,19 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const path = require("path");
-
 /** @type {import("eslint").Linter.Config} */
 const config = {
-  overrides: [
-    {
-      extends: [
-        "plugin:@typescript-eslint/recommended-requiring-type-checking",
-      ],
-      files: ["*.ts", "*.tsx"],
-      parserOptions: {
-        project: path.join(__dirname, "tsconfig.json"),
-      },
-    },
-  ],
   parser: "@typescript-eslint/parser",
+  env: {
+    node: true,
+  },
   parserOptions: {
-    project: path.join(__dirname, "tsconfig.json"),
+    project: "tsconfig.json",
+    tsconfigRootDir: __dirname,
   },
   plugins: ["@typescript-eslint", "jsdoc"],
-  extends: ["plugin:@typescript-eslint/recommended"],
+  extends: [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+  ],
   rules: {
     "@typescript-eslint/consistent-type-imports": [
       "warn",

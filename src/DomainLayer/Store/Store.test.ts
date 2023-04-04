@@ -26,7 +26,7 @@ describe("Name", () => {
     expect(store.Name).toBe("name");
   });
 
-  it("auto restore mock", async () => {
+  it("auto restore mock", () => {
     expect(() => {
       throw new Error("error");
     }).toThrow();

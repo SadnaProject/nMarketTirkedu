@@ -1,0 +1,19 @@
+{
+  "recommendations": [
+    //  must have
+    "WallabyJs.console-ninja",
+    "Prisma.prisma",
+    "ZixuanChen.vitest-explorer",
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "ryanluker.vscode-coverage-gutters",
+    // nice to have
+    "streetsidesoftware.code-spell-checker",
+    "vivaxy.vscode-conventional-commits",
+    "eamodio.gitlens",
+    "vscode-icons-team.vscode-icons",
+    "aaron-bond.better-comments",
+    "unifiedjs.vscode-mdx",
+    "xyc.vscode-mdx-preview"
+  ]
+}

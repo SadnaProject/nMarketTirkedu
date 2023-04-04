@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { type CartDTO } from "../User/Cart";
 import { type BasketPurchaseDTO, type BasketPurchase } from "./BasketPurchase";
 
@@ -14,7 +15,7 @@ export class CartPurchase {
   private totalPrice: number;
 
   constructor(cart: CartDTO) {
-    this.id = crypto.randomUUID();
+    this.id = randomUUID();
     throw new Error("Method not implemented.");
     // this.storeIdToBasketPurchases = // TODO implement (each basket should be transformed to a basket purchase)
   }

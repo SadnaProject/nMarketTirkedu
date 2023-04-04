@@ -1,16 +1,14 @@
 import { type StoreProductArgs } from "./StoreProduct";
 
-//TODO: Should we also pass storeId together with productId?
-
 interface IStoreController {
   /**
-   * This function adds a product to a store.
+   * This function creates a product to a store.
    * @param userId The id of the user that is currently logged in.
    * @param storeId The id of the store that the product is being added to.
    * @param product The product that is being added to the store.
    * @returns The id of the product that was added to the store.
    */
-  addProductToStore(
+  createProduct(
     userId: string,
     storeId: string,
     product: StoreProductArgs
@@ -29,37 +27,25 @@ interface IStoreController {
    */
   getStoreProducts(storeId: string): never;
   /**
-   * This function updates the quantity of a product in a store.
+   * This function sets the quantity of a product in a store.
    * @param userId The id of the user that is currently logged in.
-   * @param storeId The id of the store that the product is being updated in.
    * @param productId The id of the product that is being updated.
    * @param quantity The new quantity of the product.
    * @throws Error if the store is not active.
    */
-  updateProductQuantityInStore(
-    userId: string,
-    storeId: string,
-    productId: string,
-    quantity: number
-  ): void;
+  setProductQuantity(userId: string, productId: string, quantity: number): void;
   /**
-   * This function removes a product from a store.
+   * This function deletes a product from a store.
    * @param userId The id of the user that is currently logged in.
-   * @param storeId The id of the store that the product is being removed from.
    * @param productId The id of the product that is being removed.
    * @throws Error if the store is not active.
    * @throws Error if the product is not in the store.
    * @throws Error if user does not have permission to remove product.
    */
-  removeProductFromStore(
-    userId: string,
-    storeId: string,
-    productId: string
-  ): void;
+  deleteProduct(userId: string, productId: string): void;
   /**
-   * This function updates the price of a product in a store.
+   * This function sets the price of a product in a store.
    * @param userId The id of the user that is currently logged in.
-   * @param storeId The id of the store that the product is being updated in.
    * @param productId The id of the product that is being updated.
    * @param price The new price of the product.
    * @throws Error if the store is not active.
@@ -67,12 +53,7 @@ interface IStoreController {
    * @throws Error if the price is invalid.
    *@throws Error if user does not have permission to update product price.
    */
-  updateProductPriceInStore(
-    userId: string,
-    storeId: string,
-    productId: string,
-    price: number
-  ): void;
+  setProductPrice(userId: string, productId: string, price: number): void;
   //! There will be addDiscountCondition for each condition type
   /**
    * This function adds a discount to a store.
@@ -89,7 +70,7 @@ interface IStoreController {
 
   //! Functions related to purchase policy and discount conditions will be determined later
   /**
-   * This function adds a new store to the system.
+   * This function creates a new store.
    * @param founderId The id of the user that is currently logged in.
    * @param storeName The name of the store.
    * @returns The id of the store that was added to the system.
@@ -122,55 +103,43 @@ interface IStoreController {
    * @throws Error if the store is already closed.
    * @throws Error if the user does not have permission to close the store.
    */
-  closeStorePermanently(userId: string, storeId: string): void;
+  closeStorePermanently(userId: string, storeId: string): void; //! should it be deleted?
   /**
    * This function returns the product's price in a store.
    * @param productId The id of the product.
    * @returns The price of the product in the store.
    * @throws Error if the product is not in the store.
    */
-  getProductPriceInStore(productId: string): number;
+  getProductPrice(productId: string): number;
 }
 
 export class StoreController implements IStoreController {
-  addProductToStore(
+  createProduct(
     userId: string,
     storeId: string,
-    product: StoreProductArgs
+    product: { name: string; quantity: number; price: number }
   ): string {
     throw new Error("Method not implemented.");
   }
-
   isStoreActive(storeId: string): boolean {
     throw new Error("Method not implemented.");
   }
   getStoreProducts(storeId: string): never {
     throw new Error("Method not implemented.");
   }
-  updateProductQuantityInStore(
+  setProductQuantity(
     userId: string,
-    storeId: string,
     productId: string,
     quantity: number
   ): void {
     throw new Error("Method not implemented.");
   }
-  removeProductFromStore(
-    userId: string,
-    storeId: string,
-    productId: string
-  ): void {
+  deleteProduct(userId: string, productId: string): void {
     throw new Error("Method not implemented.");
   }
-  updateProductPriceInStore(
-    userId: string,
-    storeId: string,
-    productId: string,
-    price: number
-  ): void {
+  setProductPrice(userId: string, productId: string, price: number): void {
     throw new Error("Method not implemented.");
   }
-
   createStore(founderId: string, storeName: string): string {
     throw new Error("Method not implemented.");
   }
@@ -183,7 +152,7 @@ export class StoreController implements IStoreController {
   closeStorePermanently(userId: string, storeId: string): void {
     throw new Error("Method not implemented.");
   }
-  getProductPriceInStore(productId: string): number {
+  getProductPrice(productId: string): number {
     throw new Error("Method not implemented.");
   }
 }

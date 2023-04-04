@@ -1,3 +1,8 @@
+import { z } from "zod";
+const { randomUUID } = await import("crypto");
+
+const nameSchema = z.string().nonempty();
+
 export type StoreDTO = {
   id: string;
   name: string;
@@ -10,8 +15,33 @@ export class Store {
   private isActive: boolean;
 
   constructor(name: string) {
-    this.id = crypto.randomUUID();
+    nameSchema.parse(name);
+    this.id = randomUUID();
     this.name = name;
     this.isActive = true;
+  }
+
+  public get Id() {
+    return this.id;
+  }
+
+  public get Name() {
+    return this.name;
+  }
+
+  public get IsActive() {
+    return this.isActive;
+  }
+
+  public set IsActive(isActive: boolean) {
+    this.isActive = isActive;
+  }
+
+  public get DTO(): StoreDTO {
+    return {
+      id: this.id,
+      name: this.name,
+      isActive: this.isActive,
+    };
   }
 }

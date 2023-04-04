@@ -1,3 +1,5 @@
+import { randomUUID } from "crypto";
+
 export type ReviewDTO = {
   id: string;
   rating: number;
@@ -14,7 +16,7 @@ export class Review {
   private createdAt: Date;
 
   constructor({ rating }: ReviewArgs) {
-    this.id = crypto.randomUUID();
+    this.id = randomUUID();
     this.rating = rating;
     this.createdAt = new Date();
   }

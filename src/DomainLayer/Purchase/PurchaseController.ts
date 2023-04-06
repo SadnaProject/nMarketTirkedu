@@ -1,7 +1,7 @@
 import { type CartDTO } from "../User/Cart";
 import { type BasketPurchaseDTO } from "./BasketPurchase";
 import { type CartPurchaseDTO } from "./CartPurchase";
-import { type ProductReviewArgs, type ProductReviewDTO } from "./ProductReview";
+import { type ProductReviewArgs, type ProductReviewDTO, ProductReview } from "./ProductReview";
 
 interface IPurchaseController {
   getPurchase(purchaseId: string): CartPurchaseDTO;
@@ -13,7 +13,9 @@ interface IPurchaseController {
   ): void; // TODO: add
   addProductPurchaseReview(
     userId: string,
+    storeId: string,
     purchaseId: string,
+    productId: string,
     review: ProductReviewArgs
   ): void;
   getStoreRating(storeId: string): number;
@@ -52,10 +54,12 @@ export class PurchaseController implements IPurchaseController {
   }
   addProductPurchaseReview(
     userId: string,
+    storeId: string,
     purchaseId: string,
+    productId: string,
     review: ProductReviewArgs
   ): void {
-    throw new Error("Method not implemented.");
+    this.getPurchase(purchaseId).storeIdToBasketPurchases.get(storeId)?.Products.get(productId)?.setReview(new ProductReview(review));
   }
   getStoreRating(storeId: string): number {
     throw new Error("Method not implemented.");

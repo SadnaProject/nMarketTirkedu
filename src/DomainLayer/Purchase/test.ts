@@ -1,0 +1,28 @@
+import { describe, expect, it } from "vitest";
+import { PurchaseController } from "./PurchaseController";
+import { ProductReviewArgs, ProductReview } from "./ProductReview";
+
+describe("add product purchase review", () => {
+    it("should add review to product purchase", async () => {
+        const purchaseController = new PurchaseController();
+        const userId = "userId";
+        const storeId = "storeId";
+        const purchaseId = "purchaseId";
+        const productId = "productId";
+        let review : ProductReviewArgs = {
+            title: "title",
+            description: "description",
+            rating: 5
+        };
+        purchaseController.addProductPurchaseReview(
+        userId,
+        storeId,
+        purchaseId,
+        productId,
+        review
+        );
+        expect(purchaseController.getPurchase(purchaseId).storeIdToBasketPurchases.get(storeId)?.Products.get(productId)?.Review).toEqual(new ProductReview(review));
+    });
+});
+
+

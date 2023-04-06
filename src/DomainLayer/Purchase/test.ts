@@ -3,13 +3,13 @@ import { PurchaseController } from "./PurchaseController";
 import { ProductReviewArgs, ProductReview } from "./ProductReview";
 
 describe("add product purchase review", () => {
-    it("should add review to product purchase", async () => {
+    it("should add review to product purchase",  () => {
         const purchaseController = new PurchaseController();
         const userId = "userId";
         const storeId = "storeId";
         const purchaseId = "purchaseId";
         const productId = "productId";
-        let review : ProductReviewArgs = {
+        const review : ProductReviewArgs = {
             title: "title",
             description: "description",
             rating: 5

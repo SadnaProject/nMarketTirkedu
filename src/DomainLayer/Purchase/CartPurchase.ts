@@ -5,17 +5,22 @@ import { type BasketPurchaseDTO, type BasketPurchase } from "./BasketPurchase";
 
 export type CartPurchaseDTO = {
   id: string;
-  storeIdToBasketPurchases: Map<string, BasketPurchase[]>;
+  storeIdToBasketPurchases: Map<string, BasketPurchase>;
   totalPrice: number;
 };
 export class CartPurchase {
   private id: string;
-  private storeIdToBasketPurchases: Map<string, BasketPurchase[]>;
+  private storeIdToBasketPurchases: Map<string, BasketPurchase>;
   private totalPrice: number;
 
   constructor(cart: CartDTO) {
     this.id = crypto.randomUUID();
     throw new Error("Method not implemented.");
     // this.storeIdToBasketPurchases = // TODO implement (each basket should be transformed to a basket purchase)
+  }
+
+  // create getters and setters
+  public get StoreIdToBasketPurchases(): Map<string, BasketPurchase> {
+    return this.storeIdToBasketPurchases;
   }
 }

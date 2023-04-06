@@ -10,4 +10,13 @@ export type ProductReviewArgs = {
   description: string;
 } & ReviewArgs;
 
-export class ProductReview extends Review {}
+export class ProductReview extends Review {
+  private title: string;
+  private description: string;
+
+  constructor(productReviewArgs: ProductReviewArgs) {
+    super(productReviewArgs);
+    this.title = productReviewArgs.title;
+    this.description = productReviewArgs.description;
+  }
+}

@@ -4,6 +4,7 @@ const config = {
   env: {
     node: true,
   },
+  ignorePatterns: ["node_modules", "coverage", "docs"],
   parserOptions: {
     project: "tsconfig.json",
     tsconfigRootDir: __dirname,

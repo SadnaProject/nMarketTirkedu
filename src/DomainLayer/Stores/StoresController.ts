@@ -3,7 +3,7 @@ import { Store } from "./Store";
 import { type StoreProductArgs } from "./StoreProduct";
 import { StoresRepo } from "./StoresRepo";
 
-export interface IStoreController {
+export interface IStoresController {
   /**
    * This function creates a product to a store.
    * @param userId The id of the user that is currently logged in.
@@ -117,7 +117,7 @@ export interface IStoreController {
   getProductPrice(productId: string): number;
 }
 
-export class StoreController extends Controller implements IStoreController {
+export class StoresController extends Controller implements IStoresController {
   private storesRepo: StoresRepo;
 
   constructor() {

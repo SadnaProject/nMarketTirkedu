@@ -1,14 +1,14 @@
 import { type IAuthController } from "./Auth/AuthController";
-import { type IJobController } from "./Job/JobController";
-import { type IPurchaseController } from "./Purchase/PurchaseController";
-import { type IStoreController } from "./Store/StoreController";
-import { type IUserController } from "./User/UserController";
+import { type IJobsController } from "./Jobs/JobsController";
+import { type IPurchasesHistoryController } from "./PurchasesHistory/PurchasesHistoryController";
+import { type IStoresController } from "./Stores/StoresController";
+import { type IUsersController } from "./Users/UsersController";
 
 export type Controllers = {
-  PurchasesHistory: IPurchaseController;
-  Stores: IStoreController;
-  Users: IUserController;
-  Jobs: IJobController;
+  PurchasesHistory: IPurchasesHistoryController;
+  Stores: IStoresController;
+  Users: IUsersController;
+  Jobs: IJobsController;
   Auth: IAuthController;
 };
 

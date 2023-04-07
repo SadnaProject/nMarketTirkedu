@@ -1,29 +1,29 @@
-import { StoreController } from "./Store/StoreController";
+import { StoresController } from "./Stores/StoresController";
 import { AuthController } from "./Auth/AuthController";
 import { type Controllers } from "./Controller";
-import { JobController } from "./Job/JobController";
-import { PurchaseController } from "./Purchase/PurchaseController";
-import { UserController } from "./User/UserController";
+import { JobsController } from "./Jobs/JobsController";
+import { PurchasesHistoryController } from "./PurchasesHistory/PurchasesHistoryController";
+import { UsersController } from "./Users/UsersController";
 
 export class MarketFacade {
   private controllers: Controllers;
 
   constructor() {
-    const storeController = new StoreController();
+    const storesController = new StoresController();
     const authController = new AuthController();
-    const jobsController = new JobController();
-    const purchasesHistoryController = new PurchaseController();
-    const usersController = new UserController();
+    const jobsController = new JobsController();
+    const purchasesHistoryController = new PurchasesHistoryController();
+    const usersController = new UsersController();
 
     this.controllers = {
-      Stores: storeController,
+      Stores: storesController,
       Auth: authController,
       Jobs: jobsController,
       PurchasesHistory: purchasesHistoryController,
       Users: usersController,
     };
 
-    storeController.initControllers(this.controllers);
+    storesController.initControllers(this.controllers);
     authController.initControllers(this.controllers);
     jobsController.initControllers(this.controllers);
     purchasesHistoryController.initControllers(this.controllers);

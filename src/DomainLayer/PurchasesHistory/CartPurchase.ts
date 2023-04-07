@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { type CartDTO } from "../User/Cart";
+import { type CartDTO } from "../Users/Cart";
 import { type BasketPurchase } from "./BasketPurchase";
 
 // TODO: Does a class need to know its related id, or should the parent hold a map for it?

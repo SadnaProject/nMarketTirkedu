@@ -1,7 +1,7 @@
 import { Controller } from "../Controller";
 import { type StoreProductArgs } from "./StoreProduct";
 
-interface IStoreController {
+export interface IStoreController {
   /**
    * This function creates a product to a store.
    * @param userId The id of the user that is currently logged in.

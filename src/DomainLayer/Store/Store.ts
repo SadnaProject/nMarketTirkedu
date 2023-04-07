@@ -21,6 +21,13 @@ export class Store {
     this.isActive = true;
   }
 
+  static fromDTO(dto: StoreDTO) {
+    const store = new Store(dto.name);
+    store.id = dto.id;
+    store.isActive = dto.isActive;
+    return store;
+  }
+
   public get Id() {
     return this.id;
   }

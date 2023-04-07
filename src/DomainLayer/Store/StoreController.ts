@@ -1,5 +1,7 @@
 import { Controller } from "../Controller";
+import { Store } from "./Store";
 import { type StoreProductArgs } from "./StoreProduct";
+import { StoresRepo } from "./StoresRepo";
 
 export interface IStoreController {
   /**
@@ -36,11 +38,18 @@ export interface IStoreController {
    */
   setProductQuantity(userId: string, productId: string, quantity: number): void;
   /**
+   * This function decreases the quantity of a product in a store.
+   * @param productId The id of the product that is being updated.
+   * @param quantity The quantity that is being removed from the product.
+   * @throws Error if the store is not active.
+   * @throws Error if the quantity is invalid.
+   */
+  decreaseProductQuantity(productId: string, quantity: number): void;
+  /**
    * This function deletes a product from a store.
    * @param userId The id of the user that is currently logged in.
    * @param productId The id of the product that is being removed.
    * @throws Error if the store is not active.
-   * @throws Error if the product is not in the store.
    * @throws Error if user does not have permission to remove product.
    */
   deleteProduct(userId: string, productId: string): void;
@@ -50,7 +59,6 @@ export interface IStoreController {
    * @param productId The id of the product that is being updated.
    * @param price The new price of the product.
    * @throws Error if the store is not active.
-   * @throws Error if the product is not in the store.
    * @throws Error if the price is invalid.
    *@throws Error if user does not have permission to update product price.
    */
@@ -84,16 +92,13 @@ export interface IStoreController {
    * This function activates a store.
    * @param userId The id of the user that is currently logged in.
    * @param storeId The id of the store that is being activated.
-   * @throws Error if the store is already active.
    * @throws Error if the user does not have permission to activate the store.
    */
-
   activateStore(userId: string, storeId: string): void;
   /**
    * This function deactivates a store.
    * @param userId The id of the user that is currently logged in.
    * @param storeId The id of the store that is being deactivated.
-   * @throws Error if the store is already inactive.
    * @throws Error if the user does not have permission to deactivate the store.
    */
   deactivateStore(userId: string, storeId: string): void;
@@ -101,7 +106,6 @@ export interface IStoreController {
    * This function permanently closes a store.
    * @param userId The id of the user that is currently logged in.
    * @param storeId The id of the store that is being closed.
-   * @throws Error if the store is already closed.
    * @throws Error if the user does not have permission to close the store.
    */
   closeStorePermanently(userId: string, storeId: string): void; //! should it be deleted?
@@ -109,12 +113,18 @@ export interface IStoreController {
    * This function returns the product's price in a store.
    * @param productId The id of the product.
    * @returns The price of the product in the store.
-   * @throws Error if the product is not in the store.
    */
   getProductPrice(productId: string): number;
 }
 
 export class StoreController extends Controller implements IStoreController {
+  private storesRepo: StoresRepo;
+
+  constructor() {
+    super();
+    this.storesRepo = new StoresRepo();
+  }
+
   createProduct(
     userId: string,
     storeId: string,
@@ -135,6 +145,9 @@ export class StoreController extends Controller implements IStoreController {
   ): void {
     throw new Error("Method not implemented.");
   }
+  decreaseProductQuantity(productId: string, quantity: number): void {
+    throw new Error("Method not implemented.");
+  }
   deleteProduct(userId: string, productId: string): void {
     throw new Error("Method not implemented.");
   }
@@ -142,7 +155,12 @@ export class StoreController extends Controller implements IStoreController {
     throw new Error("Method not implemented.");
   }
   createStore(founderId: string, storeName: string): string {
-    throw new Error("Method not implemented.");
+    //TODO: this.Controllers.Jobs.
+    if (this.storesRepo.getAllNames().has(storeName))
+      throw new Error("Store name is already taken");
+    const store = new Store(storeName);
+    this.storesRepo.addStore(store.DTO);
+    return store.Id;
   }
   activateStore(userId: string, storeId: string): void {
     throw new Error("Method not implemented.");

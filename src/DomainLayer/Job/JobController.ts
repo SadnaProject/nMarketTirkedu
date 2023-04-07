@@ -1,7 +1,8 @@
+import { Controller } from "../Controller";
 import { type StoreDTO } from "../Store/Store";
 import { type UserDTO } from "../User/User";
 
-interface IJobController {
+export interface IJobController {
   /**
    * This function makes a user a store owner when they are added to a store.
    * @param currentId The id of the user that is currently logged in.
@@ -133,7 +134,7 @@ interface IJobController {
   getStoreManagers(storeId: string): UserDTO[];
 }
 
-export class JobController implements IJobController {
+export class JobController extends Controller implements IJobController {
   getStoreFounder(storeId: string): UserDTO {
     throw new Error("Method not implemented.");
   }

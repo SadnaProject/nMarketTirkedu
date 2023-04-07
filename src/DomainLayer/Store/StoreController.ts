@@ -1,6 +1,7 @@
+import { Controller } from "../Controller";
 import { type StoreProductArgs } from "./StoreProduct";
 
-interface IStoreController {
+export interface IStoreController {
   /**
    * This function creates a product to a store.
    * @param userId The id of the user that is currently logged in.
@@ -113,7 +114,7 @@ interface IStoreController {
   getProductPrice(productId: string): number;
 }
 
-export class StoreController implements IStoreController {
+export class StoreController extends Controller implements IStoreController {
   createProduct(
     userId: string,
     storeId: string,

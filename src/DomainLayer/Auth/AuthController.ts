@@ -1,3 +1,5 @@
+import { Controller } from "../Controller";
+
 export interface IAuthController {
   /**
    * Returns true if the provided userId is a guest user.
@@ -63,7 +65,7 @@ export interface IAuthController {
   ): void;
 }
 
-export class AuthController implements IAuthController {
+export class AuthController extends Controller implements IAuthController {
   login(email: string, password: string): string {
     throw new Error("Method not implemented.");
   }

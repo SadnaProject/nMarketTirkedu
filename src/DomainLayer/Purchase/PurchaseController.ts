@@ -1,9 +1,10 @@
+import { Controller } from "../Controller";
 import { type CartDTO } from "../User/Cart";
 import { type BasketPurchaseDTO } from "./BasketPurchase";
 import { type CartPurchaseDTO } from "./CartPurchase";
 import { type ProductReviewArgs, type ProductReviewDTO } from "./ProductReview";
 
-interface IPurchaseController {
+export interface IPurchaseController {
   getPurchase(purchaseId: string): CartPurchaseDTO;
   purchaseCart(userId: string, cart: CartDTO): void; // TODO: add payment details
   addStorePurchaseReview(
@@ -27,10 +28,14 @@ interface IPurchaseController {
   getPurchasesByStore(storeId: string): BasketPurchaseDTO[];
 }
 
-export class PurchaseController implements IPurchaseController {
+export class PurchaseController
+  extends Controller
+  implements IPurchaseController
+{
   private userIdToCartPurchases: Map<string, CartPurchaseDTO[]>;
 
   constructor() {
+    super();
     this.userIdToCartPurchases = new Map();
   }
   getPurchasesByUser(userId: string): CartPurchaseDTO[] {

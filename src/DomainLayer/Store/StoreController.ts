@@ -1,3 +1,4 @@
+import { Controller } from "../Controller";
 import { type StoreProductArgs } from "./StoreProduct";
 
 interface IStoreController {
@@ -113,7 +114,7 @@ interface IStoreController {
   getProductPrice(productId: string): number;
 }
 
-export class StoreController implements IStoreController {
+export class StoreController extends Controller implements IStoreController {
   createProduct(
     userId: string,
     storeId: string,

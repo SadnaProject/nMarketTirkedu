@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { HasRepos } from "./HasRepos";
+import { StoreProduct } from "./StoreProduct";
 const { randomUUID } = await import("crypto");
 
 const nameSchema = z.string().nonempty();
@@ -9,12 +11,13 @@ export type StoreDTO = {
   isActive: boolean;
 };
 
-export class Store {
+export class Store extends HasRepos {
   private id: string;
   private name: string;
   private isActive: boolean;
 
   constructor(name: string) {
+    super();
     nameSchema.parse(name);
     this.id = randomUUID();
     this.name = name;
@@ -41,6 +44,7 @@ export class Store {
   }
 
   public set IsActive(isActive: boolean) {
+    this.Repos.Stores.setIsActive(this.id, isActive);
     this.isActive = isActive;
   }
 
@@ -50,5 +54,11 @@ export class Store {
       name: this.name,
       isActive: this.isActive,
     };
+  }
+
+  public get Products() {
+    return this.Repos.Products.getProductsByStoreId(this.id).map(
+      (p) => StoreProduct.fromDTO(p).initRepos(this.Repos).DTO
+    );
   }
 }

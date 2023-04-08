@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { z } from "zod";
+import { HasRepos } from "./HasRepos";
 
 const nameSchema = z.string().nonempty();
 const quantitySchema = z.number().positive();
@@ -20,18 +21,29 @@ export type StoreProductDTO = {
   price: number;
 };
 
-export class StoreProduct {
+export class StoreProduct extends HasRepos {
   private id: string;
   private name: string;
   private quantity: number;
   private price: number;
 
   constructor(product: StoreProductArgs) {
+    super();
     storeProductArgsSchema.parse(product);
     this.id = randomUUID();
     this.name = product.name;
     this.quantity = product.quantity;
     this.price = product.price;
+  }
+
+  static fromDTO(dto: StoreProductDTO) {
+    const product = new StoreProduct({
+      name: dto.name,
+      quantity: dto.quantity,
+      price: dto.price,
+    });
+    product.id = dto.id;
+    return product;
   }
 
   public get Id() {

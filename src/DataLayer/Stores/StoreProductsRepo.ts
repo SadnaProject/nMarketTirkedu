@@ -1,0 +1,30 @@
+import { type StoreProductDTO } from "~/DomainLayer/Stores/StoreProduct";
+
+export class StoreProductsRepo {
+  private productsByStoreId: Map<string, StoreProductDTO[]>;
+
+  constructor() {
+    this.productsByStoreId = new Map<string, StoreProductDTO[]>();
+  }
+
+  public addProduct(storeId: string, product: StoreProductDTO) {
+    const products = this.productsByStoreId.get(storeId) || [];
+    products.push(product);
+    this.productsByStoreId.set(storeId, products);
+  }
+
+  private getAllProducts() {
+    return Array.from(this.productsByStoreId.values()).flat();
+  }
+
+  public getProductById(productId: string) {
+    const product = this.getAllProducts().find((p) => p.id === productId);
+    if (!product) {
+      throw new Error("Product not found");
+    }
+    return product;
+  }
+  public getProductsByStoreId(storeId: string) {
+    return this.productsByStoreId.get(storeId) || [];
+  }
+}

@@ -1,7 +1,7 @@
 import { HasControllers } from "../HasController";
 import { type CartDTO } from "../Users/Cart";
 import { type BasketPurchaseDTO } from "./BasketPurchase";
-import { type CartPurchaseDTO } from "./CartPurchase";
+import { CartPurchase, type CartPurchaseDTO } from "./CartPurchase";
 import { type ProductReviewArgs, type ProductReviewDTO, ProductReview } from "./ProductReview";
 
 export interface IPurchasesHistoryController {
@@ -35,9 +35,10 @@ export class PurchasesHistoryController
   implements IPurchasesHistoryController
 {
   private userIdToCartPurchases: Map<string, CartPurchaseDTO[]>;
-
+  private purchaseIdToPurchase: Map<string, CartPurchaseDTO>;
   constructor() {
     super();
+    this.purchaseIdToPurchase = new Map();
     this.userIdToCartPurchases = new Map();
   }
   getPurchasesByUser(userId: string): CartPurchaseDTO[] {
@@ -64,6 +65,9 @@ export class PurchasesHistoryController
     productId: string,
     review: ProductReviewArgs
   ): void {
+    if(this.getPurchase(purchaseId) === undefined) {
+      throw new Error("Purchase not found");
+    }
     this.getPurchase(purchaseId).storeIdToBasketPurchases.get(storeId)?.Products.get(productId)?.setReview(new ProductReview(review, userId, purchaseId, "", productId));
   }
   getStoreRating(storeId: string): number {
@@ -82,6 +86,21 @@ export class PurchasesHistoryController
     throw new Error("Method not implemented.");
   }
   getPurchase(purchaseId: string): CartPurchaseDTO {
-    throw new Error("Method not implemented.");
+    const purchase = this.purchaseIdToPurchase.get(purchaseId);
+    if (purchase === undefined) {
+      throw new Error("Purchase not found");
+    }
+    return purchase;
   }
+  addPurchase(purchaseId: string, userId: string, purchase: CartPurchaseDTO) {
+    if (this.purchaseIdToPurchase.get(purchaseId) !== undefined) {
+      throw new Error("Purchase already exists");
+    }
+    this.purchaseIdToPurchase.set(purchaseId, purchase);
+    if (this.userIdToCartPurchases.get(userId) === undefined) {
+      this.userIdToCartPurchases.set(userId, []);
+    }
+    this.userIdToCartPurchases.get(userId)?.push(purchase);
+  }
+
 }

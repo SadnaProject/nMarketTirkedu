@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { z } from "zod";
-import { HasRepos } from "./HasRepos";
+import { HasRepos, type Repos } from "./HasRepos";
+import { Store } from "./Store";
 
 const nameSchema = z.string().nonempty();
 const quantitySchema = z.number().positive();
@@ -36,12 +37,13 @@ export class StoreProduct extends HasRepos {
     this.price = product.price;
   }
 
-  static fromDTO(dto: StoreProductDTO) {
+  static fromDTO(dto: StoreProductDTO, repos: Repos) {
     const product = new StoreProduct({
       name: dto.name,
       quantity: dto.quantity,
       price: dto.price,
     });
+    product.initRepos(repos);
     product.id = dto.id;
     return product;
   }
@@ -72,6 +74,12 @@ export class StoreProduct extends HasRepos {
     this.price = price;
   }
 
+  public get Store() {
+    const storeId = this.Repos.Products.getStoreIdByProductId(this.id);
+    const dto = this.Repos.Stores.getStoreById(storeId);
+    return Store.fromDTO(dto, this.Repos);
+  }
+
   public get DTO(): StoreProductDTO {
     return {
       id: this.id,
@@ -79,5 +87,12 @@ export class StoreProduct extends HasRepos {
       quantity: this.quantity,
       price: this.price,
     };
+  }
+
+  public isQuantityInStock(quantity: number): boolean {
+    if (!this.Store.IsActive) {
+      throw new Error("Store is not active");
+    }
+    return this.quantity >= quantity;
   }
 }

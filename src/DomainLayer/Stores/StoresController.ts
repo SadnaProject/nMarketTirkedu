@@ -122,6 +122,15 @@ export interface IStoresController {
    * @returns The price of the product in the store.
    */
   getProductPrice(productId: string): number;
+  /**
+   * This function checks if a product is in stock.
+   * @param productId The id of the product.
+   * @param quantity The quantity of the product.
+   * @returns True if the product is in stock, false otherwise.
+   * @throws Error if the store is not active.
+   * @throws Error if the product does not exist.
+   */
+  isProductQuantityInStock(productId: string, quantity: number): boolean;
 }
 
 export class StoresController
@@ -135,6 +144,10 @@ export class StoresController
       Products: new StoreProductsRepo(),
     });
   }
+  isProductQuantityInStock(productId: string, quantity: number): boolean {
+    const dto = this.Repos.Products.getProductById(productId);
+    return StoreProduct.fromDTO(dto, this.Repos).isQuantityInStock(quantity);
+  }
 
   createProduct(
     userId: string,
@@ -147,9 +160,8 @@ export class StoresController
     throw new Error("Method not implemented.");
   }
   getStoreProducts(storeId: string): StoreProductDTO[] {
-    const store = Store.fromDTO(this.Repos.Stores.getStoreById(storeId));
-    store.initRepos(this.Repos);
-    return store.Products;
+    const dto = this.Repos.Stores.getStoreById(storeId);
+    return Store.fromDTO(dto, this.Repos).Products;
   }
   setProductQuantity(
     userId: string,
@@ -167,7 +179,7 @@ export class StoresController
   setProductPrice(userId: string, productId: string, price: number): void {
     //TODO: this.Controllers.Jobs.per
     const dto = this.Repos.Products.getProductById(productId);
-    StoreProduct.fromDTO(dto).initRepos(this.Repos).Price = price;
+    StoreProduct.fromDTO(dto, this.Repos).Price = price;
   }
   createStore(founderId: string, storeName: string): string {
     //TODO: this.Controllers.Jobs.
@@ -189,6 +201,6 @@ export class StoresController
   }
   getProductPrice(productId: string): number {
     const dto = this.Repos.Products.getProductById(productId);
-    return StoreProduct.fromDTO(dto).initRepos(this.Repos).Price;
+    return StoreProduct.fromDTO(dto, this.Repos).Price;
   }
 }

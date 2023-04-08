@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { HasRepos } from "./HasRepos";
+import { HasRepos, type Repos } from "./HasRepos";
 import { StoreProduct } from "./StoreProduct";
 const { randomUUID } = await import("crypto");
 
@@ -24,8 +24,9 @@ export class Store extends HasRepos {
     this.isActive = true;
   }
 
-  static fromDTO(dto: StoreDTO) {
+  static fromDTO(dto: StoreDTO, repos: Repos) {
     const store = new Store(dto.name);
+    store.initRepos(repos);
     store.id = dto.id;
     store.isActive = dto.isActive;
     return store;
@@ -58,7 +59,7 @@ export class Store extends HasRepos {
 
   public get Products() {
     return this.Repos.Products.getProductsByStoreId(this.id).map(
-      (p) => StoreProduct.fromDTO(p).initRepos(this.Repos).DTO
+      (p) => StoreProduct.fromDTO(p, this.Repos).DTO
     );
   }
 }

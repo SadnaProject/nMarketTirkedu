@@ -1,7 +1,14 @@
 import { HasControllers } from "../HasController";
+import { Mixin } from "ts-mixer";
 import { Store } from "./Store";
-import { type StoreProductArgs } from "./StoreProduct";
-import { StoresRepo } from "./StoresRepo";
+import {
+  StoreProduct,
+  type StoreProductDTO,
+  type StoreProductArgs,
+} from "./StoreProduct";
+import { HasRepos } from "./HasRepos";
+import { StoresRepo } from "~/DataLayer/Stores/StoresRepo";
+import { StoreProductsRepo } from "~/DataLayer/Stores/StoreProductsRepo";
 
 export interface IStoresController {
   /**
@@ -28,7 +35,7 @@ export interface IStoresController {
    * @returns An array of products.
    *@throws Error if the store is not active.
    */
-  getStoreProducts(storeId: string): never;
+  getStoreProducts(storeId: string): StoreProductDTO[];
   /**
    * This function sets the quantity of a product in a store.
    * @param userId The id of the user that is currently logged in.
@@ -115,17 +122,31 @@ export interface IStoresController {
    * @returns The price of the product in the store.
    */
   getProductPrice(productId: string): number;
+  /**
+   * This function checks if a product is in stock.
+   * @param productId The id of the product.
+   * @param quantity The quantity of the product.
+   * @returns True if the product is in stock, false otherwise.
+   * @throws Error if the store is not active.
+   * @throws Error if the product does not exist.
+   */
+  isProductQuantityInStock(productId: string, quantity: number): boolean;
 }
 
 export class StoresController
-  extends HasControllers
+  extends Mixin(HasControllers, HasRepos)
   implements IStoresController
 {
-  private storesRepo: StoresRepo;
-
   constructor() {
     super();
-    this.storesRepo = new StoresRepo();
+    this.initRepos({
+      Stores: new StoresRepo(),
+      Products: new StoreProductsRepo(),
+    });
+  }
+  isProductQuantityInStock(productId: string, quantity: number): boolean {
+    const dto = this.Repos.Products.getProductById(productId);
+    return StoreProduct.fromDTO(dto, this.Repos).isQuantityInStock(quantity);
   }
 
   createProduct(
@@ -138,8 +159,9 @@ export class StoresController
   isStoreActive(storeId: string): boolean {
     throw new Error("Method not implemented.");
   }
-  getStoreProducts(storeId: string): never {
-    throw new Error("Method not implemented.");
+  getStoreProducts(storeId: string): StoreProductDTO[] {
+    const dto = this.Repos.Stores.getStoreById(storeId);
+    return Store.fromDTO(dto, this.Repos).Products;
   }
   setProductQuantity(
     userId: string,
@@ -155,14 +177,17 @@ export class StoresController
     throw new Error("Method not implemented.");
   }
   setProductPrice(userId: string, productId: string, price: number): void {
-    throw new Error("Method not implemented.");
+    //TODO: this.Controllers.Jobs.per
+    const dto = this.Repos.Products.getProductById(productId);
+    StoreProduct.fromDTO(dto, this.Repos).Price = price;
   }
   createStore(founderId: string, storeName: string): string {
     //TODO: this.Controllers.Jobs.
-    if (this.storesRepo.getAllNames().has(storeName))
+    if (this.Repos.Stores.getAllNames().has(storeName))
       throw new Error("Store name is already taken");
     const store = new Store(storeName);
-    this.storesRepo.addStore(store.DTO);
+    store.initRepos(this.Repos);
+    this.Repos.Stores.addStore(store.DTO);
     return store.Id;
   }
   activateStore(userId: string, storeId: string): void {
@@ -175,6 +200,7 @@ export class StoresController
     throw new Error("Method not implemented.");
   }
   getProductPrice(productId: string): number {
-    throw new Error("Method not implemented.");
+    const dto = this.Repos.Products.getProductById(productId);
+    return StoreProduct.fromDTO(dto, this.Repos).Price;
   }
 }

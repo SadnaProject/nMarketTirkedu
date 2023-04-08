@@ -1,5 +1,7 @@
 import { randomUUID } from "crypto";
 import { z } from "zod";
+import { HasRepos, type Repos } from "./HasRepos";
+import { Store } from "./Store";
 
 const nameSchema = z.string().nonempty();
 const quantitySchema = z.number().positive();
@@ -20,18 +22,30 @@ export type StoreProductDTO = {
   price: number;
 };
 
-export class StoreProduct {
+export class StoreProduct extends HasRepos {
   private id: string;
   private name: string;
   private quantity: number;
   private price: number;
 
   constructor(product: StoreProductArgs) {
+    super();
     storeProductArgsSchema.parse(product);
     this.id = randomUUID();
     this.name = product.name;
     this.quantity = product.quantity;
     this.price = product.price;
+  }
+
+  static fromDTO(dto: StoreProductDTO, repos: Repos) {
+    const product = new StoreProduct({
+      name: dto.name,
+      quantity: dto.quantity,
+      price: dto.price,
+    });
+    product.initRepos(repos);
+    product.id = dto.id;
+    return product;
   }
 
   public get Id() {
@@ -60,6 +74,12 @@ export class StoreProduct {
     this.price = price;
   }
 
+  public get Store() {
+    const storeId = this.Repos.Products.getStoreIdByProductId(this.id);
+    const dto = this.Repos.Stores.getStoreById(storeId);
+    return Store.fromDTO(dto, this.Repos);
+  }
+
   public get DTO(): StoreProductDTO {
     return {
       id: this.id,
@@ -67,5 +87,12 @@ export class StoreProduct {
       quantity: this.quantity,
       price: this.price,
     };
+  }
+
+  public isQuantityInStock(quantity: number): boolean {
+    if (!this.Store.IsActive) {
+      throw new Error("Store is not active");
+    }
+    return this.quantity >= quantity;
   }
 }

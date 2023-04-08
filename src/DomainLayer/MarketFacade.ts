@@ -1,6 +1,6 @@
 import { StoresController } from "./Stores/StoresController";
 import { AuthController } from "./Auth/AuthController";
-import { type Controllers } from "./Controller";
+import { type Controllers } from "./HasController";
 import { JobsController } from "./Jobs/JobsController";
 import { PurchasesHistoryController } from "./PurchasesHistory/PurchasesHistoryController";
 import { UsersController } from "./Users/UsersController";

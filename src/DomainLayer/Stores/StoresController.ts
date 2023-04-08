@@ -1,4 +1,4 @@
-import { Controller } from "../Controller";
+import { HasControllers } from "../HasController";
 import { Store } from "./Store";
 import { type StoreProductArgs } from "./StoreProduct";
 import { StoresRepo } from "./StoresRepo";
@@ -117,7 +117,10 @@ export interface IStoresController {
   getProductPrice(productId: string): number;
 }
 
-export class StoresController extends Controller implements IStoresController {
+export class StoresController
+  extends HasControllers
+  implements IStoresController
+{
   private storesRepo: StoresRepo;
 
   constructor() {

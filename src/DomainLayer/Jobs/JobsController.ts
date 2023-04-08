@@ -1,4 +1,4 @@
-import { Controller } from "../Controller";
+import { HasControllers } from "../HasController";
 import { type StoreDTO } from "../Stores/Store";
 import { type UserDTO } from "../Users/User";
 
@@ -133,7 +133,7 @@ export interface IJobsController {
   getStoreManagers(storeId: string): UserDTO[];
 }
 
-export class JobsController extends Controller implements IJobsController {
+export class JobsController extends HasControllers implements IJobsController {
   getStoreFounder(storeId: string): UserDTO {
     throw new Error("Method not implemented.");
   }

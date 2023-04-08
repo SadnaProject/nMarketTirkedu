@@ -1,4 +1,4 @@
-import { Controller } from "../Controller";
+import { HasControllers } from "../HasController";
 import { type CartDTO } from "./Cart";
 
 export interface IUsersController {
@@ -49,7 +49,10 @@ export interface IUsersController {
   purchaseCart(userId: string): void;
 }
 
-export class UsersController extends Controller implements IUsersController {
+export class UsersController
+  extends HasControllers
+  implements IUsersController
+{
   getNotifications(userId: string): never {
     throw new Error("Method not implemented.");
   }

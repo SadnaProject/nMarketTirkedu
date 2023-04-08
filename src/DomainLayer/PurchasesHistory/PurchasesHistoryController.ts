@@ -1,4 +1,4 @@
-import { Controller } from "../Controller";
+import { HasControllers } from "../HasController";
 import { type CartDTO } from "../Users/Cart";
 import { type BasketPurchaseDTO } from "./BasketPurchase";
 import { type CartPurchaseDTO } from "./CartPurchase";
@@ -29,7 +29,7 @@ export interface IPurchasesHistoryController {
 }
 
 export class PurchasesHistoryController
-  extends Controller
+  extends HasControllers
   implements IPurchasesHistoryController
 {
   private userIdToCartPurchases: Map<string, CartPurchaseDTO[]>;

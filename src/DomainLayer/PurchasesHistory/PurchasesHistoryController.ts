@@ -64,7 +64,7 @@ export class PurchasesHistoryController
     productId: string,
     review: ProductReviewArgs
   ): void {
-    this.getPurchase(purchaseId).storeIdToBasketPurchases.get(storeId)?.Products.get(productId)?.setReview(new ProductReview(review));
+    this.getPurchase(purchaseId).storeIdToBasketPurchases.get(storeId)?.Products.get(productId)?.setReview(new ProductReview(review, userId, purchaseId, "", productId));
   }
   getStoreRating(storeId: string): number {
     throw new Error("Method not implemented.");

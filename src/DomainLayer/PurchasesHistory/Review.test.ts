@@ -21,7 +21,7 @@ describe("add product purchase review", () => {
         productId,
         review
         );
-        expect(purchaseController.getPurchase(purchaseId).storeIdToBasketPurchases.get(storeId)?.Products.get(productId)?.Review).toEqual(new ProductReview(review));
+        expect(purchaseController.getPurchase(purchaseId).storeIdToBasketPurchases.get(storeId)?.Products.get(productId)?.Review).toEqual(new ProductReview(review, userId, purchaseId, "", productId));
     });
 });
 

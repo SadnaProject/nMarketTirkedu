@@ -1,7 +1,8 @@
-import { type StoreDTO } from "../Store/Store";
-import { type UserDTO } from "../User/User";
+import { HasControllers } from "../HasController";
+import { type StoreDTO } from "../Stores/Store";
+import { type UserDTO } from "../Users/User";
 
-interface IJobController {
+export interface IJobsController {
   /**
    * This function makes a user a store owner when they are added to a store.
    * @param currentId The id of the user that is currently logged in.
@@ -74,8 +75,7 @@ interface IJobController {
    * @param currentId The id of the user that is currently logged in.
    * @param storeId The id of the store related to the permission.
    * @param targetUserId The id of the user that we are checking the permission of.
-   * @returns a boolean that represents the permission.
-   *
+   * @returns A boolean that represents the permission.
    */
   getAddingProductToStorePermission(
     currentId: string,
@@ -87,27 +87,27 @@ interface IJobController {
    * This function checks if a user is a store owner.
    * @param userId The id of the user that is being checked.
    * @param storeId The id of the store that the user is being checked in.
-   * @returns a boolean that represents the permission.
+   * @returns A boolean that represents the permission.
    */
   isStoreOwner(userId: string, storeId: string): boolean;
   /**
    * This function checks if a user is a store manager.
    * @param userId The id of the user that is being checked.
    * @param storeId The id of the store that the user is being checked in.
-   * @returns a boolean that represents if the user is a store manager.
+   * @returns A boolean that represents if the user is a store manager.
    */
   isStoreManager(userId: string, storeId: string): boolean;
   /**
    * This function checks if a user is a store founder.
    * @param userId The id of the user that is being checked.
    * @param storeId The id of the store that the user is being checked in.
-   * @returns a boolean that represents if the user is a store founder.
+   * @returns A boolean that represents if the user is a store founder.
    */
   isStoreFounder(userId: string, storeId: string): boolean;
   /**
    * This function checks if a user is a system admin.
    * @param userId The id of the user that is being checked.
-   * @returns a boolean that represents if the user is a system admin.
+   * @returns A boolean that represents if the user is a system admin.
    */
   isSystemAdmin(userId: string): boolean;
   /**
@@ -133,7 +133,7 @@ interface IJobController {
   getStoreManagers(storeId: string): UserDTO[];
 }
 
-export class JobController implements IJobController {
+export class JobsController extends HasControllers implements IJobsController {
   getStoreFounder(storeId: string): UserDTO {
     throw new Error("Method not implemented.");
   }

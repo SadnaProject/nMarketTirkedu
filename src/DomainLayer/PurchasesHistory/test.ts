@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { PurchaseController } from "./PurchaseController";
+import { PurchasesHistoryController } from "./PurchasesHistoryController";
 import { ProductReviewArgs, ProductReview } from "./ProductReview";
 
 describe("add product purchase review", () => {
     it("should add review to product purchase",  () => {
-        const purchaseController = new PurchaseController();
+        const purchaseController = new PurchasesHistoryController();
         const userId = "userId";
         const storeId = "storeId";
         const purchaseId = "purchaseId";

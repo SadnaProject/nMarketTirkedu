@@ -1,6 +1,7 @@
+import { HasControllers } from "../HasController";
 import { type CartDTO } from "./Cart";
 
-interface IUserController {
+export interface IUsersController {
   /**
    * This function gets the notifications of a user.
    * @param userId The id of the user that is currently logged in.
@@ -48,7 +49,10 @@ interface IUserController {
   purchaseCart(userId: string): void;
 }
 
-export class UserController implements IUserController {
+export class UsersController
+  extends HasControllers
+  implements IUsersController
+{
   getNotifications(userId: string): never {
     throw new Error("Method not implemented.");
   }

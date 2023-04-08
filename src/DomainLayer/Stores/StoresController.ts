@@ -1,5 +1,5 @@
+import { HasControllers } from "../HasController";
 import { Mixin } from "ts-mixer";
-import { Controller } from "../Controller";
 import { Store } from "./Store";
 import {
   StoreProduct,
@@ -134,7 +134,7 @@ export interface IStoresController {
 }
 
 export class StoresController
-  extends Mixin(Controller, HasRepos)
+  extends Mixin(HasControllers, HasRepos)
   implements IStoresController
 {
   constructor() {

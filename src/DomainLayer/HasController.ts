@@ -12,7 +12,7 @@ export type Controllers = {
   Auth: IAuthController;
 };
 
-export class Controller {
+export class HasControllers {
   private controllers?: Controllers;
 
   public initControllers(controllers: Controllers) {

@@ -71,13 +71,13 @@ export interface IJobsController {
     permission: boolean
   ): void;
   /**
-   * This function gets the permission of a user to add products to a store.
+   * This function returns whether a user has permission to create a product in a store.
    * @param currentId The id of the user that is currently logged in.
    * @param storeId The id of the store related to the permission.
    * @param targetUserId The id of the user that we are checking the permission of.
    * @returns A boolean that represents the permission.
    */
-  getAddingProductToStorePermission(
+  canCreateProductInStore(
     currentId: string,
     storeId: string,
     targetUserId: string
@@ -188,7 +188,7 @@ export class JobsController extends HasControllers implements IJobsController {
   ): void {
     throw new Error("Method not implemented.");
   }
-  getAddingProductToStorePermission(
+  canCreateProductInStore(
     currentId: string,
     storeId: string,
     targetUserId: string

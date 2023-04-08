@@ -1,18 +1,45 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Store } from "./Store";
+import { type Repos, createRepos } from "./HasRepos";
+import { productData } from "./StoreProduct.test";
+
 //* Vitest Docs: https://vitest.dev/api
 
 const storeName = "store name";
+const createStore = (repos: Repos = createRepos()) =>
+  new Store(storeName).initRepos(repos);
 
 describe("constructor", () => {
   it("✅creates a store", () => {
-    expect(() => {
-      const store = new Store(storeName);
-      expect(store.Name).toBe(storeName);
-    }).not.toThrow();
+    expect(createStore().Name).toBe(storeName);
   });
 
   it("❎gets empty name", () => {
     expect(() => new Store("")).toThrow();
+  });
+});
+
+describe("createProduct", () => {
+  it("✅creates a product", () => {
+    const repos = createRepos();
+    const productsRepoMock = vi.spyOn(repos.Products, "addProduct");
+    const store = createStore(repos);
+    const productId = store.createProduct(productData);
+    expect(store.Products.length).toBe(1);
+    expect(store.Products[0]?.id).toBe(productId);
+    expect(store.Products[0]?.name).toBe(productData.name);
+    expect(store.Products[0]?.quantity).toBe(productData.quantity);
+    expect(store.Products[0]?.price).toBe(productData.price);
+    expect(productsRepoMock).toHaveBeenCalledOnce();
+  });
+
+  it("❎fails in productRepo", () => {
+    const repos = createRepos();
+    const productsRepoMock = vi.spyOn(repos.Products, "addProduct");
+    productsRepoMock.mockImplementation(() => {
+      throw new Error("error");
+    });
+    const store = createStore(repos);
+    expect(() => store.createProduct(productData)).toThrow();
   });
 });

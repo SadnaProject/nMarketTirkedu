@@ -6,9 +6,7 @@ import {
   type StoreProductDTO,
   type StoreProductArgs,
 } from "./StoreProduct";
-import { HasRepos } from "./HasRepos";
-import { StoresRepo } from "~/DataLayer/Stores/StoresRepo";
-import { StoreProductsRepo } from "~/DataLayer/Stores/StoreProductsRepo";
+import { HasRepos, createRepos } from "./HasRepos";
 
 export interface IStoresController {
   /**
@@ -139,10 +137,7 @@ export class StoresController
 {
   constructor() {
     super();
-    this.initRepos({
-      Stores: new StoresRepo(),
-      Products: new StoreProductsRepo(),
-    });
+    this.initRepos(createRepos());
   }
   isProductQuantityInStock(productId: string, quantity: number): boolean {
     const dto = this.Repos.Products.getProductById(productId);
@@ -152,9 +147,21 @@ export class StoresController
   createProduct(
     userId: string,
     storeId: string,
-    product: { name: string; quantity: number; price: number }
+    product: StoreProductArgs
   ): string {
-    throw new Error("Method not implemented.");
+    const hasPermission = this.Controllers.Jobs.canCreateProductInStore(
+      userId,
+      storeId,
+      userId
+    );
+    if (!hasPermission) {
+      throw new Error(
+        "User does not have permission to create product in store."
+      );
+    }
+    const dto = this.Repos.Stores.getStoreById(storeId);
+    const store = Store.fromDTO(dto, this.Repos);
+    return store.createProduct(product);
   }
   isStoreActive(storeId: string): boolean {
     throw new Error("Method not implemented.");

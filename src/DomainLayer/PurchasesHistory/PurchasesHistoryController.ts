@@ -1,8 +1,10 @@
+import { Hash } from "crypto";
 import { HasControllers } from "../HasController";
 import { type CartDTO } from "../Users/Cart";
 import { type BasketPurchaseDTO } from "./BasketPurchase";
 import { CartPurchase, type CartPurchaseDTO } from "./CartPurchase";
 import { type ProductReviewArgs, type ProductReviewDTO, ProductReview } from "./ProductReview";
+import { ReviewDTO } from "./Review";
 
 export interface IPurchasesHistoryController {
   getPurchase(purchaseId: string): CartPurchaseDTO;
@@ -20,7 +22,6 @@ export interface IPurchasesHistoryController {
     review: ProductReviewArgs
   ): void;
   getStoreRating(storeId: string): number;
-  getProductRating(productId: string): number;
   getReviewsByStore(storeId: string): number;
   getReviewsByProduct(productId: string): {
     reviews: ProductReviewDTO[];
@@ -36,13 +37,17 @@ export class PurchasesHistoryController
 {
   private userIdToCartPurchases: Map<string, CartPurchaseDTO[]>;
   private purchaseIdToPurchase: Map<string, CartPurchaseDTO>;
+  private productsReviews : ProductReviewDTO[];
+  private storesRatings : ReviewDTO[];
   constructor() {
     super();
     this.purchaseIdToPurchase = new Map();
     this.userIdToCartPurchases = new Map();
+    this.productsReviews = [];
+    this.storesRatings = [];
   }
   getPurchasesByUser(userId: string): CartPurchaseDTO[] {
-    throw new Error("Method not implemented.");
+    return this.userIdToCartPurchases.get(userId) ?? [];
   }
   getPurchasesByStore(storeId: string): BasketPurchaseDTO[] {
     throw new Error("Method not implemented.");
@@ -68,13 +73,20 @@ export class PurchasesHistoryController
     if(this.getPurchase(purchaseId) === undefined) {
       throw new Error("Purchase not found");
     }
-    this.getPurchase(purchaseId).storeIdToBasketPurchases.get(storeId)?.Products.get(productId)?.setReview(new ProductReview(review, userId, purchaseId, "", productId));
+    const productReview = new ProductReview(review, userId, purchaseId, "", productId);
+    new ProductReview(review, userId, purchaseId, "", productId)
+    this.getPurchase(purchaseId).storeIdToBasketPurchases.get(storeId)?.Products.get(productId)?.setReview(productReview);
   }
   getStoreRating(storeId: string): number {
-    throw new Error("Method not implemented.");
-  }
-  getProductRating(productId: string): number {
-    throw new Error("Method not implemented.");
+    let sum = 0;
+    let count = 0;
+    for (const review of this.storesRatings){
+      if(review.storeId === storeId) {
+        sum += review.rating;
+        count++;
+      }
+    }
+    return sum / count;
   }
   getReviewsByStore(storeId: string): number {
     throw new Error("Method not implemented.");
@@ -83,7 +95,21 @@ export class PurchasesHistoryController
     reviews: ProductReviewDTO[];
     avgRating: number;
   } {
-    throw new Error("Method not implemented.");
+    // run on productsReviews and return the reviews and avgRating
+    const relevantReviews = [];
+    for (const productReview of this.productsReviews) {
+      if(productReview.productId === productId) {
+        relevantReviews.push(productReview);
+      }
+    }
+    let sum = 0;
+    for (const productReview of relevantReviews) {
+      sum += productReview.rating;
+    }
+    return {
+      reviews: relevantReviews,
+      avgRating: sum / relevantReviews.length
+    };
   }
   getPurchase(purchaseId: string): CartPurchaseDTO {
     const purchase = this.purchaseIdToPurchase.get(purchaseId);

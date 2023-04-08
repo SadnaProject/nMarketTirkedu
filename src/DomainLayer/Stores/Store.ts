@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { HasRepos, type Repos } from "./HasRepos";
-import { StoreProduct } from "./StoreProduct";
+import { StoreProduct, type StoreProductArgs } from "./StoreProduct";
 const { randomUUID } = await import("crypto");
 
 const nameSchema = z.string().nonempty();
@@ -61,5 +61,11 @@ export class Store extends HasRepos {
     return this.Repos.Products.getProductsByStoreId(this.id).map(
       (p) => StoreProduct.fromDTO(p, this.Repos).DTO
     );
+  }
+
+  public createProduct(product: StoreProductArgs) {
+    const newProduct = new StoreProduct(product).initRepos(this.Repos);
+    this.Repos.Products.addProduct(this.Id, newProduct.DTO);
+    return newProduct.Id;
   }
 }

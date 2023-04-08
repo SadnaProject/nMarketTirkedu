@@ -1,78 +1,47 @@
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it } from "vitest";
 import { StoreProduct } from "./StoreProduct";
+import { type Repos, createRepos } from "./HasRepos";
 //* Vitest Docs: https://vitest.dev/api
 
-const storeProductName = "product name";
-const storeProductQuantity = 1;
-const storeProductPrice = 1;
+export const productData = {
+  name: "product name",
+  quantity: 1,
+  price: 1,
+};
+
+const createProduct = (repos: Repos = createRepos()) =>
+  new StoreProduct(productData).initRepos(repos);
 
 describe("constructor", () => {
-  it("✅creates a store product", () => {
-    expect(() => {
-      const store = new StoreProduct({
-        name: storeProductName,
-        quantity: storeProductQuantity,
-        price: storeProductPrice,
-      });
-      expect(store.Name).toBe(storeProductName);
-      expect(store.Quantity).toBe(storeProductQuantity);
-      expect(store.Price).toBe(storeProductPrice);
-    }).not.toThrow();
+  it("✅creates a product", () => {
+    const product = createProduct();
+    expect(product.Name).toBe(productData.name);
+    expect(product.Quantity).toBe(productData.quantity);
+    expect(product.Price).toBe(productData.price);
   });
 
   it("❎gets empty name", () => {
-    expect(
-      () =>
-        new StoreProduct({
-          name: "",
-          quantity: storeProductQuantity,
-          price: storeProductPrice,
-        })
-    ).toThrow();
+    expect(() => new StoreProduct({ ...productData, name: "" })).toThrow();
   });
 
   it("❎gets negative quantity", () => {
-    expect(
-      () =>
-        new StoreProduct({
-          name: storeProductName,
-          quantity: -1,
-          price: storeProductPrice,
-        })
-    ).toThrow();
+    expect(() => new StoreProduct({ ...productData, quantity: -1 })).toThrow();
   });
 
   it("❎gets negative price", () => {
-    expect(
-      () =>
-        new StoreProduct({
-          name: storeProductName,
-          quantity: storeProductQuantity,
-          price: -1,
-        })
-    ).toThrow();
+    expect(() => new StoreProduct({ ...productData, price: -1 })).toThrow();
   });
 });
 
 describe("set quantity", () => {
-  let store: StoreProduct;
-
-  beforeEach(() => {
-    store = new StoreProduct({
-      name: storeProductName,
-      quantity: storeProductQuantity,
-      price: storeProductPrice,
-    });
-  });
-
   it("✅sets quantity", () => {
-    expect(() => {
-      store.Quantity = 2;
-      expect(store.Quantity).toBe(2);
-    }).not.toThrow();
+    const store = createProduct();
+    store.Quantity = 2;
+    expect(store.Quantity).toBe(2);
   });
 
   it("❎gets negative quantity", () => {
+    const store = createProduct();
     expect(() => {
       store.Quantity = -1;
     }).toThrow();
@@ -80,24 +49,14 @@ describe("set quantity", () => {
 });
 
 describe("set price", () => {
-  let store: StoreProduct;
-
-  beforeEach(() => {
-    store = new StoreProduct({
-      name: storeProductName,
-      quantity: storeProductQuantity,
-      price: storeProductPrice,
-    });
-  });
-
   it("✅sets price", () => {
-    expect(() => {
-      store.Price = 2;
-      expect(store.Price).toBe(2);
-    }).not.toThrow();
+    const store = createProduct();
+    store.Price = 2;
+    expect(store.Price).toBe(2);
   });
 
   it("❎gets negative price", () => {
+    const store = createProduct();
     expect(() => {
       store.Price = -1;
     }).toThrow();

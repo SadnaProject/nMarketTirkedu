@@ -1,10 +1,17 @@
-import { type StoreProductsRepo } from "~/DataLayer/Stores/StoreProductsRepo";
-import { type StoresRepo } from "~/DataLayer/Stores/StoresRepo";
+import { StoreProductsRepo } from "~/DataLayer/Stores/StoreProductsRepo";
+import { StoresRepo } from "~/DataLayer/Stores/StoresRepo";
 
 export type Repos = {
   Stores: StoresRepo;
   Products: StoreProductsRepo;
 };
+
+export function createRepos(): Repos {
+  return {
+    Products: new StoreProductsRepo(),
+    Stores: new StoresRepo(),
+  };
+}
 
 export class HasRepos {
   private repos?: Repos;

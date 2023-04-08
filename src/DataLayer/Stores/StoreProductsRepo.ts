@@ -27,4 +27,13 @@ export class StoreProductsRepo {
   public getProductsByStoreId(storeId: string) {
     return this.productsByStoreId.get(storeId) || [];
   }
+
+  public getStoreIdByProductId(productId: string) {
+    for (const [storeId, products] of this.productsByStoreId.entries()) {
+      if (products.find((p) => p.id === productId)) {
+        return storeId;
+      }
+    }
+    throw new Error("Product not found");
+  }
 }

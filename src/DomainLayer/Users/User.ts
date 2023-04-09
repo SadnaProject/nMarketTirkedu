@@ -1,4 +1,4 @@
-import { Cart, CartDTO } from "./Cart";
+import { Cart, type CartDTO } from "./Cart";
 import { type Notification } from "./Notification";
 
 export type UserArgs = {
@@ -48,7 +48,13 @@ export class User {
     this.cart.removeProduct(productId,storeId);
   }
   public editProductQuantityInCart( productId: string, storeId:string, quantity: number): void {
-    throw new Error("Not implemented");
+    this.cart.editProductQuantity(productId,storeId, quantity);
   }
-  
+  public readNotification(notificationId:string): void {
+    const notification = this.notifications.find((notification) => notification.Id === notificationId);
+    if(notification === undefined){
+      throw new Error("Notification not found");
+    }
+    notification.read();
+  }
 }

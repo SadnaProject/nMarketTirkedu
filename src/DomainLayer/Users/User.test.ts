@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { UserController } from "./UserController";
-import { StoreController } from "../Store/StoreController";
+import { UsersController } from "./UsersController";
+import { StoresController } from "../Stores/StoresController";
 
 //* Vitest Docs: https://vitest.dev/api
-const userController = new UserController();
-const storeController = new StoreController();
+const userController = new UsersController();
+const storeController = new StoresController();
 // userController.addUser({id: "123456", name: "username"});
 // const storeId = storeController.createStore("123456", "storeName");
 // const productId = storeController.addProductToStore("123456", storeId, { name: "productName", price: 10, quantity: 10}); 

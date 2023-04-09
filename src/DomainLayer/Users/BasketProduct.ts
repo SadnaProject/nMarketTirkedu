@@ -26,5 +26,8 @@ export class BasketProduct {
   public set Quantity(quantity: number) {
     this.quantity = quantity;
   }
+  public toString(): string {
+    return `Product id: ${this.ProductId} Quantity: ${this.quantity}. \n`;
+  }
   
 }

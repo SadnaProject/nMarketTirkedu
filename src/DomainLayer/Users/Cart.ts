@@ -2,7 +2,6 @@ import { type BasketDTO, Basket } from "./Basket";
 
 export type CartDTO = {
   storeIdToBasket: Map<string, BasketDTO>;
-  totalPrice: number;
 };
 export class Cart {
   private storeIdToBasket: Map<string, Basket>;
@@ -28,19 +27,30 @@ export class Cart {
       basket.removeProduct(productId);
     }
   }
-  public getTotalPrice(): number {
-    throw new Error("Not implemented");
-  }
+ 
   public get DTO(): CartDTO {
     const storeIdToBasketDTO = new Map<string,BasketDTO>();
     this.storeIdToBasket.forEach((basket,storeId) => {
       storeIdToBasketDTO.set(storeId,basket.DTO);
     });
     return {
-      storeIdToBasket : storeIdToBasketDTO,
-      totalPrice: this.getTotalPrice(),
+      storeIdToBasket : storeIdToBasketDTO
     };
   }
-
-
-}
+  public editProductQuantity(productId: string, storeId:string, quantity: number): void {
+    const basket = this.storeIdToBasket.get(storeId);
+    if(basket === undefined){
+      throw new Error("Basket not found");
+    }else{
+      basket.editProductQuantity(productId, quantity);
+    }
+  }
+  public toString(): string {
+    let str = "";
+    this.storeIdToBasket.forEach((basket,storeId) => {
+      str += "StoreId: " + storeId + " Basket: \n" + basket.toString() + "\n";
+    
+    });
+    return str;
+  }
+} 

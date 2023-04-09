@@ -32,11 +32,7 @@ export class ProductPurchase {
     return this.review;
   }
   public ProductPurchaseToDTO(): ProductPurchaseDTO {
-    return {
-      productId: this.productId,
-      quantity: this.quantity,
-      price: this.price,
-      review: this.review?.ProductReviewToDTO(),
-    };
+    // How to handle review?
+    throw new Error("Method not implemented.");
   }
 }

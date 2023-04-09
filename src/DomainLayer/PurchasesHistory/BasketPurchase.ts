@@ -22,12 +22,4 @@ export class BasketPurchase {
   public get Products(): Map<string, ProductPurchase> {
     return this.products;
   }
-  public BasketPurchaseToDTO(): BasketPurchaseDTO {
-    return {
-      products: Array.from(this.products.values()).map(
-        (productPurchase) => productPurchase.ProductPurchaseToDTO()
-      ),
-      review: this.review?.ReviewToDTO(),
-    };
-  }
 }

@@ -22,4 +22,8 @@ export class BasketPurchase {
   public get Products(): Map<string, ProductPurchase> {
     return this.products;
   }
+  public BasketPurchaseToDTO(): BasketPurchaseDTO {
+    // How to handle review?
+    throw new Error("Method not implemented.");
+  }
 }

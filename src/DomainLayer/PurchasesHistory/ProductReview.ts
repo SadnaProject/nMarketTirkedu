@@ -14,8 +14,8 @@ export class ProductReview extends Review {
   private title: string;
   private description: string;
 
-  constructor(productReviewArgs: ProductReviewArgs) {
-    super(productReviewArgs);
+  constructor(productReviewArgs: ProductReviewArgs, userId: string, purchaseId : string, storeId: string, productId: string) {
+    super(productReviewArgs, userId, purchaseId ,storeId, productId);
     this.title = productReviewArgs.title;
     this.description = productReviewArgs.description;
   }

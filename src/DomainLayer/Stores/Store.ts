@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { HasRepos, type Repos } from "./HasRepos";
 import { StoreProduct, type StoreProductArgs } from "./StoreProduct";
+import { type BasketDTO } from "../Users/Basket";
 const { randomUUID } = await import("crypto");
 
 const nameSchema = z.string().nonempty();
@@ -25,11 +26,15 @@ export class Store extends HasRepos {
   }
 
   static fromDTO(dto: StoreDTO, repos: Repos) {
-    const store = new Store(dto.name);
-    store.initRepos(repos);
+    const store = new Store(dto.name).initRepos(repos);
     store.id = dto.id;
     store.isActive = dto.isActive;
     return store;
+  }
+
+  static fromStoreId(storeId: string, repos: Repos) {
+    const dto = repos.Stores.getStoreById(storeId);
+    return this.fromDTO(dto, repos);
   }
 
   public get Id() {
@@ -67,5 +72,17 @@ export class Store extends HasRepos {
     const newProduct = new StoreProduct(product).initRepos(this.Repos);
     this.Repos.Products.addProduct(this.Id, newProduct.DTO);
     return newProduct.Id;
+  }
+
+  public getBasketPrice(basketDTO: BasketDTO): number {
+    return basketDTO.products.reduce((acc, curr) => {
+      const product = this.Repos.Products.getProductById(curr.storeProductId);
+      const storeProduct = StoreProduct.fromDTO(product, this.Repos);
+      if (storeProduct.Store.Id !== this.Id)
+        throw new Error(
+          `Product ${curr.storeProductId} is not in store ${this.Id}`
+        );
+      return acc + storeProduct.getPriceByQuantity(curr.quantity);
+    }, 0);
   }
 }

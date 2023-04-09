@@ -6,7 +6,7 @@ import { productData } from "./StoreProduct.test";
 //* Vitest Docs: https://vitest.dev/api
 
 const storeName = "store name";
-const createStore = (repos: Repos = createRepos()) =>
+export const createStore = (repos: Repos = createRepos()) =>
   new Store(storeName).initRepos(repos);
 
 describe("constructor", () => {

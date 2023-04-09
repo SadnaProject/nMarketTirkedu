@@ -19,4 +19,12 @@ export class ProductReview extends Review {
     this.title = productReviewArgs.title;
     this.description = productReviewArgs.description;
   }
+
+  public ProductReviewToDTO(): ProductReviewDTO {
+    return {
+      title: this.title,
+      description: this.description,
+      ...super.ReviewToDTO(),
+    };
+  }
 }

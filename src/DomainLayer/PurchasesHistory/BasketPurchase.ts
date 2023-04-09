@@ -3,11 +3,11 @@ import {
   type ProductPurchase,
 } from "./ProductPurchase";
 import { type ProductReviewDTO } from "./ProductReview";
-import { type Review } from "./Review";
+import { ReviewDTO, type Review } from "./Review";
 
 export type BasketPurchaseDTO = {
   products: ProductPurchaseDTO[];
-  review?: ProductReviewDTO;
+  review?: ReviewDTO;
 };
 export class BasketPurchase {
   private products: Map<string, ProductPurchase>;
@@ -23,7 +23,11 @@ export class BasketPurchase {
     return this.products;
   }
   public BasketPurchaseToDTO(): BasketPurchaseDTO {
-    // How to handle review?
-    throw new Error("Method not implemented.");
+    return {
+      products: Array.from(this.products.values()).map(
+        (productPurchase) => productPurchase.ProductPurchaseToDTO()
+      ),
+      review: this.review?.ReviewToDTO(),
+    };
   }
 }

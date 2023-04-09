@@ -5,6 +5,7 @@ export type ReviewDTO = {
   id: string;
   rating: number;
   createdAt: Date;
+  productId? : string;
   storeId? : string;
   purchaseId? : string;
 };
@@ -54,5 +55,17 @@ export class Review {
 
   public get CreatedAt(): Date {
     return this.createdAt;
+  }
+
+  public ReviewToDTO(): ReviewDTO {
+    return {
+      id: this.id,
+      rating: this.rating,
+      createdAt: this.createdAt,
+      userId: this.userId,
+      purchaseId: this.purchaseId,
+      storeId: this.storeId,
+      productId: this.productId
+    };
   }
 }

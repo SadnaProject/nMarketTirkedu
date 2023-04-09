@@ -31,4 +31,8 @@ export class ProductPurchase {
   public get Review() {
     return this.review;
   }
+  public ProductPurchaseToDTO(): ProductPurchaseDTO {
+    // How to handle review?
+    throw new Error("Method not implemented.");
+  }
 }

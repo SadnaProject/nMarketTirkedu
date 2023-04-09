@@ -4,7 +4,7 @@ import { type CartDTO } from "../Users/Cart";
 import { type BasketPurchaseDTO } from "./BasketPurchase";
 import { CartPurchase, type CartPurchaseDTO } from "./CartPurchase";
 import { type ProductReviewArgs, type ProductReviewDTO, ProductReview } from "./ProductReview";
-import { ReviewDTO } from "./Review";
+import { Review, ReviewDTO, ReviewArgs } from "./Review";
 
 export interface IPurchasesHistoryController {
   getPurchase(purchaseId: string): CartPurchaseDTO;
@@ -12,6 +12,7 @@ export interface IPurchasesHistoryController {
   addStorePurchaseReview(
     userId: string,
     purchaseId: string,
+    storeId: string,
     review: number
   ): void; // TODO: add
   addProductPurchaseReview(
@@ -50,7 +51,13 @@ export class PurchasesHistoryController
     return this.userIdToCartPurchases.get(userId) ?? [];
   }
   getPurchasesByStore(storeId: string): BasketPurchaseDTO[] {
-    throw new Error("Method not implemented.");
+    const purchases : BasketPurchaseDTO[] = [];
+    for (const purchase of this.purchaseIdToPurchase.values()) {
+      if(purchase.storeIdToBasketPurchases.has(storeId)) {
+        purchases.push(purchase.storeIdToBasketPurchases.get(storeId)!.BasketPurchaseToDTO());
+      }
+    }
+    return purchases;
   }
 
   purchaseCart(userId: string, cart: CartDTO): void {
@@ -59,9 +66,13 @@ export class PurchasesHistoryController
   addStorePurchaseReview(
     userId: string,
     purchaseId: string,
-    review: number
+    storeId: string,
+    rating : number
   ): void {
-    throw new Error("Method not implemented.");
+    if (this.getPurchase(purchaseId) === undefined) {
+      throw new Error("Purchase not found");
+    }
+    this.storesRatings.push(new Review({rating}, userId, purchaseId, storeId, "").ReviewToDTO());
   }
   addProductPurchaseReview(
     userId: string,
@@ -89,7 +100,13 @@ export class PurchasesHistoryController
     return sum / count;
   }
   getReviewsByStore(storeId: string): number {
-    throw new Error("Method not implemented.");
+    let count = 0;
+    for (const review of this.storesRatings){
+      if(review.storeId === storeId) {
+        count++;
+      }
+    }
+    return count;
   }
   getReviewsByProduct(productId: string): {
     reviews: ProductReviewDTO[];

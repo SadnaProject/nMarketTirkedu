@@ -70,7 +70,8 @@ export class UserController implements IUserController {
     user.addProductToCart(productId, quantity,storeId);
   }
   removeProductFromCart(userId: string, productId: string,storeId:string): void {
-    throw new Error("Method not implemented.");
+    const user = this.userRepo.getUser(userId);
+    user.removeProductFromCart(productId,storeId);
   }
   editProductQuantityInCart(
     userId: string,

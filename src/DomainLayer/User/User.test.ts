@@ -13,11 +13,10 @@ const product = { name: "productName", price: 10, quantity: 10};
 const storeId = "123456";
 
   describe("test name", () => {
-    it("should throw an error because not all function implemented", async () => {
-      await expect(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+    it("should throw an error because not all function implemented",  () => {
+       expect( () => {
         userController.addProductToCart(user, "productId", 1, storeId);
-      }).rejects.toThrow();
+      }).toThrow();
     });
   });
   

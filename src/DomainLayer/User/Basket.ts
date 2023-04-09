@@ -23,6 +23,14 @@ export class Basket {
       product.Quantity = quantity;
     }  
   }
+  public removeProduct(productId: string): void {
+    const product = this.products.find((p) => p.ProductId === productId);
+    if (product === undefined) {
+      throw new Error("Product not found");
+    } else {
+      this.products = this.products.filter((p) => p.ProductId !== productId);
+    }  
+  }
   public get DTO(): BasketDTO {
     const productsDTO = this.products.map((p) => p.DTO);
     return {

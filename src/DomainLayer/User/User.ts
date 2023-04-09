@@ -45,7 +45,7 @@ export class User {
     this.cart.addProduct(productId,storeId, quantity);
   }
   public removeProductFromCart(productId: string, storeId:string): void {
-    throw new Error("Not implemented");
+    this.cart.removeProduct(productId,storeId);
   }
   public editProductQuantityInCart( productId: string, storeId:string, quantity: number): void {
     throw new Error("Not implemented");

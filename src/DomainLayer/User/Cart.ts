@@ -20,6 +20,14 @@ export class Cart {
       basket.addProduct(productId, quantity);
     }
   }
+  public removeProduct(productId: string, storeId:string): void {
+    const basket = this.storeIdToBasket.get(storeId);
+    if(basket === undefined){
+      throw new Error("Basket not found");
+    }else{
+      basket.removeProduct(productId);
+    }
+  }
   public getTotalPrice(): number {
     throw new Error("Not implemented");
   }

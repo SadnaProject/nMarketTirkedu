@@ -23,4 +23,12 @@ export class ProductPurchase {
     this.quantity = quantity;
     this.price = price;
   }
+
+  public setReview(review: ProductReview) {
+    this.review = review;
+  }
+
+  public get Review() {
+    return this.review;
+  }
 }

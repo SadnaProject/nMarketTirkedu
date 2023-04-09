@@ -1,3 +1,5 @@
+import { HasControllers } from "../HasController";
+
 export interface IAuthController {
   /**
    * Returns true if the provided userId is a guest user.
@@ -7,8 +9,8 @@ export interface IAuthController {
   isGuest(userId: string): boolean;
   /**
    * Checks if a user is a member of the group.
-   * @param userId: string
-   * @return boolean
+   * @param userId: String.
+   * @returns Boolean.
    */
 
   isMember(userId: string): boolean;
@@ -63,7 +65,7 @@ export interface IAuthController {
   ): void;
 }
 
-export class AuthController implements IAuthController {
+export class AuthController extends HasControllers implements IAuthController {
   login(email: string, password: string): string {
     throw new Error("Method not implemented.");
   }

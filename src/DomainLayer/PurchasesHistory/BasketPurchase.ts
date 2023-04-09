@@ -18,4 +18,8 @@ export class BasketPurchase {
     this.products = new Map();
     this.price = price;
   }
+  
+  public get Products(): Map<string, ProductPurchase> {
+    return this.products;
+  }
 }

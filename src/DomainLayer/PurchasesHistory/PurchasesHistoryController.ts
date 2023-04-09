@@ -1,9 +1,10 @@
-import { type CartDTO } from "../User/Cart";
+import { HasControllers } from "../HasController";
+import { type CartDTO } from "../Users/Cart";
 import { type BasketPurchaseDTO } from "./BasketPurchase";
 import { type CartPurchaseDTO } from "./CartPurchase";
-import { type ProductReviewArgs, type ProductReviewDTO } from "./ProductReview";
+import { type ProductReviewArgs, type ProductReviewDTO, ProductReview } from "./ProductReview";
 
-interface IPurchaseController {
+export interface IPurchasesHistoryController {
   getPurchase(purchaseId: string): CartPurchaseDTO;
   purchaseCart(userId: string, cart: CartDTO): void; // TODO: add payment details
   addStorePurchaseReview(
@@ -13,7 +14,9 @@ interface IPurchaseController {
   ): void; // TODO: add
   addProductPurchaseReview(
     userId: string,
+    storeId: string,
     purchaseId: string,
+    productId: string,
     review: ProductReviewArgs
   ): void;
   getStoreRating(storeId: string): number;
@@ -27,10 +30,14 @@ interface IPurchaseController {
   getPurchasesByStore(storeId: string): BasketPurchaseDTO[];
 }
 
-export class PurchaseController implements IPurchaseController {
+export class PurchasesHistoryController
+  extends HasControllers
+  implements IPurchasesHistoryController
+{
   private userIdToCartPurchases: Map<string, CartPurchaseDTO[]>;
 
   constructor() {
+    super();
     this.userIdToCartPurchases = new Map();
   }
   getPurchasesByUser(userId: string): CartPurchaseDTO[] {
@@ -52,10 +59,12 @@ export class PurchaseController implements IPurchaseController {
   }
   addProductPurchaseReview(
     userId: string,
+    storeId: string,
     purchaseId: string,
+    productId: string,
     review: ProductReviewArgs
   ): void {
-    throw new Error("Method not implemented.");
+    this.getPurchase(purchaseId).storeIdToBasketPurchases.get(storeId)?.Products.get(productId)?.setReview(new ProductReview(review));
   }
   getStoreRating(storeId: string): number {
     throw new Error("Method not implemented.");

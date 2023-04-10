@@ -3,6 +3,7 @@ import { Mixin } from "ts-mixer";
 import { type CartDTO } from "./Cart";
 import { Notification } from "./Notification";
 import { HasRepos, createRepos } from "./HasRepos";
+import { s } from "vitest/dist/types-fafda418";
 export interface IUsersController {
 /**
    * This function gets the notifications of a user.
@@ -23,7 +24,7 @@ addProductToCart(userId: string, productId: string, quantity: number): void;
  * @param productId The id of the product that is being removed from the cart.
  * @throws Error if the product is not in the cart.
  */
-removeProductFromCart(userId: string, productId: string, storeId:string): void;
+removeProductFromCart(userId: string, productId: string): void;
 /**
  * This function edits the quantity of a product in a user's cart.
  * @param userId The id of the user that is currently logged in.
@@ -35,7 +36,6 @@ removeProductFromCart(userId: string, productId: string, storeId:string): void;
 editProductQuantityInCart(
   userId: string,
   productId: string,
-  storeId:string,
   quantity: number
 ): void;
 /**
@@ -66,6 +66,21 @@ removeUser(userId: string): void;
  * @throws Error if the notification is not in the user's notifications.
  */
 readNotification(userId: string, notificationId: string): void;
+/**
+ * This function will return the user's unread notifications.
+ * @param userId The id of the user that is currently logged in.
+ * @returns The user's unread notifications.
+ * @throws Error if the user is not in the system.
+*/
+getUnreadNotifications(userId: string): Notification[];
+/**
+ * This function will add notifications to the user's notifications.
+ * @param userId The id of the user that is currently logged in.
+ * @param notificationType The type of the notification that is being added.
+ * @param notificationMsg The message of the notification that is being added. 
+ * @returns The id of the notification that was added.
+ */
+addNotification(userId: string, notificationType:string,notificationMsg:string): string;
 }
 
 export class UsersController
@@ -87,20 +102,21 @@ extends Mixin(HasControllers, HasRepos)
     }
     user.addProductToCart(productId, quantity,storeId);
   }
-  removeProductFromCart(userId: string, productId: string,storeId:string): void {
+  removeProductFromCart(userId: string, productId: string): void {
     const user = this.Repos.Users.getUser(userId);
+    const storeId = this.Controllers.Stores.getStoreIdByProductId(productId);
     user.removeProductFromCart(productId,storeId);
   }
   editProductQuantityInCart(
     userId: string,
     productId: string,
-    storeId:string,
     quantity: number
   ): void {
     const user = this.Repos.Users.getUser(userId);
     if(!this.Controllers.Stores.isProductQuantityInStock(productId, quantity)){
-      throw new Error("Product is out of stock");
+      throw new Error("store don't have such amount of product");
     } 
+    const storeId = this.Controllers.Stores.getStoreIdByProductId(productId);
     user.editProductQuantityInCart(productId,storeId, quantity);
   }
   getCart(userId: string): CartDTO {
@@ -114,6 +130,7 @@ extends Mixin(HasControllers, HasRepos)
     const notificationMsg =`The cart ${cart.toString()} has been purchased for ${price}.`;
     const notification = new Notification( "purchase",notificationMsg );
     user.addNotification(notification);
+    user.clearCart();
   }
   addUser(userId:string, userName:string): void {
     this.Repos.Users.addUser(userId, userName);
@@ -134,5 +151,15 @@ extends Mixin(HasControllers, HasRepos)
   readNotification(userId: string, notificationId: string): void {
     const user = this.Repos.Users.getUser(userId);
     user.readNotification(notificationId);
+  }
+  getUnreadNotifications(userId: string): Notification[] {
+    const user = this.Repos.Users.getUser(userId);
+    return user.Notifications.filter((notification) => !notification.IsRead);
+  }
+  addNotification(userId: string, notificationType:string,notificationMsg:string): string {
+    const user = this.Repos.Users.getUser(userId);
+    const notification = new Notification(notificationType,notificationMsg);
+    user.addNotification(notification);
+    return notification.Id;
   }
 }

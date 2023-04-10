@@ -40,13 +40,11 @@ export class MarketFacade {
   }
   public removeProductFromCart(userId: string,productId: string) {
     this.isConnectionValid(userId);
-    const storeId = this.controllers.Stores.getStoreIdByProductId(productId); 
-    this.controllers.Users.removeProductFromCart(userId, productId,storeId);
+    this.controllers.Users.removeProductFromCart(userId, productId);
   }
   public editProductQuantityInCart( userId: string,productId: string, quantity: number) {
     this.isConnectionValid(userId);
-    const storeId = this.controllers.Stores.getStoreIdByProductId(productId); 
-    this.controllers.Users.editProductQuantityInCart(userId, productId, storeId, quantity);
+    this.controllers.Users.editProductQuantityInCart(userId, productId,  quantity);
   }
   public getCart(userId: string) {
     this.isConnectionValid(userId);
@@ -69,5 +67,12 @@ export class MarketFacade {
   public readNotification(userId: string, notificationId: string) {
     this.isConnectionValid(userId);
     this.controllers.Users.readNotification(userId, notificationId);
+  }
+  public addNotification(userId: string, notificationType:string,notificationMsg:string) {
+    this.controllers.Users.addNotification(userId, notificationType,notificationMsg);
+  }
+  public getUnreadNotifications(userId: string) {
+    this.isConnectionValid(userId);
+    return this.controllers.Users.getUnreadNotifications(userId);
   }
 }

@@ -42,10 +42,14 @@ export class StoreProduct extends HasRepos {
       name: dto.name,
       quantity: dto.quantity,
       price: dto.price,
-    });
-    product.initRepos(repos);
+    }).initRepos(repos);
     product.id = dto.id;
     return product;
+  }
+
+  static fromProductId(productId: string, repos: Repos) {
+    const dto = repos.Products.getProductById(productId);
+    return this.fromDTO(dto, repos);
   }
 
   public get Id() {
@@ -94,5 +98,9 @@ export class StoreProduct extends HasRepos {
       throw new Error("Store is not active");
     }
     return this.quantity >= quantity;
+  }
+
+  public getPriceByQuantity(quantity: number): number {
+    return this.price * quantity;
   }
 }

@@ -7,6 +7,8 @@ import {
   type StoreProductArgs,
 } from "./StoreProduct";
 import { HasRepos, createRepos } from "./HasRepos";
+import { type CartDTO } from "../Users/Cart";
+import { type BasketDTO } from "../Users/Basket";
 
 export interface IStoresController {
   /**
@@ -129,6 +131,29 @@ export interface IStoresController {
    * @throws Error if the product does not exist.
    */
   isProductQuantityInStock(productId: string, quantity: number): boolean;
+  /**
+   * This function returns the store id of a product.
+   * @param productId The id of the product.
+   * @returns The id of the store that the product is in.
+   * @throws Error if the product does not exist.
+   */
+  getStoreIdByProductId(productId: string): string;
+  /**
+   * This function returns the total price of a cart.
+   * @param cartDTO The cart.
+   * @returns The total price of the cart.
+   * @throws Error if a product does not exist.
+   * @throws Error if a product does not belong to the store of its basket.
+   */
+  getCartPrice(cartDTO: CartDTO): number;
+  /**
+   * This function returns the total price of a basket.
+   * @param basketDTO The basket.
+   * @returns The total price of the basket.
+   * @throws Error if a product does not exist.
+   * @throws Error if a product does not belong to the store of its basket.
+   */
+  getBasketPrice(basketDTO: BasketDTO): number;
 }
 
 export class StoresController
@@ -139,9 +164,10 @@ export class StoresController
     super();
     this.initRepos(createRepos());
   }
+
   isProductQuantityInStock(productId: string, quantity: number): boolean {
-    const dto = this.Repos.Products.getProductById(productId);
-    return StoreProduct.fromDTO(dto, this.Repos).isQuantityInStock(quantity);
+    const product = StoreProduct.fromProductId(productId, this.Repos);
+    return product.isQuantityInStock(quantity);
   }
 
   createProduct(
@@ -159,17 +185,18 @@ export class StoresController
         "User does not have permission to create product in store."
       );
     }
-    const dto = this.Repos.Stores.getStoreById(storeId);
-    const store = Store.fromDTO(dto, this.Repos);
+    const store = Store.fromStoreId(storeId, this.Repos);
     return store.createProduct(product);
   }
+
   isStoreActive(storeId: string): boolean {
     throw new Error("Method not implemented.");
   }
+
   getStoreProducts(storeId: string): StoreProductDTO[] {
-    const dto = this.Repos.Stores.getStoreById(storeId);
-    return Store.fromDTO(dto, this.Repos).Products;
+    return Store.fromStoreId(storeId, this.Repos).Products;
   }
+
   setProductQuantity(
     userId: string,
     productId: string,
@@ -177,37 +204,59 @@ export class StoresController
   ): void {
     throw new Error("Method not implemented.");
   }
+
   decreaseProductQuantity(productId: string, quantity: number): void {
     throw new Error("Method not implemented.");
   }
+
   deleteProduct(userId: string, productId: string): void {
     throw new Error("Method not implemented.");
   }
+
   setProductPrice(userId: string, productId: string, price: number): void {
     //TODO: this.Controllers.Jobs.per
-    const dto = this.Repos.Products.getProductById(productId);
-    StoreProduct.fromDTO(dto, this.Repos).Price = price;
+    StoreProduct.fromProductId(productId, this.Repos).Price = price;
   }
+
   createStore(founderId: string, storeName: string): string {
     //TODO: this.Controllers.Jobs.
     if (this.Repos.Stores.getAllNames().has(storeName))
       throw new Error("Store name is already taken");
-    const store = new Store(storeName);
-    store.initRepos(this.Repos);
+    const store = new Store(storeName).initRepos(this.Repos);
     this.Repos.Stores.addStore(store.DTO);
     return store.Id;
   }
+
   activateStore(userId: string, storeId: string): void {
     throw new Error("Method not implemented.");
   }
+
   deactivateStore(userId: string, storeId: string): void {
     throw new Error("Method not implemented.");
   }
+
   closeStorePermanently(userId: string, storeId: string): void {
     throw new Error("Method not implemented.");
   }
+
   getProductPrice(productId: string): number {
-    const dto = this.Repos.Products.getProductById(productId);
-    return StoreProduct.fromDTO(dto, this.Repos).Price;
+    return StoreProduct.fromProductId(productId, this.Repos).Price;
+  }
+
+  getStoreIdByProductId(productId: string): string {
+    return StoreProduct.fromProductId(productId, this.Repos).Store.Id;
+  }
+
+  getCartPrice(cartDTO: CartDTO): number {
+    let price = 0;
+    cartDTO.storeIdToBasket.forEach((basket, storeId) => {
+      price += this.getBasketPrice(basket);
+    });
+    return price;
+  }
+
+  getBasketPrice(basketDTO: BasketDTO): number {
+    const store = Store.fromStoreId(basketDTO.storeId, this.Repos);
+    return store.getBasketPrice(basketDTO);
   }
 }

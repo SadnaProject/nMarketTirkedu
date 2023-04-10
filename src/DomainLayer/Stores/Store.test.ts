@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { Store } from "./Store";
 import { type Repos, createRepos } from "./HasRepos";
-import { productData } from "./StoreProduct.test";
+import { createStoreWithProduct, productData } from "./StoreProduct.test";
 
 //* Vitest Docs: https://vitest.dev/api
 
@@ -41,5 +41,22 @@ describe("createProduct", () => {
     });
     const store = createStore(repos);
     expect(() => store.createProduct(productData)).toThrow();
+  });
+});
+
+describe("get basket price", () => {
+  it("✅gets basket price", () => {
+    const repos = createRepos();
+    const { store, product } = createStoreWithProduct(repos);
+    vi.spyOn(repos.Stores, "getStoreById").mockReturnValueOnce(store.DTO);
+    const basket = {
+      storeId: store.Id,
+      products: [
+        { quantity: productData.quantity, storeProductId: product.Id },
+      ],
+    };
+    expect(store.getBasketPrice(basket)).toBe(
+      product.Price * productData.quantity
+    );
   });
 });

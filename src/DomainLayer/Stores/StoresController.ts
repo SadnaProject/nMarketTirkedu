@@ -188,12 +188,15 @@ export class StoresController
     const store = Store.fromStoreId(storeId, this.Repos);
     return store.createProduct(product);
   }
+
   isStoreActive(storeId: string): boolean {
     throw new Error("Method not implemented.");
   }
+
   getStoreProducts(storeId: string): StoreProductDTO[] {
     return Store.fromStoreId(storeId, this.Repos).Products;
   }
+
   setProductQuantity(
     userId: string,
     productId: string,
@@ -201,16 +204,20 @@ export class StoresController
   ): void {
     throw new Error("Method not implemented.");
   }
+
   decreaseProductQuantity(productId: string, quantity: number): void {
     throw new Error("Method not implemented.");
   }
+
   deleteProduct(userId: string, productId: string): void {
     throw new Error("Method not implemented.");
   }
+
   setProductPrice(userId: string, productId: string, price: number): void {
     //TODO: this.Controllers.Jobs.per
     StoreProduct.fromProductId(productId, this.Repos).Price = price;
   }
+
   createStore(founderId: string, storeName: string): string {
     //TODO: this.Controllers.Jobs.
     if (this.Repos.Stores.getAllNames().has(storeName))
@@ -219,12 +226,15 @@ export class StoresController
     this.Repos.Stores.addStore(store.DTO);
     return store.Id;
   }
+
   activateStore(userId: string, storeId: string): void {
     throw new Error("Method not implemented.");
   }
+
   deactivateStore(userId: string, storeId: string): void {
     throw new Error("Method not implemented.");
   }
+
   closeStorePermanently(userId: string, storeId: string): void {
     throw new Error("Method not implemented.");
   }

@@ -13,7 +13,7 @@ export const productData = {
 const createProduct = (repos: Repos = createRepos()) =>
   new StoreProduct(productData).initRepos(repos);
 
-const createStoreWithProduct = (repos: Repos = createRepos()) => {
+export const createStoreWithProduct = (repos: Repos = createRepos()) => {
   const store = createStore(repos);
   const productId = store.createProduct(productData);
   const product = StoreProduct.fromProductId(productId, store.Repos);

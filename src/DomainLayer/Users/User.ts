@@ -57,4 +57,7 @@ export class User {
     }
     notification.read();
   }
+  public clearCart(): void {
+    this.cart = new Cart();
+  }
 }

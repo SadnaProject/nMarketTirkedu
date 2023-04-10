@@ -1,9 +1,8 @@
 import { HasControllers } from "../HasController";
-import { type BasketDTO } from "./Basket";
+import { Mixin } from "ts-mixer";
 import { type CartDTO } from "./Cart";
-import { type UserDTO } from "./User";
-import { UserRepo } from "./UserRepo";
 import { Notification } from "./Notification";
+import { HasRepos, createRepos } from "./HasRepos";
 export interface IUsersController {
 /**
    * This function gets the notifications of a user.
@@ -17,7 +16,7 @@ getNotifications(userId: string): Notification[];
  * @param productId The id of the product that is being added to the cart.
  * @param quantity The quantity of the product that is being added to the cart.
  */
-addProductToCart(userId: string, productId: string, quantity: number,storeId:string): void;
+addProductToCart(userId: string, productId: string, quantity: number): void;
 /**
  * This function removes a product from a user's cart.
  * @param userId The id of the user that is currently logged in.
@@ -70,20 +69,26 @@ readNotification(userId: string, notificationId: string): void;
 }
 
 export class UsersController
-  extends HasControllers
+extends Mixin(HasControllers, HasRepos)
   implements IUsersController
 {
-
-  private userRepo: UserRepo = new UserRepo();
-  getNotifications(userId: string): Notification[] {
-    return this.userRepo.getUser(userId).Notifications;
+  constructor() {
+    super();
+    this.initRepos(createRepos());
   }
-  addProductToCart(userId: string, productId: string, quantity: number,storeId:string): void {
-    const user = this.userRepo.getUser(userId); // notice that we get the user from the repo and not from the system
+  getNotifications(userId: string): Notification[] {
+    return this.Repos.Users.getUser(userId).Notifications;
+  }
+  addProductToCart(userId: string, productId: string, quantity: number): void {
+    const user = this.Repos.Users.getUser(userId); // notice that we get the user from the repo and not from the system
+    const storeId = this.Controllers.Stores.getStoreIdByProductId(productId);    
+    if(!this.Controllers.Stores.isProductQuantityInStock(productId, quantity)){
+      throw new Error("store don't have such amount of product");
+    }
     user.addProductToCart(productId, quantity,storeId);
   }
   removeProductFromCart(userId: string, productId: string,storeId:string): void {
-    const user = this.userRepo.getUser(userId);
+    const user = this.Repos.Users.getUser(userId);
     user.removeProductFromCart(productId,storeId);
   }
   editProductQuantityInCart(
@@ -92,37 +97,42 @@ export class UsersController
     storeId:string,
     quantity: number
   ): void {
-    const user = this.userRepo.getUser(userId);
+    const user = this.Repos.Users.getUser(userId);
+    if(!this.Controllers.Stores.isProductQuantityInStock(productId, quantity)){
+      throw new Error("Product is out of stock");
+    } 
     user.editProductQuantityInCart(productId,storeId, quantity);
   }
   getCart(userId: string): CartDTO {
-    return this.userRepo.getUser(userId).Cart;  
+    return this.Repos.Users.getUser(userId).Cart;  
   }
   purchaseCart(userId: string): void {
-    const user = this.userRepo.getUser(userId);
+    const user = this.Repos.Users.getUser(userId);
     const cart = user.Cart;
-    const price = 0; //TODO omer- this.Controllers.Stores.getTotalPrice(Cart);
-    this.Controllers.PurchasesHistory.purchaseCart(userId,cart); // TODO Bpincu add price to the arguments, and add way to enter the payment details, throw the specific error if the payment failed
+    const price = this.getTotalPrice(userId);
+    this.Controllers.PurchasesHistory.purchaseCart(userId,cart); 
     const notificationMsg =`The cart ${cart.toString()} has been purchased for ${price}.`;
     const notification = new Notification( "purchase",notificationMsg );
     user.addNotification(notification);
   }
   addUser(userId:string, userName:string): void {
-    this.userRepo.addUser(userId, userName);
+    this.Repos.Users.addUser(userId, userName);
   }
   removeUser(userId: string): void {
-    this.userRepo.removeUser(userId);
+    this.Repos.Users.removeUser(userId);
+  } 
+  getTotalPrice(userId: string): number {
+    return this.Controllers.Stores.getCartPrice(this.Repos.Users.getUser(userId).Cart);
   }
-  getTotalPrice(Cart: CartDTO): number {
-   //return this.Controllers.Stores.getTotalPrice(Cart); 
-    throw new Error("Method not implemented.");
-  }
-  getBasketTotalPrice(Basket: BasketDTO): number {
-   //return this.Controllers.Stores.getTotalPrice(Basket); 
-   throw new Error("Method not implemented.");
+  getBasketTotalPrice(userId:string,storeId:string): number {
+    const x = this.Repos.Users.getUser(userId).Cart.storeIdToBasket.get(storeId);
+    if (x == undefined) {
+      throw new Error("The user does not have a basket in this store.");
+    }
+    return this.Controllers.Stores.getBasketPrice(x);
   }
   readNotification(userId: string, notificationId: string): void {
-    const user = this.userRepo.getUser(userId);
+    const user = this.Repos.Users.getUser(userId);
     user.readNotification(notificationId);
   }
 }

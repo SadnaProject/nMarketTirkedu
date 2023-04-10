@@ -134,7 +134,10 @@ export interface IJobsController {
 }
 
 export class JobsController extends HasControllers implements IJobsController {
-  getStoreFounder(storeId: string): UserDTO {
+  constructor() {
+    super();
+    }
+    getStoreFounder(storeId: string): UserDTO {
     throw new Error("Method not implemented.");
   }
   getStoreOwners(storeId: string): UserDTO[] {

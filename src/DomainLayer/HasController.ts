@@ -1,8 +1,8 @@
-import { type IAuthController } from "./Auth/AuthController";
-import { type IJobsController } from "./Jobs/JobsController";
-import { type IPurchasesHistoryController } from "./PurchasesHistory/PurchasesHistoryController";
-import { type IStoresController } from "./Stores/StoresController";
-import { type IUsersController } from "./Users/UsersController";
+import { AuthController, type IAuthController } from "./Auth/AuthController";
+import { JobsController, type IJobsController } from "./Jobs/JobsController";
+import { PurchasesHistoryController, type IPurchasesHistoryController } from "./PurchasesHistory/PurchasesHistoryController";
+import { StoresController, type IStoresController } from "./Stores/StoresController";
+import { UsersController, type IUsersController } from "./Users/UsersController";
 
 export type Controllers = {
   PurchasesHistory: IPurchasesHistoryController;
@@ -11,7 +11,6 @@ export type Controllers = {
   Jobs: IJobsController;
   Auth: IAuthController;
 };
-
 export class HasControllers {
   private controllers?: Controllers;
 

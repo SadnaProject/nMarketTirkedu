@@ -1,3 +1,4 @@
+import { HasControllers } from "../HasController";
 import { type BasketProductDTO, BasketProduct } from "./BasketProduct";
 import { UsersController } from "./UsersController";
 export type BasketDTO = {

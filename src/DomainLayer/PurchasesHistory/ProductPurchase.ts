@@ -1,3 +1,4 @@
+import { HasRepos } from "./HasRepos";
 import { type ProductReview, type ProductReviewDTO } from "./ProductReview";
 
 export type ProductPurchaseDTO = {
@@ -12,13 +13,14 @@ type ProductPurchaseArgs = {
   price: number;
 };
 
-export class ProductPurchase {
+export class ProductPurchase extends HasRepos {
   private productId: string;
   private quantity: number;
   private price: number;
   private review?: ProductReview;
 
   constructor({ productId, quantity, price }: ProductPurchaseArgs) {
+    super();
     this.productId = productId;
     this.quantity = quantity;
     this.price = price;

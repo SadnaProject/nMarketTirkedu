@@ -5,6 +5,7 @@ import { type BasketPurchaseDTO } from "./BasketPurchase";
 import { CartPurchase, type CartPurchaseDTO } from "./CartPurchase";
 import { type ProductReviewArgs, type ProductReviewDTO, ProductReview } from "./ProductReview";
 import { Review, ReviewDTO, ReviewArgs } from "./Review";
+import { randomUUID } from "crypto";
 
 export interface IPurchasesHistoryController {
   getPurchase(purchaseId: string): CartPurchaseDTO;
@@ -72,7 +73,7 @@ export class PurchasesHistoryController
     if (this.getPurchase(purchaseId) === undefined) {
       throw new Error("Purchase not found");
     }
-    this.storesRatings.push(new Review({rating}, userId, purchaseId, storeId, "").ReviewToDTO());
+    this.storesRatings.push(new Review({rating : rating, id : randomUUID() , createdAt : new Date(), userId : userId, purchaseId : purchaseId, storeId : storeId}).ReviewToDTO());
   }
   addProductPurchaseReview(
     userId: string,
@@ -84,9 +85,9 @@ export class PurchasesHistoryController
     if(this.getPurchase(purchaseId) === undefined) {
       throw new Error("Purchase not found");
     }
-    const productReview = new ProductReview(review, userId, purchaseId, "", productId);
-    new ProductReview(review, userId, purchaseId, "", productId)
+    const productReview = new ProductReview({rating : review.rating, id : randomUUID() , createdAt : new Date(), userId : userId, purchaseId : purchaseId, storeId : storeId, title : review.title, description : review.description});
     this.getPurchase(purchaseId).storeIdToBasketPurchases.get(storeId)?.Products.get(productId)?.setReview(productReview);
+    this.productsReviews.push(productReview.ProductReviewToDTO());
   }
   getStoreRating(storeId: string): number {
     let sum = 0;
@@ -144,6 +145,13 @@ export class PurchasesHistoryController
       this.userIdToCartPurchases.set(userId, []);
     }
     this.userIdToCartPurchases.get(userId)?.push(purchase);
+  }
+
+  addCartPurchase(userId: string, cartPurchase: CartPurchaseDTO) {
+    if (this.userIdToCartPurchases.get(userId) === undefined) {
+      this.userIdToCartPurchases.set(userId, []);
+    }
+    this.userIdToCartPurchases.get(userId)?.push(cartPurchase);
   }
 
 }

@@ -85,4 +85,8 @@ export class Store extends HasRepos {
       return acc + storeProduct.getPriceByQuantity(curr.quantity);
     }, 0);
   }
+
+  public delete() {
+    this.Repos.Stores.deleteStore(this.Id);
+  }
 }

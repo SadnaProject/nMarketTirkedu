@@ -32,4 +32,9 @@ export class StoresRepo extends Testable {
     const store = this.getStoreById(storeId);
     store.isActive = isActive;
   }
+
+  public deleteStore(storeId: string) {
+    const store = this.getStoreById(storeId);
+    this.stores = this.stores.filter((s) => s.id !== store.id);
+  }
 }

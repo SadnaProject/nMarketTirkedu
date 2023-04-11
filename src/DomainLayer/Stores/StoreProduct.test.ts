@@ -49,7 +49,9 @@ describe("constructor", () => {
 
 describe("set quantity", () => {
   it("✅sets quantity", () => {
-    const store = createProduct();
+    const repos = createTestRepos();
+    const store = createProduct(repos);
+    vi.spyOn(repos.Products, "setQuantity").mockReturnValueOnce();
     store.Quantity = 2;
     expect(store.Quantity).toBe(2);
   });

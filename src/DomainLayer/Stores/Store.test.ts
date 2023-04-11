@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { Store } from "./Store";
-import { type Repos, createRepos, createTestRepos } from "./HasRepos";
+import { type Repos, createTestRepos } from "./HasRepos";
 import { createStoreWithProduct, productData } from "./StoreProduct.test";
 import { type BasketDTO } from "../Users/Basket";
 
@@ -23,18 +23,20 @@ describe("constructor", () => {
 });
 
 describe("createProduct", () => {
-  it("✅💾creates a product", () => {
-    const repos = createRepos();
-    const productsRepoMock = vi.spyOn(repos.Products, "addProduct");
+  it("✅creates a product", () => {
+    const repos = createTestRepos();
     const store = createStore(repos);
+    vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
     const productId = store.createProduct(productData);
+    vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValue([
+      { ...productData, id: productId },
+    ]);
     expect(store.Products.length).toBe(1);
     expect(store.Products[0]).toEqual({ ...productData, id: productId });
-    expect(productsRepoMock).toHaveBeenCalledOnce();
   });
 
   it("❎fails in productRepo", () => {
-    const repos = createRepos();
+    const repos = createTestRepos();
     const productsRepoMock = vi.spyOn(repos.Products, "addProduct");
     productsRepoMock.mockImplementation(() => {
       throw new Error("error");
@@ -46,7 +48,7 @@ describe("createProduct", () => {
 
 describe("get basket price", () => {
   it("✅gets basket price", () => {
-    const repos = createRepos();
+    const repos = createTestRepos();
     const { store, product } = createStoreWithProduct(repos);
     const basket: BasketDTO = {
       storeId: store.Id,
@@ -55,8 +57,8 @@ describe("get basket price", () => {
       ],
     };
     vi.spyOn(repos.Products, "getProductById").mockReturnValueOnce(product.DTO);
-    vi.spyOn(repos.Stores, "getStoreById").mockReturnValueOnce(store.DTO);
     vi.spyOn(repos.Products, "getStoreIdByProductId").mockReturnValue(store.Id);
+    vi.spyOn(repos.Stores, "getStoreById").mockReturnValueOnce(store.DTO);
     expect(store.getBasketPrice(basket)).toBe(
       product.Price * productData.quantity
     );

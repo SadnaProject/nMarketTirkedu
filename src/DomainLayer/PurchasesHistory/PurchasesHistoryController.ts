@@ -11,7 +11,7 @@ import {
 import { Review, type ReviewDTO, ReviewArgs } from "./Review";
 import { randomUUID } from "crypto";
 import { Mixin } from "ts-mixer";
-import { Controller } from "../Controller";
+import { Testable, testable } from "~/Testable";
 
 export interface IPurchasesHistoryController {
   getPurchase(purchaseId: string): CartPurchaseDTO;
@@ -39,8 +39,9 @@ export interface IPurchasesHistoryController {
   getPurchasesByStore(storeId: string): BasketPurchaseDTO[];
 }
 
+@testable
 export class PurchasesHistoryController
-  extends Mixin(Controller, HasControllers)
+  extends Mixin(Testable, HasControllers)
   implements IPurchasesHistoryController
 {
   private userIdToCartPurchases: Map<string, CartPurchaseDTO[]>;

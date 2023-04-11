@@ -1,6 +1,8 @@
+import { Mixin } from "ts-mixer";
 import { HasControllers } from "../HasController";
 import { type StoreDTO } from "../Stores/Store";
 import { type UserDTO } from "../Users/User";
+import { Controller } from "../Controller";
 
 export interface IJobsController {
   /**
@@ -133,11 +135,14 @@ export interface IJobsController {
   getStoreManagers(storeId: string): UserDTO[];
 }
 
-export class JobsController extends HasControllers implements IJobsController {
+export class JobsController
+  extends Mixin(Controller, HasControllers)
+  implements IJobsController
+{
   constructor() {
     super();
-    }
-    getStoreFounder(storeId: string): UserDTO {
+  }
+  getStoreFounder(storeId: string): UserDTO {
     throw new Error("Method not implemented.");
   }
   getStoreOwners(storeId: string): UserDTO[] {

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { StoreProduct } from "./StoreProduct";
-import { type Repos, createRepos } from "./HasRepos";
+import { type Repos, createRepos, createTestRepos } from "./HasRepos";
 import { createStore } from "./Store.test";
 //* Vitest Docs: https://vitest.dev/api
 
@@ -8,15 +8,20 @@ export const productData = {
   name: "product name",
   quantity: 2,
   price: 1,
+  category: "category",
 };
 
-const createProduct = (repos: Repos = createRepos()) =>
+const createProduct = (repos: Repos = createTestRepos()) =>
   new StoreProduct(productData).initRepos(repos);
 
 export const createStoreWithProduct = (repos: Repos = createRepos()) => {
   const store = createStore(repos);
+  vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
   const productId = store.createProduct(productData);
-  const product = StoreProduct.fromProductId(productId, store.Repos);
+  const product = StoreProduct.fromDTO(
+    { ...productData, id: productId },
+    repos
+  );
   vi.spyOn(product, "Store", "get").mockReturnValue(store);
   return { store, product };
 };

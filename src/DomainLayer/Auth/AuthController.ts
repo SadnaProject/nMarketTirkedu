@@ -1,4 +1,6 @@
+import { Mixin } from "ts-mixer";
 import { HasControllers } from "../HasController";
+import { Controller } from "../Controller";
 
 export interface IAuthController {
   /**
@@ -65,7 +67,10 @@ export interface IAuthController {
   ): void;
 }
 
-export class AuthController extends HasControllers implements IAuthController {
+export class AuthController
+  extends Mixin(Controller, HasControllers)
+  implements IAuthController
+{
   login(email: string, password: string): string {
     throw new Error("Method not implemented.");
   }

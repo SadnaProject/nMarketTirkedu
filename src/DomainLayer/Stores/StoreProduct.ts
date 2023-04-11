@@ -6,11 +6,13 @@ import { Store } from "./Store";
 const nameSchema = z.string().nonempty();
 const quantitySchema = z.number().positive();
 const priceSchema = z.number().positive();
+const categorySchema = z.string().nonempty();
 
 const storeProductArgsSchema = z.object({
   name: nameSchema,
   quantity: quantitySchema,
   price: priceSchema,
+  category: categorySchema,
 });
 
 export type StoreProductArgs = z.infer<typeof storeProductArgsSchema>;
@@ -20,6 +22,7 @@ export type StoreProductDTO = {
   name: string;
   quantity: number;
   price: number;
+  category: string;
 };
 
 export class StoreProduct extends HasRepos {
@@ -27,6 +30,7 @@ export class StoreProduct extends HasRepos {
   private name: string;
   private quantity: number;
   private price: number;
+  private category: string;
 
   constructor(product: StoreProductArgs) {
     super();
@@ -35,14 +39,11 @@ export class StoreProduct extends HasRepos {
     this.name = product.name;
     this.quantity = product.quantity;
     this.price = product.price;
+    this.category = product.category;
   }
 
   static fromDTO(dto: StoreProductDTO, repos: Repos) {
-    const product = new StoreProduct({
-      name: dto.name,
-      quantity: dto.quantity,
-      price: dto.price,
-    }).initRepos(repos);
+    const product = new StoreProduct(dto).initRepos(repos);
     product.id = dto.id;
     return product;
   }
@@ -78,6 +79,10 @@ export class StoreProduct extends HasRepos {
     this.price = price;
   }
 
+  public get Category() {
+    return this.category;
+  }
+
   public get Store() {
     const storeId = this.Repos.Products.getStoreIdByProductId(this.id);
     const dto = this.Repos.Stores.getStoreById(storeId);
@@ -90,6 +95,7 @@ export class StoreProduct extends HasRepos {
       name: this.name,
       quantity: this.quantity,
       price: this.price,
+      category: this.category,
     };
   }
 

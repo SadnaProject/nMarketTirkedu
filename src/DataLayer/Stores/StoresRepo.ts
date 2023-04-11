@@ -1,9 +1,10 @@
+import { Repo } from "~/DataLayer/Repo";
 import { type StoreDTO } from "../../DomainLayer/Stores/Store";
-
-export class StoresRepo {
+export class StoresRepo extends Repo {
   private stores: StoreDTO[];
 
   constructor() {
+    super();
     this.stores = [];
   }
 

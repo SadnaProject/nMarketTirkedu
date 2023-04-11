@@ -1,9 +1,10 @@
-import { AuthController, type IAuthController } from "./Auth/AuthController";
-import { JobsController, type IJobsController } from "./Jobs/JobsController";
-import { PurchasesHistoryController, type IPurchasesHistoryController } from "./PurchasesHistory/PurchasesHistoryController";
-import { StoresController, type IStoresController } from "./Stores/StoresController";
-import { UsersController, type IUsersController } from "./Users/UsersController";
+import { type IAuthController } from "./Auth/AuthController";
+import { type IJobsController } from "./Jobs/JobsController";
+import { type IPurchasesHistoryController } from "./PurchasesHistory/PurchasesHistoryController";
+import { type IStoresController } from "./Stores/StoresController";
+import { type IUsersController } from "./Users/UsersController";
 
+//! After changing this type, you must change the type in initControllers file
 export type Controllers = {
   PurchasesHistory: IPurchasesHistoryController;
   Stores: IStoresController;
@@ -16,6 +17,7 @@ export class HasControllers {
 
   public initControllers(controllers: Controllers) {
     this.controllers = controllers;
+    return this;
   }
 
   public get Controllers() {

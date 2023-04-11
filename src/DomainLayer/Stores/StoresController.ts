@@ -9,6 +9,7 @@ import {
 import { HasRepos, createRepos } from "./HasRepos";
 import { type CartDTO } from "../Users/Cart";
 import { type BasketDTO } from "../Users/Basket";
+import { Controller } from "../Controller";
 
 export interface IStoresController {
   /**
@@ -57,7 +58,7 @@ export interface IStoresController {
    * @param userId The id of the user that is currently logged in.
    * @param productId The id of the product that is being removed.
    * @throws Error if the store is not active.
-   * @throws Error if user does not have permission to remove product.
+   * @throws Error if user does not have permission to delete product.
    */
   deleteProduct(userId: string, productId: string): void;
   /**
@@ -67,7 +68,7 @@ export interface IStoresController {
    * @param price The new price of the product.
    * @throws Error if the store is not active.
    * @throws Error if the price is invalid.
-   *@throws Error if user does not have permission to update product price.
+   * @throws Error if user does not have permission to update product price.
    */
   setProductPrice(userId: string, productId: string, price: number): void;
   //! There will be addDiscountCondition for each condition type
@@ -91,7 +92,6 @@ export interface IStoresController {
    * @param storeName The name of the store.
    * @returns The id of the store that was added to the system.
    * @throws Error if the store name is invalid.
-   * @throws Error if the user does not have permission to add a store.
    * @throws Error if the store name is already taken.
    */
   createStore(founderId: string, storeName: string): string;
@@ -157,7 +157,7 @@ export interface IStoresController {
 }
 
 export class StoresController
-  extends Mixin(HasControllers, HasRepos)
+  extends Mixin(Controller, HasControllers, HasRepos)
   implements IStoresController
 {
   constructor() {

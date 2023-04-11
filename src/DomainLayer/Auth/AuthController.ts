@@ -1,6 +1,6 @@
 import { Mixin } from "ts-mixer";
 import { HasControllers } from "../HasController";
-import { Controller } from "../Controller";
+import { Testable, testable } from "~/Testable";
 
 export interface IAuthController {
   /**
@@ -67,8 +67,9 @@ export interface IAuthController {
   ): void;
 }
 
+@testable
 export class AuthController
-  extends Mixin(Controller, HasControllers)
+  extends Mixin(Testable, HasControllers)
   implements IAuthController
 {
   login(email: string, password: string): string {

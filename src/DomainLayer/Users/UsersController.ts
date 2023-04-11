@@ -3,8 +3,7 @@ import { Mixin } from "ts-mixer";
 import { type CartDTO } from "./Cart";
 import { Notification } from "./Notification";
 import { HasRepos, createRepos } from "./HasRepos";
-import { s } from "vitest/dist/types-fafda418";
-import { Controller } from "../Controller";
+import { Testable, testable } from "~/Testable";
 export interface IUsersController {
   /**
    * This function gets the notifications of a user.
@@ -88,8 +87,9 @@ export interface IUsersController {
   ): string;
 }
 
+@testable
 export class UsersController
-  extends Mixin(Controller, HasControllers, HasRepos)
+  extends Mixin(Testable, HasControllers, HasRepos)
   implements IUsersController
 {
   constructor() {

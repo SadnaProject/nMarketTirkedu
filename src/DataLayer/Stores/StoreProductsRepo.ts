@@ -1,7 +1,8 @@
 import { type StoreProductDTO } from "~/DomainLayer/Stores/StoreProduct";
-import { Repo } from "~/DataLayer/Repo";
+import { Testable, testable } from "~/Testable";
 
-export class StoreProductsRepo extends Repo {
+@testable
+export class StoreProductsRepo extends Testable {
   private productsByStoreId: Map<string, StoreProductDTO[]>;
 
   constructor() {

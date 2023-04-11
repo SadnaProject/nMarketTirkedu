@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { StoreProduct } from "./StoreProduct";
-import { type Repos, createRepos, createTestRepos } from "./HasRepos";
+import { type Repos, createTestRepos } from "./HasRepos";
 import { createStore } from "./Store.test";
 //* Vitest Docs: https://vitest.dev/api
 
@@ -14,7 +14,7 @@ export const productData = {
 const createProduct = (repos: Repos = createTestRepos()) =>
   new StoreProduct(productData).initRepos(repos);
 
-export const createStoreWithProduct = (repos: Repos = createRepos()) => {
+export const createStoreWithProduct = (repos: Repos = createTestRepos()) => {
   const store = createStore(repos);
   vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
   const productId = store.createProduct(productData);
@@ -89,9 +89,9 @@ describe("is quantity in stock", () => {
   });
 
   it("❎gets inactive store", () => {
-    const repos = createRepos();
+    const repos = createTestRepos();
     const { product, store } = createStoreWithProduct(repos);
-    vi.spyOn(repos.Stores, "getStoreById").mockReturnValueOnce(store.DTO);
+    vi.spyOn(repos.Stores, "setIsActive").mockReturnValueOnce();
     store.IsActive = false;
     expect(() => product.isQuantityInStock(1)).toThrow();
   });

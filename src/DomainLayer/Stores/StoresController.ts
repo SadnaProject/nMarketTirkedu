@@ -9,7 +9,7 @@ import {
 import { HasRepos, createRepos } from "./HasRepos";
 import { type CartDTO } from "../Users/Cart";
 import { type BasketDTO } from "../Users/Basket";
-import { Controller } from "../Controller";
+import { Testable, testable } from "~/Testable";
 
 export interface IStoresController {
   /**
@@ -156,8 +156,9 @@ export interface IStoresController {
   getBasketPrice(basketDTO: BasketDTO): number;
 }
 
+@testable
 export class StoresController
-  extends Mixin(Controller, HasControllers, HasRepos)
+  extends Mixin(Testable, HasControllers, HasRepos)
   implements IStoresController
 {
   constructor() {

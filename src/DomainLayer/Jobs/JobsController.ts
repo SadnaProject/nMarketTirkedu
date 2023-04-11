@@ -2,7 +2,7 @@ import { Mixin } from "ts-mixer";
 import { HasControllers } from "../HasController";
 import { type StoreDTO } from "../Stores/Store";
 import { type UserDTO } from "../Users/User";
-import { Controller } from "../Controller";
+import { Testable, testable } from "~/Testable";
 
 export interface IJobsController {
   /**
@@ -135,8 +135,9 @@ export interface IJobsController {
   getStoreManagers(storeId: string): UserDTO[];
 }
 
+@testable
 export class JobsController
-  extends Mixin(Controller, HasControllers)
+  extends Mixin(Testable, HasControllers)
   implements IJobsController
 {
   constructor() {

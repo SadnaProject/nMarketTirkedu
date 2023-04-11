@@ -39,4 +39,18 @@ export class StoreProductsRepo extends Testable {
     }
     throw new Error("Product not found");
   }
+
+  public setQuantity(productId: string, quantity: number) {
+    const product = this.getProductById(productId);
+    product.quantity = quantity;
+  }
+
+  public deleteProduct(productId: string) {
+    const product = this.getProductById(productId);
+    const storeId = this.getStoreIdByProductId(productId);
+    const products = this.productsByStoreId.get(storeId) || [];
+    const index = products.indexOf(product);
+    products.splice(index, 1);
+    this.productsByStoreId.set(storeId, products);
+  }
 }

@@ -67,7 +67,15 @@ export class StoreProduct extends HasRepos {
 
   public set Quantity(quantity: number) {
     quantitySchema.parse(quantity);
+    this.Repos.Products.setQuantity(this.id, quantity);
     this.quantity = quantity;
+  }
+
+  public decreaseQuantity(quantity: number) {
+    if (!this.isQuantityInStock(quantity)) {
+      throw new Error("Not enough quantity in stock");
+    }
+    this.Quantity -= quantity;
   }
 
   public get Price() {
@@ -84,18 +92,18 @@ export class StoreProduct extends HasRepos {
   }
 
   public get Store() {
-    const storeId = this.Repos.Products.getStoreIdByProductId(this.id);
+    const storeId = this.Repos.Products.getStoreIdByProductId(this.Id);
     const dto = this.Repos.Stores.getStoreById(storeId);
     return Store.fromDTO(dto, this.Repos);
   }
 
   public get DTO(): StoreProductDTO {
     return {
-      id: this.id,
-      name: this.name,
-      quantity: this.quantity,
-      price: this.price,
-      category: this.category,
+      id: this.Id,
+      name: this.Name,
+      quantity: this.Quantity,
+      price: this.Price,
+      category: this.Category,
     };
   }
 
@@ -103,10 +111,14 @@ export class StoreProduct extends HasRepos {
     if (!this.Store.IsActive) {
       throw new Error("Store is not active");
     }
-    return this.quantity >= quantity;
+    return this.Quantity >= quantity;
   }
 
   public getPriceByQuantity(quantity: number): number {
-    return this.price * quantity;
+    return this.Price * quantity;
+  }
+
+  public delete() {
+    this.Repos.Products.deleteProduct(this.Id);
   }
 }

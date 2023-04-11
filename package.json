@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "test": "vitest --coverage",
+    "format": "eslint --fix ./src && prettier --write ./src",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "coverage": "vitest run --coverage"

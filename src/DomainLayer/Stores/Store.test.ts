@@ -37,10 +37,6 @@ describe("createProduct", () => {
 
   it("❎fails in productRepo", () => {
     const repos = createTestRepos();
-    const productsRepoMock = vi.spyOn(repos.Products, "addProduct");
-    productsRepoMock.mockImplementation(() => {
-      throw new Error("error");
-    });
     const store = createStore(repos);
     expect(() => store.createProduct(productData)).toThrow();
   });
@@ -57,7 +53,9 @@ describe("get basket price", () => {
       ],
     };
     vi.spyOn(repos.Products, "getProductById").mockReturnValueOnce(product.DTO);
-    vi.spyOn(repos.Products, "getStoreIdByProductId").mockReturnValue(store.Id);
+    vi.spyOn(repos.Products, "getStoreIdByProductId").mockReturnValueOnce(
+      store.Id
+    );
     vi.spyOn(repos.Stores, "getStoreById").mockReturnValueOnce(store.DTO);
     expect(store.getBasketPrice(basket)).toBe(
       product.Price * productData.quantity

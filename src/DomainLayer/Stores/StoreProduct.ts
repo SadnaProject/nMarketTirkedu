@@ -68,6 +68,12 @@ export class StoreProduct extends HasRepos {
     return this.name;
   }
 
+  public set Name(name: string) {
+    nameSchema.parse(name);
+    this.Repos.Products.setName(this.id, name);
+    this.name = name;
+  }
+
   public get Quantity() {
     return this.quantity;
   }
@@ -97,6 +103,12 @@ export class StoreProduct extends HasRepos {
 
   public get Category() {
     return this.category;
+  }
+
+  public set Category(category: string) {
+    categorySchema.parse(category);
+    this.Repos.Products.setCategory(this.id, category);
+    this.category = category;
   }
 
   public get Description() {

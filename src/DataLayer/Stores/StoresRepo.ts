@@ -14,6 +14,10 @@ export class StoresRepo extends Testable {
     this.stores.push(store);
   }
 
+  public getAllStores() {
+    return this.stores;
+  }
+
   public getAllNames() {
     const names = new Set<string>();
     this.stores.forEach((store) => names.add(store.name));

@@ -10,8 +10,21 @@ import { HasRepos, createRepos } from "./HasRepos";
 import { type CartDTO } from "../Users/Cart";
 import { type BasketDTO } from "../Users/Basket";
 import { Testable, testable } from "~/Testable";
+import fuzzysearch from "fuzzysearch-ts";
 
-export interface IStoresController {
+export type SearchArgs = {
+  name?: string;
+  category?: string;
+  keywords?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  minProductRating?: number;
+  maxProductRating?: number;
+  minStoreRating?: number;
+  maxStoreRating?: number;
+};
+
+export interface IStoresController extends HasRepos {
   /**
    * This function creates a product to a store.
    * @param userId The id of the user that is currently logged in.
@@ -154,6 +167,7 @@ export interface IStoresController {
    * @throws Error if a product does not belong to the store of its basket.
    */
   getBasketPrice(basketDTO: BasketDTO): number;
+  searchProducts(searchArgs: SearchArgs): StoreProductDTO[];
 }
 
 @testable
@@ -164,6 +178,55 @@ export class StoresController
   constructor() {
     super();
     this.initRepos(createRepos());
+  }
+  searchProducts(args: SearchArgs): StoreProductDTO[] {
+    const products = StoreProduct.getAll(this.Repos);
+    return products
+      .filter((p) => {
+        const matchName = this.doStringsMatch(args.name, p.Name);
+
+        const matchCategory = this.doStringsMatch(args.category, p.Category);
+        const matchKeywords = (args.keywords ?? []).every(
+          (k) =>
+            this.doStringsMatch(k, p.Name) ||
+            this.doStringsMatch(k, p.Category) ||
+            this.doStringsMatch(k, p.Description)
+        );
+        const matchMinPrice = p.Price >= (args.minPrice ?? 0);
+        const matchMaxPrice = p.Price <= (args.maxPrice ?? Infinity);
+        const productRating =
+          this.Controllers.PurchasesHistory.getReviewsByProduct(p.Id).avgRating;
+        const matchMinProductRating =
+          productRating >= (args.minProductRating ?? 0);
+        const matchMaxProductRating =
+          productRating <= (args.maxProductRating ?? Infinity);
+        const storeRating = this.Controllers.PurchasesHistory.getStoreRating(
+          p.Store.Id
+        );
+        const matchMinStoreRating = storeRating >= (args.minStoreRating ?? 0);
+        const matchMaxStoreRating =
+          storeRating <= (args.maxStoreRating ?? Infinity);
+        return (
+          matchName &&
+          matchCategory &&
+          matchKeywords &&
+          matchMinPrice &&
+          matchMaxPrice &&
+          matchMinProductRating &&
+          matchMaxProductRating &&
+          matchMinStoreRating &&
+          matchMaxStoreRating
+        );
+      })
+      .map((p) => p.DTO);
+  }
+
+  private doStringsMatch(shortStr: string | undefined, longStr: string) {
+    return shortStr ? this.search(shortStr, longStr) : true;
+  }
+
+  private search(needle: string, haystack: string): boolean {
+    return fuzzysearch(needle.toLowerCase(), haystack.toLowerCase());
   }
 
   isProductQuantityInStock(productId: string, quantity: number): boolean {

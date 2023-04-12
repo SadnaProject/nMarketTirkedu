@@ -1,32 +1,45 @@
 import { describe, expect, it, vi } from "vitest";
 import { Store } from "./Store";
 import { type Repos, createTestRepos } from "./HasRepos";
-import { createStoreWithProduct, productData } from "./StoreProduct.test";
+import {
+  createStoreWithProduct,
+  generateProductArgs,
+} from "./StoreProduct.test";
 import { type BasketDTO } from "../Users/Basket";
+import { ZodError } from "zod";
+import { faker } from "@faker-js/faker/locale/en";
 
-//* Vitest Docs: https://vitest.dev/api
+export function generateStoreName() {
+  return faker.company.name();
+}
 
-const storeName = "store name";
-export const createStore = (repos: Repos = createTestRepos()) =>
-  new Store(storeName).initRepos(repos);
+export function createStore(
+  storeName: string,
+  repos: Repos = createTestRepos()
+) {
+  return new Store(storeName).initRepos(repos);
+}
 
 describe("constructor", () => {
   it("✅creates a store", () => {
-    const store = createStore();
+    const storeName = generateStoreName();
+    const store = createStore(storeName);
     expect(store.Name).toBe(storeName);
     expect(store.IsActive).toBe(true);
   });
 
   it("❎gets empty name", () => {
-    expect(() => new Store("")).toThrow();
+    expect(() => new Store("")).toThrow(ZodError);
   });
 });
 
 describe("createProduct", () => {
   it("✅creates a product", () => {
     const repos = createTestRepos();
-    const store = createStore(repos);
+    const storeName = generateStoreName();
+    const store = createStore(storeName, repos);
     vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
+    const productData = generateProductArgs();
     const productId = store.createProduct(productData);
     vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValue([
       { ...productData, id: productId },
@@ -36,16 +49,22 @@ describe("createProduct", () => {
   });
 
   it("❎fails in productRepo", () => {
+    const storeName = generateStoreName();
     const repos = createTestRepos();
-    const store = createStore(repos);
-    expect(() => store.createProduct(productData)).toThrow();
+    const store = createStore(storeName, repos);
+    vi.spyOn(repos.Products, "addProduct").mockImplementationOnce(() => {
+      throw new Error("addProduct failed");
+    });
+    const productData = generateProductArgs();
+    expect(() => store.createProduct(productData)).toThrow("addProduct failed");
   });
 });
 
 describe("get basket price", () => {
   it("✅gets basket price", () => {
+    const productData = generateProductArgs();
     const repos = createTestRepos();
-    const { store, product } = createStoreWithProduct(repos);
+    const { store, product } = createStoreWithProduct(productData, repos);
     const basket: BasketDTO = {
       storeId: store.Id,
       products: [

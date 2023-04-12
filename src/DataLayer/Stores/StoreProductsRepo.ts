@@ -16,7 +16,7 @@ export class StoreProductsRepo extends Testable {
     this.productsByStoreId.set(storeId, products);
   }
 
-  private getAllProducts() {
+  public getAllProducts() {
     return Array.from(this.productsByStoreId.values()).flat();
   }
 
@@ -40,9 +40,19 @@ export class StoreProductsRepo extends Testable {
     throw new Error("Product not found");
   }
 
+  public setPrice(productId: string, price: number) {
+    const product = this.getProductById(productId);
+    product.price = price;
+  }
+
   public setQuantity(productId: string, quantity: number) {
     const product = this.getProductById(productId);
     product.quantity = quantity;
+  }
+
+  public setDescription(productId: string, description: string) {
+    const product = this.getProductById(productId);
+    product.description = description;
   }
 
   public deleteProduct(productId: string) {

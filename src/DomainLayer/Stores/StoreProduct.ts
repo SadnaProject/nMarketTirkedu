@@ -3,27 +3,32 @@ import { z } from "zod";
 import { HasRepos, type Repos } from "./HasRepos";
 import { Store } from "./Store";
 
-const nameSchema = z.string().nonempty();
-const quantitySchema = z.number().positive();
-const priceSchema = z.number().positive();
-const categorySchema = z.string().nonempty();
+const nameSchema = z.string().nonempty("Name must be nonempty");
+const quantitySchema = z.number().positive("Quantity must be positive");
+const priceSchema = z.number().positive("Price must be positive");
+const categorySchema = z.string().nonempty("Category must be nonempty");
+const descriptionSchema = z.string().nonempty("Description must be nonempty");
 
-const storeProductArgsSchema = z.object({
+export const storeProductArgsSchema = z.object({
   name: nameSchema,
   quantity: quantitySchema,
   price: priceSchema,
   category: categorySchema,
+  description: descriptionSchema,
 });
 
 export type StoreProductArgs = z.infer<typeof storeProductArgsSchema>;
 
-export type StoreProductDTO = {
-  id: string;
-  name: string;
-  quantity: number;
-  price: number;
-  category: string;
-};
+export const StoreProductDTOSchema = z.object({
+  id: z.string().uuid(),
+  name: nameSchema,
+  quantity: quantitySchema,
+  price: priceSchema,
+  category: categorySchema,
+  description: descriptionSchema,
+});
+
+export type StoreProductDTO = z.infer<typeof StoreProductDTOSchema>;
 
 export class StoreProduct extends HasRepos {
   private id: string;
@@ -31,6 +36,7 @@ export class StoreProduct extends HasRepos {
   private quantity: number;
   private price: number;
   private category: string;
+  private description: string;
 
   constructor(product: StoreProductArgs) {
     super();
@@ -40,6 +46,7 @@ export class StoreProduct extends HasRepos {
     this.quantity = product.quantity;
     this.price = product.price;
     this.category = product.category;
+    this.description = product.description;
   }
 
   static fromDTO(dto: StoreProductDTO, repos: Repos) {
@@ -84,11 +91,22 @@ export class StoreProduct extends HasRepos {
 
   public set Price(price: number) {
     priceSchema.parse(price);
+    this.Repos.Products.setPrice(this.id, price);
     this.price = price;
   }
 
   public get Category() {
     return this.category;
+  }
+
+  public get Description() {
+    return this.description;
+  }
+
+  public set Description(description: string) {
+    descriptionSchema.parse(description);
+    this.Repos.Products.setDescription(this.id, description);
+    this.description = description;
   }
 
   public get Store() {
@@ -104,12 +122,16 @@ export class StoreProduct extends HasRepos {
       quantity: this.Quantity,
       price: this.Price,
       category: this.Category,
+      description: this.Description,
     };
   }
 
   public isQuantityInStock(quantity: number): boolean {
     if (!this.Store.IsActive) {
       throw new Error("Store is not active");
+    }
+    if (quantity <= 0) {
+      throw new Error("Quantity must be positive");
     }
     return this.Quantity >= quantity;
   }
@@ -120,5 +142,11 @@ export class StoreProduct extends HasRepos {
 
   public delete() {
     this.Repos.Products.deleteProduct(this.Id);
+  }
+
+  public static getAll(repos: Repos) {
+    return repos.Products.getAllProducts().map((dto) =>
+      StoreProduct.fromDTO(dto, repos)
+    );
   }
 }

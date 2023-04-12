@@ -5,7 +5,6 @@ import { generateProductDTO } from "./StoreProduct.test";
 import { createStore, generateStoreName } from "./Store.test";
 import { type Controllers } from "../HasController";
 import { type StoreProductDTO } from "./StoreProduct";
-import { type SearchArgs } from "./StoresController";
 
 describe("search products", () => {
   let repos: Repos;

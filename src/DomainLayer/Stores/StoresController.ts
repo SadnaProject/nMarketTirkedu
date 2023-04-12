@@ -180,53 +180,57 @@ export class StoresController
     this.initRepos(createRepos());
   }
   searchProducts(args: SearchArgs): StoreProductDTO[] {
-    const products = StoreProduct.getAll(this.Repos);
-    return products
+    return StoreProduct.getAll(this.Repos)
       .filter((p) => {
-        const matchName = this.doStringsMatch(args.name, p.Name);
-
-        const matchCategory = this.doStringsMatch(args.category, p.Category);
-        const matchKeywords = (args.keywords ?? []).every(
-          (k) =>
-            this.doStringsMatch(k, p.Name) ||
-            this.doStringsMatch(k, p.Category) ||
-            this.doStringsMatch(k, p.Description)
-        );
-        const matchMinPrice = p.Price >= (args.minPrice ?? 0);
-        const matchMaxPrice = p.Price <= (args.maxPrice ?? Infinity);
         const productRating =
           this.Controllers.PurchasesHistory.getReviewsByProduct(p.Id).avgRating;
-        const matchMinProductRating =
-          productRating >= (args.minProductRating ?? 0);
-        const matchMaxProductRating =
-          productRating <= (args.maxProductRating ?? Infinity);
         const storeRating = this.Controllers.PurchasesHistory.getStoreRating(
           p.Store.Id
         );
-        const matchMinStoreRating = storeRating >= (args.minStoreRating ?? 0);
-        const matchMaxStoreRating =
-          storeRating <= (args.maxStoreRating ?? Infinity);
-        return (
-          matchName &&
-          matchCategory &&
-          matchKeywords &&
-          matchMinPrice &&
-          matchMaxPrice &&
-          matchMinProductRating &&
-          matchMaxProductRating &&
-          matchMinStoreRating &&
-          matchMaxStoreRating
-        );
+        return this.filterProductSearch(p, productRating, storeRating, args);
       })
       .map((p) => p.DTO);
   }
 
-  private doStringsMatch(shortStr: string | undefined, longStr: string) {
-    return shortStr ? this.search(shortStr, longStr) : true;
+  private filterProductSearch(
+    p: StoreProduct,
+    productRating: number,
+    storeRating: number,
+    {
+      name,
+      category,
+      keywords = [],
+      minPrice = 0,
+      maxPrice = Infinity,
+      minProductRating = 0,
+      maxProductRating = Infinity,
+      minStoreRating = 0,
+      maxStoreRating = Infinity,
+    }: SearchArgs
+  ) {
+    return (
+      p.Store.IsActive &&
+      this.search(name, p.Name) &&
+      this.search(category, p.Category) &&
+      keywords.every(
+        (k) =>
+          this.search(k, p.Name) ||
+          this.search(k, p.Category) ||
+          this.search(k, p.Description)
+      ) &&
+      p.Price >= minPrice &&
+      p.Price <= maxPrice &&
+      productRating >= minProductRating &&
+      productRating <= maxProductRating &&
+      storeRating >= minStoreRating &&
+      storeRating <= maxStoreRating
+    );
   }
 
-  private search(needle: string, haystack: string): boolean {
-    return fuzzysearch(needle.toLowerCase(), haystack.toLowerCase());
+  private search(shortStr: string | undefined, longStr: string) {
+    return shortStr
+      ? fuzzysearch(shortStr.toLowerCase(), longStr.toLowerCase())
+      : true;
   }
 
   isProductQuantityInStock(productId: string, quantity: number): boolean {

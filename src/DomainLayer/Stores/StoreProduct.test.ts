@@ -84,6 +84,25 @@ describe("constructor", () => {
   });
 });
 
+describe("set name", () => {
+  it("✅sets name", () => {
+    const productData = generateProductArgs();
+    const repos = createTestRepos();
+    const store = createProduct(productData, repos);
+    vi.spyOn(repos.Products, "setName").mockReturnValueOnce();
+    store.Name = "new name";
+    expect(store.Name).toBe("new name");
+  });
+
+  it("❎gets empty name", () => {
+    const productData = generateProductArgs();
+    const store = createProduct(productData);
+    expect(() => {
+      store.Name = "";
+    }).toThrow(ZodError);
+  });
+});
+
 describe("set quantity", () => {
   it("✅sets quantity", () => {
     const productData = generateProductArgs();
@@ -118,6 +137,44 @@ describe("set price", () => {
     const store = createProduct(productData);
     expect(() => {
       store.Price = -1;
+    }).toThrow(ZodError);
+  });
+});
+
+describe("set category", () => {
+  it("✅sets category", () => {
+    const productData = generateProductArgs();
+    const repos = createTestRepos();
+    const store = createProduct(productData, repos);
+    vi.spyOn(repos.Products, "setCategory").mockReturnValueOnce();
+    store.Category = "new category";
+    expect(store.Category).toBe("new category");
+  });
+
+  it("❎gets empty category", () => {
+    const productData = generateProductArgs();
+    const store = createProduct(productData);
+    expect(() => {
+      store.Category = "";
+    }).toThrow(ZodError);
+  });
+});
+
+describe("set description", () => {
+  it("✅sets description", () => {
+    const productData = generateProductArgs();
+    const repos = createTestRepos();
+    const store = createProduct(productData, repos);
+    vi.spyOn(repos.Products, "setDescription").mockReturnValueOnce();
+    store.Description = "new description";
+    expect(store.Description).toBe("new description");
+  });
+
+  it("❎gets empty description", () => {
+    const productData = generateProductArgs();
+    const store = createProduct(productData);
+    expect(() => {
+      store.Description = "";
     }).toThrow(ZodError);
   });
 });

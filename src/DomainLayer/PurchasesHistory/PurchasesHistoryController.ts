@@ -1,8 +1,8 @@
 import { Hash } from "crypto";
 import { HasControllers } from "../HasController";
 import { type CartDTO } from "../Users/Cart";
-import { type BasketPurchaseDTO } from "./BasketPurchase";
-import { CartPurchase, type CartPurchaseDTO } from "./CartPurchase";
+import { type BasketPurchaseDTO } from "./BasketPurchaseHistory";
+import { CartPurchase, type CartPurchaseDTO } from "./CartPurchaseHistory";
 import {
   type ProductReviewArgs,
   type ProductReviewDTO,

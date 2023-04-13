@@ -1,9 +1,8 @@
-import { BasketPurchaseRepo } from "~/DataLayer/Purchases/BasketPurchaseRepo";
-import { CartPurchaseRepo } from "~/DataLayer/Purchases/CartPurchaseRepo";
-import { ProductPurchaseRepo } from "~/DataLayer/Purchases/ProductPurchaseRepo";
-import { ProductReviewRepo } from "~/DataLayer/Purchases/ProductReviewsRepo";
-import { ReviewRepo } from "~/DataLayer/Purchases/ReviewRepo";
-
+import { BasketPurchaseRepo } from "~/DataLayer/PurchasesHistory/BasketPurchaseHistoryRepo";
+import { CartPurchaseRepo } from "~/DataLayer/PurchasesHistory/CartPurchaseHistoryRepo";
+import { ProductPurchaseRepo } from "~/DataLayer/PurchasesHistory/ProductPurchaseHistoryRepo";
+import { ProductReviewRepo } from "~/DataLayer/PurchasesHistory/ProductReviewsRepo";
+import { ReviewRepo } from "~/DataLayer/PurchasesHistory/ReviewRepo";
 
 export type Repos = {
   Reviews: ReviewRepo;
@@ -15,7 +14,7 @@ export type Repos = {
 
 export function createRepos(): Repos {
   return {
-    Reviews: new ReviewRepo(), 
+    Reviews: new ReviewRepo(),
     ProductsPurchases: new ProductPurchaseRepo(),
     ProductReviews: new ProductReviewRepo(),
     BasketPurchases: new BasketPurchaseRepo(),

@@ -1,8 +1,8 @@
 import { Hash } from "crypto";
 import { HasControllers } from "../HasController";
 import { type CartDTO } from "../Users/Cart";
-import { type BasketPurchaseDTO } from "./BasketPurchase";
-import { CartPurchase, type CartPurchaseDTO } from "./CartPurchase";
+import { type BasketPurchaseDTO } from "./BasketPurchaseHistory";
+import { CartPurchase, type CartPurchaseDTO } from "./CartPurchaseHistory";
 import {
   type ProductReviewArgs,
   type ProductReviewDTO,
@@ -83,10 +83,10 @@ export class PurchasesHistoryController
     storeId: string,
     rating: number
   ): void {
-    if(this.Repos.Reviews.getStoreReview(purchaseId, storeId) !== undefined){
+    if (this.Repos.Reviews.getStoreReview(purchaseId, storeId) !== undefined) {
       throw new Error("Store already reviewed");
     }
-    if(this.Repos.BasketPurchases.getPurchaseById(purchaseId) === undefined){
+    if (this.Repos.BasketPurchases.getPurchaseById(purchaseId) === undefined) {
       throw new Error("Purchase not found");
     }
     const review = new Review({
@@ -120,10 +120,13 @@ export class PurchasesHistoryController
     productId: string,
     review: ProductReviewArgs
   ): void {
-    if(this.Repos.ProductReviews.getProductReview(purchaseId, productId) !== undefined){
+    if (
+      this.Repos.ProductReviews.getProductReview(purchaseId, productId) !==
+      undefined
+    ) {
       throw new Error("Product already reviewed");
     }
-    if(this.Repos.BasketPurchases.getPurchaseById(purchaseId) === undefined){
+    if (this.Repos.BasketPurchases.getPurchaseById(purchaseId) === undefined) {
       throw new Error("Purchase not found");
     }
     const productReview = new ProductReview({
@@ -136,7 +139,9 @@ export class PurchasesHistoryController
       title: review.title,
       description: review.description,
     });
-    this.Repos.ProductReviews.addProductReview(productReview.ProductReviewToDTO());
+    this.Repos.ProductReviews.addProductReview(
+      productReview.ProductReviewToDTO()
+    );
 
     // if (this.getPurchase(purchaseId) === undefined) {
     //   throw new Error("Purchase not found");
@@ -162,8 +167,8 @@ export class PurchasesHistoryController
     let count = 0;
     const reviews = this.Repos.Reviews.getAllStoreReviews(storeId);
     for (const review of reviews) {
-        sum += review.rating;
-        count++;
+      sum += review.rating;
+      count++;
     }
     return sum / count;
   }
@@ -200,7 +205,7 @@ export class PurchasesHistoryController
     // };
   }
   getPurchase(purchaseId: string): CartPurchaseDTO {
-    if(this.Repos.CartPurchases.getPurchaseById(purchaseId) === undefined){
+    if (this.Repos.CartPurchases.getPurchaseById(purchaseId) === undefined) {
       throw new Error("Purchase not found");
     }
     return this.Repos.CartPurchases.getPurchaseById(purchaseId)!;
@@ -211,7 +216,7 @@ export class PurchasesHistoryController
     // return purchase;
   }
   addPurchase(purchaseId: string, purchase: CartPurchaseDTO) {
-    if(this.Repos.CartPurchases.getPurchaseById(purchaseId) !== undefined){
+    if (this.Repos.CartPurchases.getPurchaseById(purchaseId) !== undefined) {
       throw new Error("Purchase already exists");
     }
     this.Repos.CartPurchases.addCartPurchase(purchase);
@@ -224,5 +229,4 @@ export class PurchasesHistoryController
     // }
     // this.userIdToCartPurchases.get(userId)?.push(purchase);
   }
-
 }

@@ -31,19 +31,22 @@ const productPurchaseData = {
     price : 1,
 };
 const basketPurchaseData = { //products : Map<string, ProductPurchase>, price: number
+    storeId : "storeId",
     products : new Map<string, ProductPurchase>([["productId", new ProductPurchase(productPurchaseData)]]),
     price : 1,
 };
 const cartPurchaseData = { //storeIdToBasketPurchases: Map<string, BasketPurchase>, totalPrice: number
-    storeIdToBasketPurchases : new Map<string, BasketPurchase>([["storeId", new BasketPurchase(basketPurchaseData.products, basketPurchaseData.price)]]),
+    purchaseId: "purchaseId",
+    userId: "userId",
+    storeIdToBasketPurchases : new Map<string, BasketPurchase>([["storeId", new BasketPurchase(basketPurchaseData.storeId, basketPurchaseData.products, basketPurchaseData.price)]]),
     totalPrice : 1,
 };
 
 const createReview = (repos: Repos = createRepos()) => new Review(reviewData).initRepos(repos);
 const createProductReview = (repos: Repos = createRepos()) => new ProductReview(productReviewData).initRepos(repos);
 const createProductPurchase = (repos: Repos = createRepos()) => new ProductPurchase(productPurchaseData).initRepos(repos);
-const createBasketPurchase = (repos: Repos = createRepos()) => new BasketPurchase(basketPurchaseData.products, basketPurchaseData.price ).initRepos(repos);
-const createCartPurchase = (repos: Repos = createRepos()) => new CartPurchase(cartPurchaseData.storeIdToBasketPurchases, cartPurchaseData.totalPrice).initRepos(repos);
+const createBasketPurchase = (repos: Repos = createRepos()) => new BasketPurchase(basketPurchaseData.storeId ,basketPurchaseData.products, basketPurchaseData.price).initRepos(repos);
+const createCartPurchase = (repos: Repos = createRepos()) => new CartPurchase(cartPurchaseData.userId, cartPurchaseData.storeIdToBasketPurchases, cartPurchaseData.totalPrice).initRepos(repos);
 
 describe("Review constructor", () => {
     it("✅creates a review", () => {
@@ -121,12 +124,27 @@ describe("getCartPurchaseByUserId", () => {
     it("✅gets cart purchase", () => {
         const cartPurchase = createCartPurchase();
         const purchasesHistoryController = new PurchasesHistoryController();
-        purchasesHistoryController.addCartPurchase("id" ,cartPurchase.CartPurchaseToDTO());
+        purchasesHistoryController.addPurchase(cartPurchaseData.purchaseId, cartPurchase.CartPurchaseToDTO());
 
-        expect(purchasesHistoryController.getPurchasesByUser("id")).toStrictEqual([cartPurchase.CartPurchaseToDTO()]);
+        expect(purchasesHistoryController.getPurchasesByUser("userId")).toStrictEqual([cartPurchase.CartPurchaseToDTO()]);
     });
     it("❎gets undefined cart purchase", () => {
         const purchasesHistoryController = new PurchasesHistoryController();
         expect(purchasesHistoryController.getPurchasesByUser("userId")).toStrictEqual([]);
     });
 });
+
+describe("getCartPurchaseByPurchaseId", () => {
+    it("✅gets cart purchase", () => {
+        const cartPurchase = createCartPurchase();
+        const purchasesHistoryController = new PurchasesHistoryController();
+        purchasesHistoryController.addPurchase(cartPurchase.PurchaseId, cartPurchase.CartPurchaseToDTO());
+
+        expect(purchasesHistoryController.getPurchase(cartPurchase.PurchaseId)).toStrictEqual(cartPurchase.CartPurchaseToDTO());
+    });
+    it("❎gets undefined cart purchase", () => {
+        const purchasesHistoryController = new PurchasesHistoryController();
+        expect(() => purchasesHistoryController.getPurchase("purchaseId")).toThrow();
+    });
+});
+

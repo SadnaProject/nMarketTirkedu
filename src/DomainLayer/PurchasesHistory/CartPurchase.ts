@@ -6,21 +6,24 @@ import { HasRepos } from "./HasRepos";
 // TODO: Does a class need to know its related id, or should the parent hold a map for it?
 
 export type CartPurchaseDTO = {
-  id: string;
+  purchaseId: string;
+  userId: string;
   storeIdToBasketPurchases: Map<string, BasketPurchase>;
   totalPrice: number;
 };
 export class CartPurchase extends HasRepos{
-  private id: string;
+  private purchaseId: string;
   private storeIdToBasketPurchases: Map<string, BasketPurchase>;
   private totalPrice: number;
-
+  private userId: string;
   constructor(
+    userId: string,
     storeIdToBasketPurchases: Map<string, BasketPurchase>,
     totalPrice: number
   ) {
     super();
-    this.id = randomUUID();
+    this.userId = userId;
+    this.purchaseId = randomUUID();
     this.storeIdToBasketPurchases = storeIdToBasketPurchases;
     this.totalPrice = totalPrice;
   }
@@ -32,10 +35,15 @@ export class CartPurchase extends HasRepos{
 
   public CartPurchaseToDTO(): CartPurchaseDTO {
     return {
-      id: this.id,
+      purchaseId: this.purchaseId,
+      userId: this.userId,
       storeIdToBasketPurchases: this.storeIdToBasketPurchases,
       totalPrice: this.totalPrice,
     };
+  }
+
+  public get PurchaseId(): string {
+    return this.purchaseId;
   }
   
 }

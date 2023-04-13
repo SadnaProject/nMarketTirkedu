@@ -11,11 +11,11 @@ export class BasketPurchaseRepo{
     public addBasketPurchase(BasketPurchase : BasketPurchaseDTO){
         this.BasketPurchases.push(BasketPurchase);
     }
-    // public getBasketPurchase(id : string) : BasketPurchaseDTO | undefined{
-    //     return this.BasketPurchases.find((p) => p.id === id);
-    // }
-
     
-    
-    
+    public getPurchasesByStore(storeId: string): BasketPurchaseDTO[] {
+        return this.BasketPurchases.filter((purchase) => purchase.storeId === storeId);
+    }    
+    public getPurchaseById(purchaseId: string): BasketPurchaseDTO | undefined {
+        return this.BasketPurchases.find((purchase) => purchase.purchaseId === purchaseId);
+    }
 }

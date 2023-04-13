@@ -14,6 +14,10 @@ export class StoresRepo extends Testable {
     this.stores.push(store);
   }
 
+  public getAllStores() {
+    return this.stores;
+  }
+
   public getAllNames() {
     const names = new Set<string>();
     this.stores.forEach((store) => names.add(store.name));
@@ -31,5 +35,10 @@ export class StoresRepo extends Testable {
   public setIsActive(storeId: string, isActive: boolean) {
     const store = this.getStoreById(storeId);
     store.isActive = isActive;
+  }
+
+  public deleteStore(storeId: string) {
+    const store = this.getStoreById(storeId);
+    this.stores = this.stores.filter((s) => s.id !== store.id);
   }
 }

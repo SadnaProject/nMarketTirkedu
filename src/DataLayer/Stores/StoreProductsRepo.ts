@@ -16,7 +16,7 @@ export class StoreProductsRepo extends Testable {
     this.productsByStoreId.set(storeId, products);
   }
 
-  private getAllProducts() {
+  public getAllProducts() {
     return Array.from(this.productsByStoreId.values()).flat();
   }
 
@@ -38,5 +38,34 @@ export class StoreProductsRepo extends Testable {
       }
     }
     throw new Error("Product not found");
+  }
+
+  public setName(productId: string, name: string) {
+    this.getProductById(productId).name = name;
+  }
+
+  public setPrice(productId: string, price: number) {
+    this.getProductById(productId).price = price;
+  }
+
+  public setQuantity(productId: string, quantity: number) {
+    this.getProductById(productId).quantity = quantity;
+  }
+
+  public setCategory(productId: string, category: string) {
+    this.getProductById(productId).category = category;
+  }
+
+  public setDescription(productId: string, description: string) {
+    this.getProductById(productId).description = description;
+  }
+
+  public deleteProduct(productId: string) {
+    const product = this.getProductById(productId);
+    const storeId = this.getStoreIdByProductId(productId);
+    const products = this.getProductsByStoreId(storeId);
+    const index = products.indexOf(product);
+    products.splice(index, 1);
+    this.productsByStoreId.set(storeId, products);
   }
 }

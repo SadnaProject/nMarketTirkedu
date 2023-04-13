@@ -3,27 +3,32 @@ import { z } from "zod";
 import { HasRepos, type Repos } from "./HasRepos";
 import { Store } from "./Store";
 
-const nameSchema = z.string().nonempty();
-const quantitySchema = z.number().positive();
-const priceSchema = z.number().positive();
-const categorySchema = z.string().nonempty();
+const nameSchema = z.string().nonempty("Name must be nonempty");
+const quantitySchema = z.number().positive("Quantity must be positive");
+const priceSchema = z.number().positive("Price must be positive");
+const categorySchema = z.string().nonempty("Category must be nonempty");
+const descriptionSchema = z.string().nonempty("Description must be nonempty");
 
-const storeProductArgsSchema = z.object({
+export const storeProductArgsSchema = z.object({
   name: nameSchema,
   quantity: quantitySchema,
   price: priceSchema,
   category: categorySchema,
+  description: descriptionSchema,
 });
 
 export type StoreProductArgs = z.infer<typeof storeProductArgsSchema>;
 
-export type StoreProductDTO = {
-  id: string;
-  name: string;
-  quantity: number;
-  price: number;
-  category: string;
-};
+export const StoreProductDTOSchema = z.object({
+  id: z.string().uuid(),
+  name: nameSchema,
+  quantity: quantitySchema,
+  price: priceSchema,
+  category: categorySchema,
+  description: descriptionSchema,
+});
+
+export type StoreProductDTO = z.infer<typeof StoreProductDTOSchema>;
 
 export class StoreProduct extends HasRepos {
   private id: string;
@@ -31,6 +36,7 @@ export class StoreProduct extends HasRepos {
   private quantity: number;
   private price: number;
   private category: string;
+  private description: string;
 
   constructor(product: StoreProductArgs) {
     super();
@@ -40,6 +46,7 @@ export class StoreProduct extends HasRepos {
     this.quantity = product.quantity;
     this.price = product.price;
     this.category = product.category;
+    this.description = product.description;
   }
 
   static fromDTO(dto: StoreProductDTO, repos: Repos) {
@@ -61,13 +68,27 @@ export class StoreProduct extends HasRepos {
     return this.name;
   }
 
+  public set Name(name: string) {
+    nameSchema.parse(name);
+    this.Repos.Products.setName(this.id, name);
+    this.name = name;
+  }
+
   public get Quantity() {
     return this.quantity;
   }
 
   public set Quantity(quantity: number) {
     quantitySchema.parse(quantity);
+    this.Repos.Products.setQuantity(this.id, quantity);
     this.quantity = quantity;
+  }
+
+  public decreaseQuantity(quantity: number) {
+    if (!this.isQuantityInStock(quantity)) {
+      throw new Error("Not enough quantity in stock");
+    }
+    this.Quantity -= quantity;
   }
 
   public get Price() {
@@ -76,6 +97,7 @@ export class StoreProduct extends HasRepos {
 
   public set Price(price: number) {
     priceSchema.parse(price);
+    this.Repos.Products.setPrice(this.id, price);
     this.price = price;
   }
 
@@ -83,19 +105,36 @@ export class StoreProduct extends HasRepos {
     return this.category;
   }
 
+  public set Category(category: string) {
+    categorySchema.parse(category);
+    this.Repos.Products.setCategory(this.id, category);
+    this.category = category;
+  }
+
+  public get Description() {
+    return this.description;
+  }
+
+  public set Description(description: string) {
+    descriptionSchema.parse(description);
+    this.Repos.Products.setDescription(this.id, description);
+    this.description = description;
+  }
+
   public get Store() {
-    const storeId = this.Repos.Products.getStoreIdByProductId(this.id);
+    const storeId = this.Repos.Products.getStoreIdByProductId(this.Id);
     const dto = this.Repos.Stores.getStoreById(storeId);
     return Store.fromDTO(dto, this.Repos);
   }
 
   public get DTO(): StoreProductDTO {
     return {
-      id: this.id,
-      name: this.name,
-      quantity: this.quantity,
-      price: this.price,
-      category: this.category,
+      id: this.Id,
+      name: this.Name,
+      quantity: this.Quantity,
+      price: this.Price,
+      category: this.Category,
+      description: this.Description,
     };
   }
 
@@ -103,10 +142,23 @@ export class StoreProduct extends HasRepos {
     if (!this.Store.IsActive) {
       throw new Error("Store is not active");
     }
-    return this.quantity >= quantity;
+    if (quantity <= 0) {
+      throw new Error("Quantity must be positive");
+    }
+    return this.Quantity >= quantity;
   }
 
   public getPriceByQuantity(quantity: number): number {
-    return this.price * quantity;
+    return this.Price * quantity;
+  }
+
+  public delete() {
+    this.Repos.Products.deleteProduct(this.Id);
+  }
+
+  public static getAll(repos: Repos) {
+    return repos.Products.getAllProducts().map((dto) =>
+      StoreProduct.fromDTO(dto, repos)
+    );
   }
 }

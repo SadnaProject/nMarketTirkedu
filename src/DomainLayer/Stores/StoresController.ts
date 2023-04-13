@@ -10,8 +10,21 @@ import { HasRepos, createRepos } from "./HasRepos";
 import { type CartDTO } from "../Users/Cart";
 import { type BasketDTO } from "../Users/Basket";
 import { Testable, testable } from "~/Testable";
+import fuzzysearch from "fuzzysearch-ts";
 
-export interface IStoresController {
+export type SearchArgs = {
+  name?: string;
+  category?: string;
+  keywords?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  minProductRating?: number;
+  maxProductRating?: number;
+  minStoreRating?: number;
+  maxStoreRating?: number;
+};
+
+export interface IStoresController extends HasRepos {
   /**
    * This function creates a product to a store.
    * @param userId The id of the user that is currently logged in.
@@ -154,6 +167,7 @@ export interface IStoresController {
    * @throws Error if a product does not belong to the store of its basket.
    */
   getBasketPrice(basketDTO: BasketDTO): number;
+  searchProducts(searchArgs: SearchArgs): StoreProductDTO[];
 }
 
 @testable
@@ -164,6 +178,59 @@ export class StoresController
   constructor() {
     super();
     this.initRepos(createRepos());
+  }
+  searchProducts(args: SearchArgs): StoreProductDTO[] {
+    return StoreProduct.getAll(this.Repos)
+      .filter((p) => {
+        const productRating =
+          this.Controllers.PurchasesHistory.getReviewsByProduct(p.Id).avgRating;
+        const storeRating = this.Controllers.PurchasesHistory.getStoreRating(
+          p.Store.Id
+        );
+        return this.filterProductSearch(p, productRating, storeRating, args);
+      })
+      .map((p) => p.DTO);
+  }
+
+  private filterProductSearch(
+    p: StoreProduct,
+    productRating: number,
+    storeRating: number,
+    {
+      name,
+      category,
+      keywords = [],
+      minPrice = 0,
+      maxPrice = Infinity,
+      minProductRating = 0,
+      maxProductRating = Infinity,
+      minStoreRating = 0,
+      maxStoreRating = Infinity,
+    }: SearchArgs
+  ) {
+    return (
+      p.Store.IsActive &&
+      this.search(name, p.Name) &&
+      this.search(category, p.Category) &&
+      keywords.every(
+        (k) =>
+          this.search(k, p.Name) ||
+          this.search(k, p.Category) ||
+          this.search(k, p.Description)
+      ) &&
+      p.Price >= minPrice &&
+      p.Price <= maxPrice &&
+      productRating >= minProductRating &&
+      productRating <= maxProductRating &&
+      storeRating >= minStoreRating &&
+      storeRating <= maxStoreRating
+    );
+  }
+
+  private search(shortStr: string | undefined, longStr: string) {
+    return shortStr
+      ? fuzzysearch(shortStr.toLowerCase(), longStr.toLowerCase())
+      : true;
   }
 
   isProductQuantityInStock(productId: string, quantity: number): boolean {
@@ -191,7 +258,7 @@ export class StoresController
   }
 
   isStoreActive(storeId: string): boolean {
-    throw new Error("Method not implemented.");
+    return Store.fromStoreId(storeId, this.Repos).IsActive;
   }
 
   getStoreProducts(storeId: string): StoreProductDTO[] {
@@ -203,15 +270,25 @@ export class StoresController
     productId: string,
     quantity: number
   ): void {
-    throw new Error("Method not implemented.");
+    //TODO: this.Controllers.Jobs.per
+    // if (!hasPermission) {
+    //   throw new Error("User does not have permission to set product quantity.");
+    // }
+    StoreProduct.fromProductId(productId, this.Repos).Quantity = quantity;
   }
 
   decreaseProductQuantity(productId: string, quantity: number): void {
-    throw new Error("Method not implemented.");
+    StoreProduct.fromProductId(productId, this.Repos).decreaseQuantity(
+      quantity
+    );
   }
 
   deleteProduct(userId: string, productId: string): void {
-    throw new Error("Method not implemented.");
+    //TODO: this.Controllers.Jobs.per
+    // if (!hasPermission) {
+    //   throw new Error("User does not have permission to delete product.");
+    // }
+    StoreProduct.fromProductId(productId, this.Repos).delete();
   }
 
   setProductPrice(userId: string, productId: string, price: number): void {
@@ -220,7 +297,11 @@ export class StoresController
   }
 
   createStore(founderId: string, storeName: string): string {
-    //TODO: this.Controllers.Jobs.
+    if (!this.Controllers.Auth.isMember(founderId)) {
+      throw new Error("User is not a member.");
+    }
+    //TODO: update founder at this.Controllers.Jobs.
+    //! needs to check if possible before doing any change
     if (this.Repos.Stores.getAllNames().has(storeName))
       throw new Error("Store name is already taken");
     const store = new Store(storeName).initRepos(this.Repos);
@@ -237,7 +318,12 @@ export class StoresController
   }
 
   closeStorePermanently(userId: string, storeId: string): void {
-    throw new Error("Method not implemented.");
+    if (!this.Controllers.Jobs.isSystemAdmin(userId)) {
+      throw new Error(
+        "User does not have permission to close store permanently."
+      );
+    }
+    Store.fromStoreId(storeId, this.Repos).delete();
   }
 
   getProductPrice(productId: string): number {

@@ -4,7 +4,7 @@ import { StoreProduct, type StoreProductArgs } from "./StoreProduct";
 import { type BasketDTO } from "../Users/Basket";
 const { randomUUID } = await import("crypto");
 
-const nameSchema = z.string().nonempty();
+export const nameSchema = z.string().nonempty();
 
 export type StoreDTO = {
   id: string;
@@ -84,5 +84,9 @@ export class Store extends HasRepos {
         );
       return acc + storeProduct.getPriceByQuantity(curr.quantity);
     }, 0);
+  }
+
+  public delete() {
+    this.Repos.Stores.deleteStore(this.Id);
   }
 }

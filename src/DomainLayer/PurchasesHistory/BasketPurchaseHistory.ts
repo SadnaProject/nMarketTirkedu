@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { HasRepos } from "./HasRepos";
 import {
   type ProductPurchaseDTO,
@@ -19,12 +20,9 @@ export class BasketPurchase extends HasRepos {
   private review?: Review;
   private price: number;
 
-  constructor(
-    storeId: string,
-    products: Map<string, ProductPurchase>,
-    price: number
-  ) {
+  constructor(storeId : string ,products : Map<string, ProductPurchase>, price: number) {
     super();
+    this.purchaseId = randomUUID();
     this.storeId = storeId;
     this.products = products;
     this.price = price;

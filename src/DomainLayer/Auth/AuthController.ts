@@ -1,8 +1,10 @@
 import { Mixin } from "ts-mixer";
 import { HasControllers } from "../HasController";
 import { Testable, testable } from "~/Testable";
+import { HasRepos } from "./HasRepos";
+import { createRepos } from "./HasRepos";
 
-export interface IAuthController {
+export interface IAuthController extends HasRepos {
   /**
    * Returns true if the provided userId is a guest user.
    * @param userId
@@ -69,9 +71,13 @@ export interface IAuthController {
 
 @testable
 export class AuthController
-  extends Mixin(Testable, HasControllers)
+  extends Mixin(Testable, HasControllers,HasRepos)
   implements IAuthController
 {
+  constructor() {
+    super();
+    this.initRepos(createRepos());
+  }
   login(email: string, password: string): string {
     throw new Error("Method not implemented.");
   }

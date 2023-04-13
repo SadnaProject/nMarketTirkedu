@@ -2,6 +2,13 @@ import { type Session } from "./Session";
 
 export type UserType = "GUEST" | "MEMBER";
 
+export type UserAuthDTO = {
+  userId: string;
+  email: string;
+  password: string;
+  type: UserType;
+  sessions: Session[];
+};
 export class UserAuth {
   private userId: string;
   private email: string;

@@ -13,7 +13,7 @@ export class ProductPurchaseRepo {
 
   public getProductPurchaseById(ProductPurchaseId: string) {
     const ProductPurchase = this.ProductPurchases.find(
-      (ProductPurchase) => ProductPurchase.id === ProductPurchaseId
+      (ProductPurchase) => ProductPurchase.purchaseId === ProductPurchaseId
     );
     if (!ProductPurchase) {
       throw new Error("ProductPurchase not found");

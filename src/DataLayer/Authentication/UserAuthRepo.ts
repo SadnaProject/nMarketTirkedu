@@ -2,7 +2,7 @@ import { Testable, testable } from "~/Testable";
 import type { UserAuthDTO, UserType } from "../../DomainLayer/Auth/UserAuth";
 
 @testable
-export class UserRepo extends Testable {
+export class UserAuthRepo extends Testable {
     private users: UserAuthDTO[];
     constructor() {
         super();

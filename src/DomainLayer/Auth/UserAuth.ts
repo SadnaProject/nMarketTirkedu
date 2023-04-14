@@ -1,4 +1,6 @@
 import { Session } from "./Session";
+const {randomUUID} = await import("crypto");
+import { z } from "zod";
 
 
 export type UserType = "GUEST" | "MEMBER";
@@ -17,14 +19,22 @@ export class UserAuth {
   private type: UserType;
   private sessions: Session[];
 
-  constructor(userId: string, type: UserType, email: string, password: string) {
-    this.userId = userId;
+  constructor(type: UserType, email: string, password: string) {
+    this.userId = randomUUID();
     this.type = type;
+    this.validateEmailLegality(email);
     this.email = email;
+    this.validatePasswordLegality(password);
     this.password = password;
     this.sessions = [];
   }
-
+  private validatePasswordLegality(password: string): void {
+    z.string().parse(password);
+  }
+  private validateEmailLegality(email: string): void {
+    z.string().email().parse(email);
+  }
+    
   public get UserId(): string {
     return this.userId;
   }
@@ -32,12 +42,21 @@ export class UserAuth {
   public get Email(): string {
     return this.email;
   }
+  public get DTO(): UserAuthDTO {
+    return {
+      userId: this.userId,
+      email: this.email,
+      password: this.password,
+      type: this.type,
+      sessions: this.sessions,
+    };
+  }
 
   private addSession(session: Session): void {
     this.sessions.push(session);
   }
 
-  public isLoggedIn(): boolean {
+  public isConnectionValid(): boolean {
     const latestSession = this.getLatestSession();
     if (latestSession === undefined) {
       return false;

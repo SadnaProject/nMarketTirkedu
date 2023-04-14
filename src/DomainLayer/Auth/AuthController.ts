@@ -3,6 +3,7 @@ import { HasControllers } from "../HasController";
 import { Testable, testable } from "~/Testable";
 import { HasRepos } from "./HasRepos";
 import { createRepos } from "./HasRepos";
+import { UserAuth } from "./UserAuth";
 
 export interface IAuthController extends HasRepos {
   /**
@@ -78,6 +79,7 @@ export class AuthController
     super();
     this.initRepos(createRepos());
   }
+
   login(email: string, password: string): string {
     throw new Error("Method not implemented.");
   }
@@ -85,8 +87,21 @@ export class AuthController
     throw new Error("Method not implemented.");
   }
   register(email: string, password: string): void {
-    throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
+    if(this.Repos.Users.getUserByEmail(email) !== undefined){
+      throw new Error("Email already in use, please try again with a different email");  
+    }
+    // if(!this.validatePassword(password)){
+    //   throw new Error("Password is invalid, please try again with a different password");
+    // }
+    const ua= new UserAuth("MEMBER",email,password);
+    this.Repos.Users.addUser(ua.DTO);
+
   }
+  
+  // private validatePassword(password: string): boolean {
+  //   return true;
+  // }
   changeEmail(userId: string, newEmail: string): boolean {
     throw new Error("Method not implemented.");
   }

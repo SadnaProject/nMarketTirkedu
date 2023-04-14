@@ -1,9 +1,7 @@
-import { StoreProductsRepo } from "~/DataLayer/Stores/StoreProductsRepo";
-import { StoresRepo } from "~/DataLayer/Stores/StoresRepo";
+import { UserAuthRepo } from "~/DataLayer/Authentication/UserAuthRepo";
 
 export const reposMapping = {
-  Stores: StoresRepo,
-  Products: StoreProductsRepo,
+  Users: UserAuthRepo,
 };
 
 // NO TOUCHY BELOW THIS LINE 😉

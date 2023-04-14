@@ -74,16 +74,72 @@ export interface IJobsController {
   ): void;
   /**
    * This function returns whether a user has permission to create a product in a store.
-   * @param currentId The id of the user that is currently logged in.
+   * @param userId The id of the user that we are checking the permission of.
    * @param storeId The id of the store related to the permission.
-   * @param targetUserId The id of the user that we are checking the permission of.
    * @returns A boolean that represents the permission.
    */
   canCreateProductInStore(
-    currentId: string,
-    storeId: string,
-    targetUserId: string
+    userId: string,
+    storeId: string
   ): boolean;
+  /**
+   * This function returns whether a user has permission to remove a product from a store.
+   * @param userId The id of the user that we are checking the permission of.
+   * @param storeId The id of the store related to the permission.
+   * @returns A boolean that represents the permission.
+   * @throws Error if the store doesn't exist.
+   * @throws Error if the user doesn't exist.
+    */
+  canRemoveProductFromStore(
+    userId: string,
+    storeId: string
+  ): boolean;
+  /**
+   * This function returns whether a user has permission to edit a product in a store.
+   * @param userId The id of the user that we are checking the permission of.
+   * @param storeId The id of the store related to the permission.
+   * @returns A boolean that represents the permission.
+   * @throws Error if the store doesn't exist.
+   * @throws Error if the user doesn't exist.
+    */ 
+  canEditProductInStore(
+    userId: string,
+    storeId: string
+  ): boolean;
+  /**
+   * This function returns whether a user has permission to active the store
+   * @param userId The id of the user that we are checking the permission of.
+   * @param storeId The id of the store related to the permission.
+   * @returns A boolean that represents the permission.
+   * @throws Error if the store doesn't exist.
+   * @throws Error if the user doesn't exist.
+   */
+  canActivateStore( 
+    userId: string,
+    storeId: string
+  ): boolean;
+  /**
+   * This function returns whether a user has permission to deactivate the store
+   * @param userId The id of the user that we are checking the permission of.
+   * @param storeId The id of the store related to the permission.
+   * @returns A boolean that represents the permission.
+   * @throws Error if the store doesn't exist.
+   * @throws Error if the user doesn't exist.
+    */
+  canDeactivateStore( 
+    userId: string,
+    storeId: string
+  ): boolean;
+  /**
+   * This function returns whether a user has permission to close the store permanently
+   * @param userId The id of the user that we are checking the permission of.
+   * @param storeId The id of the store related to the permission.
+   */
+  canCloseStorePermanently(
+    userId: string,
+    storeId: string
+  ): boolean;
+
   //! Add more permission functions - should we do it using enum instead?
   /**
    * This function checks if a user is a store owner.
@@ -143,65 +199,43 @@ export class JobsController
   constructor() {
     super();
   }
-  getStoreFounder(storeId: string): UserDTO {
-    throw new Error("Method not implemented.");
-  }
-  getStoreOwners(storeId: string): UserDTO[] {
-    throw new Error("Method not implemented.");
-  }
-  getStoreManagers(storeId: string): UserDTO[] {
-    throw new Error("Method not implemented.");
-  }
-  isSystemAdmin(userId: string): boolean {
-    throw new Error("Method not implemented.");
-  }
-  makeStoreOwner(
-    currentId: string,
-    storeId: string,
-    targetUserId: string
-  ): void {
+  makeStoreOwner(currentId: string, storeId: string, targetUserId: string): void {
     throw new Error("Method not implemented.");
   }
   getStoresByOwner(userId: string): StoreDTO[] {
     throw new Error("Method not implemented.");
   }
-  makeStoreManager(
-    currentId: string,
-    storeId: string,
-    targetUserId: string
-  ): void {
+  makeStoreManager(currentId: string, storeId: string, targetUserId: string): void {
     throw new Error("Method not implemented.");
   }
   getStoresByManager(userId: string): StoreDTO[] {
     throw new Error("Method not implemented.");
   }
-  removeStoreOwner(
-    currentId: string,
-    storeId: string,
-    targetUserId: string
-  ): void {
+  removeStoreOwner(currentId: string, storeId: string, targetUserId: string): void {
     throw new Error("Method not implemented.");
   }
-  removeStoreManager(
-    currentId: string,
-    storeId: string,
-    targetUserId: string
-  ): void {
+  removeStoreManager(currentId: string, storeId: string, targetUserId: string): void {
     throw new Error("Method not implemented.");
   }
-  setAddingProductToStorePermission(
-    currentId: string,
-    storeId: string,
-    targetUserId: string,
-    permission: boolean
-  ): void {
+  setAddingProductToStorePermission(currentId: string, storeId: string, targetUserId: string, permission: boolean): void {
     throw new Error("Method not implemented.");
   }
-  canCreateProductInStore(
-    currentId: string,
-    storeId: string,
-    targetUserId: string
-  ): boolean {
+  canCreateProductInStore(userId: string, storeId: string): boolean {
+    throw new Error("Method not implemented.");
+  }
+  canRemoveProductFromStore(userId: string, storeId: string): boolean {
+    throw new Error("Method not implemented.");
+  }
+  canEditProductInStore(userId: string, storeId: string): boolean {
+    throw new Error("Method not implemented.");
+  }
+  canActivateStore(userId: string, storeId: string): boolean {
+    throw new Error("Method not implemented.");
+  }
+  canDeactivateStore(userId: string, storeId: string): boolean {
+    throw new Error("Method not implemented.");
+  }
+  canCloseStorePermanently(userId: string, storeId: string): boolean {
     throw new Error("Method not implemented.");
   }
   isStoreOwner(userId: string, storeId: string): boolean {
@@ -213,4 +247,17 @@ export class JobsController
   isStoreFounder(userId: string, storeId: string): boolean {
     throw new Error("Method not implemented.");
   }
+  isSystemAdmin(userId: string): boolean {
+    throw new Error("Method not implemented.");
+  }
+  getStoreFounder(storeId: string): UserDTO {
+    throw new Error("Method not implemented.");
+  }
+  getStoreOwners(storeId: string): UserDTO[] {
+    throw new Error("Method not implemented.");
+  }
+  getStoreManagers(storeId: string): UserDTO[] {
+    throw new Error("Method not implemented.");
+  }
+
 }

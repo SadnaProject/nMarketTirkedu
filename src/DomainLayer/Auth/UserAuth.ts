@@ -1,4 +1,5 @@
-import { type Session } from "./Session";
+import { Session } from "./Session";
+
 
 export type UserType = "GUEST" | "MEMBER";
 
@@ -30,5 +31,23 @@ export class UserAuth {
 
   public get Email(): string {
     return this.email;
+  }
+
+  private addSession(session: Session): void {
+    this.sessions.push(session);
+  }
+
+  public isLoggedIn(): boolean {
+    const latestSession = this.getLatestSession();
+    if (latestSession === undefined) {
+      return false;
+    }
+    return latestSession.isValid();
+  }
+  private getLatestSession(): Session | undefined {
+    if (this.sessions.length === 0) {
+      return undefined;
+    }
+    return this.sessions[this.sessions.length - 1];
   }
 }

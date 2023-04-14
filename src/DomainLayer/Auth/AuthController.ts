@@ -3,8 +3,17 @@ import { HasControllers } from "../HasController";
 import { Testable, testable } from "~/Testable";
 import { HasRepos } from "./HasRepos";
 import { createRepos } from "./HasRepos";
+import { UserAuth } from "./UserAuth";
+import { GuestUserAuth,GuestUserAuthDTO } from "./GuestUserAuth";
+import { MemberUserAuth,MemberUserAuthDTO } from "./MemberUserAuth";
 
 export interface IAuthController extends HasRepos {
+  /**
+   * Starts a new session. This method should be called when a new user connects to the system.
+   * The user is signed in as a guest user and is assigned a new session.
+   * @returns The user's ID(Notice this is the id only for this session as the user is a guest in this time).
+   */
+  startSession(): string;
   /**
    * Returns true if the provided userId is a guest user.
    * @param userId
@@ -78,6 +87,14 @@ export class AuthController
     super();
     this.initRepos(createRepos());
   }
+
+  startSession(): string {
+    // throw new Error("Method not implemented.");
+    const guest = GuestUserAuth.create();
+    this.Repos.Users.addGuest(guest.DTO);
+    return guest.UserId;
+  }
+
   login(email: string, password: string): string {
     throw new Error("Method not implemented.");
   }
@@ -85,8 +102,13 @@ export class AuthController
     throw new Error("Method not implemented.");
   }
   register(email: string, password: string): void {
-    throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
+
   }
+  
+  // private validatePassword(password: string): boolean {
+  //   return true;
+  // }
   changeEmail(userId: string, newEmail: string): boolean {
     throw new Error("Method not implemented.");
   }

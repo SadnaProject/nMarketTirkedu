@@ -199,6 +199,24 @@ export class JobsController
   constructor() {
     super();
   }
+  canUserCreateProductInStore(userId: string, storeId: string): boolean {
+    throw new Error("Method not implemented.");
+  }
+  canUserRemoveProductFromStore(userId: string, storeId: string): boolean {
+    throw new Error("Method not implemented.");
+  }
+  canUserEditProductInStore(userId: string, storeId: string): boolean {
+    throw new Error("Method not implemented.");
+  }
+  canUserActivateStore(userId: string, storeId: string): boolean {
+    throw new Error("Method not implemented.");
+  }
+  canUserDeactivateStore(userId: string, storeId: string): boolean {
+    throw new Error("Method not implemented.");
+  }
+  canUserCloseStorePermanently(userId: string, storeId: string): boolean {
+    throw new Error("Method not implemented.");
+  }
   getStoreFounder(storeId: string): UserDTO {
     throw new Error("Method not implemented.");
   }

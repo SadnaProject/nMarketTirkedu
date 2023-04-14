@@ -4,8 +4,16 @@ import { Testable, testable } from "~/Testable";
 import { HasRepos } from "./HasRepos";
 import { createRepos } from "./HasRepos";
 import { UserAuth } from "./UserAuth";
+import { GuestUserAuth,GuestUserAuthDTO } from "./GuestUserAuth";
+import { MemberUserAuth,MemberUserAuthDTO } from "./MemberUserAuth";
 
 export interface IAuthController extends HasRepos {
+  /**
+   * Starts a new session. This method should be called when a new user connects to the system.
+   * The user is signed in as a guest user and is assigned a new session.
+   * @returns The user's ID(Notice this is the id only for this session as the user is a guest in this time).
+   */
+  startSession(): string;
   /**
    * Returns true if the provided userId is a guest user.
    * @param userId
@@ -80,6 +88,13 @@ export class AuthController
     this.initRepos(createRepos());
   }
 
+  startSession(): string {
+    // throw new Error("Method not implemented.");
+    const guest = GuestUserAuth.create();
+    this.Repos.Users.addGuest(guest.DTO);
+    return guest.UserId;
+  }
+
   login(email: string, password: string): string {
     throw new Error("Method not implemented.");
   }
@@ -88,14 +103,6 @@ export class AuthController
   }
   register(email: string, password: string): void {
     // throw new Error("Method not implemented.");
-    if(this.Repos.Users.getUserByEmail(email) !== undefined){
-      throw new Error("Email already in use, please try again with a different email");  
-    }
-    // if(!this.validatePassword(password)){
-    //   throw new Error("Password is invalid, please try again with a different password");
-    // }
-    const ua= new UserAuth("MEMBER",email,password);
-    this.Repos.Users.addUser(ua.DTO);
 
   }
   

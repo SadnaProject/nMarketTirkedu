@@ -1,37 +1,48 @@
 import { Testable, testable } from "~/Testable";
-import type { UserAuthDTO, UserType } from "../../DomainLayer/Auth/UserAuth";
+import type { MemberUserAuthDTO } from "../../DomainLayer/Auth/MemberUserAuth";
+import type { GuestUserAuthDTO } from "../../DomainLayer/Auth/GuestUserAuth";
 
 @testable
 export class UserAuthRepo extends Testable {
-    private users: UserAuthDTO[];
+    private members: MemberUserAuthDTO[];
+    private guests: GuestUserAuthDTO[];
+    
     constructor() {
         super();
-        this.users = [];
+        this.members = [];
+        this.guests = [];
     }
-    public addUser(user: UserAuthDTO): void {
-        this.users.push(user);
+    //member related methods
+    public addMember(user: MemberUserAuthDTO): void {
+        this.members.push(user);
+    }    
+    public getMemberByEmail(email: string): MemberUserAuthDTO | undefined {
+        return this.members.find((user) => user.email === email);
     }
-    public getUserByEmail(email: string): UserAuthDTO | undefined {
-        return this.users.find((user) => user.email === email);
+    public getMemberById(userId: string): MemberUserAuthDTO | undefined {
+        return this.members.find((user) => user.userId === userId);
     }
-    public getUserById(userId: string): UserAuthDTO | undefined {
-        return this.users.find((user) => user.userId === userId);
+    public removeMember(userId: string): void {
+        this.members = this.members.filter((user) => user.userId !== userId);
     }
-    public deleteUser(userId: string): void {
-        this.users = this.users.filter((user) => user.userId !== userId);
+    public getAllMembers(): MemberUserAuthDTO[] {
+        return this.members;
     }
-    public getAllUsers(): UserAuthDTO[] {
-        return this.users;
+    public getAllMemberEmails(): string[] {
+        return this.members.map((user) => user.email);
     }
-    //Not sure its the responsibility of the repo to filter by type
-    public getAllUsersByType(type: UserType): UserAuthDTO[] {
-        return this.users.filter((user) => user.type === type);
+    //guest related methods
+    public addGuest(user: GuestUserAuthDTO): void {
+        this.guests.push(user);
     }
-    public getAllUserEmails(): string[] {
-        return this.users.map((user) => user.email);
+    public getGuestById(userId: string): GuestUserAuthDTO | undefined {
+        return this.guests.find((user) => user.userId === userId);
     }
-
-
-    
-
+    public removeGuest(userId: string): void {
+        this.guests = this.guests.filter((user) => user.userId !== userId);
+    }
+    //This is of course only the connected guests 
+    public getAllGuests(): GuestUserAuthDTO[] {
+        return this.guests;
+    }
 }

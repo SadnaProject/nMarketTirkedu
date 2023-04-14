@@ -199,6 +199,27 @@ export class JobsController
   constructor() {
     super();
   }
+  makeStoreOwner(currentId: string, storeId: string, targetUserId: string): void {
+    throw new Error("Method not implemented.");
+  }
+  getStoresByOwner(userId: string): StoreDTO[] {
+    throw new Error("Method not implemented.");
+  }
+  makeStoreManager(currentId: string, storeId: string, targetUserId: string): void {
+    throw new Error("Method not implemented.");
+  }
+  getStoresByManager(userId: string): StoreDTO[] {
+    throw new Error("Method not implemented.");
+  }
+  removeStoreOwner(currentId: string, storeId: string, targetUserId: string): void {
+    throw new Error("Method not implemented.");
+  }
+  removeStoreManager(currentId: string, storeId: string, targetUserId: string): void {
+    throw new Error("Method not implemented.");
+  }
+  setAddingProductToStorePermission(currentId: string, storeId: string, targetUserId: string, permission: boolean): void {
+    throw new Error("Method not implemented.");
+  }
   canUserCreateProductInStore(userId: string, storeId: string): boolean {
     throw new Error("Method not implemented.");
   }
@@ -217,67 +238,6 @@ export class JobsController
   canUserCloseStorePermanently(userId: string, storeId: string): boolean {
     throw new Error("Method not implemented.");
   }
-  getStoreFounder(storeId: string): UserDTO {
-    throw new Error("Method not implemented.");
-  }
-  getStoreOwners(storeId: string): UserDTO[] {
-    throw new Error("Method not implemented.");
-  }
-  getStoreManagers(storeId: string): UserDTO[] {
-    throw new Error("Method not implemented.");
-  }
-  isSystemAdmin(userId: string): boolean {
-    throw new Error("Method not implemented.");
-  }
-  makeStoreOwner(
-    currentId: string,
-    storeId: string,
-    targetUserId: string
-  ): void {
-    throw new Error("Method not implemented.");
-  }
-  getStoresByOwner(userId: string): StoreDTO[] {
-    throw new Error("Method not implemented.");
-  }
-  makeStoreManager(
-    currentId: string,
-    storeId: string,
-    targetUserId: string
-  ): void {
-    throw new Error("Method not implemented.");
-  }
-  getStoresByManager(userId: string): StoreDTO[] {
-    throw new Error("Method not implemented.");
-  }
-  removeStoreOwner(
-    currentId: string,
-    storeId: string,
-    targetUserId: string
-  ): void {
-    throw new Error("Method not implemented.");
-  }
-  removeStoreManager(
-    currentId: string,
-    storeId: string,
-    targetUserId: string
-  ): void {
-    throw new Error("Method not implemented.");
-  }
-  setAddingProductToStorePermission(
-    currentId: string,
-    storeId: string,
-    targetUserId: string,
-    permission: boolean
-  ): void {
-    throw new Error("Method not implemented.");
-  }
-  canCreateProductInStore(
-    currentId: string,
-    storeId: string,
-    targetUserId: string
-  ): boolean {
-    throw new Error("Method not implemented.");
-  }
   isStoreOwner(userId: string, storeId: string): boolean {
     throw new Error("Method not implemented.");
   }
@@ -287,4 +247,17 @@ export class JobsController
   isStoreFounder(userId: string, storeId: string): boolean {
     throw new Error("Method not implemented.");
   }
+  isSystemAdmin(userId: string): boolean {
+    throw new Error("Method not implemented.");
+  }
+  getStoreFounder(storeId: string): UserDTO {
+    throw new Error("Method not implemented.");
+  }
+  getStoreOwners(storeId: string): UserDTO[] {
+    throw new Error("Method not implemented.");
+  }
+  getStoreManagers(storeId: string): UserDTO[] {
+    throw new Error("Method not implemented.");
+  }
+
 }

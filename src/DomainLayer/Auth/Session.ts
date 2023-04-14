@@ -2,6 +2,10 @@
 //TODO decide if we need to use JWT or not
 //for now we will use a simple session object
 export class Session {
+    invalidate() {
+        //set expiration date to now minus one minute
+        this.expirationDateTime = new Date(new Date().getTime() - 60000);
+    }
     public sessionId: string;
     public userId: string;
     public expirationDateTime: Date;

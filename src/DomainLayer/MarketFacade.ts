@@ -63,7 +63,7 @@ export class MarketFacade {
     this.isConnectionValid(userId);
     this.controllers.Users.purchaseCart(userId);
   }
-  
+
   public removeUser(userId: string) {
     this.controllers.Users.removeUser(userId);
   }
@@ -124,7 +124,6 @@ export class MarketFacade {
     return this.controllers.PurchasesHistory.getStoreRating(storeId);
   }
 
-
   isGuest(userId: string): boolean {
     return this.controllers.Auth.isGuest(userId);
   }
@@ -134,14 +133,6 @@ export class MarketFacade {
 
   isConnected(userId: string): boolean {
     return this.controllers.Auth.isConnected(userId);
-  }
-
-  login(email: string, password: string): string {
-    return this.controllers.Auth.login(email, password);
-  }
-
-  logout(userId: string): void {
-    this.controllers.Auth.logout(userId);
   }
 
   register(email: string, password: string): void {
@@ -205,16 +196,8 @@ export class MarketFacade {
       permission
     );
   }
-  canCreateProductInStore(
-    currentId: string,
-    storeId: string,
-    targetUserId: string
-  ): boolean {
-    return this.controllers.Jobs.canCreateProductInStore(
-      currentId,
-      storeId,
-      targetUserId
-    );
+  canCreateProductInStore(currentId: string, storeId: string): boolean {
+    return this.controllers.Jobs.canCreateProductInStore(currentId, storeId);
   }
   isStoreOwner(userId: string, storeId: string): boolean {
     return this.controllers.Jobs.isStoreOwner(userId, storeId);
@@ -302,23 +285,22 @@ export class MarketFacade {
   }
   //TODO: Duplicate code from down here, be careful!
   public startSession() {
-    const userId= this.controllers.Auth.startSession();
+    const userId = this.controllers.Auth.startSession();
     this.addUser(userId, "Guest");
-
   }
   private addUser(userId: string, userName: string) {
     this.controllers.Users.addUser(userId, userName);
   }
-  public registerMember(userId: string,email: string, password: string): void {
+  public registerMember(userId: string, email: string, password: string): void {
     this.isConnectionValid(userId);
-    this.controllers.Auth.register( email, password);
+    this.controllers.Auth.register(email, password);
   }
   public loginMember(userId: string, email: string, password: string): string {
     this.isConnectionValid(userId);
     return this.controllers.Auth.login(userId, email, password);
   }
   //This is not called logout because it also disconnects guest users which were not logged in.
-  //disconnects a user. if the user is a guest user, the user is removed from the system. 
+  //disconnects a user. if the user is a guest user, the user is removed from the system.
   //if the user is a member user, the users session is invalidated.
   public disconnectUser(userId: string): void {
     this.isConnectionValid(userId);

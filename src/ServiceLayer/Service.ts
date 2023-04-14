@@ -30,9 +30,6 @@ export class Service {
   public purchaseCart(userId: string, cart: CartDTO) {
     this.facade.purchaseCart(userId, cart);
   }
-  public addUser(userId: string, userName: string) {
-    this.facade.addUser(userId, userName);
-  }
   public removeUser(userId: string) {
     this.facade.removeUser(userId);
   }
@@ -84,12 +81,12 @@ export class Service {
     this.facade.register(email, password);
   }
 
-  public login(email: string, password: string) {
-    return this.facade.login(email, password);
+  public loginMember(userId: string, email: string, password: string): string {
+    return this.facade.loginMember(userId, email, password);
   }
 
-  public logout(userId: string) {
-    this.facade.logout(userId);
+  public disconnectUser(userId: string) {
+    this.facade.disconnectUser(userId);
   }
 
   public getStoreProducts(storeId: string) {

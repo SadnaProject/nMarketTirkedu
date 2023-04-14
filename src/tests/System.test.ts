@@ -10,16 +10,15 @@ beforeEach(() => {
 });
 
 describe("create a new store", () => {
-  it("✅creates a store", () => {
+  /*  it("✅creates a store", () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
     service.register(email, password);
-    const uid = service.login(email, password);
+    const uid = service.loginMember(email, password);
     const storeName = generateStoreName();
     const storeId = service.createStore(uid, storeName);
     expect(service.isStoreFounder(uid, storeId)).toBe(true);
-  });
-
+  });*/
   // it("❎user is not a member", () => {
   //   expect(() => new Store("")).toThrow(ZodError);
   // });

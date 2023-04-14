@@ -74,16 +74,72 @@ export interface IJobsController {
   ): void;
   /**
    * This function returns whether a user has permission to create a product in a store.
-   * @param currentId The id of the user that is currently logged in.
+   * @param userId The id of the user that we are checking the permission of.
    * @param storeId The id of the store related to the permission.
-   * @param targetUserId The id of the user that we are checking the permission of.
    * @returns A boolean that represents the permission.
    */
-  canCreateProductInStore(
-    currentId: string,
-    storeId: string,
-    targetUserId: string
+  canUserCreateProductInStore(
+    userId: string,
+    storeId: string
   ): boolean;
+  /**
+   * This function returns whether a user has permission to remove a product from a store.
+   * @param userId The id of the user that we are checking the permission of.
+   * @param storeId The id of the store related to the permission.
+   * @returns A boolean that represents the permission.
+   * @throws Error if the store doesn't exist.
+   * @throws Error if the user doesn't exist.
+    */
+  canUserRemoveProductFromStore(
+    userId: string,
+    storeId: string
+  ): boolean;
+  /**
+   * This function returns whether a user has permission to edit a product in a store.
+   * @param userId The id of the user that we are checking the permission of.
+   * @param storeId The id of the store related to the permission.
+   * @returns A boolean that represents the permission.
+   * @throws Error if the store doesn't exist.
+   * @throws Error if the user doesn't exist.
+    */ 
+  canUserEditProductInStore(
+    userId: string,
+    storeId: string
+  ): boolean;
+  /**
+   * This function returns whether a user has permission to active the store
+   * @param userId The id of the user that we are checking the permission of.
+   * @param storeId The id of the store related to the permission.
+   * @returns A boolean that represents the permission.
+   * @throws Error if the store doesn't exist.
+   * @throws Error if the user doesn't exist.
+   */
+  canUserActivateStore( 
+    userId: string,
+    storeId: string
+  ): boolean;
+  /**
+   * This function returns whether a user has permission to deactivate the store
+   * @param userId The id of the user that we are checking the permission of.
+   * @param storeId The id of the store related to the permission.
+   * @returns A boolean that represents the permission.
+   * @throws Error if the store doesn't exist.
+   * @throws Error if the user doesn't exist.
+    */
+  canUserDeactivateStore( 
+    userId: string,
+    storeId: string
+  ): boolean;
+  /**
+   * This function returns whether a user has permission to close the store permanently
+   * @param userId The id of the user that we are checking the permission of.
+   * @param storeId The id of the store related to the permission.
+   */
+  canUserCloseStorePermanently(
+    userId: string,
+    storeId: string
+  ): boolean;
+
   //! Add more permission functions - should we do it using enum instead?
   /**
    * This function checks if a user is a store owner.

@@ -1,4 +1,5 @@
 import { type Controllers } from "./HasController";
+import { CartDTO } from "./Users/Cart";
 import { createControllers } from "./createControllers";
 
 export class MarketFacade {
@@ -40,7 +41,7 @@ export class MarketFacade {
     this.isConnectionValid(userId);
     return this.controllers.Users.getNotifications(userId);
   }
-  public purchaseCart(userId: string) {
+  public purchaseCart(userId: string, cart: CartDTO) {
     this.isConnectionValid(userId);
     this.controllers.Users.purchaseCart(userId);
   }
@@ -69,4 +70,42 @@ export class MarketFacade {
     this.isConnectionValid(userId);
     return this.controllers.Users.getUnreadNotifications(userId);
   }
+  public reviewStore(
+    userId: string,
+    purchaseId: string,
+    storeId: string,
+    review: number
+  ) {
+    this.isConnectionValid(userId);
+    this.controllers.PurchasesHistory.addStorePurchaseReview(
+      userId,
+      purchaseId,
+      storeId,
+      review
+    );
+  }
+
+  public reviewProduct(
+    userId: string,
+    purchaseId: string,
+    productId: string,
+    review: number,
+    reviewTitle: string,
+    reviewDescription: string
+  ) {
+    this.isConnectionValid(userId);
+    this.controllers.PurchasesHistory.addProductPurchaseReview(
+      userId,
+      purchaseId,
+      productId,
+      review,
+      reviewTitle,
+      reviewDescription,
+    );
+  }
+
+  public getStoreRating(storeId: string) {
+    return this.controllers.PurchasesHistory.getStoreRating(storeId);
+  }
+  
 }

@@ -25,10 +25,11 @@ export interface IPurchasesHistoryController {
   ): void; // TODO: add
   addProductPurchaseReview(
     userId: string,
-    storeId: string,
     purchaseId: string,
     productId: string,
-    review: ProductReviewArgs
+    rating: number,
+    title: string,
+    description: string
   ): void;
   getStoreRating(storeId: string): number;
   getReviewsByStore(storeId: string): number;
@@ -115,10 +116,11 @@ export class PurchasesHistoryController
   }
   addProductPurchaseReview(
     userId: string,
-    storeId: string,
     purchaseId: string,
     productId: string,
-    review: ProductReviewArgs
+    rating: number,
+    title: string,
+    description: string
   ): void {
     if (
       this.Repos.ProductReviews.getProductReview(purchaseId, productId) !==
@@ -130,14 +132,13 @@ export class PurchasesHistoryController
       throw new Error("Purchase not found");
     }
     const productReview = new ProductReview({
-      rating: review.rating,
+      rating: rating,
       id: randomUUID(),
       createdAt: new Date(),
       userId: userId,
       purchaseId: purchaseId,
-      storeId: storeId,
-      title: review.title,
-      description: review.description,
+      title: title,
+      description: description,
     });
     this.Repos.ProductReviews.addProductReview(
       productReview.ProductReviewToDTO()

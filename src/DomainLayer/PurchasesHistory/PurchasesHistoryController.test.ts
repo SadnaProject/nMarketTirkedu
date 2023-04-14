@@ -139,10 +139,11 @@ describe("addProductPurchaseReview", () => {
     expect(() =>
       purchasesHistoryController.addProductPurchaseReview(
         "userId",
-        "storeId",
         "purchaseId",
         "productId",
-        { ...productReviewData, rating: 5 }
+        5,
+        "title",
+        "description"
       )
     ).toThrow();
   });

@@ -16,9 +16,18 @@ export class MemberUserAuth extends UserAuth {
     super("MEMBER");
     this.email = "";
     this.password = "";
-
-    
   }
+  public get Email(): string {
+    return this.email;
+  }
+  public set Email(email: string) {
+    this.validateEmailLegality(email);
+    this.email = email;
+    }
+    public set Password(password: string) {
+        this.validatePasswordLegality(password);
+        this.password = password;
+    }
     public static create(email: string, password: string): MemberUserAuth {
         const memberUserAuth = new MemberUserAuth();
         memberUserAuth.validateEmailLegality(email);
@@ -46,9 +55,8 @@ export class MemberUserAuth extends UserAuth {
     return this.password === password;
   }
     
-  public get Email(): string {
-    return this.email;
-  }
+  
+
   public get DTO(): MemberUserAuthDTO {
     return {
       userId: this.userId,
@@ -68,6 +76,16 @@ export class MemberUserAuth extends UserAuth {
     this.addSession(session);
     return session;
   }
+    public logout(): void {
+        const latestSession = this.getLatestSession();
+        if (latestSession === undefined) {
+            throw new Error("No session to logout");
+        }
+        if(latestSession.isValid() === false){
+            throw new Error("The Member is not logged in");
+        }
+        latestSession.invalidate();
+    }
   //Logged in= has a valid session as a member
   //Connected= has a valid session as a guest or a member
   public isUserLoggedInAsMember(): boolean {

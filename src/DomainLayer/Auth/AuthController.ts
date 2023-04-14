@@ -36,18 +36,19 @@ export interface IAuthController extends HasRepos {
   isConnected(userId: string): boolean;
   /**
    * Logs in a user.
+   * @param guestId The user's ID.(The id of the guest user that was created when the user connected to the system and preforms the login)
    * @param email The user's email.
    * @param password The user's password.
    * @returns The user's ID.
    */
-  login(email: string, password: string): string;
+  login(guestId: string, email: string, password: string): string;
   /**
-   * Logs out the user.
+   * disconnects a user. if the user is a guest user, the user is removed from the system. if the user is a member user, the users session is invalidated. 
    * @param userId The user's ID.
    * @throws Error if the user is not connected.
    */
 
-  logout(userId: string): void;
+  disconnect(userId: string): void;
   /**
    * Registers a new user.
    * @param email The user's email.
@@ -88,44 +89,107 @@ export class AuthController
     this.initRepos(createRepos());
   }
 
-  startSession(): string {
+  public startSession(): string {
     // throw new Error("Method not implemented.");
     const guest = GuestUserAuth.create();
     this.Repos.Users.addGuest(guest.DTO);
     return guest.UserId;
   }
 
-  login(email: string, password: string): string {
-    throw new Error("Method not implemented.");
-  }
-  logout(userId: string): void {
-    throw new Error("Method not implemented.");
-  }
-  register(email: string, password: string): void {
+  public login(guestId: string, email: string, password: string): string {
     // throw new Error("Method not implemented.");
-
+    const memberDto = this.Repos.Users.getMemberByEmail(email);
+    if(memberDto === undefined){
+      throw new Error("Email not found, please try again with a different email");
+    }
+    const member=MemberUserAuth.createFromDTO(memberDto);
+    if(!member.isPasswordCorrect(password)){
+      throw new Error("Password is incorrect, please try again with a different password");
+    }
+    member.login();
+    this.Repos.Users.removeGuest(guestId);
+    return member.UserId;
+  }
+  public disconnect(userId: string): void {
+    //TODO - do i need to call the logout method of the users component?
+    if(this.isGuest(userId)){
+      this.Repos.Users.removeGuest(userId);
+      return;
+    }
+    else{
+      const memberDto = this.Repos.Users.getMemberById(userId);
+      if(memberDto === undefined){
+        throw new Error("User not found, please try again with a different user");
+      }
+      const member=MemberUserAuth.createFromDTO(memberDto);
+      member.logout();//throws error if user is not connected
+    }
+  }
+  public register(email: string, password: string): void {
+    // throw new Error("Method not implemented.");
+    if(this.Repos.Users.getMemberByEmail(email) !== undefined){
+      throw new Error("Email already in use, please try again with a different email");  
+    }
+    // if(!this.validatePassword(password)){
+    //   throw new Error("Password is invalid, please try again with a different password");
+    // }
+    const ua= MemberUserAuth.create(email,password);
+    this.Repos.Users.addMember(ua.DTO);
   }
   
-  // private validatePassword(password: string): boolean {
-  //   return true;
-  // }
-  changeEmail(userId: string, newEmail: string): boolean {
-    throw new Error("Method not implemented.");
+  public changeEmail(userId: string, newEmail: string): void {
+    // throw new Error("Method not implemented.");
+    const memberDto = this.Repos.Users.getMemberById(userId);
+    if(memberDto === undefined){
+      throw new Error("User not found, please try again with a different user");
+    }
+    const member=MemberUserAuth.createFromDTO(memberDto);
+    if(this.Repos.Users.getMemberByEmail(newEmail) !== undefined){
+      throw new Error("Email already in use, please try again with a different email");  
+    }
+    member.Email=newEmail;
   }
-  changePassword(
+  public changePassword(
     userId: string,
     oldPassword: string,
     newPassword: string
-  ): boolean {
-    throw new Error("Method not implemented.");
+  ): void {
+    // throw new Error("Method not implemented.");
+    const memberDto = this.Repos.Users.getMemberById(userId);
+    if(memberDto === undefined){
+      throw new Error("User not found, please try again with a different user");
+    }
+    const member=MemberUserAuth.createFromDTO(memberDto);
+    if(!member.isPasswordCorrect(oldPassword)){
+      throw new Error("Password is incorrect, please try again with a different password");
+    }
+    member.Password=newPassword;
   }
-  isGuest(userId: string): boolean {
-    throw new Error("Method not implemented.");
+  public isGuest(userId: string): boolean {
+    if(this.Repos.Users.getGuestById(userId) !== undefined){
+      return true;
+    }
+    return false;
   }
-  isMember(userId: string): boolean {
-    throw new Error("Method not implemented.");
+  public isMember(userId: string): boolean {
+    this.Repos.Users.getMemberById(userId);
+    if(this.Repos.Users.getMemberById(userId) !== undefined){
+      return true;
+    }
+    return false;
   }
-  isConnected(userId: string): boolean {
-    throw new Error("Method not implemented.");
+  public isConnected(userId: string): boolean {
+    const guestDto = this.Repos.Users.getGuestById(userId);
+    if(guestDto !== undefined){
+      const guest=GuestUserAuth.createFromDTO(guestDto);
+      return guest.isUserLoggedInAsGuest();
+    }
+
+    const memberDto = this.Repos.Users.getMemberById(userId);
+    if(memberDto === undefined){
+      return false;
+    }
+    const member=MemberUserAuth.createFromDTO(memberDto);
+    return member.isUserLoggedInAsMember();
   }
 }

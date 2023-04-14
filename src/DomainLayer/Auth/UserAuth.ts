@@ -51,7 +51,7 @@ export abstract class UserAuth {
     }
     return latestSession.isValid();
   }
-  private getLatestSession(): Session | undefined {
+  protected getLatestSession(): Session | undefined {
     if (this.sessions.length === 0) {
       return undefined;
     }

@@ -78,7 +78,7 @@ export interface IJobsController {
    * @param storeId The id of the store related to the permission.
    * @returns A boolean that represents the permission.
    */
-  canUserCreateProductInStore(
+  canCreateProductInStore(
     userId: string,
     storeId: string
   ): boolean;
@@ -90,7 +90,7 @@ export interface IJobsController {
    * @throws Error if the store doesn't exist.
    * @throws Error if the user doesn't exist.
     */
-  canUserRemoveProductFromStore(
+  canRemoveProductFromStore(
     userId: string,
     storeId: string
   ): boolean;
@@ -102,7 +102,7 @@ export interface IJobsController {
    * @throws Error if the store doesn't exist.
    * @throws Error if the user doesn't exist.
     */ 
-  canUserEditProductInStore(
+  canEditProductInStore(
     userId: string,
     storeId: string
   ): boolean;
@@ -114,7 +114,7 @@ export interface IJobsController {
    * @throws Error if the store doesn't exist.
    * @throws Error if the user doesn't exist.
    */
-  canUserActivateStore( 
+  canActivateStore( 
     userId: string,
     storeId: string
   ): boolean;
@@ -126,7 +126,7 @@ export interface IJobsController {
    * @throws Error if the store doesn't exist.
    * @throws Error if the user doesn't exist.
     */
-  canUserDeactivateStore( 
+  canDeactivateStore( 
     userId: string,
     storeId: string
   ): boolean;
@@ -135,7 +135,7 @@ export interface IJobsController {
    * @param userId The id of the user that we are checking the permission of.
    * @param storeId The id of the store related to the permission.
    */
-  canUserCloseStorePermanently(
+  canCloseStorePermanently(
     userId: string,
     storeId: string
   ): boolean;
@@ -220,22 +220,22 @@ export class JobsController
   setAddingProductToStorePermission(currentId: string, storeId: string, targetUserId: string, permission: boolean): void {
     throw new Error("Method not implemented.");
   }
-  canUserCreateProductInStore(userId: string, storeId: string): boolean {
+  canCreateProductInStore(userId: string, storeId: string): boolean {
     throw new Error("Method not implemented.");
   }
-  canUserRemoveProductFromStore(userId: string, storeId: string): boolean {
+  canRemoveProductFromStore(userId: string, storeId: string): boolean {
     throw new Error("Method not implemented.");
   }
-  canUserEditProductInStore(userId: string, storeId: string): boolean {
+  canEditProductInStore(userId: string, storeId: string): boolean {
     throw new Error("Method not implemented.");
   }
-  canUserActivateStore(userId: string, storeId: string): boolean {
+  canActivateStore(userId: string, storeId: string): boolean {
     throw new Error("Method not implemented.");
   }
-  canUserDeactivateStore(userId: string, storeId: string): boolean {
+  canDeactivateStore(userId: string, storeId: string): boolean {
     throw new Error("Method not implemented.");
   }
-  canUserCloseStorePermanently(userId: string, storeId: string): boolean {
+  canCloseStorePermanently(userId: string, storeId: string): boolean {
     throw new Error("Method not implemented.");
   }
   isStoreOwner(userId: string, storeId: string): boolean {

@@ -30,6 +30,27 @@ export interface IJobsController {
     targetUserId: string
   ): void;
   /**
+   * This function gets the stores that a user is a founder of.
+   * @param userId The id of the user that we want to get the stores of.
+   * @returns The store Id's that the user is a founder of.
+   * @returns An empty array if the user wasn't found.
+    */
+  getStoreIdsByFounder(userId: string): string[];
+  /**
+   * This function gets the stores that a user is a owner of.
+   * @param userId The id of the user that we want to get the stores of.
+   * @returns The store Id's that the user is a owner of.
+   * @returns An empty array if the user wasn't found.
+    */
+  getStoreIdsByOwner(userId: string): string[];
+  /**
+   * This function gets the stores that a user is a manager of.
+   * @param userId The id of the user that we want to get the stores of.
+   * @returns The store Id's that the user is a manager of.
+   * @returns An empty array if the user wasn't found.
+   */
+  getStoreIdsByManager(userId: string): string[];
+  /**
    * This function gets the stores that a user is a manager of.
    * @param userId The id of the user that is currently logged in.
    * @returns The stores that the user is a manager of.
@@ -198,6 +219,15 @@ export class JobsController
 {
   constructor() {
     super();
+  }
+  getStoreIdsByFounder(userId: string): string[] {
+    throw new Error("Method not implemented.");
+  }
+  getStoreIdsByOwner(userId: string): string[] {
+    throw new Error("Method not implemented.");
+  }
+  getStoreIdsByManager(userId: string): string[] {
+    throw new Error("Method not implemented.");
   }
   makeStoreOwner(currentId: string, storeId: string, targetUserId: string): void {
     throw new Error("Method not implemented.");

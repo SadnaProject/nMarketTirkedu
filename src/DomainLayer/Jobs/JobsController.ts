@@ -5,7 +5,7 @@ import { Testable, testable } from "~/Testable";
 import { ManagerRole } from "./ManagerRole";
 import { OwnerRole } from "./OwnerRole";
 import { HasRepos } from "./HasRepos";
-import { PositionHolder } from "./PositionHolder";
+import { PositionHolder,PositionHolderDTO } from "./PositionHolder";
 import { FounderRole } from "./FounderRole";
 
 export interface IJobsController {
@@ -255,7 +255,33 @@ export class JobsController
     throw new Error("Method not implemented.");
   }
   makeStoreOwner(currentId: string, storeId: string, targetUserId: string): void {
-    throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
+    const phAppointerDTO: PositionHolderDTO = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId,storeId);
+    if(phAppointerDTO===undefined){
+      throw new Error("given user is not a manager or owner of the store");
+    }
+    const phAppointer: PositionHolder = PositionHolder.createPositionHolderFromDTO(phAppointerDTO);
+    if(phAppointer.Role.canAppointStoreOwner()){
+      const positionHolderDTO: PositionHolderDTO = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(targetUserId,storeId);
+      if(positionHolderDTO===undefined){
+        const newPositionHolder = new PositionHolder(this.ownerRole,storeId,targetUserId);
+        phAppointer.appointPositionHolder(newPositionHolder);
+        // this.Repos.jobs.addPositionHolder(phAppointerDTO,newPositionHolder.DTO);
+      }
+      else{
+        const newPositionHolder = PositionHolder.createPositionHolderFromDTO(positionHolderDTO);
+        if(newPositionHolder.Role.canBeAppointedToStoreOwner()){
+          newPositionHolder.Role = this.ownerRole;
+        }
+        else{
+          throw new Error("given user cannot be appointed to store owner");
+        }
+      }
+      // const positionHolder: PositionHolder = new PositionHolder(this.ownerRole,storeId,targetUserId);
+    }
+    else{
+      throw new Error("given user does not have permission to appoint store owner");
+    }
   }
   getStoresByOwner(userId: string): StoreDTO[] {
     throw new Error("Method not implemented.");

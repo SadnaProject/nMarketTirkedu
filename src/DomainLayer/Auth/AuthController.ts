@@ -94,6 +94,7 @@ export class AuthController
   constructor() {
     super();
     this.initRepos(createRepos());
+    
   }
 
   public startSession(): string {

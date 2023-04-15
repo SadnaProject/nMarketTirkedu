@@ -77,6 +77,13 @@ export interface IAuthController extends HasRepos {
     oldPassword: string,
     newPassword: string
   ): void;
+  /**
+   * Logs out a logged in member user.
+   * @param userId The user's ID.
+   * @throws Error if the user is not connected or not a user
+   * @returns The new guest user's ID.(After the logout the user is a guest user again)
+    */
+  logout(userId: string): string
 }
 
 @testable
@@ -92,17 +99,16 @@ export class AuthController
   public startSession(): string {
     // throw new Error("Method not implemented.");
     const guest = GuestUserAuth.create();
-    this.Repos.Users.addGuest(guest.DTO);
+    this.Repos.Users.addGuest(guest);
     return guest.UserId;
   }
 
   public login(guestId: string, email: string, password: string): string {
     // throw new Error("Method not implemented.");
-    const memberDto = this.Repos.Users.getMemberByEmail(email);
-    if(memberDto === undefined){
+    const member: MemberUserAuth | undefined = this.Repos.Users.getMemberByEmail(email);
+    if(member === undefined){
       throw new Error("Email not found, please try again with a different email");
     }
-    const member=MemberUserAuth.createFromDTO(memberDto);
     if(!member.isPasswordCorrect(password)){
       throw new Error("Password is incorrect, please try again with a different password");
     }
@@ -117,13 +123,24 @@ export class AuthController
       return;
     }
     else{
-      const memberDto = this.Repos.Users.getMemberById(userId);
-      if(memberDto === undefined){
+      const member: MemberUserAuth | undefined = this.Repos.Users.getMemberById(userId);
+      if(member === undefined){
         throw new Error("User not found, please try again with a different user");
       }
-      const member=MemberUserAuth.createFromDTO(memberDto);
       member.logout();//throws error if user is not connected
     }
+  }
+  public logout(userId: string): string {
+    if(this.isGuest(userId)){
+      throw new Error("User is not a member, please try again with a different user");
+    }
+    const member: MemberUserAuth | undefined = this.Repos.Users.getMemberById(userId);
+    if(member === undefined){
+      throw new Error("User not found, please try again with a different user");
+    }
+    member.logout();//throws error if user is not connected
+    return this.startSession();
+
   }
   public register(email: string, password: string): void {
     // throw new Error("Method not implemented.");
@@ -134,16 +151,15 @@ export class AuthController
     //   throw new Error("Password is invalid, please try again with a different password");
     // }
     const ua= MemberUserAuth.create(email,password);
-    this.Repos.Users.addMember(ua.DTO);
+    this.Repos.Users.addMember(ua);
   }
   
   public changeEmail(userId: string, newEmail: string): void {
     // throw new Error("Method not implemented.");
-    const memberDto = this.Repos.Users.getMemberById(userId);
-    if(memberDto === undefined){
+    const member = this.Repos.Users.getMemberById(userId);
+    if(member === undefined){
       throw new Error("User not found, please try again with a different user");
     }
-    const member=MemberUserAuth.createFromDTO(memberDto);
     if(this.Repos.Users.getMemberByEmail(newEmail) !== undefined){
       throw new Error("Email already in use, please try again with a different email");  
     }
@@ -155,11 +171,10 @@ export class AuthController
     newPassword: string
   ): void {
     // throw new Error("Method not implemented.");
-    const memberDto = this.Repos.Users.getMemberById(userId);
-    if(memberDto === undefined){
+    const member: MemberUserAuth | undefined = this.Repos.Users.getMemberById(userId); 
+    if(member === undefined){
       throw new Error("User not found, please try again with a different user");
     }
-    const member=MemberUserAuth.createFromDTO(memberDto);
     if(!member.isPasswordCorrect(oldPassword)){
       throw new Error("Password is incorrect, please try again with a different password");
     }
@@ -179,17 +194,15 @@ export class AuthController
     return false;
   }
   public isConnected(userId: string): boolean {
-    const guestDto = this.Repos.Users.getGuestById(userId);
-    if(guestDto !== undefined){
-      const guest=GuestUserAuth.createFromDTO(guestDto);
+    const guest: GuestUserAuth | undefined = this.Repos.Users.getGuestById(userId);
+    if(guest !== undefined){
       return guest.isUserLoggedInAsGuest();
     }
 
-    const memberDto = this.Repos.Users.getMemberById(userId);
-    if(memberDto === undefined){
+    const member: MemberUserAuth | undefined = this.Repos.Users.getMemberById(userId);
+    if(member === undefined){
       return false;
     }
-    const member=MemberUserAuth.createFromDTO(memberDto);
     return member.isUserLoggedInAsMember();
   }
 }

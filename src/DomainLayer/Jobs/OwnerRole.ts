@@ -1,26 +1,18 @@
-import { Role } from "./Role";
+import { EditablePermission, Role } from "./Role";
 
-export class OwnerRole implements Role{
-    isStoreOwner(): boolean {
-        return true;
+export class OwnerRole extends Role{
+    constructor(){
+        super();
+        this.permissions.push("AddProduct");
+        this.permissions.push("EditProductDetails");
+        this.permissions.push("RemoveProduct");
+        this.permissions.push("SeeStoreData");
     }
-    isStoreManager(): boolean {
-        return false;
+    grantPermission(permission: EditablePermission): void {
+        throw new Error("You are not allowed to grant permissions to the owner");
     }
-    isStoreFounder(): boolean {
-        return false;
+    revokePermission(permission: EditablePermission): void {
+        throw new Error("You are not allowed to revoke permissions from the owner");
     }
-    canBeAppointedToStoreOwner(): boolean {
-        return false;
-    }
-    canAppointStoreOwner(): boolean {
-        throw new Error("Method not implemented.");
-    }
-    canAppointStoreManager(): boolean {
-        throw new Error("Method not implemented.");
-    }
-    canCreateProductInStore(): boolean {
-        return true;
-    }
-    
+
 }

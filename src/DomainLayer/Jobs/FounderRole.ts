@@ -1,28 +1,23 @@
-import { Role } from "./Role";
+import { EditablePermission, Role } from "./Role";
 
-export class FounderRole implements Role//TODO maybe its better to extend OwnerRole
+export class FounderRole extends Role//TODO maybe its better to extend OwnerRole
 {
+    constructor() {
+        super();
+        this.permissions.push("DeactivateStore");
+        this.permissions.push("ActivateStore");
+        this.permissions.push("AddProduct");
+        this.permissions.push("EditProductDetails");
+        this.permissions.push("RemoveProduct");
+        this.permissions.push("SeeStoreData");
+    }
+    grantPermission(permission: EditablePermission): void {
+        throw new Error("You are not allowed to grant permissions to the founder");
+    }
+    revokePermission(permission: EditablePermission): void {
+        throw new Error("You are not allowed to revoke permissions from the founder");
+    }
 
-    isStoreOwner(): boolean {
-        return true;
-    }
-    isStoreManager(): boolean {
-        return false;
-    }
-    isStoreFounder(): boolean {
-        return true;
-    }
-    canBeAppointedToStoreOwner(): boolean {
-        return false;
-    }
-    canAppointStoreOwner(): boolean {
-        throw new Error("Method not implemented.");
-    }
-    canAppointStoreManager(): boolean {
-        throw new Error("Method not implemented.");
-    }
-    canCreateProductInStore(): boolean {
-        return true;
-    }
+    
     
 }

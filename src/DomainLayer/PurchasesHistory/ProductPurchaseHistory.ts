@@ -1,6 +1,7 @@
 import { HasRepos } from "./HasRepos";
 import { type ProductReview, type ProductReviewDTO } from "./ProductReview";
 import { BasketProductDTO } from "../Users/BasketProduct";
+import { StoresController } from "../Stores/StoresController";
 
 export type ProductPurchaseDTO = {
   purchaseId: string;
@@ -30,17 +31,18 @@ export class ProductPurchase extends HasRepos {
     this.quantity = quantity;
     this.price = price;
   }
-
-  static ProductPurchaseFromBasketProductDTO(
+  static ProductPurchaseDTOFromBasketProductDTO(
     basketProductDTO: BasketProductDTO,
     purchaseId: string
-  ): ProductPurchase {
-    return new ProductPurchase({
+  ): ProductPurchaseDTO {
+    return {
       productId: basketProductDTO.storeProductId,
       quantity: basketProductDTO.quantity,
-      price: basketProductDTO.price,
+      price: new StoresController().getProductPrice(
+        basketProductDTO.storeProductId
+      ),
       purchaseId: purchaseId,
-    });
+    };
   }
 
   public setReview(review: ProductReview) {
@@ -50,7 +52,7 @@ export class ProductPurchase extends HasRepos {
   public get Review() {
     return this.review;
   }
-  public ProductPurchaseToDTO(): ProductPurchaseDTO {
+  public ToDTO(): ProductPurchaseDTO {
     return {
       purchaseId: this.purchaseId,
       productId: this.productId,
@@ -61,5 +63,17 @@ export class ProductPurchase extends HasRepos {
   }
   public get PurchaseId(): string {
     return this.purchaseId;
+  }
+
+  public get ProductId(): string {
+    return this.productId;
+  }
+  static fromDTO(ProductPurchaseDTO: ProductPurchaseDTO): ProductPurchase {
+    return new ProductPurchase({
+      productId: ProductPurchaseDTO.productId,
+      quantity: ProductPurchaseDTO.quantity,
+      price: ProductPurchaseDTO.price,
+      purchaseId: ProductPurchaseDTO.purchaseId,
+    });
   }
 }

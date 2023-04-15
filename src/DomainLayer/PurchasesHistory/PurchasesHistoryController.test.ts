@@ -7,6 +7,7 @@ import { ProductPurchase } from "./ProductPurchaseHistory";
 import { BasketPurchase } from "./BasketPurchaseHistory";
 import { CartPurchase } from "./CartPurchaseHistory";
 import { ProductPurchaseRepo } from "~/DomainLayer/PurchasesHistory/PurchasesHistory/ProductPurchaseHistoryRepo";
+import exp from "constants";
 
 const reviewData = {
   rating: 5,
@@ -55,6 +56,7 @@ const cartPurchaseData = {
     ],
   ]),
   totalPrice: 1,
+  creditCard: "creditCard",
 };
 
 const createReview = (repos: Repos = createRepos()) =>
@@ -73,6 +75,7 @@ const createBasketPurchase = (repos: Repos = createRepos()) =>
 const createCartPurchase = (repos: Repos = createRepos()) =>
   new CartPurchase(
     cartPurchaseData.userId,
+    cartPurchaseData.purchaseId,
     cartPurchaseData.storeIdToBasketPurchases,
     cartPurchaseData.totalPrice
   ).initRepos(repos);
@@ -135,9 +138,24 @@ describe("ProductReview constructor", () => {
 
 // add product purchase review
 describe("addProductPurchaseReview", () => {
-  it("❎adds product purchase review", () => {
-    const productPurchase = createProductPurchase();
+  it("✅adds product purchase review", () => {
     const productReview = createProductReview();
+    const cartPurchase = createCartPurchase();
+    const purchasesHistoryController = new PurchasesHistoryController();
+    purchasesHistoryController.addPurchase(cartPurchase);
+    expect(() =>
+      purchasesHistoryController.addProductPurchaseReview(
+        "userId",
+        "purchaseId",
+        "productId",
+        5,
+        "title",
+        "description"
+      )
+    ).not.toThrow();
+  });
+
+  it("❎adds product purchase review", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
     expect(() =>
       purchasesHistoryController.addProductPurchaseReview(
@@ -154,7 +172,39 @@ describe("addProductPurchaseReview", () => {
 
 // add store purchase review
 describe("addStorePurchaseReview", () => {
-  it("❎adds store purchase review", () => {
+  it("✅adds store purchase review", () => {
+    const cartPurchase = createCartPurchase();
+    const purchasesHistoryController = new PurchasesHistoryController();
+    purchasesHistoryController.addPurchase(cartPurchase);
+    expect(() =>
+      purchasesHistoryController.addStorePurchaseReview(
+        "userId",
+        "purchaseId",
+        "storeId",
+        5
+      )
+    ).not.toThrow();
+  });
+  it("❎ adds two store purchase reviews", () => {
+    const cartPurchase = createCartPurchase();
+    const purchasesHistoryController = new PurchasesHistoryController();
+    purchasesHistoryController.addPurchase(cartPurchase);
+    purchasesHistoryController.addStorePurchaseReview(
+      "userId",
+      "purchaseId",
+      "storeId",
+      5
+    );
+    expect(() =>
+      purchasesHistoryController.addStorePurchaseReview(
+        "userId",
+        "purchaseId",
+        "storeId",
+        5
+      )
+    ).toThrow();
+  });
+  it("❎No such store", () => {
     const productPurchase = createProductPurchase();
     const productReview = createProductReview();
     const purchasesHistoryController = new PurchasesHistoryController();
@@ -173,14 +223,11 @@ describe("getCartPurchaseByUserId", () => {
   it("✅gets cart purchase", () => {
     const cartPurchase = createCartPurchase();
     const purchasesHistoryController = new PurchasesHistoryController();
-    purchasesHistoryController.addPurchase(
-      cartPurchaseData.purchaseId,
-      cartPurchase.CartPurchaseToDTO()
-    );
+    purchasesHistoryController.addPurchase(cartPurchase);
 
     expect(
-      purchasesHistoryController.getPurchasesByUser("userId")
-    ).toStrictEqual([cartPurchase.CartPurchaseToDTO()]);
+      purchasesHistoryController.getPurchasesByUser(cartPurchase.UserId)
+    ).toStrictEqual([cartPurchase.ToDTO()]);
   });
   it("❎gets undefined cart purchase", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
@@ -194,14 +241,12 @@ describe("getCartPurchaseByPurchaseId", () => {
   it("✅gets cart purchase", () => {
     const cartPurchase = createCartPurchase();
     const purchasesHistoryController = new PurchasesHistoryController();
-    purchasesHistoryController.addPurchase(
-      cartPurchase.PurchaseId,
-      cartPurchase.CartPurchaseToDTO()
-    );
+
+    purchasesHistoryController.addPurchase(cartPurchase);
 
     expect(
       purchasesHistoryController.getPurchase(cartPurchase.PurchaseId)
-    ).toStrictEqual(cartPurchase.CartPurchaseToDTO());
+    ).toStrictEqual(cartPurchase.ToDTO());
   });
   it("❎gets undefined cart purchase", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
@@ -216,14 +261,23 @@ describe("addPurchase", () => {
   it("✅adds purchase", () => {
     const cartPurchase = createCartPurchase();
     const purchasesHistoryController = new PurchasesHistoryController();
-    purchasesHistoryController.addPurchase(
-      cartPurchase.PurchaseId,
-      cartPurchase.CartPurchaseToDTO()
-    );
+
+    purchasesHistoryController.addPurchase(cartPurchase);
 
     expect(
       purchasesHistoryController.getPurchase(cartPurchase.PurchaseId)
-    ).toStrictEqual(cartPurchase.CartPurchaseToDTO());
+    ).toStrictEqual(cartPurchase.ToDTO());
+  });
+
+  it("❎ add two purchases with same id", () => {
+    const cartPurchase = createCartPurchase();
+    const purchasesHistoryController = new PurchasesHistoryController();
+
+    purchasesHistoryController.addPurchase(cartPurchase);
+
+    expect(() =>
+      purchasesHistoryController.addPurchase(cartPurchase)
+    ).toThrow();
   });
 });
 
@@ -232,14 +286,11 @@ describe("getPurchase", () => {
   it("✅gets purchase", () => {
     const cartPurchase = createCartPurchase();
     const purchasesHistoryController = new PurchasesHistoryController();
-    purchasesHistoryController.addPurchase(
-      cartPurchase.PurchaseId,
-      cartPurchase.CartPurchaseToDTO()
-    );
+    purchasesHistoryController.addPurchase(cartPurchase);
 
     expect(
       purchasesHistoryController.getPurchase(cartPurchase.PurchaseId)
-    ).toStrictEqual(cartPurchase.CartPurchaseToDTO());
+    ).toStrictEqual(cartPurchase.ToDTO());
   });
   it("❎gets undefined purchase", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
@@ -254,6 +305,8 @@ describe("getReviewsByProductId", () => {
   it("✅gets reviews by product id", () => {
     const productReview = createProductReview();
     const purchasesHistoryController = new PurchasesHistoryController();
+    const cartPurchase = createCartPurchase();
+    purchasesHistoryController.addPurchase(cartPurchase);
     purchasesHistoryController.addProductPurchaseReview(
       "userId",
       "purchaseId",
@@ -264,38 +317,59 @@ describe("getReviewsByProductId", () => {
     );
 
     expect(
-      purchasesHistoryController.getReviewsByProduct("productId")
-    ).toStrictEqual([productReview.ProductReviewToDTO()]);
+      purchasesHistoryController.getReviewsByProduct("productId").reviews.length
+    ).toBe(1);
+    expect(
+      purchasesHistoryController.getReviewsByProduct("productId").avgRating
+    ).toBe(5);
   });
   it("❎gets undefined reviews by product id", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
     expect(
-      purchasesHistoryController.getReviewsByProduct("productId")
+      purchasesHistoryController.getReviewsByProduct("productId").reviews
     ).toStrictEqual([]);
   });
 });
 
-
 // test get reviews by store id
 describe("getReviewsByStore", () => {
   it("✅gets reviews by store id", () => {
-    const productReview = createProductReview();
     const purchasesHistoryController = new PurchasesHistoryController();
+    const cartPurchase = createCartPurchase();
+    purchasesHistoryController.addPurchase(cartPurchase);
     purchasesHistoryController.addStorePurchaseReview(
       "userId",
-      "storeId",
       "purchaseId",
+      "storeId",
       5
     );
 
-    expect(
-      purchasesHistoryController.getReviewsByStore("storeId")
-    ).toStrictEqual([productReview.ProductReviewToDTO()]);
+    expect(purchasesHistoryController.getReviewsByStore("storeId")).toBe(1);
   });
   it("❎gets undefined reviews by store id", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
     expect(
       purchasesHistoryController.getReviewsByStore("storeId")
-    ).toStrictEqual([]);
+    ).toStrictEqual(0);
+  });
+
+  it("❎try and review a store twice", () => {
+    const purchasesHistoryController = new PurchasesHistoryController();
+    const cartPurchase = createCartPurchase();
+    purchasesHistoryController.addPurchase(cartPurchase);
+    purchasesHistoryController.addStorePurchaseReview(
+      "userId",
+      "purchaseId",
+      "storeId",
+      5
+    );
+    expect(() =>
+      purchasesHistoryController.addStorePurchaseReview(
+        "userId",
+        "purchaseId",
+        "storeId",
+        5
+      )
+    ).toThrow();
   });
 });

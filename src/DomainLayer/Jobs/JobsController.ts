@@ -304,10 +304,10 @@ export class JobsController
   }
   
   getStoresByOwner(userId: string): StoreDTO[] {
-    throw new Error("Method not implemented.");
+    throw new Error("Method Deprecated.");
   }
   getStoresByManager(userId: string): StoreDTO[] {
-    throw new Error("Method not implemented.");
+    throw new Error("Method Deprecated");
   }
   makeStoreManager(currentId: string, storeId: string, targetUserId: string): void {
     const phAppointer: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId,storeId);

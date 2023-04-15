@@ -144,9 +144,7 @@ export class Service {
     this.facade.makeStoreOwner(currentId, storeId, targetUserId);
   }
 
-  getStoresByOwner(userId: string): StoreDTO[] {
-    return this.facade.getStoresByOwner(userId);
-  }
+
   makeStoreManager(
     currentId: string,
     storeId: string,
@@ -154,9 +152,7 @@ export class Service {
   ): void {
     this.facade.makeStoreManager(currentId, storeId, targetUserId);
   }
-  getStoresByManager(userId: string): StoreDTO[] {
-    return this.facade.getStoresByManager(userId);
-  }
+
 
   removeStoreOwner(
     currentId: string,

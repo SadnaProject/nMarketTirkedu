@@ -1,6 +1,6 @@
 import { JobsController } from "./JobsController";
 import { ManagerRole } from "./ManagerRole";
-import { Role } from "./Role";
+import { EditablePermission, Role } from "./Role";
 
 export type PositionHolderDTO = {
     role: Role;
@@ -9,6 +9,7 @@ export type PositionHolderDTO = {
     appointedByMe: PositionHolderDTO[];
 }
 export class PositionHolder{
+    
     private role: Role;
     private storeId: string;
     private userId: string;//this user is a member for sure
@@ -47,7 +48,7 @@ export class PositionHolder{
         // }
     }
     public appointStoreOwner(userId: string): void {
-        if(!this.role.canAppointStoreOwner()){
+        if(!this.role.hasPermission("AppointStoreOwner")){
             throw new Error("User does not have permission to appoint store owner");
         }
         this.addPositionHolder(new PositionHolder(JobsController.ownerRole, this.storeId, userId));
@@ -55,7 +56,7 @@ export class PositionHolder{
         // const storeOwner = new PositionHolder(new StoreOwnerRole(), this.storeId, userId);
     }
     public appointStoreManager(userId: string): void {
-        if(!this.role.canAppointStoreManager()){
+        if(!this.role.hasPermission("AppointStoreManager")){
             throw new Error("User does not have permission to appoint store manager");
         }
         this.addPositionHolder(new PositionHolder(new ManagerRole(), this.storeId, userId));
@@ -68,6 +69,19 @@ export class PositionHolder{
         }
         this.appointments.splice(index, 1);
     }
+    public setAppointeePermission(targetUserId: string, permissionStatus: boolean, permission: EditablePermission): void  {
+        const appointee = this.appointments.find((positionHolder) => positionHolder.UserId === targetUserId);
+        if (appointee === undefined) {
+            throw new Error("User is not appointed by this position holder");
+        }
+        if(permissionStatus){
+            appointee.Role.grantPermission(permission);
+        }
+        else
+        {
+            appointee.Role.revokePermission(permission);
+        }
+      }
 
     public set Role(role: Role) {
         this.role = role;

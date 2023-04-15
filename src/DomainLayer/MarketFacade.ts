@@ -59,9 +59,9 @@ export class MarketFacade {
     this.isConnectionValid(userId);
     return this.controllers.Users.getNotifications(userId);
   }
-  public purchaseCart(userId: string, cart: CartDTO) {
+  public purchaseCart(userId: string, cart: CartDTO, creditCard: string) {
     this.isConnectionValid(userId);
-    this.controllers.Users.purchaseCart(userId);
+    this.controllers.Users.purchaseCart(userId, creditCard);
   }
 
   public removeUser(userId: string) {

@@ -1,6 +1,6 @@
 import { HasRepos } from "./HasRepos";
 import { type ProductReview, type ProductReviewDTO } from "./ProductReview";
-import { BasketProductDTO } from "../Users/BasketProduct";
+import { type BasketProductDTO } from "../Users/BasketProduct";
 
 export type ProductPurchaseDTO = {
   purchaseId: string;

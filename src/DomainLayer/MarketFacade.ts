@@ -6,21 +6,15 @@ import {
   type StoreProductDTO,
   type StoreProductArgs,
 } from "./Stores/StoreProduct";
-export type SearchArgs = {
-  name?: string;
-  category?: string;
-  keywords?: string[];
-  minPrice?: number;
-  maxPrice?: number;
-  minProductRating?: number;
-  maxProductRating?: number;
-  minStoreRating?: number;
-  maxStoreRating?: number;
-};
-export class MarketFacade {
+import { Loggable, loggable } from "./Loggable";
+import { type SearchArgs } from "./Stores/StoresController";
+
+@loggable
+export class MarketFacade extends Loggable {
   private controllers: Controllers;
 
   constructor() {
+    super();
     this.controllers = createControllers();
     this.initializeSystemAdmin();
   }
@@ -28,10 +22,28 @@ export class MarketFacade {
     this.controllers.Auth.register("admin", "admin");
     this.controllers.Jobs.setInitialAdmin("admin");
   }
+
   private isConnectionValid(userId: string): void {
     if (!this.controllers.Auth.isConnected(userId))
       throw new Error("User is not logged in");
   }
+
+  public getLogs(userId: string) {
+    this.isConnectionValid(userId);
+    if (this.isSystemAdmin(userId)) {
+      return this.Logs;
+    }
+    throw new Error("User is not system admin");
+  }
+
+  public getErrors(userId: string) {
+    this.isConnectionValid(userId);
+    if (this.isSystemAdmin(userId)) {
+      return this.Errors;
+    }
+    throw new Error("User is not system admin");
+  }
+
   //Checking if user is logged in is done here.
   public addProductToCart(userId: string, productId: string, quantity: number) {
     this.isConnectionValid(userId);
@@ -61,7 +73,7 @@ export class MarketFacade {
     this.isConnectionValid(userId);
     return this.controllers.Users.getNotifications(userId);
   }
-  public purchaseCart(userId: string, cart: CartDTO, creditCard: string) {
+  public purchaseCart(userId: string, creditCard: string) {
     this.isConnectionValid(userId);
     this.controllers.Users.purchaseCart(userId, creditCard);
   }

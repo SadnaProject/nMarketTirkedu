@@ -7,6 +7,7 @@ import { OwnerRole } from "./OwnerRole";
 import { HasRepos } from "./HasRepos";
 import { PositionHolder } from "./PositionHolder";
 import { FounderRole } from "./FounderRole";
+import { EditablePermission } from "./Role";
 
 export interface IJobsController {
  /**
@@ -96,12 +97,37 @@ export interface IJobsController {
   /**
    * This function sets the permission of a user to add products to a store.
    * @param currentId The id of the user that is currently logged in.
-   * @param storeId The id of the store that the user is being added to.
-   * @param targetUserId The id of the user that is being added to the store.
+   * @param storeId The id of the store that is related to the permission.
+   * @param targetUserId The id of the user that his permission is being set
    * @param permission The permission that is being set.
-   * @returns The stores that the user is a manager of.
    */
   setAddingProductToStorePermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): void;
+  /**
+   * This function sets the permission of a user to remove products from a store.
+   * @param currentId The id of the user that is currently logged in.
+   * @param storeId The id of the store that is related to the permission.
+   * @param targetUserId The id of the user that his permission is being set.
+   * @param permission The permission that is being set( true = can remove, false = can't remove)  
+   */
+  setRemovingProductFromStorePermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): void;
+  /**
+   * This function sets the permission of a user to edit products in a store.
+   * @param currentId The id of the user that is currently logged in.
+   * @param storeId The id of the store that is related to the permission.
+   * @param targetUserId The id of the user that his permission is being set.
+   * @param permission The permission that is being set( true = can edit, false = can't edit)
+   */
+  setEditingProductInStorePermission(
     currentId: string,
     storeId: string,
     targetUserId: string,
@@ -247,6 +273,7 @@ export class JobsController
     // this.founderRole = new FounderRole();
   }
   
+  
   InitializeStore(founderId: string, storeId: string): void {
     const positionHolder: PositionHolder = new PositionHolder(JobsController.founderRole,storeId,founderId);
     this.Repos.jobs.SetStoreFounder(positionHolder);
@@ -284,11 +311,11 @@ export class JobsController
   }
   makeStoreOwner(currentId: string, storeId: string, targetUserId: string): void {
     // throw new Error("Method not implemented.");
-    const phAppointer: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId,storeId);
+    const phAppointer: PositionHolder|undefined = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId,storeId);
     if(phAppointer===undefined){
       throw new Error("given user cannot appoint store owner");
     }
-    const positionHolder: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(targetUserId,storeId);
+    const positionHolder: PositionHolder|undefined = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(targetUserId,storeId);
     if(positionHolder===undefined){
       phAppointer.appointStoreOwner(targetUserId);
     }
@@ -310,11 +337,11 @@ export class JobsController
     throw new Error("Method Deprecated");
   }
   makeStoreManager(currentId: string, storeId: string, targetUserId: string): void {
-    const phAppointer: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId,storeId);
+    const phAppointer: PositionHolder| undefined = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId,storeId);
     if(phAppointer===undefined){
       throw new Error("given user cannot appoint store manager");
     }
-    const positionHolder: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(targetUserId,storeId);
+    const positionHolder: PositionHolder|undefined = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(targetUserId,storeId);
     if(positionHolder===undefined){
       phAppointer.appointStoreManager(targetUserId);
     } 
@@ -332,64 +359,97 @@ export class JobsController
     this.removeAppointee(currentId, storeId, targetUserId);
   }
   private removeAppointee(currentId: string, storeId: string, targetUserId: string) {
-    const phRemover: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId, storeId);
+    const phRemover: PositionHolder|undefined = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId, storeId);
     if (phRemover === undefined) {
       throw new Error("given user cannot remove store owner");
     }
     phRemover.removeAppointee(targetUserId);
   }
+  private setAppointeePermission(currentId: string, storeId: string, targetUserId: string, permissionStatus: boolean, permission: EditablePermission): void 
+  {
+    const phAppointer: PositionHolder|undefined = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId,storeId);
+    if(phAppointer===undefined){
+      throw new Error("given user cannot appoint store owner");
+    }
+    phAppointer.setAppointeePermission(targetUserId,permissionStatus,permission);
+
+  }
+  // 
 
   // private wasAppointedByUser(appointer: string, storeId: string, appointee: string): boolean{
   //   throw new Error("Method not implemented.");
   // }
   setAddingProductToStorePermission(currentId: string, storeId: string, targetUserId: string, permission: boolean): void {
-    throw new Error("Method not implemented.");
+    this.setAppointeePermission(currentId, storeId, targetUserId, permission, "AddProduct");
   }
+  setRemovingProductFromStorePermission(currentId: string, storeId: string, targetUserId: string, permission: boolean): void {
+    this.setAppointeePermission(currentId, storeId, targetUserId, permission, "RemoveProduct");
+  }
+  setEditingProductInStorePermission(currentId: string, storeId: string, targetUserId: string, permission: boolean): void {
+    this.setAppointeePermission(currentId, storeId, targetUserId, permission, "EditProductDetails");
+  }
+
   canCreateProductInStore(userId: string, storeId: string): boolean {
-    throw new Error("Method not implemented.");
-  }
-  canRemoveProductFromStore(userId: string, storeId: string): boolean {
-    throw new Error("Method not implemented.");
-  }
-  canEditProductInStore(userId: string, storeId: string): boolean {
-    throw new Error("Method not implemented.");
-  }
-  canActivateStore(userId: string, storeId: string): boolean {
-    throw new Error("Method not implemented.");
-  }
-  canDeactivateStore(userId: string, storeId: string): boolean {
-    throw new Error("Method not implemented.");
-  }
-  canCloseStorePermanently(userId: string, storeId: string): boolean {
-    throw new Error("Method not implemented.");
-  }
-  isStoreOwner(userId: string, storeId: string): boolean {
-    try{
-      const ph: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId,storeId);
-      return ph.Role.isStoreOwner();
-    }
-    catch(e){
+    const ph: PositionHolder |undefined= this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId,storeId);
+    if(ph===undefined){
       return false;
     }
+    return ph.Role.hasPermission("AddProduct");
+  }
+  canRemoveProductFromStore(userId: string, storeId: string): boolean {
+    const ph: PositionHolder |undefined= this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId,storeId); 
+    if(ph===undefined){
+      return false;
+    }
+    return ph.Role.hasPermission("RemoveProduct");
+  }
+  canEditProductInStore(userId: string, storeId: string): boolean {
+    const ph: PositionHolder |undefined= this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId,storeId);
+    if(ph===undefined){
+      return false;
+    }
+    return ph.Role.hasPermission("EditProductDetails")
+  }
+  canActivateStore(userId: string, storeId: string): boolean {
+    const ph: PositionHolder |undefined= this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId,storeId);
+    if(ph===undefined){
+      return false;
+    }
+    return ph.Role.hasPermission("ActivateStore");
+  }
+  canDeactivateStore(userId: string, storeId: string): boolean {
+    const ph: PositionHolder |undefined= this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId,storeId);
+    if(ph===undefined){
+      return false;
+    }
+    return ph.Role.hasPermission("DeactivateStore");
+  }
+  canCloseStorePermanently(userId: string, storeId: string): boolean {
+    return this.isSystemAdmin(userId)
+  }
+  isStoreOwner(userId: string, storeId: string): boolean {
+
+      const ph: PositionHolder|undefined = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId,storeId);
+      if(ph===undefined){
+        return false;
+      }
+      return ph.Role.isStoreOwner();
+    
 
   }
   isStoreManager(userId: string, storeId: string): boolean {
-    try{
-      const ph: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId,storeId);
-      return ph.Role.isStoreManager();
-    }
-    catch(e){
+    const ph: PositionHolder|undefined = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId,storeId);
+    if(ph===undefined){
       return false;
     }
+    return ph.Role.isStoreManager();
   }
   isStoreFounder(userId: string, storeId: string): boolean {
-    try{
-      const ph: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId,storeId);
-      return ph.Role.isStoreFounder();
-    }
-    catch(e){
+    const ph: PositionHolder|undefined = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId,storeId);
+    if(ph===undefined){
       return false;
     }
+    return ph.Role.isStoreFounder();
   }
   isSystemAdmin(userId: string): boolean {
     if(this.Repos.jobs.getSystemAdmins().find(saId=>saId===userId)===undefined){

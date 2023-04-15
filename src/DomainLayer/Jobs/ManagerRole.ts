@@ -4,6 +4,7 @@ export class ManagerRole extends Role{
     constructor(){
         super();
         this.permissions.push("SeeStoreData");
+        this.roleType = "Manager";
     }
     grantPermission(permission: EditablePermission): void {
         if(this.hasPermission(permission))
@@ -19,6 +20,16 @@ export class ManagerRole extends Role{
             this.permissions.splice(index,1);
         }
     }
+    canBeAppointedToStoreOwner(): boolean{
+        return true;
+    }
+    canAppointStoreOwner(): boolean{
+        return false;
+    }
+    canAppointStoreManager(): boolean{
+        return false;
+    }
+
     
 
 

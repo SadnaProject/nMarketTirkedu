@@ -35,12 +35,9 @@ export class JobsRepo extends Testable {
         }
         return founder;
     }
-    public getPositionHolderByUserIdAndStoreId(userId: string, storeId: string): PositionHolder {
+    public getPositionHolderByUserIdAndStoreId(userId: string, storeId: string): PositionHolder | undefined{
         const founder = this.GetStoreFounder(storeId);
         const positionHolder = this.findPositionHolder(userId, founder);
-        if (positionHolder === undefined) {
-            throw new Error("Position holder not found");
-        }
         return positionHolder;
     }
     private findPositionHolder(userId: string, positionHolder: PositionHolder): PositionHolder | undefined {

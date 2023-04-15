@@ -5,7 +5,7 @@ import { Testable, testable } from "~/Testable";
 import { ManagerRole } from "./ManagerRole";
 import { OwnerRole } from "./OwnerRole";
 import { HasRepos } from "./HasRepos";
-import { PositionHolder,PositionHolderDTO } from "./PositionHolder";
+import { PositionHolder } from "./PositionHolder";
 import { FounderRole } from "./FounderRole";
 
 export interface IJobsController {
@@ -243,7 +243,7 @@ export class JobsController
   
   InitializeStore(founderId: string, storeId: string): void {
     const positionHolder: PositionHolder = new PositionHolder(this.founderRole,storeId,founderId);
-    this.Repos.jobs.SetStoreFounder(positionHolder.DTO);
+    this.Repos.jobs.SetStoreFounder(positionHolder);
   }
   getStoreIdsByFounder(userId: string): string[] {
     throw new Error("Method not implemented.");
@@ -256,28 +256,24 @@ export class JobsController
   }
   makeStoreOwner(currentId: string, storeId: string, targetUserId: string): void {
     // throw new Error("Method not implemented.");
-    const phAppointerDTO: PositionHolderDTO = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId,storeId);
-    if(phAppointerDTO===undefined){
-      throw new Error("given user is not a manager or owner of the store");
+    const phAppointer: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId,storeId);
+    if(phAppointer===undefined){
+      throw new Error("given user cannot appoint store owner");
     }
-    const phAppointer: PositionHolder = PositionHolder.createPositionHolderFromDTO(phAppointerDTO);
     if(phAppointer.Role.canAppointStoreOwner()){
-      const positionHolderDTO: PositionHolderDTO = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(targetUserId,storeId);
-      if(positionHolderDTO===undefined){
+      const positionHolder: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(targetUserId,storeId);
+      if(positionHolder===undefined){
         const newPositionHolder = new PositionHolder(this.ownerRole,storeId,targetUserId);
         phAppointer.appointPositionHolder(newPositionHolder);
-        // this.Repos.jobs.addPositionHolder(phAppointerDTO,newPositionHolder.DTO);
       }
       else{
-        const newPositionHolder = PositionHolder.createPositionHolderFromDTO(positionHolderDTO);
-        if(newPositionHolder.Role.canBeAppointedToStoreOwner()){
-          newPositionHolder.Role = this.ownerRole;
+        if(positionHolder.Role.canBeAppointedToStoreOwner()){
+          positionHolder.Role = this.ownerRole;
         }
         else{
           throw new Error("given user cannot be appointed to store owner");
         }
       }
-      // const positionHolder: PositionHolder = new PositionHolder(this.ownerRole,storeId,targetUserId);
     }
     else{
       throw new Error("given user does not have permission to appoint store owner");
@@ -332,7 +328,7 @@ export class JobsController
     throw new Error("Method not implemented.");
   }
   getStoreFounderId(storeId: string): string {
-    return this.Repos.jobs.GetStoreFounder(storeId).userId;
+    return this.Repos.jobs.GetStoreFounder(storeId).UserId;
   }
   getStoreOwnersIds(storeId: string): string[] {
     throw new Error("Method not implemented.");

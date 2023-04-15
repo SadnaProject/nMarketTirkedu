@@ -11,26 +11,26 @@ export class PositionHolder{
     private storeId: string;
     private userId: string;//this user is a member for sure
     private appointedByMe: PositionHolder[]
-    private dto: PositionHolderDTO | undefined;
+    // private dto: PositionHolderDTO | undefined;
 
     constructor(role: Role, storeId: string, userId: string){
         this.role = role;
         this.storeId = storeId;
         this.userId = userId;
         this.appointedByMe = [];
-        this.dto = undefined;
+        // this.dto = undefined;
     }
     public static createPositionHolderFromDTO(dto: PositionHolderDTO): PositionHolder {
         const positionHolder = new PositionHolder(dto.role, dto.storeId, dto.userId);
         positionHolder.appointedByMe = dto.appointedByMe.map((positionHolderDTO) => this.createPositionHolderFromDTO(positionHolderDTO));
-        positionHolder.dto = dto;
+        // positionHolder.dto = dto;
         return positionHolder;
     }
     public get DTO(): PositionHolderDTO {
-        if (this.dto !== undefined) 
-        { 
-            return this.dto;
-        }  
+        // if (this.dto !== undefined) 
+        // { 
+        //     return this.dto;
+        // }  
         return {
             role: this.role,
             storeId: this.storeId,
@@ -40,15 +40,15 @@ export class PositionHolder{
     }
     public appointPositionHolder(positionHolder: PositionHolder): void {
         this.appointedByMe.push(positionHolder);
-        if (this.dto !== undefined) {
-            this.dto.appointedByMe.push(positionHolder.DTO);
-        }
+        // if (this.dto !== undefined) {
+        //     this.dto.appointedByMe.push(positionHolder.DTO);
+        // }
     }
     public set Role(role: Role) {
         this.role = role;
-        if (this.dto !== undefined) {
-            this.dto.role = role;
-        }
+        // if (this.dto !== undefined) {
+        //     this.dto.role = role;
+        // }
     }
     public get Role(): Role {
         return this.role;

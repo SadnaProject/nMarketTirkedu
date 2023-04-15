@@ -245,7 +245,7 @@ export class StoresController
   ): string {
     const hasPermission = this.Controllers.Jobs.canCreateProductInStore(
       userId,
-      storeId,
+      storeId
     );
     if (!hasPermission) {
       throw new Error(

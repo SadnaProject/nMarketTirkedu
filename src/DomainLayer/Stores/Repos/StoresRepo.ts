@@ -1,16 +1,16 @@
 import { Testable, testable } from "~/Testable";
-import { type StoreDTO } from "../../DomainLayer/Stores/Store";
+import { type Store } from "../Store";
 
 @testable
 export class StoresRepo extends Testable {
-  private stores: StoreDTO[];
+  private stores: Store[];
 
   constructor() {
     super();
     this.stores = [];
   }
 
-  public addStore(store: StoreDTO) {
+  public addStore(store: Store) {
     this.stores.push(store);
   }
 
@@ -20,25 +20,20 @@ export class StoresRepo extends Testable {
 
   public getAllNames() {
     const names = new Set<string>();
-    this.stores.forEach((store) => names.add(store.name));
+    this.stores.forEach((store) => names.add(store.Name));
     return names;
   }
 
   public getStoreById(storeId: string) {
-    const store = this.stores.find((store) => store.id === storeId);
+    const store = this.stores.find((store) => store.Id === storeId);
     if (!store) {
       throw new Error("Store not found");
     }
     return store;
   }
 
-  public setIsActive(storeId: string, isActive: boolean) {
-    const store = this.getStoreById(storeId);
-    store.isActive = isActive;
-  }
-
   public deleteStore(storeId: string) {
     const store = this.getStoreById(storeId);
-    this.stores = this.stores.filter((s) => s.id !== store.id);
+    this.stores = this.stores.filter((s) => s.Id !== store.Id);
   }
 }

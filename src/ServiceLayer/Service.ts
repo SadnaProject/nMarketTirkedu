@@ -198,13 +198,13 @@ export class Service {
   isSystemAdmin(userId: string): boolean {
     return this.facade.isSystemAdmin(userId);
   }
-  getStoreFounder(storeId: string): UserDTO {
+  getStoreFounder(storeId: string): string {
     return this.facade.getStoreFounder(storeId);
   }
-  getStoreOwners(storeId: string): UserDTO[] {
+  getStoreOwners(storeId: string): string[] {
     return this.facade.getStoreOwners(storeId);
   }
-  getStoreManagers(storeId: string): UserDTO[] {
+  getStoreManagers(storeId: string): string[] {
     return this.facade.getStoreManagers(storeId);
   }
   createProduct(

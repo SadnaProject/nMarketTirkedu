@@ -159,9 +159,7 @@ export class MarketFacade {
     this.controllers.Jobs.makeStoreOwner(currentId, storeId, targetUserId);
   }
 
-  getStoresByOwner(userId: string): StoreDTO[] {
-    return this.controllers.Jobs.getStoresByOwner(userId);
-  }
+
   makeStoreManager(
     currentId: string,
     storeId: string,
@@ -169,9 +167,7 @@ export class MarketFacade {
   ): void {
     this.controllers.Jobs.makeStoreManager(currentId, storeId, targetUserId);
   }
-  getStoresByManager(userId: string): StoreDTO[] {
-    return this.controllers.Jobs.getStoresByManager(userId);
-  }
+
 
   removeStoreOwner(
     currentId: string,

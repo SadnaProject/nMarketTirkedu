@@ -232,17 +232,17 @@ export class JobsController
   implements IJobsController
 {
   // private managerRole: ManagerRole;
-  private ownerRole: OwnerRole;
-  private founderRole: FounderRole;
+  static ownerRole: OwnerRole= new OwnerRole();
+  static founderRole: FounderRole= new FounderRole();
   constructor() {
     super();
     // this.managerRole = new ManagerRole();
-    this.ownerRole = new OwnerRole();
-    this.founderRole = new FounderRole();
+    // this.ownerRole = new OwnerRole();
+    // this.founderRole = new FounderRole();
   }
   
   InitializeStore(founderId: string, storeId: string): void {
-    const positionHolder: PositionHolder = new PositionHolder(this.founderRole,storeId,founderId);
+    const positionHolder: PositionHolder = new PositionHolder(JobsController.founderRole,storeId,founderId);
     this.Repos.jobs.SetStoreFounder(positionHolder);
   }
   getStoreIdsByFounder(userId: string): string[] {
@@ -260,24 +260,20 @@ export class JobsController
     if(phAppointer===undefined){
       throw new Error("given user cannot appoint store owner");
     }
-    if(phAppointer.Role.canAppointStoreOwner()){
-      const positionHolder: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(targetUserId,storeId);
-      if(positionHolder===undefined){
-        const newPositionHolder = new PositionHolder(this.ownerRole,storeId,targetUserId);
-        phAppointer.appointPositionHolder(newPositionHolder);
-      }
-      else{
-        if(positionHolder.Role.canBeAppointedToStoreOwner()){
-          positionHolder.Role = this.ownerRole;
-        }
-        else{
-          throw new Error("given user cannot be appointed to store owner");
-        }
-      }
+    const positionHolder: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(targetUserId,storeId);
+    if(positionHolder===undefined){
+      phAppointer.appointStoreOwner(targetUserId);
     }
     else{
-      throw new Error("given user does not have permission to appoint store owner");
+      if(positionHolder.Role.canBeAppointedToStoreOwner()){
+        positionHolder.Role = this.ownerRole;
+      }
+      else{
+        throw new Error("given user cannot be appointed to store owner");
+      }
     }
+    
+    
   }
   getStoresByOwner(userId: string): StoreDTO[] {
     throw new Error("Method not implemented.");

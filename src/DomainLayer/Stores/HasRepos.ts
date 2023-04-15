@@ -1,5 +1,5 @@
-import { StoreProductsRepo } from "~/DataLayer/Stores/StoreProductsRepo";
-import { StoresRepo } from "~/DataLayer/Stores/StoresRepo";
+import { StoreProductsRepo } from "./Repos/StoreProductsRepo";
+import { StoresRepo } from "./Repos/StoresRepo";
 
 export const reposMapping = {
   Stores: StoresRepo,
@@ -36,10 +36,14 @@ export function createRepos() {
   return repos as Repos;
 }
 
-export function createTestRepos() {
+export function createTestRepos(testedRepo: keyof Repos | null = null) {
   const repos: Record<string, unknown> = {};
   for (const [key, Repo] of Object.entries(reposMapping)) {
-    repos[key] = new Repo().test();
+    let repo = new Repo();
+    if (key !== testedRepo) {
+      repo = repo.test();
+    }
+    repos[key] = repo;
   }
   return repos as Repos;
 }

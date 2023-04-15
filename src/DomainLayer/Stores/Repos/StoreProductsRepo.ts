@@ -1,16 +1,16 @@
-import { type StoreProductDTO } from "~/DomainLayer/Stores/StoreProduct";
+import { type StoreProduct } from "~/DomainLayer/Stores/StoreProduct";
 import { Testable, testable } from "~/Testable";
 
 @testable
 export class StoreProductsRepo extends Testable {
-  private productsByStoreId: Map<string, StoreProductDTO[]>;
+  private productsByStoreId: Map<string, StoreProduct[]>;
 
   constructor() {
     super();
-    this.productsByStoreId = new Map<string, StoreProductDTO[]>();
+    this.productsByStoreId = new Map<string, StoreProduct[]>();
   }
 
-  public addProduct(storeId: string, product: StoreProductDTO) {
+  public addProduct(storeId: string, product: StoreProduct) {
     const products = this.productsByStoreId.get(storeId) || [];
     products.push(product);
     this.productsByStoreId.set(storeId, products);
@@ -21,43 +21,24 @@ export class StoreProductsRepo extends Testable {
   }
 
   public getProductById(productId: string) {
-    const product = this.getAllProducts().find((p) => p.id === productId);
+    const product = this.getAllProducts().find((p) => p.Id === productId);
     if (!product) {
       throw new Error("Product not found");
     }
     return product;
   }
+
   public getProductsByStoreId(storeId: string) {
     return this.productsByStoreId.get(storeId) || [];
   }
 
   public getStoreIdByProductId(productId: string) {
     for (const [storeId, products] of this.productsByStoreId.entries()) {
-      if (products.find((p) => p.id === productId)) {
+      if (products.find((p) => p.Id === productId)) {
         return storeId;
       }
     }
     throw new Error("Product not found");
-  }
-
-  public setName(productId: string, name: string) {
-    this.getProductById(productId).name = name;
-  }
-
-  public setPrice(productId: string, price: number) {
-    this.getProductById(productId).price = price;
-  }
-
-  public setQuantity(productId: string, quantity: number) {
-    this.getProductById(productId).quantity = quantity;
-  }
-
-  public setCategory(productId: string, category: string) {
-    this.getProductById(productId).category = category;
-  }
-
-  public setDescription(productId: string, description: string) {
-    this.getProductById(productId).description = description;
   }
 
   public deleteProduct(productId: string) {

@@ -31,12 +31,12 @@ export function generateProductDTO() {
   });
 }
 
-const createProduct = (
+export function createProduct(
   args: StoreProductArgs,
   repos: Repos = createTestRepos()
-) => {
+) {
   return new StoreProduct(args).initRepos(repos);
-};
+}
 
 export function createStoreWithProduct(
   productData: StoreProductArgs,
@@ -89,7 +89,6 @@ describe("set name", () => {
     const productData = generateProductArgs();
     const repos = createTestRepos();
     const store = createProduct(productData, repos);
-    vi.spyOn(repos.Products, "setName").mockReturnValueOnce();
     store.Name = "new name";
     expect(store.Name).toBe("new name");
   });
@@ -108,7 +107,6 @@ describe("set quantity", () => {
     const productData = generateProductArgs();
     const repos = createTestRepos();
     const store = createProduct(productData, repos);
-    vi.spyOn(repos.Products, "setQuantity").mockReturnValueOnce();
     store.Quantity = 2;
     expect(store.Quantity).toBe(2);
   });
@@ -127,7 +125,6 @@ describe("set price", () => {
     const productData = generateProductArgs();
     const repos = createTestRepos();
     const store = createProduct(productData, repos);
-    vi.spyOn(repos.Products, "setPrice").mockReturnValueOnce();
     store.Price = 2;
     expect(store.Price).toBe(2);
   });
@@ -146,7 +143,6 @@ describe("set category", () => {
     const productData = generateProductArgs();
     const repos = createTestRepos();
     const store = createProduct(productData, repos);
-    vi.spyOn(repos.Products, "setCategory").mockReturnValueOnce();
     store.Category = "new category";
     expect(store.Category).toBe("new category");
   });
@@ -165,7 +161,6 @@ describe("set description", () => {
     const productData = generateProductArgs();
     const repos = createTestRepos();
     const store = createProduct(productData, repos);
-    vi.spyOn(repos.Products, "setDescription").mockReturnValueOnce();
     store.Description = "new description";
     expect(store.Description).toBe("new description");
   });
@@ -196,7 +191,6 @@ describe("is quantity in stock", () => {
     const productData = generateProductArgs();
     const repos = createTestRepos();
     const { product, store } = createStoreWithProduct(productData, repos);
-    vi.spyOn(repos.Stores, "setIsActive").mockReturnValueOnce();
     store.IsActive = false;
     expect(() => product.isQuantityInStock(1)).toThrow("Store is not active");
   });
@@ -216,7 +210,6 @@ describe("decrease quantity", () => {
     const productData = generateProductArgs();
     const repos = createTestRepos();
     const { product } = createStoreWithProduct(productData, repos);
-    vi.spyOn(repos.Products, "setQuantity").mockReturnValueOnce();
     product.decreaseQuantity(1);
     expect(product.Quantity).toBe(productData.quantity - 1);
   });
@@ -225,7 +218,6 @@ describe("decrease quantity", () => {
     const productData = generateProductArgs();
     const repos = createTestRepos();
     const { product } = createStoreWithProduct(productData, repos);
-    vi.spyOn(repos.Products, "setQuantity").mockReturnValueOnce();
     expect(() => product.decreaseQuantity(-1)).toThrow(
       "Quantity must be positive"
     );
@@ -235,7 +227,6 @@ describe("decrease quantity", () => {
     const productData = generateProductArgs();
     const repos = createTestRepos();
     const { product, store } = createStoreWithProduct(productData, repos);
-    vi.spyOn(repos.Stores, "setIsActive").mockReturnValueOnce();
     store.IsActive = false;
     expect(() => product.decreaseQuantity(1)).toThrow("Store is not active");
   });

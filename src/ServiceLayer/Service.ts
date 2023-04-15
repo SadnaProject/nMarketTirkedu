@@ -25,6 +25,14 @@ export class Service {
     this.facade = new MarketFacade();
   }
 
+  public getLogs(userId: string) {
+    return this.facade.getLogs(userId);
+  }
+
+  public getErrors(userId: string) {
+    return this.facade.getErrors(userId);
+  }
+
   public addProductToCart(userId: string, productId: string, quantity: number) {
     this.facade.addProductToCart(userId, productId, quantity);
   }
@@ -44,8 +52,8 @@ export class Service {
   public getNotifications(userId: string) {
     return this.facade.getNotifications(userId);
   }
-  public purchaseCart(userId: string, cart: CartDTO) {
-    this.facade.purchaseCart(userId, cart);
+  public purchaseCart(userId: string, creditCard: string) {
+    this.facade.purchaseCart(userId, creditCard);
   }
   public removeUser(userId: string) {
     this.facade.removeUser(userId);
@@ -144,7 +152,6 @@ export class Service {
     this.facade.makeStoreOwner(currentId, storeId, targetUserId);
   }
 
-
   makeStoreManager(
     currentId: string,
     storeId: string,
@@ -152,7 +159,6 @@ export class Service {
   ): void {
     this.facade.makeStoreManager(currentId, storeId, targetUserId);
   }
-
 
   removeStoreOwner(
     currentId: string,

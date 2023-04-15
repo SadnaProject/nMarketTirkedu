@@ -1,35 +1,49 @@
 import { type Controllers } from "./HasController";
-import { CartDTO } from "./Users/Cart";
+import { type CartDTO } from "./Users/Cart";
 import { createControllers } from "./createControllers";
-import { type StoreDTO } from "./Stores/Store";
-import { type UserDTO } from "./Users/User";
 import { type BasketDTO } from "./Users/Basket";
 import {
-  StoreProduct,
   type StoreProductDTO,
   type StoreProductArgs,
 } from "./Stores/StoreProduct";
-export type SearchArgs = {
-  name?: string;
-  category?: string;
-  keywords?: string[];
-  minPrice?: number;
-  maxPrice?: number;
-  minProductRating?: number;
-  maxProductRating?: number;
-  minStoreRating?: number;
-  maxStoreRating?: number;
-};
-export class MarketFacade {
+import { Loggable, loggable } from "./Loggable";
+import { type SearchArgs } from "./Stores/StoresController";
+
+@loggable
+export class MarketFacade extends Loggable {
   private controllers: Controllers;
 
   constructor() {
+    super();
     this.controllers = createControllers();
+    this.initializeSystemAdmin();
   }
+  private initializeSystemAdmin() {
+    this.controllers.Auth.register("admin", "admin");
+    this.controllers.Jobs.setInitialAdmin("admin");
+  }
+
   private isConnectionValid(userId: string): void {
     if (!this.controllers.Auth.isConnected(userId))
       throw new Error("User is not logged in");
   }
+
+  public getLogs(userId: string) {
+    this.isConnectionValid(userId);
+    if (this.isSystemAdmin(userId)) {
+      return this.Logs;
+    }
+    throw new Error("User is not system admin");
+  }
+
+  public getErrors(userId: string) {
+    this.isConnectionValid(userId);
+    if (this.isSystemAdmin(userId)) {
+      return this.Errors;
+    }
+    throw new Error("User is not system admin");
+  }
+
   //Checking if user is logged in is done here.
   public addProductToCart(userId: string, productId: string, quantity: number) {
     this.isConnectionValid(userId);
@@ -154,18 +168,12 @@ export class MarketFacade {
     this.controllers.Jobs.makeStoreOwner(currentId, storeId, targetUserId);
   }
 
-  getStoresByOwner(userId: string): StoreDTO[] {
-    return this.controllers.Jobs.getStoresByOwner(userId);
-  }
   makeStoreManager(
     currentId: string,
     storeId: string,
     targetUserId: string
   ): void {
     this.controllers.Jobs.makeStoreManager(currentId, storeId, targetUserId);
-  }
-  getStoresByManager(userId: string): StoreDTO[] {
-    return this.controllers.Jobs.getStoresByManager(userId);
   }
 
   removeStoreOwner(
@@ -225,6 +233,7 @@ export class MarketFacade {
     storeId: string,
     product: StoreProductArgs
   ): string {
+    this.isConnectionValid(userId);
     return this.controllers.Stores.createProduct(userId, storeId, product);
   }
   isStoreActive(storeId: string): boolean {
@@ -238,28 +247,35 @@ export class MarketFacade {
     productId: string,
     quantity: number
   ): void {
+    this.isConnectionValid(userId);
     this.controllers.Stores.setProductQuantity(userId, productId, quantity);
   }
   decreaseProductQuantity(productId: string, quantity: number): void {
     this.controllers.Stores.decreaseProductQuantity(productId, quantity);
   }
   deleteProduct(userId: string, productId: string): void {
+    this.isConnectionValid(userId);
     this.controllers.Stores.deleteProduct(userId, productId);
   }
   setProductPrice(userId: string, productId: string, price: number): void {
+    this.isConnectionValid(userId);
     this.controllers.Stores.setProductPrice(userId, productId, price);
   }
 
   createStore(founderId: string, storeName: string): string {
+    this.isConnectionValid(founderId);
     return this.controllers.Stores.createStore(founderId, storeName);
   }
   activateStore(userId: string, storeId: string): void {
+    this.isConnectionValid(userId);
     this.controllers.Stores.activateStore(userId, storeId);
   }
   deactivateStore(userId: string, storeId: string): void {
+    this.isConnectionValid(userId);
     this.controllers.Stores.deactivateStore(userId, storeId);
   }
   closeStorePermanently(userId: string, storeId: string): void {
+    this.isConnectionValid(userId);
     this.controllers.Stores.closeStorePermanently(userId, storeId);
   }
   getProductPrice(productId: string): number {
@@ -299,6 +315,10 @@ export class MarketFacade {
   public loginMember(userId: string, email: string, password: string): string {
     this.isConnectionValid(userId);
     return this.controllers.Auth.login(userId, email, password);
+  }
+  public logoutMember(userId: string): string {
+    this.isConnectionValid(userId);
+    return this.controllers.Auth.logout(userId);
   }
   //This is not called logout because it also disconnects guest users which were not logged in.
   //disconnects a user. if the user is a guest user, the user is removed from the system.

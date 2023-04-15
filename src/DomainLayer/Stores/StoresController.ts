@@ -299,12 +299,12 @@ export class StoresController
     if (!this.Controllers.Auth.isMember(founderId)) {
       throw new Error("User is not a member.");
     }
-    //TODO: update founder at this.Controllers.Jobs.
-    //! needs to check if possible before doing any change
+    const store = new Store(storeName).initRepos(this.Repos);
+    this.Controllers.Jobs.InitializeStore(founderId, store.Id);
+    // todo needs to check if possible before doing any change
     if (this.Repos.Stores.getAllNames().has(storeName))
       throw new Error("Store name is already taken");
-    const store = new Store(storeName).initRepos(this.Repos);
-    this.Repos.Stores.addStore(store.DTO);
+    this.Repos.Stores.addStore(store);
     return store.Id;
   }
 

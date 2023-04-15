@@ -45,6 +45,18 @@ export class ProductPurchase extends HasRepos {
     };
   }
 
+  static ProductPurchaseFromBasketProductDTO(
+    basketProductDTO: BasketProductDTO,
+    purchaseId: string
+  ): ProductPurchase {
+    return new ProductPurchase({
+      productId: basketProductDTO.storeProductId,
+      quantity: basketProductDTO.quantity,
+      price: basketProductDTO.price,
+      purchaseId: purchaseId,
+    });
+  }
+
   public setReview(review: ProductReview) {
     this.review = review;
   }

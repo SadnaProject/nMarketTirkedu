@@ -1,6 +1,15 @@
 import { Role } from "./Role";
 
 export class OwnerRole implements Role{
+    isStoreOwner(): boolean {
+        return true;
+    }
+    isStoreManager(): boolean {
+        return false;
+    }
+    isStoreFounder(): boolean {
+        return false;
+    }
     canBeAppointedToStoreOwner(): boolean {
         return false;
     }
@@ -13,4 +22,5 @@ export class OwnerRole implements Role{
     canCreateProductInStore(): boolean {
         return true;
     }
+    
 }

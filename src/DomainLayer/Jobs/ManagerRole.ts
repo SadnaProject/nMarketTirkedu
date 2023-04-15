@@ -1,16 +1,28 @@
 import { Role } from "./Role";
 
 export class ManagerRole implements Role{
+    isStoreOwner(): boolean {
+        return false;
+    }
+    isStoreManager(): boolean {
+        return true;
+    }   
+    isStoreFounder(): boolean {
+        return false;
+    }
+    
     canBeAppointedToStoreOwner(): boolean {
         return true;
     }
     canAppointStoreOwner(): boolean {
-        throw new Error("Method not implemented.");
+       return false;
     }
+    //store manager cant appoint store managers
     canAppointStoreManager(): boolean {
-        throw new Error("Method not implemented.");
+        return false;
     }
     canCreateProductInStore(): boolean {
         return true;
     }
+
 }

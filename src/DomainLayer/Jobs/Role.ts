@@ -4,6 +4,9 @@ export interface Role{
     canAppointStoreOwner(): boolean;
     canAppointStoreManager(): boolean;
     canBeAppointedToStoreOwner(): boolean;//this is true only for store manager
+    isStoreOwner(): boolean;
+    isStoreManager(): boolean;
+    isStoreFounder(): boolean;
 
 
 }

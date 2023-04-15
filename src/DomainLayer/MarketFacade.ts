@@ -211,14 +211,14 @@ export class MarketFacade {
   isSystemAdmin(userId: string): boolean {
     return this.controllers.Jobs.isSystemAdmin(userId);
   }
-  getStoreFounder(storeId: string): UserDTO {
-    return this.controllers.Jobs.getStoreFounder(storeId);
+  getStoreFounder(storeId: string): string {
+    return this.controllers.Jobs.getStoreFounderId(storeId);
   }
-  getStoreOwners(storeId: string): UserDTO[] {
-    return this.controllers.Jobs.getStoreOwners(storeId);
+  getStoreOwners(storeId: string): string[] {
+    return this.controllers.Jobs.getStoreOwnersIds(storeId);
   }
-  getStoreManagers(storeId: string): UserDTO[] {
-    return this.controllers.Jobs.getStoreManagers(storeId);
+  getStoreManagers(storeId: string): string[] {
+    return this.controllers.Jobs.getStoreManagersIds(storeId);
   }
   createProduct(
     userId: string,

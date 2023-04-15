@@ -1,10 +1,24 @@
 import { Mixin } from "ts-mixer";
 import { HasControllers } from "../HasController";
 import { type StoreDTO } from "../Stores/Store";
-import { type UserDTO } from "../Users/User";
 import { Testable, testable } from "~/Testable";
+import { ManagerRole } from "./ManagerRole";
+import { OwnerRole } from "./OwnerRole";
+import { HasRepos } from "./HasRepos";
+import { PositionHolder } from "./PositionHolder";
+import { FounderRole } from "./FounderRole";
 
 export interface IJobsController {
+ /**
+  * This function initializes the store's position holders, and setting the founder.
+  * @param founderId The id of the user that will be the founder of the store.
+  * @param storeId The id of the store.
+  */
+  InitializeStore(
+    founderId: string,
+    storeId: string,
+  ): void;
+  
   /**
    * This function makes a user a store owner when they are added to a store.
    * @param currentId The id of the user that is currently logged in.
@@ -192,33 +206,44 @@ export interface IJobsController {
   /**
    * This function gets the founder of a store.
    * @param storeId The id of the store.
-   * @returns The founder of the store.
+   * @returns The id of the founder of the store.
    * @throws Error if the store doesn't exist.
    */
-  getStoreFounder(storeId: string): UserDTO;
+  getStoreFounderId(storeId: string): string;
   /**
    * This function gets the owners of a store.
    * @param storeId The id of the store.
-   * @returns The owners of the store.
+   * @returns The id's of the owners of the store.
    * @throws Error if the store doesn't exist.
    */
-  getStoreOwners(storeId: string): UserDTO[];
+  getStoreOwnersIds(storeId: string): string[];
   /**
    * This function gets the managers of a store.
    * @param storeId The id of the store.
-   * @returns The managers of the store.
+   * @returns The id's of the managers of the store.
    * @throws Error if the store doesn't exist.
    */
-  getStoreManagers(storeId: string): UserDTO[];
+  getStoreManagersIds(storeId: string): string[];
 }
 
 @testable
 export class JobsController
-  extends Mixin(Testable, HasControllers)
+  extends Mixin(Testable, HasControllers,HasRepos)
   implements IJobsController
 {
+  // private managerRole: ManagerRole;
+  private ownerRole: OwnerRole;
+  private founderRole: FounderRole;
   constructor() {
     super();
+    // this.managerRole = new ManagerRole();
+    this.ownerRole = new OwnerRole();
+    this.founderRole = new FounderRole();
+  }
+  
+  InitializeStore(founderId: string, storeId: string): void {
+    const positionHolder: PositionHolder = new PositionHolder(this.founderRole,storeId,founderId);
+    this.Repos.jobs.SetStoreFounder(positionHolder.DTO);
   }
   getStoreIdsByFounder(userId: string): string[] {
     throw new Error("Method not implemented.");
@@ -280,14 +305,15 @@ export class JobsController
   isSystemAdmin(userId: string): boolean {
     throw new Error("Method not implemented.");
   }
-  getStoreFounder(storeId: string): UserDTO {
+  getStoreFounderId(storeId: string): string {
+    return this.Repos.jobs.GetStoreFounder(storeId).userId;
+  }
+  getStoreOwnersIds(storeId: string): string[] {
     throw new Error("Method not implemented.");
   }
-  getStoreOwners(storeId: string): UserDTO[] {
+  getStoreManagersIds(storeId: string): string[] {
     throw new Error("Method not implemented.");
   }
-  getStoreManagers(storeId: string): UserDTO[] {
-    throw new Error("Method not implemented.");
-  }
+  
 
 }

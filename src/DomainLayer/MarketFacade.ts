@@ -284,9 +284,10 @@ export class MarketFacade {
     return this.controllers.Stores.searchProducts(searchArgs);
   }
   //TODO: Duplicate code from down here, be careful!
-  public startSession() {
+  public startSession(): string {
     const userId = this.controllers.Auth.startSession();
     this.addUser(userId, "Guest");
+    return userId;
   }
   private addUser(userId: string, userName: string) {
     this.controllers.Users.addUser(userId, userName);

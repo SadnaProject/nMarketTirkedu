@@ -1,6 +1,23 @@
 import { MarketFacade } from "../DomainLayer/MarketFacade";
 import { type CartDTO } from "../DomainLayer/Users/Cart";
-
+import { type StoreDTO } from "../DomainLayer/Stores/Store";
+import { type UserDTO } from "../DomainLayer/Users/User";
+import { type BasketDTO } from "../DomainLayer/Users/Basket";
+import {
+  type StoreProductDTO,
+  type StoreProductArgs,
+} from "../DomainLayer/Stores/StoreProduct";
+export type SearchArgs = {
+  name?: string;
+  category?: string;
+  keywords?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  minProductRating?: number;
+  maxProductRating?: number;
+  minStoreRating?: number;
+  maxStoreRating?: number;
+};
 export class Service {
   private facade: MarketFacade;
 
@@ -99,5 +116,157 @@ export class Service {
 
   public isStoreFounder(userId: string, storeId: string) {
     return this.facade.isStoreFounder(userId, storeId);
+  }
+
+  isGuest(userId: string): boolean {
+    return this.facade.isGuest(userId);
+  }
+  isMember(userId: string): boolean {
+    return this.facade.isMember(userId);
+  }
+
+  isConnected(userId: string): boolean {
+    return this.facade.isConnected(userId);
+  }
+
+  changeEmail(userId: string, newEmail: string): void {
+    this.facade.changeEmail(userId, newEmail);
+  }
+
+  changePassword(
+    userId: string,
+    oldPassword: string,
+    newPassword: string
+  ): void {
+    this.facade.changePassword(userId, oldPassword, newPassword);
+  }
+  makeStoreOwner(currentId: string, storeId: string, targetUserId: string) {
+    this.facade.makeStoreOwner(currentId, storeId, targetUserId);
+  }
+
+  getStoresByOwner(userId: string): StoreDTO[] {
+    return this.facade.getStoresByOwner(userId);
+  }
+  makeStoreManager(
+    currentId: string,
+    storeId: string,
+    targetUserId: string
+  ): void {
+    this.facade.makeStoreManager(currentId, storeId, targetUserId);
+  }
+  getStoresByManager(userId: string): StoreDTO[] {
+    return this.facade.getStoresByManager(userId);
+  }
+
+  removeStoreOwner(
+    currentId: string,
+    storeId: string,
+    targetUserId: string
+  ): void {
+    this.facade.removeStoreManager(currentId, storeId, targetUserId);
+  }
+
+  removeStoreManager(
+    currentId: string,
+    storeId: string,
+    targetUserId: string
+  ): void {
+    this.facade.removeStoreManager(currentId, storeId, targetUserId);
+  }
+  setAddingProductToStorePermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): void {
+    this.facade.setAddingProductToStorePermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission
+    );
+  }
+  canCreateProductInStore(currentId: string, storeId: string): boolean {
+    return this.facade.canCreateProductInStore(currentId, storeId);
+  }
+  isStoreOwner(userId: string, storeId: string): boolean {
+    return this.facade.isStoreOwner(userId, storeId);
+  }
+  isStoreManager(userId: string, storeId: string): boolean {
+    return this.facade.isStoreManager(userId, storeId);
+  }
+  isSystemAdmin(userId: string): boolean {
+    return this.facade.isSystemAdmin(userId);
+  }
+  getStoreFounder(storeId: string): UserDTO {
+    return this.facade.getStoreFounder(storeId);
+  }
+  getStoreOwners(storeId: string): UserDTO[] {
+    return this.facade.getStoreOwners(storeId);
+  }
+  getStoreManagers(storeId: string): UserDTO[] {
+    return this.facade.getStoreManagers(storeId);
+  }
+  createProduct(
+    userId: string,
+    storeId: string,
+    product: StoreProductArgs
+  ): string {
+    return this.facade.createProduct(userId, storeId, product);
+  }
+  isStoreActive(storeId: string): boolean {
+    return this.facade.isStoreActive(storeId);
+  }
+  setProductQuantity(
+    userId: string,
+    productId: string,
+    quantity: number
+  ): void {
+    this.facade.setProductQuantity(userId, productId, quantity);
+  }
+  decreaseProductQuantity(productId: string, quantity: number): void {
+    this.facade.decreaseProductQuantity(productId, quantity);
+  }
+  deleteProduct(userId: string, productId: string): void {
+    this.facade.deleteProduct(userId, productId);
+  }
+  setProductPrice(userId: string, productId: string, price: number): void {
+    this.facade.setProductPrice(userId, productId, price);
+  }
+
+  activateStore(userId: string, storeId: string): void {
+    this.facade.activateStore(userId, storeId);
+  }
+  deactivateStore(userId: string, storeId: string): void {
+    this.facade.deactivateStore(userId, storeId);
+  }
+  closeStorePermanently(userId: string, storeId: string): void {
+    this.facade.closeStorePermanently(userId, storeId);
+  }
+  getProductPrice(productId: string): number {
+    return this.facade.getProductPrice(productId);
+  }
+  isProductQuantityInStock(productId: string, quantity: number): boolean {
+    return this.facade.isProductQuantityInStock(productId, quantity);
+  }
+  getStoreIdByProductId(productId: string): string {
+    return this.facade.getStoreIdByProductId(productId);
+  }
+  getCartPrice(cartDTO: CartDTO): number {
+    return this.facade.getCartPrice(cartDTO);
+  }
+  getBasketPrice(basketDTO: BasketDTO): number {
+    return this.facade.getBasketPrice(basketDTO);
+  }
+  searchProducts(searchArgs: SearchArgs): StoreProductDTO[] {
+    return this.facade.searchProducts(searchArgs);
+  }
+  //TODO: Duplicate code from down here, be careful!
+  public startSession(): string {
+    return this.facade.startSession();
+  }
+
+  public registerMember(userId: string, email: string, password: string): void {
+    this.facade.registerMember(userId, email, password);
   }
 }

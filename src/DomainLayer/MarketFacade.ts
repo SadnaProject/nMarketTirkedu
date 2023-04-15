@@ -1,11 +1,8 @@
 import { type Controllers } from "./HasController";
-import { CartDTO } from "./Users/Cart";
+import { type CartDTO } from "./Users/Cart";
 import { createControllers } from "./createControllers";
-import { type StoreDTO } from "./Stores/Store";
-import { type UserDTO } from "./Users/User";
 import { type BasketDTO } from "./Users/Basket";
 import {
-  StoreProduct,
   type StoreProductDTO,
   type StoreProductArgs,
 } from "./Stores/StoreProduct";
@@ -159,7 +156,6 @@ export class MarketFacade {
     this.controllers.Jobs.makeStoreOwner(currentId, storeId, targetUserId);
   }
 
-
   makeStoreManager(
     currentId: string,
     storeId: string,
@@ -167,7 +163,6 @@ export class MarketFacade {
   ): void {
     this.controllers.Jobs.makeStoreManager(currentId, storeId, targetUserId);
   }
-
 
   removeStoreOwner(
     currentId: string,
@@ -226,6 +221,7 @@ export class MarketFacade {
     storeId: string,
     product: StoreProductArgs
   ): string {
+    this.isConnectionValid(userId);
     return this.controllers.Stores.createProduct(userId, storeId, product);
   }
   isStoreActive(storeId: string): boolean {
@@ -239,28 +235,35 @@ export class MarketFacade {
     productId: string,
     quantity: number
   ): void {
+    this.isConnectionValid(userId);
     this.controllers.Stores.setProductQuantity(userId, productId, quantity);
   }
   decreaseProductQuantity(productId: string, quantity: number): void {
     this.controllers.Stores.decreaseProductQuantity(productId, quantity);
   }
   deleteProduct(userId: string, productId: string): void {
+    this.isConnectionValid(userId);
     this.controllers.Stores.deleteProduct(userId, productId);
   }
   setProductPrice(userId: string, productId: string, price: number): void {
+    this.isConnectionValid(userId);
     this.controllers.Stores.setProductPrice(userId, productId, price);
   }
 
   createStore(founderId: string, storeName: string): string {
+    this.isConnectionValid(founderId);
     return this.controllers.Stores.createStore(founderId, storeName);
   }
   activateStore(userId: string, storeId: string): void {
+    this.isConnectionValid(userId);
     this.controllers.Stores.activateStore(userId, storeId);
   }
   deactivateStore(userId: string, storeId: string): void {
+    this.isConnectionValid(userId);
     this.controllers.Stores.deactivateStore(userId, storeId);
   }
   closeStorePermanently(userId: string, storeId: string): void {
+    this.isConnectionValid(userId);
     this.controllers.Stores.closeStorePermanently(userId, storeId);
   }
   getProductPrice(productId: string): number {
@@ -302,7 +305,7 @@ export class MarketFacade {
     return this.controllers.Auth.login(userId, email, password);
   }
   public logoutMember(userId: string): string {
-    this.isConnectionValid(userId); 
+    this.isConnectionValid(userId);
     return this.controllers.Auth.logout(userId);
   }
   //This is not called logout because it also disconnects guest users which were not logged in.

@@ -304,7 +304,7 @@ export class StoresController
     if (this.Repos.Stores.getAllNames().has(storeName))
       throw new Error("Store name is already taken");
     const store = new Store(storeName).initRepos(this.Repos);
-    this.Repos.Stores.addStore(store.DTO);
+    this.Repos.Stores.addStore(store);
     return store.Id;
   }
 

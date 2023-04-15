@@ -1,5 +1,5 @@
-import { UserAuthRepo } from "~/DataLayer/Authentication/UserAuthRepo";
-import { JobsRepo } from "~/DataLayer/Jobs/JobsRepo";
+import { UserAuthRepo } from "~/DomainLayer/Auth/UserAuthRepo";
+import { JobsRepo } from "~/DomainLayer/Jobs/JobsRepo";
 
 export const reposMapping = {
   jobs: JobsRepo,

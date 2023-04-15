@@ -1,11 +1,11 @@
-import { randomUUID } from "crypto";
 import { HasRepos } from "./HasRepos";
 import {
   type ProductPurchaseDTO,
-  type ProductPurchase,
+  ProductPurchase,
 } from "./ProductPurchaseHistory";
 import { type ProductReviewDTO } from "./ProductReview";
 import { ReviewDTO, type Review } from "./Review";
+import { BasketDTO } from "../Users/Basket";
 
 export type BasketPurchaseDTO = {
   purchaseId: string;
@@ -20,12 +20,36 @@ export class BasketPurchase extends HasRepos {
   private review?: Review;
   private price: number;
 
-  constructor(storeId : string ,products : Map<string, ProductPurchase>, price: number) {
+  constructor(
+    storeId: string,
+    products: Map<string, ProductPurchase>,
+    price: number,
+    purchaseId: string
+  ) {
     super();
-    this.purchaseId = randomUUID();
+    this.purchaseId = purchaseId;
     this.storeId = storeId;
     this.products = products;
     this.price = price;
+  }
+
+  static BasketPurchaseFromBasketDTO(
+    basketDTO: BasketDTO,
+    purchaseId: string
+  ): BasketPurchase {
+    const products = new Map<string, ProductPurchase>();
+    basketDTO.products.forEach((product) => {
+      products.set(
+        product.storeProductId,
+        ProductPurchase.ProductPurchaseFromBasketProductDTO(product, purchaseId)
+      );
+    });
+    return new BasketPurchase(
+      basketDTO.storeId,
+      products,
+      basketDTO.price,
+      purchaseId
+    );
   }
 
   public get Products(): Map<string, ProductPurchase> {
@@ -44,5 +68,11 @@ export class BasketPurchase extends HasRepos {
       ),
       review: this.review?.ReviewToDTO(),
     };
+  }
+  public get StoreId(): string {
+    return this.storeId;
+  }
+  public get PurchaseId(): string {
+    return this.purchaseId;
   }
 }

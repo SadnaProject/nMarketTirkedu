@@ -1,6 +1,6 @@
-import { randomUUID } from "crypto";
 import { HasRepos } from "./HasRepos";
 import { type ProductReview, type ProductReviewDTO } from "./ProductReview";
+import { BasketProductDTO } from "../Users/BasketProduct";
 
 export type ProductPurchaseDTO = {
   purchaseId: string;
@@ -13,6 +13,7 @@ type ProductPurchaseArgs = {
   productId: string;
   quantity: number;
   price: number;
+  purchaseId: string;
 };
 
 export class ProductPurchase extends HasRepos {
@@ -22,12 +23,24 @@ export class ProductPurchase extends HasRepos {
   private price: number;
   private review?: ProductReview;
 
-  constructor({ productId, quantity, price }: ProductPurchaseArgs) {
+  constructor({ productId, quantity, price, purchaseId }: ProductPurchaseArgs) {
     super();
-    this.purchaseId = randomUUID();
+    this.purchaseId = purchaseId;
     this.productId = productId;
     this.quantity = quantity;
     this.price = price;
+  }
+
+  static ProductPurchaseFromBasketProductDTO(
+    basketProductDTO: BasketProductDTO,
+    purchaseId: string
+  ): ProductPurchase {
+    return new ProductPurchase({
+      productId: basketProductDTO.storeProductId,
+      quantity: basketProductDTO.quantity,
+      price: basketProductDTO.price,
+      purchaseId: purchaseId,
+    });
   }
 
   public setReview(review: ProductReview) {
@@ -45,5 +58,8 @@ export class ProductPurchase extends HasRepos {
       price: this.price,
       review: this.review?.ProductReviewToDTO(),
     };
+  }
+  public get PurchaseId(): string {
+    return this.purchaseId;
   }
 }

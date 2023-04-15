@@ -2,13 +2,13 @@ import { randomUUID } from "crypto";
 import { HasRepos } from "./HasRepos";
 
 export type ReviewDTO = {
-  userId : string;
+  userId: string;
   id: string;
   rating: number;
   createdAt: Date;
-  productId? : string;
-  storeId? : string;
-  purchaseId? : string;
+  productId?: string;
+  storeId?: string;
+  purchaseId?: string;
 };
 
 export type ReviewArgs = {
@@ -41,19 +41,16 @@ export class Review extends HasRepos {
     if (this.rating < 1 || this.rating > 5) {
       throw new Error("Rating must be between 1-5");
     }
-    if(args.storeId === undefined) {
+    if (args.storeId === undefined) {
       if (args.productId === undefined) {
         throw new Error("storeId and productId are both undefined");
       }
       this.productId = args.productId;
-    }
-    else if(args.productId === undefined) {
+    } else if (args.productId === undefined) {
       this.storeId = args.storeId;
-    }
-    else {
+    } else {
       throw new Error("storeId and productId are both defined");
     }
-    
   }
 
   public get Id(): string {
@@ -76,7 +73,7 @@ export class Review extends HasRepos {
       userId: this.userId,
       purchaseId: this.purchaseId,
       storeId: this.storeId,
-      productId: this.productId
+      productId: this.productId,
     };
   }
   public get UserId(): string {
@@ -92,4 +89,5 @@ export class Review extends HasRepos {
   public get ProductId(): string | undefined {
     return this.productId;
   }
+
 }

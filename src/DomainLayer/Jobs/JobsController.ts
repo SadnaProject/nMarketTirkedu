@@ -224,6 +224,10 @@ export interface IJobsController {
    * @throws Error if the store doesn't exist.
    */
   getStoreManagersIds(storeId: string): string[];
+  /**
+   * 
+  */
+  setInitialAdmin(userId: string): void;
 }
 
 @testable
@@ -232,46 +236,112 @@ export class JobsController
   implements IJobsController
 {
   // private managerRole: ManagerRole;
-  private ownerRole: OwnerRole;
-  private founderRole: FounderRole;
+  static ownerRole: OwnerRole= new OwnerRole();
+  static founderRole: FounderRole= new FounderRole();
+  private wasAdminInitialized: boolean;
   constructor() {
     super();
+    this.wasAdminInitialized = false;
     // this.managerRole = new ManagerRole();
-    this.ownerRole = new OwnerRole();
-    this.founderRole = new FounderRole();
+    // this.ownerRole = new OwnerRole();
+    // this.founderRole = new FounderRole();
   }
   
   InitializeStore(founderId: string, storeId: string): void {
-    const positionHolder: PositionHolder = new PositionHolder(this.founderRole,storeId,founderId);
-    this.Repos.jobs.SetStoreFounder(positionHolder.DTO);
+    const positionHolder: PositionHolder = new PositionHolder(JobsController.founderRole,storeId,founderId);
+    this.Repos.jobs.SetStoreFounder(positionHolder);
   }
   getStoreIdsByFounder(userId: string): string[] {
-    throw new Error("Method not implemented.");
+    const storeIds= this.Repos.jobs.getAllStoreIds();
+    const foundedStores: string[] = [];
+    for(const storeId of storeIds){
+      if(this.isStoreFounder(userId,storeId)){
+        foundedStores.push(storeId);
+      // const positionHolder: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId,storeId);
+      }
+    }
+    return foundedStores;
   }
   getStoreIdsByOwner(userId: string): string[] {
-    throw new Error("Method not implemented.");
+    const storeIds= this.Repos.jobs.getAllStoreIds();
+    const ownedStores: string[] = [];
+    for(const storeId of storeIds){
+      if(this.isStoreOwner(userId,storeId)){
+        ownedStores.push(storeId);
+      }
+    }
+    return ownedStores;
   }
   getStoreIdsByManager(userId: string): string[] {
-    throw new Error("Method not implemented.");
+    const storeIds= this.Repos.jobs.getAllStoreIds();
+    const managedStores: string[] = [];
+    for(const storeId of storeIds){
+      if(this.isStoreManager(userId,storeId)){
+        managedStores.push(storeId);
+      }
+    }
+    return managedStores;
   }
   makeStoreOwner(currentId: string, storeId: string, targetUserId: string): void {
-    throw new Error("Method not implemented.");
+    // throw new Error("Method not implemented.");
+    const phAppointer: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId,storeId);
+    if(phAppointer===undefined){
+      throw new Error("given user cannot appoint store owner");
+    }
+    const positionHolder: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(targetUserId,storeId);
+    if(positionHolder===undefined){
+      phAppointer.appointStoreOwner(targetUserId);
+    }
+    else{
+      if(positionHolder.Role.canBeAppointedToStoreOwner()){
+        this.removePositionHolder(positionHolder);//TODO - is this what we want to do in this case? or should we hold two roles/positions for the same user?
+        phAppointer.appointStoreOwner(targetUserId);
+      }
+      else{
+        throw new Error("given user cannot be appointed to store owner");
+      }
+    }
   }
+  
   getStoresByOwner(userId: string): StoreDTO[] {
-    throw new Error("Method not implemented.");
-  }
-  makeStoreManager(currentId: string, storeId: string, targetUserId: string): void {
-    throw new Error("Method not implemented.");
+    throw new Error("Method Deprecated.");
   }
   getStoresByManager(userId: string): StoreDTO[] {
-    throw new Error("Method not implemented.");
+    throw new Error("Method Deprecated");
   }
+  makeStoreManager(currentId: string, storeId: string, targetUserId: string): void {
+    const phAppointer: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId,storeId);
+    if(phAppointer===undefined){
+      throw new Error("given user cannot appoint store manager");
+    }
+    const positionHolder: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(targetUserId,storeId);
+    if(positionHolder===undefined){
+      phAppointer.appointStoreManager(targetUserId);
+    } 
+    else{
+      throw new Error("given user cannot be appointed to store manager as he is already holding a position in the store");
+    }
+
+  }
+  
   removeStoreOwner(currentId: string, storeId: string, targetUserId: string): void {
-    throw new Error("Method not implemented.");
+    this.removeAppointee(currentId, storeId, targetUserId);
   }
+
   removeStoreManager(currentId: string, storeId: string, targetUserId: string): void {
-    throw new Error("Method not implemented.");
+    this.removeAppointee(currentId, storeId, targetUserId);
   }
+  private removeAppointee(currentId: string, storeId: string, targetUserId: string) {
+    const phRemover: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId, storeId);
+    if (phRemover === undefined) {
+      throw new Error("given user cannot remove store owner");
+    }
+    phRemover.removeAppointee(targetUserId);
+  }
+
+  // private wasAppointedByUser(appointer: string, storeId: string, appointee: string): boolean{
+  //   throw new Error("Method not implemented.");
+  // }
   setAddingProductToStorePermission(currentId: string, storeId: string, targetUserId: string, permission: boolean): void {
     throw new Error("Method not implemented.");
   }
@@ -294,26 +364,84 @@ export class JobsController
     throw new Error("Method not implemented.");
   }
   isStoreOwner(userId: string, storeId: string): boolean {
-    throw new Error("Method not implemented.");
+    try{
+      const ph: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId,storeId);
+      return ph.Role.isStoreOwner();
+    }
+    catch(e){
+      return false;
+    }
+
   }
   isStoreManager(userId: string, storeId: string): boolean {
-    throw new Error("Method not implemented.");
+    try{
+      const ph: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId,storeId);
+      return ph.Role.isStoreManager();
+    }
+    catch(e){
+      return false;
+    }
   }
   isStoreFounder(userId: string, storeId: string): boolean {
-    throw new Error("Method not implemented.");
+    try{
+      const ph: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId,storeId);
+      return ph.Role.isStoreFounder();
+    }
+    catch(e){
+      return false;
+    }
   }
   isSystemAdmin(userId: string): boolean {
-    throw new Error("Method not implemented.");
-  }
-  getStoreFounderId(storeId: string): string {
-    return this.Repos.jobs.GetStoreFounder(storeId).userId;
-  }
-  getStoreOwnersIds(storeId: string): string[] {
-    throw new Error("Method not implemented.");
-  }
-  getStoreManagersIds(storeId: string): string[] {
-    throw new Error("Method not implemented.");
+    if(this.Repos.jobs.getSystemAdmins().find(saId=>saId===userId)===undefined){
+      return false;
+    }
+    return true;
   }
   
+  setInitialAdmin(userId: string): void 
+  {
+    if(this.wasAdminInitialized){
+      throw new Error("admin was already initialized");
+    }
+    this.Repos.jobs.addSystemAdmin(userId);
+    this.wasAdminInitialized = true;
+    
+  }
+  getStoreFounderId(storeId: string): string {
+    return this.Repos.jobs.GetStoreFounder(storeId).UserId;
+  }
+  getStoreOwnersIds(storeId: string): string[] {
+    return this.Repos.jobs.getAllPositionHoldersByStoreId(storeId).filter(ph=>ph.Role.isStoreOwner()).map(ph=>ph.UserId);
+  }
+  getStoreManagersIds(storeId: string): string[] {
+    return this.Repos.jobs.getAllPositionHoldersByStoreId(storeId).filter(ph=>ph.Role.isStoreManager()).map(ph=>ph.UserId);
+  }
+  private removePositionHolder(positionHolder: PositionHolder): void {
+    const founder = this.Repos.jobs.GetStoreFounder(positionHolder.StoreId);
+    //find the position holder in the founder's tree
+    const parent = this.findParent(positionHolder, founder);
+    if (parent === undefined) {
+        throw new Error("Position holder not found");
+    }
+    const index = parent.Appointments.indexOf(positionHolder);
+    if (index === -1) {
+        throw new Error("Position holder not found");
+    }
+    parent.Appointments.splice(index, 1);
+    
+    
+}
+private findParent(positionHolder: PositionHolder, parent: PositionHolder): PositionHolder | undefined {
+    if (parent.Appointments.includes(positionHolder)) {
+        return parent;
+    }
+    for (const appointedByMe of parent.Appointments) {
+        const found = this.findParent(positionHolder, appointedByMe);
+        if (found !== undefined) {
+            return found;
+        }
+    }
+    return undefined;
+}
 
 }

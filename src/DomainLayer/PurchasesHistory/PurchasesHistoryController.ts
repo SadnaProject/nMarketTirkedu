@@ -1,22 +1,18 @@
-import { Hash } from "crypto";
 import { HasControllers } from "../HasController";
 import { type CartDTO } from "../Users/Cart";
 import { type BasketPurchaseDTO } from "./BasketPurchaseHistory";
 import { CartPurchase, type CartPurchaseDTO } from "./CartPurchaseHistory";
-import {
-  type ProductReviewArgs,
-  type ProductReviewDTO,
-  ProductReview,
-} from "./ProductReview";
-import { Review, type ReviewDTO, ReviewArgs } from "./Review";
+import { type ProductReviewDTO, ProductReview } from "./ProductReview";
+import { Review, type ReviewDTO } from "./Review";
 import { randomUUID } from "crypto";
 import { Mixin } from "ts-mixer";
 import { Testable, testable } from "~/Testable";
 import { HasRepos, createRepos } from "./HasRepos";
+import { PaymentAdapter } from "./PaymentAdaptor";
 
 export interface IPurchasesHistoryController {
   getPurchase(purchaseId: string): CartPurchaseDTO;
-  purchaseCart(userId: string, cart: CartDTO): void; // TODO: add payment details
+  purchaseCart(userId: string, cart: CartDTO, price: number, creditCard: string): void; // TODO: add payment details
   addStorePurchaseReview(
     userId: string,
     purchaseId: string,
@@ -59,24 +55,26 @@ export class PurchasesHistoryController
     this.storesRatings = [];
   }
   getPurchasesByUser(userId: string): CartPurchaseDTO[] {
-    return this.Repos.CartPurchases.getPurchasesByUser(userId);
-    // return this.userIdToCartPurchases.get(userId) ?? [];
+    return this.Repos.CartPurchases.getPurchasesByUser(userId).map((purchase) =>
+      purchase.CartPurchaseToDTO()
+    );
   }
   getPurchasesByStore(storeId: string): BasketPurchaseDTO[] {
-    return this.Repos.BasketPurchases.getPurchasesByStore(storeId);
-    // const purchases: BasketPurchaseDTO[] = [];
-    // for (const purchase of this.purchaseIdToPurchase.values()) {
-    //   if (purchase.storeIdToBasketPurchases.has(storeId)) {
-    //     purchases.push(
-    //       purchase.storeIdToBasketPurchases.get(storeId)!.BasketPurchaseToDTO()
-    //     );
-    //   }
-    // }
-    // return purchases;
+    return this.Repos.BasketPurchases.getPurchasesByStore(storeId).map(
+      (purchase) => purchase.BasketPurchaseToDTO()
+    );
   }
 
-  purchaseCart(userId: string, cart: CartDTO): void {
-    throw new Error("Method not implemented.");
+  purchaseCart(userId: string, cart: CartDTO, price: number, creditCard :string): void {
+    if(PaymentAdapter.pay(creditCard, price) === false){
+      throw new Error("Payment failed");
+    }
+    const cartPurchase = CartPurchase.CartPurchaseDTOfromCartDTO(
+      cart,
+      userId,
+      price
+    );
+    this.addPurchase(userId, cartPurchase);
   }
   addStorePurchaseReview(
     userId: string,
@@ -98,7 +96,7 @@ export class PurchasesHistoryController
       purchaseId: purchaseId,
       storeId: storeId,
     });
-    this.Repos.Reviews.addStoreReview(review.ReviewToDTO());
+    this.Repos.Reviews.addStoreReview(review);
 
     // if (this.getPurchase(purchaseId) === undefined) {
     //   throw new Error("Purchase not found");
@@ -140,9 +138,7 @@ export class PurchasesHistoryController
       title: title,
       description: description,
     });
-    this.Repos.ProductReviews.addProductReview(
-      productReview.ProductReviewToDTO()
-    );
+    this.Repos.ProductReviews.addProductReview(productReview);
 
     // if (this.getPurchase(purchaseId) === undefined) {
     //   throw new Error("Purchase not found");
@@ -168,7 +164,7 @@ export class PurchasesHistoryController
     let count = 0;
     const reviews = this.Repos.Reviews.getAllStoreReviews(storeId);
     for (const review of reviews) {
-      sum += review.rating;
+      sum += review.Rating;
       count++;
     }
     return sum / count;
@@ -184,10 +180,10 @@ export class PurchasesHistoryController
     const reviews = this.Repos.ProductReviews.getAllProductReviews(productId);
     let sum = 0;
     for (const review of reviews) {
-      sum += review.rating;
+      sum += review.Rating;
     }
     return {
-      reviews: reviews,
+      reviews: reviews.map((review) => review.ProductReviewToDTO()),
       avgRating: sum / reviews.length,
     };
     // const relevantReviews = [];
@@ -209,7 +205,9 @@ export class PurchasesHistoryController
     if (this.Repos.CartPurchases.getPurchaseById(purchaseId) === undefined) {
       throw new Error("Purchase not found");
     }
-    return this.Repos.CartPurchases.getPurchaseById(purchaseId)!;
+    return this.Repos.CartPurchases.getPurchaseById(
+      purchaseId
+    )!.CartPurchaseToDTO();
     // const purchase = this.purchaseIdToPurchase.get(purchaseId);
     // if (purchase === undefined) {
     //   throw new Error("Purchase not found");
@@ -217,17 +215,12 @@ export class PurchasesHistoryController
     // return purchase;
   }
   addPurchase(purchaseId: string, purchase: CartPurchaseDTO) {
-    if (this.Repos.CartPurchases.getPurchaseById(purchaseId) !== undefined) {
-      throw new Error("Purchase already exists");
+    this.purchaseIdToPurchase.set(purchaseId, purchase);
+    const purchases = this.userIdToCartPurchases.get(purchase.userId);
+    if (purchases === undefined) {
+      this.userIdToCartPurchases.set(purchase.userId, [purchase]);
+    } else {
+      purchases.push(purchase);
     }
-    this.Repos.CartPurchases.addCartPurchase(purchase);
-    // if (this.purchaseIdToPurchase.get(purchaseId) !== undefined) {
-    //   throw new Error("Purchase already exists");
-    // }
-    // this.purchaseIdToPurchase.set(purchaseId, purchase);
-    // if (this.userIdToCartPurchases.get(userId) === undefined) {
-    //   this.userIdToCartPurchases.set(userId, []);
-    // }
-    // this.userIdToCartPurchases.get(userId)?.push(purchase);
   }
 }

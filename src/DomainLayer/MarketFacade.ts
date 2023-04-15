@@ -25,6 +25,11 @@ export class MarketFacade {
 
   constructor() {
     this.controllers = createControllers();
+    this.initializeSystemAdmin();
+  }
+  private initializeSystemAdmin() {
+    this.controllers.Auth.register("admin", "admin");
+    this.controllers.Jobs.setInitialAdmin("admin");
   }
   private isConnectionValid(userId: string): void {
     if (!this.controllers.Auth.isConnected(userId))

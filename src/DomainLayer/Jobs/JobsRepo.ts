@@ -1,16 +1,25 @@
 import { Testable, testable } from "~/Testable";
-import type { MemberUserAuthDTO } from "../Auth/MemberUserAuth";
-import type { GuestUserAuthDTO } from "../Auth/GuestUserAuth";
 import { PositionHolder } from "~/DomainLayer/Jobs/PositionHolder";
 
 @testable
 export class JobsRepo extends Testable {
     
     private storeIdToFounder = new Map<string, PositionHolder> ();
+    private systemAdminIds: string[];
     constructor() {
         super();
+        this.systemAdminIds = [];
     }
-    
+    public addSystemAdmin(userId: string): void {
+        this.systemAdminIds.push(userId);
+    }
+    public removeSystemAdmin(userId: string): void {
+        this.systemAdminIds = this.systemAdminIds.filter((id) => id !== userId);
+    }
+    public getSystemAdmins(): string[] {
+        return this.systemAdminIds;
+    }
+
     public SetStoreFounder(founder: PositionHolder): void {
         this.storeIdToFounder.set(founder.StoreId, founder);
     }

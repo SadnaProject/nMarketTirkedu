@@ -224,6 +224,10 @@ export interface IJobsController {
    * @throws Error if the store doesn't exist.
    */
   getStoreManagersIds(storeId: string): string[];
+  /**
+   * 
+  */
+  setInitialAdmin(userId: string): void;
 }
 
 @testable
@@ -234,8 +238,10 @@ export class JobsController
   // private managerRole: ManagerRole;
   static ownerRole: OwnerRole= new OwnerRole();
   static founderRole: FounderRole= new FounderRole();
+  private wasAdminInitialized: boolean;
   constructor() {
     super();
+    this.wasAdminInitialized = false;
     // this.managerRole = new ManagerRole();
     // this.ownerRole = new OwnerRole();
     // this.founderRole = new FounderRole();
@@ -364,7 +370,20 @@ export class JobsController
     }
   }
   isSystemAdmin(userId: string): boolean {
-    throw new Error("Method not implemented.");
+    if(this.Repos.jobs.getSystemAdmins().find(saId=>saId===userId)===undefined){
+      return false;
+    }
+    return true;
+  }
+  
+  setInitialAdmin(userId: string): void 
+  {
+    if(this.wasAdminInitialized){
+      throw new Error("admin was already initialized");
+    }
+    this.Repos.jobs.addSystemAdmin(userId);
+    this.wasAdminInitialized = true;
+    
   }
   getStoreFounderId(storeId: string): string {
     return this.Repos.jobs.GetStoreFounder(storeId).UserId;

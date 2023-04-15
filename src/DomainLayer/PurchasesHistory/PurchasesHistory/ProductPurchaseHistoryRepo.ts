@@ -1,19 +1,19 @@
-import { ProductPurchaseDTO } from "~/DomainLayer/PurchasesHistory/ProductPurchaseHistory";
+import { ProductPurchase } from "../ProductPurchaseHistory";
 
 export class ProductPurchaseRepo {
-  private ProductPurchases: ProductPurchaseDTO[];
+  private ProductPurchases: ProductPurchase[];
 
   constructor() {
     this.ProductPurchases = [];
   }
 
-  public addProductPurchase(ProductPurchase: ProductPurchaseDTO) {
+  public addProductPurchase(ProductPurchase: ProductPurchase) {
     this.ProductPurchases.push(ProductPurchase);
   }
 
   public getProductPurchaseById(ProductPurchaseId: string) {
     const ProductPurchase = this.ProductPurchases.find(
-      (ProductPurchase) => ProductPurchase.purchaseId === ProductPurchaseId
+      (ProductPurchase) => ProductPurchase.PurchaseId === ProductPurchaseId
     );
     if (!ProductPurchase) {
       throw new Error("ProductPurchase not found");

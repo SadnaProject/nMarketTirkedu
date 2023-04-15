@@ -1,8 +1,8 @@
-import { BasketPurchaseRepo } from "~/DataLayer/PurchasesHistory/BasketPurchaseHistoryRepo";
-import { CartPurchaseRepo } from "~/DataLayer/PurchasesHistory/CartPurchaseHistoryRepo";
-import { ProductPurchaseRepo } from "~/DataLayer/PurchasesHistory/ProductPurchaseHistoryRepo";
-import { ProductReviewRepo } from "~/DataLayer/PurchasesHistory/ProductReviewsRepo";
-import { ReviewRepo } from "~/DataLayer/PurchasesHistory/ReviewRepo";
+import { BasketPurchaseRepo } from "~/DomainLayer/PurchasesHistory/PurchasesHistory/BasketPurchaseHistoryRepo";
+import { CartPurchaseRepo } from "~/DomainLayer/PurchasesHistory/PurchasesHistory/CartPurchaseHistoryRepo";
+import { ProductPurchaseRepo } from "~/DomainLayer/PurchasesHistory/PurchasesHistory/ProductPurchaseHistoryRepo";
+import { ProductReviewRepo } from "~/DomainLayer/PurchasesHistory/PurchasesHistory/ProductReviewsRepo";
+import { ReviewRepo } from "~/DomainLayer/PurchasesHistory/PurchasesHistory/ReviewRepo";
 
 export type Repos = {
   Reviews: ReviewRepo;

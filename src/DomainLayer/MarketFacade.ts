@@ -300,6 +300,10 @@ export class MarketFacade {
     this.isConnectionValid(userId);
     return this.controllers.Auth.login(userId, email, password);
   }
+  public logoutMember(userId: string): string {
+    this.isConnectionValid(userId); 
+    return this.controllers.Auth.logout(userId);
+  }
   //This is not called logout because it also disconnects guest users which were not logged in.
   //disconnects a user. if the user is a guest user, the user is removed from the system.
   //if the user is a member user, the users session is invalidated.

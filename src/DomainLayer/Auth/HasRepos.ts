@@ -1,4 +1,4 @@
-import { UserAuthRepo } from "~/DataLayer/Authentication/UserAuthRepo";
+import { UserAuthRepo } from "~/DomainLayer/Auth/UserAuthRepo";
 
 export const reposMapping = {
   Users: UserAuthRepo,

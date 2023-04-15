@@ -56,8 +56,7 @@ export class StoreProduct extends HasRepos {
   }
 
   static fromProductId(productId: string, repos: Repos) {
-    const dto = repos.Products.getProductById(productId);
-    return this.fromDTO(dto, repos);
+    return repos.Products.getProductById(productId);
   }
 
   public get Id() {
@@ -70,7 +69,6 @@ export class StoreProduct extends HasRepos {
 
   public set Name(name: string) {
     nameSchema.parse(name);
-    this.Repos.Products.setName(this.id, name);
     this.name = name;
   }
 
@@ -80,7 +78,6 @@ export class StoreProduct extends HasRepos {
 
   public set Quantity(quantity: number) {
     quantitySchema.parse(quantity);
-    this.Repos.Products.setQuantity(this.id, quantity);
     this.quantity = quantity;
   }
 
@@ -97,7 +94,6 @@ export class StoreProduct extends HasRepos {
 
   public set Price(price: number) {
     priceSchema.parse(price);
-    this.Repos.Products.setPrice(this.id, price);
     this.price = price;
   }
 
@@ -107,7 +103,6 @@ export class StoreProduct extends HasRepos {
 
   public set Category(category: string) {
     categorySchema.parse(category);
-    this.Repos.Products.setCategory(this.id, category);
     this.category = category;
   }
 
@@ -117,14 +112,12 @@ export class StoreProduct extends HasRepos {
 
   public set Description(description: string) {
     descriptionSchema.parse(description);
-    this.Repos.Products.setDescription(this.id, description);
     this.description = description;
   }
 
   public get Store() {
     const storeId = this.Repos.Products.getStoreIdByProductId(this.Id);
-    const dto = this.Repos.Stores.getStoreById(storeId);
-    return Store.fromDTO(dto, this.Repos);
+    return this.Repos.Stores.getStoreById(storeId);
   }
 
   public get DTO(): StoreProductDTO {
@@ -157,8 +150,6 @@ export class StoreProduct extends HasRepos {
   }
 
   public static getAll(repos: Repos) {
-    return repos.Products.getAllProducts().map((dto) =>
-      StoreProduct.fromDTO(dto, repos)
-    );
+    return repos.Products.getAllProducts();
   }
 }

@@ -10,6 +10,9 @@ export class JobsRepo extends Testable {
         super();
         this.systemAdminIds = [];
     }
+    public getAllStoreIds(): string[] {
+        return Array.from(this.storeIdToFounder.keys());
+    }
     public addSystemAdmin(userId: string): void {
         this.systemAdminIds.push(userId);
     }

@@ -252,13 +252,35 @@ export class JobsController
     this.Repos.jobs.SetStoreFounder(positionHolder);
   }
   getStoreIdsByFounder(userId: string): string[] {
-    throw new Error("Method not implemented.");
+    const storeIds= this.Repos.jobs.getAllStoreIds();
+    const foundedStores: string[] = [];
+    for(const storeId of storeIds){
+      if(this.isStoreFounder(userId,storeId)){
+        foundedStores.push(storeId);
+      // const positionHolder: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId,storeId);
+      }
+    }
+    return foundedStores;
   }
   getStoreIdsByOwner(userId: string): string[] {
-    throw new Error("Method not implemented.");
+    const storeIds= this.Repos.jobs.getAllStoreIds();
+    const ownedStores: string[] = [];
+    for(const storeId of storeIds){
+      if(this.isStoreOwner(userId,storeId)){
+        ownedStores.push(storeId);
+      }
+    }
+    return ownedStores;
   }
   getStoreIdsByManager(userId: string): string[] {
-    throw new Error("Method not implemented.");
+    const storeIds= this.Repos.jobs.getAllStoreIds();
+    const managedStores: string[] = [];
+    for(const storeId of storeIds){
+      if(this.isStoreManager(userId,storeId)){
+        managedStores.push(storeId);
+      }
+    }
+    return managedStores;
   }
   makeStoreOwner(currentId: string, storeId: string, targetUserId: string): void {
     // throw new Error("Method not implemented.");

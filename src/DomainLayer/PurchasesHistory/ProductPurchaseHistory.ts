@@ -1,6 +1,7 @@
 import { HasRepos } from "./HasRepos";
 import { type ProductReview, type ProductReviewDTO } from "./ProductReview";
-import { type BasketProductDTO } from "../Users/BasketProduct";
+import { BasketProductDTO } from "../Users/BasketProduct";
+import { StoresController } from "../Stores/StoresController";
 
 export type ProductPurchaseDTO = {
   purchaseId: string;
@@ -30,6 +31,19 @@ export class ProductPurchase extends HasRepos {
     this.quantity = quantity;
     this.price = price;
   }
+  static ProductPurchaseDTOFromBasketProductDTO(
+    basketProductDTO: BasketProductDTO,
+    purchaseId: string
+  ): ProductPurchaseDTO {
+    return {
+      productId: basketProductDTO.storeProductId,
+      quantity: basketProductDTO.quantity,
+      price: new StoresController().getProductPrice(
+        basketProductDTO.storeProductId
+      ),
+      purchaseId: purchaseId,
+    };
+  }
 
   static ProductPurchaseFromBasketProductDTO(
     basketProductDTO: BasketProductDTO,
@@ -38,7 +52,9 @@ export class ProductPurchase extends HasRepos {
     return new ProductPurchase({
       productId: basketProductDTO.storeProductId,
       quantity: basketProductDTO.quantity,
-      price: basketProductDTO.price,
+      price: new StoresController().getProductPrice(
+        basketProductDTO.storeProductId
+      ),
       purchaseId: purchaseId,
     });
   }
@@ -50,7 +66,7 @@ export class ProductPurchase extends HasRepos {
   public get Review() {
     return this.review;
   }
-  public ProductPurchaseToDTO(): ProductPurchaseDTO {
+  public ToDTO(): ProductPurchaseDTO {
     return {
       purchaseId: this.purchaseId,
       productId: this.productId,
@@ -61,5 +77,17 @@ export class ProductPurchase extends HasRepos {
   }
   public get PurchaseId(): string {
     return this.purchaseId;
+  }
+
+  public get ProductId(): string {
+    return this.productId;
+  }
+  static fromDTO(ProductPurchaseDTO: ProductPurchaseDTO): ProductPurchase {
+    return new ProductPurchase({
+      productId: ProductPurchaseDTO.productId,
+      quantity: ProductPurchaseDTO.quantity,
+      price: ProductPurchaseDTO.price,
+      purchaseId: ProductPurchaseDTO.purchaseId,
+    });
   }
 }

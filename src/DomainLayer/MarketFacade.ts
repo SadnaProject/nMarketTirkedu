@@ -74,7 +74,7 @@ export class MarketFacade extends Loggable {
     this.isConnectionValid(userId);
     return this.controllers.Users.getNotifications(userId);
   }
-  public purchaseCart(userId: string, cart: CartDTO, creditCard: string) {
+  public purchaseCart(userId: string, creditCard: string) {
     this.isConnectionValid(userId);
     this.controllers.Users.purchaseCart(userId, creditCard);
   }

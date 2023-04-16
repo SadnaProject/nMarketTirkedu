@@ -331,7 +331,7 @@ describe("get unread notifications", () => {
       controllers.Users.addUser(userId);
       const password = "1234";
       expect(() => controllers.Users.login(userId, "email",password)).toThrow(
-        "Email not found, please try again with a different email"
+        "User with email: email not found"
       );
       expect(() => controllers.Users.login("blabla", "email",password)).toThrow(
         "User not found"
@@ -367,7 +367,7 @@ describe("get unread notifications", () => {
       userId = randomUUID();
       controllers.Users.addUser(userId);
       expect(() => controllers.Users.logout("blabla")).toThrow(
-        "User not found"
+        "User with id: blabla not found"
       );
       controllers.Users.removeUser(userId);
     });

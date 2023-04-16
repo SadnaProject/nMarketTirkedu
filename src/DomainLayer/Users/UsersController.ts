@@ -199,8 +199,10 @@ export class UsersController
   login(guestId: string, email: string, password: string): string {
     this.Repos.Users.getUser(guestId);
     const MemberId = this.Controllers.Auth.login(guestId, email, password);
+    if(!this.Repos.Users.isUserExist(MemberId)) {
     this.Repos.Users.addUser(MemberId);
     this.Repos.Users.clone(guestId, MemberId);
+    }
     this.Repos.Users.removeUser(guestId);
     return MemberId;
   }

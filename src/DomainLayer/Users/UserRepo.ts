@@ -39,4 +39,8 @@ export class UserRepo {
     }
     Dest.clone(Source);
   }
+  isUserExist(id:string):boolean{
+    return this.users.has(id);
+  }
+  
 }

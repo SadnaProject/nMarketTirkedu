@@ -107,10 +107,7 @@ export class AuthController
 
   public login(guestId: string, email: string, password: string): string {
     // throw new Error("Method not implemented.");
-    const member: MemberUserAuth | undefined = this.Repos.Users.getMemberByEmail(email);
-    if(member === undefined){
-      throw new Error("Email not found, please try again with a different email");
-    }
+    const member: MemberUserAuth = this.Repos.Users.getMemberByEmail(email);
     if(!member.isPasswordCorrect(password)){
       throw new Error("Password is incorrect, please try again with a different password");
     }
@@ -125,10 +122,8 @@ export class AuthController
       return;
     }
     else{
-      const member: MemberUserAuth | undefined = this.Repos.Users.getMemberById(userId);
-      if(member === undefined){
-        throw new Error("User not found, please try again with a different user");
-      }
+      const member: MemberUserAuth = this.Repos.Users.getMemberById(userId);
+      
       member.logout();//throws error if user is not connected
     }
   }
@@ -136,16 +131,13 @@ export class AuthController
     if(this.isGuest(userId)){
       throw new Error("User is not a member, please try again with a different user");
     }
-    const member: MemberUserAuth | undefined = this.Repos.Users.getMemberById(userId);
-    if(member === undefined){
-      throw new Error("User not found, please try again with a different user");
-    }
+    const member: MemberUserAuth= this.Repos.Users.getMemberById(userId);
     member.logout();//throws error if user is not connected
     return this.startSession();
   }
   public register(email: string, password: string): string {
     // throw new Error("Method not implemented.");
-    if(this.Repos.Users.getMemberByEmail(email) !== undefined){
+    if(this.Repos.Users.doesMemberExistByEmail(email)){
       throw new Error("Email already in use, please try again with a different email");  
     }
     // if(!this.validatePassword(password)){
@@ -159,10 +151,7 @@ export class AuthController
   public changeEmail(userId: string, newEmail: string): void {
     // throw new Error("Method not implemented.");
     const member = this.Repos.Users.getMemberById(userId);
-    if(member === undefined){
-      throw new Error("User not found, please try again with a different user");
-    }
-    if(this.Repos.Users.getMemberByEmail(newEmail) !== undefined){
+    if(this.Repos.Users.doesMemberExistByEmail(newEmail)){
       throw new Error("Email already in use, please try again with a different email");  
     }
     member.Email=newEmail;
@@ -173,10 +162,7 @@ export class AuthController
     newPassword: string
   ): void {
     // throw new Error("Method not implemented.");
-    const member: MemberUserAuth | undefined = this.Repos.Users.getMemberById(userId); 
-    if(member === undefined){
-      throw new Error("User not found, please try again with a different user");
-    }
+    const member: MemberUserAuth = this.Repos.Users.getMemberById(userId); 
     if(!member.isPasswordCorrect(oldPassword)){
       throw new Error("Password is incorrect, please try again with a different password");
     }
@@ -189,8 +175,8 @@ export class AuthController
     return false;
   }
   public isMember(userId: string): boolean {
-    this.Repos.Users.getMemberById(userId);
-    if(this.Repos.Users.getMemberById(userId) !== undefined){
+    
+    if(this.Repos.Users.doesMemberExistById(userId)){
       return true;
     }
     return false;
@@ -200,11 +186,9 @@ export class AuthController
     if(guest !== undefined){
       return guest.isUserLoggedInAsGuest();
     }
-
-    const member: MemberUserAuth | undefined = this.Repos.Users.getMemberById(userId);
-    if(member === undefined){
+    if(!this.Repos.Users.doesMemberExistById(userId))
       return false;
-    }
+    const member: MemberUserAuth = this.Repos.Users.getMemberById(userId);
     return member.isUserLoggedInAsMember();
   }
 }

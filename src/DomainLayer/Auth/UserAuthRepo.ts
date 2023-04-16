@@ -16,13 +16,28 @@ export class UserAuthRepo extends Testable {
     public addMember(user: MemberUserAuth): void {
         this.members.push(user);
     }    
-    public getMemberByEmail(email: string): MemberUserAuth | undefined {
-        return this.members.find((user) => user.Email === email);
+    public getMemberByEmail(email: string): MemberUserAuth {
+        const user = this.members.find((user) => user.Email === email);
+        if(user===undefined)
+            throw new Error("User with email: "+email+" not found");
+        return user;
     }
-    public getMemberById(userId: string): MemberUserAuth | undefined {
-        return this.members.find((user) => user.UserId === userId);
+    public getMemberById(userId: string): MemberUserAuth {
+        const user = this.members.find((user) => user.UserId === userId);
+        if(user===undefined)
+            throw new Error("User with id: "+userId+" not found");
+        return user;
     }
+    public doesMemberExistByEmail(email: string): boolean {
+        return this.members.some((user) => user.Email === email);
+    }
+    public doesMemberExistById(userId: string): boolean {
+        return this.members.some((user) => user.UserId === userId);
+    }
+
     public removeMember(userId: string): void {
+        if(!this.doesMemberExistById(userId))
+            throw new Error("User with id: "+userId+" not found");
         this.members = this.members.filter((user) => user.UserId !== userId);
     }
     public getAllMembers(): MemberUserAuth[] {
@@ -35,10 +50,18 @@ export class UserAuthRepo extends Testable {
     public addGuest(user: GuestUserAuth): void {
         this.guests.push(user);
     }
-    public getGuestById(userId: string): GuestUserAuth | undefined {
-        return this.guests.find((user) => user.UserId === userId);
+    public getGuestById(userId: string): GuestUserAuth {
+        const user = this.guests.find((user) => user.UserId === userId);
+        if(user===undefined)
+            throw new Error("User with id: "+userId+" not found");
+        return user;
+    }
+    public doesGuestExistById(userId: string): boolean {
+        return this.guests.some((user) => user.UserId === userId);
     }
     public removeGuest(userId: string): void {
+        if(!this.doesGuestExistById(userId))
+            throw new Error("User with id: "+userId+" not found");
         this.guests = this.guests.filter((user) => user.UserId !== userId);
     }
     //This is of course only the connected guests 

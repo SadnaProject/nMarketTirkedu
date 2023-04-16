@@ -1,7 +1,5 @@
 import { MarketFacade } from "../DomainLayer/MarketFacade";
 import { type CartDTO } from "../DomainLayer/Users/Cart";
-import { type StoreDTO } from "../DomainLayer/Stores/Store";
-import { type UserDTO } from "../DomainLayer/Users/User";
 import { type BasketDTO } from "../DomainLayer/Users/Basket";
 import {
   type StoreProductDTO,
@@ -25,6 +23,14 @@ export class Service {
     this.facade = new MarketFacade();
   }
 
+  public getLogs(userId: string) {
+    return this.facade.getLogs(userId);
+  }
+
+  public getErrors(userId: string) {
+    return this.facade.getErrors(userId);
+  }
+
   public addProductToCart(userId: string, productId: string, quantity: number) {
     this.facade.addProductToCart(userId, productId, quantity);
   }
@@ -44,8 +50,8 @@ export class Service {
   public getNotifications(userId: string) {
     return this.facade.getNotifications(userId);
   }
-  public purchaseCart(userId: string, cart: CartDTO) {
-    this.facade.purchaseCart(userId, cart);
+  public purchaseCart(userId: string, creditCard: string) {
+    this.facade.purchaseCart(userId, creditCard);
   }
   public removeUser(userId: string) {
     this.facade.removeUser(userId);
@@ -144,18 +150,12 @@ export class Service {
     this.facade.makeStoreOwner(currentId, storeId, targetUserId);
   }
 
-  getStoresByOwner(userId: string): StoreDTO[] {
-    return this.facade.getStoresByOwner(userId);
-  }
   makeStoreManager(
     currentId: string,
     storeId: string,
     targetUserId: string
   ): void {
     this.facade.makeStoreManager(currentId, storeId, targetUserId);
-  }
-  getStoresByManager(userId: string): StoreDTO[] {
-    return this.facade.getStoresByManager(userId);
   }
 
   removeStoreOwner(
@@ -198,13 +198,13 @@ export class Service {
   isSystemAdmin(userId: string): boolean {
     return this.facade.isSystemAdmin(userId);
   }
-  getStoreFounder(storeId: string): UserDTO {
+  getStoreFounder(storeId: string): string {
     return this.facade.getStoreFounder(storeId);
   }
-  getStoreOwners(storeId: string): UserDTO[] {
+  getStoreOwners(storeId: string): string[] {
     return this.facade.getStoreOwners(storeId);
   }
-  getStoreManagers(storeId: string): UserDTO[] {
+  getStoreManagers(storeId: string): string[] {
     return this.facade.getStoreManagers(storeId);
   }
   createProduct(

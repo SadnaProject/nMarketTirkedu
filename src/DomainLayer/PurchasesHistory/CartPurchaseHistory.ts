@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { type CartDTO } from "../Users/Cart";
-import { type BasketPurchase } from "./BasketPurchaseHistory";
+import { BasketPurchase, BasketPurchaseDTO } from "./BasketPurchaseHistory";
 import { HasRepos } from "./HasRepos";
 
 // TODO: Does a class need to know its related id, or should the parent hold a map for it?
@@ -8,7 +8,7 @@ import { HasRepos } from "./HasRepos";
 export type CartPurchaseDTO = {
   purchaseId: string;
   userId: string;
-  storeIdToBasketPurchases: Map<string, BasketPurchase>;
+  storeIdToBasketPurchases: Map<string, BasketPurchaseDTO>;
   totalPrice: number;
 };
 export class CartPurchase extends HasRepos {
@@ -16,14 +16,40 @@ export class CartPurchase extends HasRepos {
   private storeIdToBasketPurchases: Map<string, BasketPurchase>;
   private totalPrice: number;
   private userId: string;
+
+  static CartPurchaseDTOfromCartDTO(
+    cartDTO: CartDTO,
+    userId: string,
+    totalPrice: number
+  ): CartPurchaseDTO {
+    const purchaseId = randomUUID();
+    const storeIdToBasketPurchases = new Map<string, BasketPurchaseDTO>();
+    cartDTO.storeIdToBasket.forEach((basketPurchase, storeId) => {
+      storeIdToBasketPurchases.set(
+        storeId,
+        BasketPurchase.BasketPurchaseDTOFromBasketDTO(
+          basketPurchase,
+          purchaseId
+        )
+      );
+    });
+    return {
+      purchaseId: purchaseId,
+      userId: userId,
+      storeIdToBasketPurchases: storeIdToBasketPurchases,
+      totalPrice: totalPrice,
+    };
+  }
+
   constructor(
     userId: string,
+    purchaseId: string,
     storeIdToBasketPurchases: Map<string, BasketPurchase>,
     totalPrice: number
   ) {
     super();
     this.userId = userId;
-    this.purchaseId = randomUUID();
+    this.purchaseId = purchaseId;
     this.storeIdToBasketPurchases = storeIdToBasketPurchases;
     this.totalPrice = totalPrice;
   }
@@ -33,16 +59,40 @@ export class CartPurchase extends HasRepos {
     return this.storeIdToBasketPurchases;
   }
 
-  public CartPurchaseToDTO(): CartPurchaseDTO {
+  public ToDTO(): CartPurchaseDTO {
+    const storeIdToBasketPurchases = new Map<string, BasketPurchaseDTO>();
+    this.storeIdToBasketPurchases.forEach((basketPurchase, storeId) => {
+      storeIdToBasketPurchases.set(storeId, basketPurchase.ToDTO());
+    });
     return {
       purchaseId: this.purchaseId,
       userId: this.userId,
-      storeIdToBasketPurchases: this.storeIdToBasketPurchases,
+      storeIdToBasketPurchases: storeIdToBasketPurchases,
       totalPrice: this.totalPrice,
     };
   }
 
   public get PurchaseId(): string {
     return this.purchaseId;
+  }
+  public get UserId(): string {
+    return this.userId;
+  }
+  static fromDTO(cartPurchaseDTO: CartPurchaseDTO): CartPurchase {
+    const storeIdToBasketPurchases = new Map<string, BasketPurchase>();
+    cartPurchaseDTO.storeIdToBasketPurchases.forEach(
+      (basketPurchaseDTO, storeId) => {
+        storeIdToBasketPurchases.set(
+          storeId,
+          BasketPurchase.fromDTO(basketPurchaseDTO)
+        );
+      }
+    );
+    return new CartPurchase(
+      cartPurchaseDTO.userId,
+      cartPurchaseDTO.purchaseId,
+      storeIdToBasketPurchases,
+      cartPurchaseDTO.totalPrice
+    );
   }
 }

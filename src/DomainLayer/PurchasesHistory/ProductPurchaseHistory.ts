@@ -1,6 +1,7 @@
-import { randomUUID } from "crypto";
 import { HasRepos } from "./HasRepos";
 import { type ProductReview, type ProductReviewDTO } from "./ProductReview";
+import { BasketProductDTO } from "../Users/BasketProduct";
+import { StoresController } from "../Stores/StoresController";
 
 export type ProductPurchaseDTO = {
   purchaseId: string;
@@ -13,6 +14,7 @@ type ProductPurchaseArgs = {
   productId: string;
   quantity: number;
   price: number;
+  purchaseId: string;
 };
 
 export class ProductPurchase extends HasRepos {
@@ -22,12 +24,39 @@ export class ProductPurchase extends HasRepos {
   private price: number;
   private review?: ProductReview;
 
-  constructor({ productId, quantity, price }: ProductPurchaseArgs) {
+  constructor({ productId, quantity, price, purchaseId }: ProductPurchaseArgs) {
     super();
-    this.purchaseId = randomUUID();
+    this.purchaseId = purchaseId;
     this.productId = productId;
     this.quantity = quantity;
     this.price = price;
+  }
+  static ProductPurchaseDTOFromBasketProductDTO(
+    basketProductDTO: BasketProductDTO,
+    purchaseId: string
+  ): ProductPurchaseDTO {
+    return {
+      productId: basketProductDTO.storeProductId,
+      quantity: basketProductDTO.quantity,
+      price: new StoresController().getProductPrice(
+        basketProductDTO.storeProductId
+      ),
+      purchaseId: purchaseId,
+    };
+  }
+
+  static ProductPurchaseFromBasketProductDTO(
+    basketProductDTO: BasketProductDTO,
+    purchaseId: string
+  ): ProductPurchase {
+    return new ProductPurchase({
+      productId: basketProductDTO.storeProductId,
+      quantity: basketProductDTO.quantity,
+      price: new StoresController().getProductPrice(
+        basketProductDTO.storeProductId
+      ),
+      purchaseId: purchaseId,
+    });
   }
 
   public setReview(review: ProductReview) {
@@ -37,7 +66,7 @@ export class ProductPurchase extends HasRepos {
   public get Review() {
     return this.review;
   }
-  public ProductPurchaseToDTO(): ProductPurchaseDTO {
+  public ToDTO(): ProductPurchaseDTO {
     return {
       purchaseId: this.purchaseId,
       productId: this.productId,
@@ -45,5 +74,20 @@ export class ProductPurchase extends HasRepos {
       price: this.price,
       review: this.review?.ProductReviewToDTO(),
     };
+  }
+  public get PurchaseId(): string {
+    return this.purchaseId;
+  }
+
+  public get ProductId(): string {
+    return this.productId;
+  }
+  static fromDTO(ProductPurchaseDTO: ProductPurchaseDTO): ProductPurchase {
+    return new ProductPurchase({
+      productId: ProductPurchaseDTO.productId,
+      quantity: ProductPurchaseDTO.quantity,
+      price: ProductPurchaseDTO.price,
+      purchaseId: ProductPurchaseDTO.purchaseId,
+    });
   }
 }

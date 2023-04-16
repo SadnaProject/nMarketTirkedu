@@ -8,13 +8,13 @@ import { createControllers, createTestControllers } from "../createControllers";
 const controllers = createControllers(); //! instead needs to be createTestControllers("Users");
 let userId = randomUUID();
 let productId = randomUUID();
-controllers.Users.addUser(userId, "username");
+controllers.Users.addUser(userId);
 
 describe("add product", () => {
   it("should test the add product functionality ", () => {
     userId = randomUUID();
     productId = randomUUID();
-    controllers.Users.addUser(userId, "username");
+    controllers.Users.addUser(userId);
     const sizeBefore = controllers.Users.getCart(userId).storeIdToBasket.size;
     vi.spyOn(
       controllers.Stores,
@@ -42,7 +42,7 @@ describe("add product", () => {
     const storeId = randomUUID();
     userId = randomUUID();
     productId = randomUUID();
-    controllers.Users.addUser(userId, "username");
+    controllers.Users.addUser(userId);
     vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockReturnValue(
       storeId
     );
@@ -75,7 +75,7 @@ describe("remove product", () => {
   it("should test the remove product functionality ", () => {
     userId = randomUUID();
     productId = randomUUID();
-    controllers.Users.addUser(userId, "username");
+    controllers.Users.addUser(userId);
     vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockReturnValue(
       true
     );
@@ -102,7 +102,7 @@ describe("remove product", () => {
   it("should test edge cases in remove product functionality ", () => {
     userId = randomUUID();
     productId = randomUUID();
-    controllers.Users.addUser(userId, "username");
+    controllers.Users.addUser(userId);
     const storeId = randomUUID();
     vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockReturnValue(
       storeId
@@ -129,7 +129,7 @@ describe("edit product quantity", () => {
   it("should test the edit product quantity functionality ", () => {
     userId = randomUUID();
     productId = randomUUID();
-    controllers.Users.addUser(userId, "username");
+    controllers.Users.addUser(userId);
     vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockReturnValue(
       true
     );
@@ -163,7 +163,7 @@ describe("edit product quantity", () => {
     const storeId = randomUUID();
     userId = randomUUID();
     productId = randomUUID();
-    controllers.Users.addUser(userId, "username");
+    controllers.Users.addUser(userId);
     vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockReturnValue(
       storeId
     );
@@ -216,7 +216,7 @@ describe("purchase cart", () => {
   it("should test the purchase cart functionality ", () => {
     userId = randomUUID();
     productId = randomUUID();
-    controllers.Users.addUser(userId, "username");
+    controllers.Users.addUser(userId);
     vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockReturnValue(
       true
     );
@@ -231,7 +231,7 @@ describe("purchase cart", () => {
     vi.spyOn(controllers.PurchasesHistory, "purchaseCart").mockReturnValue();
     const notificationSizeBefore =
       controllers.Users.getNotifications(userId).length;
-    controllers.Users.purchaseCart(userId);
+    controllers.Users.purchaseCart(userId,"credit card");
     const notificationSizeAfter =
       controllers.Users.getNotifications(userId).length;
     expect(notificationSizeAfter).toBe(notificationSizeBefore + 1);
@@ -246,14 +246,14 @@ describe("purchase cart", () => {
   it("should test edge cases in edit product quantity functionality ", () => {
     userId = randomUUID();
     productId = randomUUID();
-    controllers.Users.addUser(userId, "username");
+    controllers.Users.addUser(userId);
     const storeId = randomUUID();
     vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockReturnValue(
       storeId
     );
     vi.spyOn(controllers.Stores, "getCartPrice").mockReturnValueOnce(100);
     vi.spyOn(controllers.PurchasesHistory, "purchaseCart").mockReturnValue();
-    expect(() => controllers.Users.purchaseCart("Blabla")).toThrow(
+    expect(() => controllers.Users.purchaseCart("Blabla","credit card")).toThrow(
       "User not found"
     );
     controllers.Users.removeUser(userId);
@@ -264,7 +264,7 @@ describe("get unread notifications", () => {
   it("should test the get unread notifications functionality ", () => {
     userId = randomUUID();
     productId = randomUUID();
-    controllers.Users.addUser(userId, "username");
+    controllers.Users.addUser(userId);
     const notificationSizeBefore =
       controllers.Users.getNotifications(userId).length;
     const notificationId = controllers.Users.addNotification(
@@ -284,10 +284,92 @@ describe("get unread notifications", () => {
   it("should test edge cases in get unread notifications functionality ", () => {
     userId = randomUUID();
     productId = randomUUID();
-    controllers.Users.addUser(userId, "username");
+    controllers.Users.addUser(userId);
     expect(() => controllers.Users.getUnreadNotifications("Blabla")).toThrow(
       "User not found"
     );
     controllers.Users.removeUser(userId);
+  });
+  describe("login", () => {
+    it("should test the login functionality ", () => {
+      userId = randomUUID();
+      controllers.Users.addUser(userId);
+      vi.spyOn(
+        controllers.Stores,
+        "isProductQuantityInStock"
+      ).mockReturnValueOnce(true);
+      const storeId = randomUUID();
+      vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockReturnValue(
+        storeId
+      );
+      const productId = randomUUID();
+      controllers.Users.addProductToCart(userId,productId , 5);
+      const password = "1234";
+      const email ="email";
+      const MemberId = randomUUID();
+      vi.spyOn(controllers.Auth,"login").mockReturnValueOnce(MemberId);
+      expect(controllers.Users.login(userId, email,password)===MemberId).toBe(true);
+      expect(controllers.Users.getCart(MemberId).storeIdToBasket.size).toBe(1);
+      expect(
+        controllers.Users.getCart(MemberId)
+          .storeIdToBasket.get(storeId)
+          ?.products.filter((p) => p.storeProductId === productId).length
+      ).toBe(1);
+      expect(
+        controllers.Users.getCart(MemberId)
+          .storeIdToBasket.get(storeId)
+          ?.products.filter((p) => p.storeProductId === productId).length
+      ).toBe(1);
+      expect(
+        controllers.Users.getCart(MemberId)
+          .storeIdToBasket.get(storeId)
+          ?.products.filter((p) => p.storeProductId === productId)[0]?.quantity
+      ).toBe(5);
+    });
+    it("should test edge cases in login functionality ", () => {
+      userId = randomUUID();
+      controllers.Users.addUser(userId);
+      const password = "1234";
+      expect(() => controllers.Users.login(userId, "email",password)).toThrow(
+        "Email not found, please try again with a different email"
+      );
+      expect(() => controllers.Users.login("blabla", "email",password)).toThrow(
+        "User not found"
+      );
+      controllers.Users.removeUser(userId);
+    });
+  });
+  describe("logout", () => {
+    it("should test the logout functionality ", () => {
+      userId = randomUUID();
+      controllers.Users.addUser(userId);
+      vi.spyOn(
+        controllers.Stores,
+        "isProductQuantityInStock"
+      ).mockReturnValueOnce(true);
+      const storeId = randomUUID();
+      vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockReturnValue(
+        storeId
+      );
+      const productId = randomUUID();
+      controllers.Users.addProductToCart(userId,productId , 5);
+      const password = "1234";
+      const email ="email";
+      const MemberId = randomUUID();
+      vi.spyOn(controllers.Auth,"login").mockReturnValueOnce(MemberId);
+      controllers.Users.login(userId, email,password);
+      controllers.Users.logout(MemberId);
+      expect(controllers.Users.getCart(MemberId).storeIdToBasket.size).toBe(0);
+      controllers.Users.login(userId, email,password);
+      
+    });
+    it("should test edge cases in logout functionality ", () => {
+      userId = randomUUID();
+      controllers.Users.addUser(userId);
+      expect(() => controllers.Users.logout("blabla")).toThrow(
+        "User not found"
+      );
+      controllers.Users.removeUser(userId);
+    });
   });
 });

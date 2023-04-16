@@ -1,7 +1,8 @@
 import { UserAuthRepo } from "~/DomainLayer/Auth/UserAuthRepo";
+import { JobsRepo } from "~/DomainLayer/Jobs/JobsRepo";
 
 export const reposMapping = {
-  Users: UserAuthRepo,
+  jobs: JobsRepo,
 };
 
 // NO TOUCHY BELOW THIS LINE 😉

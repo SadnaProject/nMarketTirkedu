@@ -169,10 +169,8 @@ export class AuthController
     member.Password=newPassword;
   }
   public isGuest(userId: string): boolean {
-    if(this.Repos.Users.getGuestById(userId) !== undefined){
-      return true;
-    }
-    return false;
+    return this.Repos.Users.doesGuestExistById(userId);
+
   }
   public isMember(userId: string): boolean {
     
@@ -182,9 +180,9 @@ export class AuthController
     return false;
   }
   public isConnected(userId: string): boolean {
-    const guest: GuestUserAuth | undefined = this.Repos.Users.getGuestById(userId);
-    if(guest !== undefined){
-      return guest.isUserLoggedInAsGuest();
+    if(this.Repos.Users.doesGuestExistById(userId))
+    {
+      return this.Repos.Users.getGuestById(userId).isUserLoggedInAsGuest();
     }
     if(!this.Repos.Users.doesMemberExistById(userId))
       return false;

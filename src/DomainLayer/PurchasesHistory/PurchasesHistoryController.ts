@@ -116,7 +116,7 @@ export class PurchasesHistoryController
     if (this.Repos.Reviews.doesStoreReviewExist(purchaseId, storeId)) {
       throw new Error("Store already reviewed");
     }
-    if (this.Repos.BasketPurchases.getPurchaseById(purchaseId) === undefined) {
+    if (this.Repos.BasketPurchases.hasPurchase(purchaseId) === false) {
       throw new Error("Purchase not found");
     }
     const review = new Review({
@@ -176,7 +176,7 @@ export class PurchasesHistoryController
       sum += review.Rating;
       count++;
     }
-    return sum / count;
+    return sum / count || 0;
   }
   getReviewsByStore(storeId: string): number {
     const reviews = this.Repos.Reviews.getAllStoreReviews(storeId);
@@ -193,11 +193,11 @@ export class PurchasesHistoryController
     }
     return {
       reviews: reviews.map((review) => review.ProductReviewToDTO()),
-      avgRating: sum / reviews.length,
+      avgRating: sum / reviews.length || 0,
     };
   }
   getPurchase(purchaseId: string): CartPurchaseDTO {
-    if (this.Repos.CartPurchases.getPurchaseById(purchaseId) === undefined) {
+    if (this.Repos.CartPurchases.doesPurchaseExist(purchaseId) === false) {
       throw new Error("Purchase not found");
     }
     return this.Repos.CartPurchases.getPurchaseById(purchaseId)!.ToDTO();

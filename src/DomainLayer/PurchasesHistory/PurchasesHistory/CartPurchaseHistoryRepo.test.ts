@@ -96,3 +96,32 @@ describe("getPurchasesByUser", () => {
     ]);
   });
 });
+describe("doesPurchaseExist", () => {
+  const storeIdToBasket = new Map<string, BasketPurchase>();
+
+  it("should return true if purchase exists", () => {
+    const cartPurchase = new CartPurchase(
+      CartPurchaseData.userId,
+      CartPurchaseData.purchaseId,
+      storeIdToBasket,
+      CartPurchaseData.price
+    );
+    const cartPurchaseRepo = new CartPurchaseRepo();
+    cartPurchaseRepo.addCartPurchase(cartPurchase);
+    expect(cartPurchaseRepo.doesPurchaseExist(cartPurchase.PurchaseId)).toBe(
+      true
+    );
+  });
+  it("should return false if purchase does not exist", () => {
+    const cartPurchase = new CartPurchase(
+      CartPurchaseData.userId,
+      CartPurchaseData.purchaseId,
+      storeIdToBasket,
+      CartPurchaseData.price
+    );
+    const cartPurchaseRepo = new CartPurchaseRepo();
+    expect(cartPurchaseRepo.doesPurchaseExist(cartPurchase.PurchaseId)).toBe(
+      false
+    );
+  });
+});

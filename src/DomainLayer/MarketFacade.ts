@@ -8,6 +8,7 @@ import {
 } from "./Stores/StoreProduct";
 import { Loggable, loggable } from "./Loggable";
 import { type SearchArgs } from "./Stores/StoresController";
+import { CartPurchaseDTO } from "./PurchasesHistory/CartPurchaseHistory";
 
 @loggable
 export class MarketFacade extends Loggable {
@@ -329,5 +330,9 @@ export class MarketFacade extends Loggable {
   public disconnectUser(userId: string): void {
     this.isConnectionValid(userId);
     this.controllers.Users.disconnect(userId);
+  }
+
+  public getPurchasesByUser(userId: string): CartPurchaseDTO[] {
+    return this.controllers.PurchasesHistory.getPurchasesByUser(userId);
   }
 }

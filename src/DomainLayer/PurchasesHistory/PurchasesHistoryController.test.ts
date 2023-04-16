@@ -8,6 +8,12 @@ import { BasketPurchase } from "./BasketPurchaseHistory";
 import { CartPurchase } from "./CartPurchaseHistory";
 import { ProductPurchaseRepo } from "~/DomainLayer/PurchasesHistory/PurchasesHistory/ProductPurchaseHistoryRepo";
 import exp from "constants";
+import { BasketProductDTO } from "../Users/BasketProduct";
+import { BasketDTO } from "../Users/Basket";
+import { CartPurchaseRepo } from "./PurchasesHistory/CartPurchaseHistoryRepo";
+import { ProductReviewRepo } from "./PurchasesHistory/ProductReviewsRepo";
+import { ReviewRepo } from "./PurchasesHistory/ReviewRepo";
+import { BasketPurchaseRepo } from "./PurchasesHistory/BasketPurchaseHistoryRepo";
 
 const reviewData = {
   rating: 5,
@@ -86,6 +92,17 @@ describe("addProductPurchaseReview", () => {
     const productReview = createProductReview();
     const cartPurchase = createCartPurchase();
     const purchasesHistoryController = new PurchasesHistoryController();
+    vi.spyOn(CartPurchaseRepo.prototype, "getPurchaseById").mockReturnValue(
+      cartPurchase
+    );
+    vi.spyOn(
+      ProductReviewRepo.prototype,
+      "doesProductReviewExist"
+    ).mockReturnValue(false);
+    vi.spyOn(
+      ProductPurchaseRepo.prototype,
+      "getProductsPurchaseById"
+    ).mockReturnValue([createProductPurchase()]);
     purchasesHistoryController.addPurchase(cartPurchase);
     expect(() =>
       purchasesHistoryController.addProductPurchaseReview(
@@ -113,6 +130,10 @@ describe("addProductPurchaseReview", () => {
       productReview.Title,
       productReview.Description
     );
+    vi.spyOn(
+      ProductReviewRepo.prototype,
+      "doesProductReviewExist"
+    ).mockReturnValue(true);
     expect(() =>
       purchasesHistoryController.addProductPurchaseReview(
         "userId",
@@ -131,6 +152,10 @@ describe("addProductPurchaseReview", () => {
     const cartPurchase = createCartPurchase();
     const purchasesHistoryController = new PurchasesHistoryController();
     purchasesHistoryController.addPurchase(cartPurchase);
+    vi.spyOn(
+      ProductPurchaseRepo.prototype,
+      "getProductsPurchaseById"
+    ).mockReturnValue([]);
     expect(() =>
       purchasesHistoryController.addProductPurchaseReview(
         "userId",
@@ -168,6 +193,10 @@ describe("addStorePurchaseReview", () => {
     const cartPurchase = createCartPurchase();
     const purchasesHistoryController = new PurchasesHistoryController();
     purchasesHistoryController.addPurchase(cartPurchase);
+    vi.spyOn(ReviewRepo.prototype, "doesStoreReviewExist").mockReturnValue(
+      false
+    );
+    vi.spyOn(BasketPurchaseRepo.prototype, "hasPurchase").mockReturnValue(true);
     expect(() =>
       purchasesHistoryController.addStorePurchaseReview(
         "userId",
@@ -187,6 +216,9 @@ describe("addStorePurchaseReview", () => {
       "storeId",
       5
     );
+    vi.spyOn(ReviewRepo.prototype, "doesStoreReviewExist").mockReturnValue(
+      true
+    );
     expect(() =>
       purchasesHistoryController.addStorePurchaseReview(
         "userId",
@@ -200,6 +232,9 @@ describe("addStorePurchaseReview", () => {
     const productPurchase = createProductPurchase();
     const productReview = createProductReview();
     const purchasesHistoryController = new PurchasesHistoryController();
+    vi.spyOn(BasketPurchaseRepo.prototype, "hasPurchase").mockReturnValue(
+      false
+    );
     expect(() =>
       purchasesHistoryController.addStorePurchaseReview(
         "userId",
@@ -235,7 +270,9 @@ describe("getCartPurchaseByPurchaseId", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
 
     purchasesHistoryController.addPurchase(cartPurchase);
-
+    vi.spyOn(CartPurchaseRepo.prototype, "doesPurchaseExist").mockReturnValue(
+      true
+    );
     expect(
       purchasesHistoryController.getPurchase(cartPurchase.PurchaseId)
     ).toStrictEqual(cartPurchase.ToDTO());
@@ -253,9 +290,10 @@ describe("addPurchase", () => {
   it("✅adds purchase", () => {
     const cartPurchase = createCartPurchase();
     const purchasesHistoryController = new PurchasesHistoryController();
-
     purchasesHistoryController.addPurchase(cartPurchase);
-
+    vi.spyOn(CartPurchaseRepo.prototype, "doesPurchaseExist").mockReturnValue(
+      true
+    );
     expect(
       purchasesHistoryController.getPurchase(cartPurchase.PurchaseId)
     ).toStrictEqual(cartPurchase.ToDTO());
@@ -266,28 +304,11 @@ describe("addPurchase", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
 
     purchasesHistoryController.addPurchase(cartPurchase);
-
+    vi.spyOn(CartPurchaseRepo.prototype, "doesPurchaseExist").mockReturnValue(
+      true
+    );
     expect(() =>
       purchasesHistoryController.addPurchase(cartPurchase)
-    ).toThrow();
-  });
-});
-
-// test get purchase
-describe("getPurchase", () => {
-  it("✅gets purchase", () => {
-    const cartPurchase = createCartPurchase();
-    const purchasesHistoryController = new PurchasesHistoryController();
-    purchasesHistoryController.addPurchase(cartPurchase);
-
-    expect(
-      purchasesHistoryController.getPurchase(cartPurchase.PurchaseId)
-    ).toStrictEqual(cartPurchase.ToDTO());
-  });
-  it("❎gets undefined purchase", () => {
-    const purchasesHistoryController = new PurchasesHistoryController();
-    expect(() =>
-      purchasesHistoryController.getPurchase("purchaseId")
     ).toThrow();
   });
 });
@@ -298,6 +319,9 @@ describe("getReviewsByProductId", () => {
     const productReview = createProductReview();
     const purchasesHistoryController = new PurchasesHistoryController();
     const cartPurchase = createCartPurchase();
+    vi.spyOn(CartPurchaseRepo.prototype, "doesPurchaseExist").mockReturnValue(
+      false
+    );
     purchasesHistoryController.addPurchase(cartPurchase);
     purchasesHistoryController.addProductPurchaseReview(
       "userId",
@@ -335,7 +359,9 @@ describe("getReviewsByStore", () => {
       "storeId",
       5
     );
-
+    vi.spyOn(ReviewRepo.prototype, "getAllStoreReviews").mockReturnValue([
+      createReview(),
+    ]);
     expect(purchasesHistoryController.getReviewsByStore("storeId")).toBe(1);
   });
   it("❎gets undefined reviews by store id", () => {
@@ -355,6 +381,9 @@ describe("getReviewsByStore", () => {
       "storeId",
       5
     );
+    vi.spyOn(ReviewRepo.prototype, "doesStoreReviewExist").mockReturnValue(
+      true
+    );
     expect(() =>
       purchasesHistoryController.addStorePurchaseReview(
         "userId",
@@ -372,7 +401,9 @@ describe("getPurchasesByStore", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
     const cartPurchase = createCartPurchase();
     purchasesHistoryController.addPurchase(cartPurchase);
-
+    vi.spyOn(CartPurchaseRepo.prototype, "doesPurchaseExist").mockReturnValue(
+      true
+    );
     expect(
       purchasesHistoryController.getPurchasesByStore("storeId").length
     ).toBe(1);
@@ -397,11 +428,77 @@ describe("getStoreRating", () => {
       "storeId",
       5
     );
-
+    vi.spyOn(ReviewRepo.prototype, "getAllStoreReviews").mockReturnValue([
+      createReview(),
+    ]);
     expect(purchasesHistoryController.getStoreRating("storeId")).toBe(5);
   });
   it("❎gets undefined store rating", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
     expect(purchasesHistoryController.getStoreRating("storeId")).toBe(NaN);
+  });
+});
+
+
+describe("PurchaseCart", () => {
+  it("✅purchase cart", () => {
+    const cartPurchase = createCartPurchase();
+    const basketDTO = {
+      storeId: "storeId",
+      products: [
+        {
+          storeProductId: "productId",
+          quantity: 1,
+        },
+      ],
+    };
+    const StoreIDToBasketMap = new Map<string, BasketDTO>();
+    StoreIDToBasketMap.set("storeId", basketDTO);
+    const cartDTO = {
+      storeIdToBasket: StoreIDToBasketMap,
+    };
+    // spy on storeproductrepo getProductById
+    const purchasesHistoryController = new PurchasesHistoryController();
+    vi.spyOn(CartPurchase, "CartPurchaseDTOfromCartDTO").mockReturnValue(
+      cartPurchase.ToDTO()
+    );
+    vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
+    purchasesHistoryController.purchaseCart("userId", cartDTO, 1, "creditCard");
+
+    expect(
+      purchasesHistoryController.getPurchase(cartPurchase.PurchaseId)
+    ).toStrictEqual(cartPurchase.ToDTO());
+  });
+  it("❎purchase cart with no cart", () => {
+    const purchasesHistoryController = new PurchasesHistoryController();
+    const cartPurchase = createCartPurchase();
+    const basketDTO = {
+      storeId: "storeId",
+      products: [
+        {
+          storeProductId: "productId",
+          quantity: 1,
+        },
+      ],
+    };
+    const StoreIDToBasketMap = new Map<string, BasketDTO>();
+    StoreIDToBasketMap.set("storeId", basketDTO);
+    const cartDTO = {
+      storeIdToBasket: StoreIDToBasketMap,
+    };
+    vi.spyOn(CartPurchase, "CartPurchaseDTOfromCartDTO").mockReturnValue(
+      cartPurchase.ToDTO()
+    );
+    vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
+    purchasesHistoryController.purchaseCart("userId", cartDTO, 1, "creditCard");
+
+    expect(() =>
+      purchasesHistoryController.purchaseCart(
+        "userId",
+        cartDTO,
+        1,
+        "creditCard"
+      )
+    ).toThrow();
   });
 });

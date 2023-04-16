@@ -8,7 +8,7 @@ import {
 } from "./Stores/StoreProduct";
 import { Loggable, loggable } from "./Loggable";
 import { type SearchArgs } from "./Stores/StoresController";
-import { CartPurchaseDTO } from "./PurchasesHistory/CartPurchaseHistory";
+import { type CartPurchaseDTO } from "./PurchasesHistory/CartPurchaseHistory";
 
 @loggable
 export class MarketFacade extends Loggable {
@@ -166,6 +166,7 @@ export class MarketFacade extends Loggable {
     this.controllers.Auth.changePassword(userId, oldPassword, newPassword);
   }
   makeStoreOwner(currentId: string, storeId: string, targetUserId: string) {
+    this.isConnectionValid(currentId);
     this.controllers.Stores.makeStoreOwner(currentId, storeId, targetUserId);
   }
 
@@ -174,6 +175,7 @@ export class MarketFacade extends Loggable {
     storeId: string,
     targetUserId: string
   ): void {
+    this.isConnectionValid(currentId);
     this.controllers.Stores.makeStoreManager(currentId, storeId, targetUserId);
   }
 
@@ -182,6 +184,7 @@ export class MarketFacade extends Loggable {
     storeId: string,
     targetUserId: string
   ): void {
+    this.isConnectionValid(currentId);
     this.controllers.Stores.removeStoreManager(
       currentId,
       storeId,
@@ -194,6 +197,7 @@ export class MarketFacade extends Loggable {
     storeId: string,
     targetUserId: string
   ): void {
+    this.isConnectionValid(currentId);
     this.controllers.Stores.removeStoreManager(
       currentId,
       storeId,
@@ -206,6 +210,7 @@ export class MarketFacade extends Loggable {
     targetUserId: string,
     permission: boolean
   ): void {
+    this.isConnectionValid(currentId);
     this.controllers.Stores.setAddingProductToStorePermission(
       currentId,
       storeId,
@@ -214,6 +219,7 @@ export class MarketFacade extends Loggable {
     );
   }
   canCreateProductInStore(currentId: string, storeId: string): boolean {
+    this.isConnectionValid(currentId);
     return this.controllers.Stores.canCreateProductInStore(currentId, storeId);
   }
   isStoreOwner(userId: string, storeId: string): boolean {

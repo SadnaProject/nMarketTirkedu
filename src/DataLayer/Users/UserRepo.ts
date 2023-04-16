@@ -1,4 +1,4 @@
-import { User } from "./User";
+import { User } from "../../DomainLayer/Users/User";
 export class UserRepo {
   private users: Map<string, User>;
 
@@ -30,13 +30,5 @@ export class UserRepo {
         throw new Error("User not found");
     }
     this.users.delete(id);
-  }
-  clone(userSource:string,userDest:string):void{
-    const Dest = this.users.get(userDest);
-    const Source = this.users.get(userSource);
-    if (Dest === undefined || Source === undefined  ) {
-      throw new Error("User not found");
-    }
-    Dest.clone(Source);
   }
 }

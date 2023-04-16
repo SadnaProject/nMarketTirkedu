@@ -141,7 +141,6 @@ export class AuthController
     }
     member.logout();//throws error if user is not connected
     return this.startSession();
-
   }
   public register(email: string, password: string): void {
     // throw new Error("Method not implemented.");

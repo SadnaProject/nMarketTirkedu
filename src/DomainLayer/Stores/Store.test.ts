@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { Store } from "./Store";
-import { type Repos, createTestRepos } from "./HasRepos";
+import { type Repos, createTestRepos, createRepos } from "./HasRepos";
 import {
   createStoreWithProduct,
   generateProductArgs,
@@ -9,6 +9,8 @@ import { type BasketDTO } from "../Users/Basket";
 import { ZodError } from "zod";
 import { faker } from "@faker-js/faker/locale/en";
 import { StoreProduct } from "./StoreProduct";
+import { type Controllers } from "../HasController";
+import { createTestControllers } from "../createControllers";
 
 export function generateStoreName() {
   return faker.company.name();
@@ -16,9 +18,10 @@ export function generateStoreName() {
 
 export function createStore(
   storeName: string,
-  repos: Repos = createTestRepos()
+  repos: Repos = createTestRepos(),
+  controllers: Controllers = createTestControllers("Stores")
 ) {
-  return new Store(storeName).initRepos(repos);
+  return new Store(storeName).initRepos(repos).initControllers(controllers);
 }
 
 describe("constructor", () => {
@@ -74,11 +77,11 @@ describe("get basket price", () => {
         { quantity: productData.quantity, storeProductId: product.Id },
       ],
     };
-    vi.spyOn(repos.Products, "getProductById").mockReturnValueOnce(product);
-    vi.spyOn(repos.Products, "getStoreIdByProductId").mockReturnValueOnce(
-      store.Id
-    );
+    vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValueOnce([
+      product,
+    ]);
     vi.spyOn(repos.Stores, "getStoreById").mockReturnValueOnce(store);
+    vi.spyOn(repos.Products, "getProductById").mockReturnValueOnce(product);
     expect(store.getBasketPrice(basket)).toBe(
       product.Price * productData.quantity
     );

@@ -306,11 +306,13 @@ export class StoresController
     productId: string,
     quantity: number
   ): void {
-    //TODO: this.Controllers.Jobs.per
-    // if (!hasPermission) {
-    //   throw new Error("User does not have permission to set product quantity.");
-    // }
-    StoreProduct.fromProductId(productId, this.Repos).Quantity = quantity;
+    const product = StoreProduct.fromProductId(productId, this.Repos);
+    if (
+      !this.Controllers.Jobs.canEditProductInStore(userId, product.Store.Id)
+    ) {
+      throw new Error("User does not have permission to set product quantity.");
+    }
+    product.Quantity = quantity;
   }
 
   decreaseProductQuantity(productId: string, quantity: number): void {
@@ -320,23 +322,32 @@ export class StoresController
   }
 
   deleteProduct(userId: string, productId: string): void {
-    //TODO: this.Controllers.Jobs.per
-    // if (!hasPermission) {
-    //   throw new Error("User does not have permission to delete product.");
-    // }
-    StoreProduct.fromProductId(productId, this.Repos).delete();
+    const product = StoreProduct.fromProductId(productId, this.Repos);
+    if (
+      !this.Controllers.Jobs.canRemoveProductFromStore(userId, product.Store.Id)
+    ) {
+      throw new Error("User does not have permission to delete product.");
+    }
+    product.delete();
   }
 
   setProductPrice(userId: string, productId: string, price: number): void {
-    //TODO: this.Controllers.Jobs.per
-    StoreProduct.fromProductId(productId, this.Repos).Price = price;
+    const product = StoreProduct.fromProductId(productId, this.Repos);
+    if (
+      !this.Controllers.Jobs.canEditProductInStore(userId, product.Store.Id)
+    ) {
+      throw new Error("User does not have permission to set product price.");
+    }
+    product.Price = price;
   }
 
   createStore(founderId: string, storeName: string): string {
     if (!this.Controllers.Auth.isMember(founderId)) {
       throw new Error("User is not a member.");
     }
-    const store = new Store(storeName).initRepos(this.Repos);
+    const store = new Store(storeName)
+      .initRepos(this.Repos)
+      .initControllers(this.Controllers);
     this.Controllers.Jobs.InitializeStore(founderId, store.Id);
     // todo needs to check if possible before doing any change
     if (this.Repos.Stores.getAllNames().has(storeName))
@@ -349,18 +360,44 @@ export class StoresController
     if (!this.Controllers.Jobs.canActivateStore(userId, storeId)) {
       throw new Error("User does not have permission to activate store.");
     }
-    Store.fromStoreId(storeId, this.Repos).IsActive = true;
+    const store = Store.fromStoreId(storeId, this.Repos);
+    store.IsActive = true;
+    const notifiedUserIds = [
+      store.FounderId,
+      ...store.OwnersIds,
+      ...store.ManagersIds,
+    ];
+    notifiedUserIds.forEach((uid) => {
+      this.Controllers.Users.addNotification(
+        uid,
+        "Store activated 💃",
+        `Store ${storeId} has been activated`
+      );
+    });
   }
 
   deactivateStore(userId: string, storeId: string): void {
     if (!this.Controllers.Jobs.canDeactivateStore(userId, storeId)) {
       throw new Error("User does not have permission to deactivate store.");
     }
-    Store.fromStoreId(storeId, this.Repos).IsActive = false;
+    const store = Store.fromStoreId(storeId, this.Repos);
+    store.IsActive = false;
+    const notifiedUserIds = [
+      store.FounderId,
+      ...store.OwnersIds,
+      ...store.ManagersIds,
+    ];
+    notifiedUserIds.forEach((uid) => {
+      this.Controllers.Users.addNotification(
+        uid,
+        "Store deactivated 💤",
+        `Store ${storeId} has been deactivated`
+      );
+    });
   }
 
   closeStorePermanently(userId: string, storeId: string): void {
-    if (!this.Controllers.Jobs.isSystemAdmin(userId)) {
+    if (!this.Controllers.Jobs.canCloseStorePermanently(userId, storeId)) {
       throw new Error(
         "User does not have permission to close store permanently."
       );
@@ -415,24 +452,24 @@ export class StoresController
     );
   }
   canCreateProductInStore(currentId: string, storeId: string) {
-    return this.Controllers.Jobs.canCreateProductInStore(currentId, storeId);
+    return Store.fromStoreId(storeId, this.Repos).canCreateProduct(currentId);
   }
   isStoreOwner(userId: string, storeId: string) {
-    return this.Controllers.Jobs.isStoreOwner(userId, storeId);
+    return Store.fromStoreId(storeId, this.Repos).isOwner(userId);
   }
   isStoreManager(userId: string, storeId: string) {
-    return this.Controllers.Jobs.isStoreManager(userId, storeId);
+    return Store.fromStoreId(storeId, this.Repos).isManager(userId);
   }
   isStoreFounder(userId: string, storeId: string) {
-    return this.Controllers.Jobs.isStoreFounder(userId, storeId);
+    return Store.fromStoreId(storeId, this.Repos).isFounder(userId);
   }
   getStoreFounderId(storeId: string) {
-    return this.Controllers.Jobs.getStoreFounderId(storeId);
+    return Store.fromStoreId(storeId, this.Repos).FounderId;
   }
   getStoreOwnersIds(storeId: string) {
-    return this.Controllers.Jobs.getStoreOwnersIds(storeId);
+    return Store.fromStoreId(storeId, this.Repos).OwnersIds;
   }
   getStoreManagersIds(storeId: string) {
-    return this.Controllers.Jobs.getStoreManagersIds(storeId);
+    return Store.fromStoreId(storeId, this.Repos).ManagersIds;
   }
 }

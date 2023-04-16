@@ -49,6 +49,8 @@ export class MemberUserAuth extends UserAuth {
     z.string().parse(password);
   }
   private validateEmailLegality(email: string): void {
+    if(email==="admin")
+        return;
     z.string().email().parse(email);
   }
   public isPasswordCorrect(password: string): boolean {

@@ -20,8 +20,8 @@ export class MarketFacade extends Loggable {
     this.initializeSystemAdmin();
   }
   private initializeSystemAdmin() {
-    this.controllers.Auth.register("email", "admin");
-    this.controllers.Jobs.setInitialAdmin("email");
+    const userId=this.controllers.Auth.register("admin","admin");
+    this.controllers.Jobs.setInitialAdmin(userId);
   }
 
   private isConnectionValid(userId: string): void {

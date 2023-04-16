@@ -95,7 +95,7 @@ export interface IJobsController {
    * This function sets the permission of a user to add products to a store.
    * @param currentId The id of the user that is currently logged in.
    * @param storeId The id of the store that is related to the permission.
-   * @param targetUserId The id of the user that his permission is being set
+   * @param targetUserId The id of the user that his permission is being set.
    * @param permission The permission that is being set.
    */
   setAddingProductToStorePermission(
@@ -109,7 +109,7 @@ export interface IJobsController {
    * @param currentId The id of the user that is currently logged in.
    * @param storeId The id of the store that is related to the permission.
    * @param targetUserId The id of the user that his permission is being set.
-   * @param permission The permission that is being set( true = can remove, false = can't remove)
+   * @param permission The permission that is being set( true = can remove, false = can't remove).  
    */
   setRemovingProductFromStorePermission(
     currentId: string,
@@ -122,7 +122,7 @@ export interface IJobsController {
    * @param currentId The id of the user that is currently logged in.
    * @param storeId The id of the store that is related to the permission.
    * @param targetUserId The id of the user that his permission is being set.
-   * @param permission The permission that is being set( true = can edit, false = can't edit)
+   * @param permission The permission that is being set( true = can edit, false = can't edit).
    */
   setEditingProductInStorePermission(
     currentId: string,
@@ -145,7 +145,10 @@ export interface IJobsController {
    * @throws Error if the store doesn't exist.
    * @throws Error if the user doesn't exist.
    */
-  canRemoveProductFromStore(userId: string, storeId: string): boolean;
+  canRemoveProductFromStore(
+    userId: string,
+    storeId: string
+  ): boolean;
   /**
    * This function returns whether a user has permission to edit a product in a store.
    * @param userId The id of the user that we are checking the permission of.
@@ -153,10 +156,13 @@ export interface IJobsController {
    * @returns A boolean that represents the permission.
    * @throws Error if the store doesn't exist.
    * @throws Error if the user doesn't exist.
-   */
-  canEditProductInStore(userId: string, storeId: string): boolean;
+   */ 
+  canEditProductInStore(
+    userId: string,
+    storeId: string
+  ): boolean;
   /**
-   * This function returns whether a user has permission to active the store
+   * This function returns whether a user has permission to active the store.
    * @param userId The id of the user that we are checking the permission of.
    * @param storeId The id of the store related to the permission.
    * @returns A boolean that represents the permission.
@@ -165,16 +171,19 @@ export interface IJobsController {
    */
   canActivateStore(userId: string, storeId: string): boolean;
   /**
-   * This function returns whether a user has permission to deactivate the store
+   * This function returns whether a user has permission to deactivate the store.
    * @param userId The id of the user that we are checking the permission of.
    * @param storeId The id of the store related to the permission.
    * @returns A boolean that represents the permission.
    * @throws Error if the store doesn't exist.
    * @throws Error if the user doesn't exist.
    */
-  canDeactivateStore(userId: string, storeId: string): boolean;
+  canDeactivateStore( 
+    userId: string,
+    storeId: string
+  ): boolean;
   /**
-   * This function returns whether a user has permission to close the store permanently
+   * This function returns whether a user has permission to close the store permanently.
    * @param userId The id of the user that we are checking the permission of.
    * @param storeId The id of the store related to the permission.
    */

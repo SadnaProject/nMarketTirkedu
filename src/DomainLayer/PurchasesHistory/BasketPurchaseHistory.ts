@@ -41,11 +41,11 @@ export class BasketPurchase extends HasRepos {
     purchaseId: string
   ): BasketPurchaseDTO {
     const products = new Map<string, ProductPurchaseDTO>();
-    basketDTO.products.forEach((productPurchase, productId) => {
+    basketDTO.products.forEach((product) => {
       products.set(
-        purchaseId,
+        product.storeProductId,
         ProductPurchase.ProductPurchaseDTOFromBasketProductDTO(
-          productPurchase,
+          product,
           purchaseId
         )
       );

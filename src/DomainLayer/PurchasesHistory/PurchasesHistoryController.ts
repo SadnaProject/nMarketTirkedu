@@ -13,6 +13,7 @@ import { Testable, testable } from "~/Testable";
 import { HasRepos, createRepos } from "./HasRepos";
 import { PaymentAdapter } from "./PaymentAdaptor";
 import { ProductPurchase } from "./ProductPurchaseHistory";
+import { error } from "console";
 
 export interface IPurchasesHistoryController {
   getPurchase(purchaseId: string): CartPurchaseDTO;
@@ -85,10 +86,8 @@ export class PurchasesHistoryController
 
   addPurchase(cartPurchase: CartPurchase): void {
     // check that purchase with same id doesn't exist
-    if (
-      this.Repos.CartPurchases.getPurchaseById(cartPurchase.PurchaseId) !==
-      undefined
-    ) {
+    // if this.Repos.CartPurchases.getPurchaseById(cartPurchase.PurchaseId) dosent throw, throw error
+    if (this.Repos.CartPurchases.doesPurchaseExist(cartPurchase.PurchaseId)) {
       throw new Error("Purchase already exists");
     }
     this.Repos.CartPurchases.addCartPurchase(cartPurchase);
@@ -114,7 +113,7 @@ export class PurchasesHistoryController
     storeId: string,
     rating: number
   ): void {
-    if (this.Repos.Reviews.getStoreReview(purchaseId, storeId) !== undefined) {
+    if (this.Repos.Reviews.doesStoreReviewExist(purchaseId, storeId)) {
       throw new Error("Store already reviewed");
     }
     if (this.Repos.BasketPurchases.getPurchaseById(purchaseId) === undefined) {
@@ -139,8 +138,7 @@ export class PurchasesHistoryController
     description: string
   ): void {
     if (
-      this.Repos.ProductReviews.getProductReview(purchaseId, productId) !==
-      undefined
+      this.Repos.ProductReviews.doesProductReviewExist(purchaseId, productId)
     ) {
       throw new Error("Product already reviewed");
     }

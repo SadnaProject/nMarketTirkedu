@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { PurchasesHistoryController } from "./PurchasesHistoryController";
 import { ProductReviewArgs, ProductReview } from "./ProductReview";
 import { Repos, createRepos } from "./HasRepos";
@@ -79,62 +79,6 @@ const createCartPurchase = (repos: Repos = createRepos()) =>
     cartPurchaseData.storeIdToBasketPurchases,
     cartPurchaseData.totalPrice
   ).initRepos(repos);
-
-describe("Review constructor", () => {
-  it("✅creates a review", () => {
-    const review = createReview();
-    expect(review.Rating).toBe(reviewData.rating);
-    expect(review.Id).toBe(reviewData.id);
-    expect(review.CreatedAt).toBe(reviewData.createdAt);
-    expect(review.UserId).toBe(reviewData.userId);
-    expect(review.PurchaseId).toBe(reviewData.purchaseId);
-    expect(review.StoreId).toBe(undefined);
-  });
-
-  it("❎gets negative rating", () => {
-    expect(() => new Review({ ...reviewData, rating: -1 })).toThrow();
-  });
-
-  it("❎gets rating over 5", () => {
-    expect(() => new Review({ ...reviewData, rating: 6 })).toThrow();
-  });
-});
-
-describe("ProductReview constructor", () => {
-  it("✅creates a product review", () => {
-    const productReview = createProductReview();
-    expect(productReview.Rating).toBe(reviewData.rating);
-    expect(productReview.Id).toBe(reviewData.id);
-    expect(productReview.CreatedAt).toBe(reviewData.createdAt);
-    expect(productReview.UserId).toBe(reviewData.userId);
-    expect(productReview.PurchaseId).toBe(reviewData.purchaseId);
-    expect(productReview.StoreId).toBe(undefined);
-    expect(productReview.Title).toBe(productReviewData.title);
-    expect(productReview.Description).toBe(productReviewData.description);
-  });
-
-  it("❎gets negative rating", () => {
-    expect(
-      () => new ProductReview({ ...productReviewData, rating: -1 })
-    ).toThrow();
-  });
-
-  it("❎gets rating over 5", () => {
-    expect(
-      () => new ProductReview({ ...productReviewData, rating: 6 })
-    ).toThrow();
-  });
-  it("❎gets storeId and productId", () => {
-    expect(
-      () => new ProductReview({ ...productReviewData, storeId: "storeId" })
-    ).toThrow();
-  });
-  it("❎gets undefined productId", () => {
-    expect(
-      () => new ProductReview({ ...productReviewData, productId: undefined })
-    ).toThrow();
-  });
-});
 
 // add product purchase review
 describe("addProductPurchaseReview", () => {

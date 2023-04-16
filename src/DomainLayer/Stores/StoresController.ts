@@ -167,7 +167,44 @@ export interface IStoresController extends HasRepos {
    * @throws Error if a product does not belong to the store of its basket.
    */
   getBasketPrice(basketDTO: BasketDTO): number;
+  /**
+   * This function returns the products that match the search arguments.
+   * @param searchArgs The search arguments.
+   */
   searchProducts(searchArgs: SearchArgs): StoreProductDTO[];
+  makeStoreOwner(
+    currentId: string,
+    storeId: string,
+    targetUserId: string
+  ): void;
+  makeStoreManager(
+    currentId: string,
+    storeId: string,
+    targetUserId: string
+  ): void;
+  removeStoreOwner(
+    currentId: string,
+    storeId: string,
+    targetUserId: string
+  ): void;
+  removeStoreManager(
+    currentId: string,
+    storeId: string,
+    targetUserId: string
+  ): void;
+  setAddingProductToStorePermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): void;
+  canCreateProductInStore(currentId: string, storeId: string): boolean;
+  isStoreOwner(userId: string, storeId: string): boolean;
+  isStoreManager(userId: string, storeId: string): boolean;
+  isStoreFounder(userId: string, storeId: string): boolean;
+  getStoreFounderId(storeId: string): string;
+  getStoreOwnersIds(storeId: string): string[];
+  getStoreManagersIds(storeId: string): string[];
 }
 
 @testable
@@ -350,5 +387,52 @@ export class StoresController
   getBasketPrice(basketDTO: BasketDTO): number {
     const store = Store.fromStoreId(basketDTO.storeId, this.Repos);
     return store.getBasketPrice(basketDTO);
+  }
+
+  makeStoreOwner(currentId: string, storeId: string, targetUserId: string) {
+    this.Controllers.Jobs.makeStoreOwner(currentId, storeId, targetUserId);
+  }
+  makeStoreManager(currentId: string, storeId: string, targetUserId: string) {
+    this.Controllers.Jobs.makeStoreManager(currentId, storeId, targetUserId);
+  }
+  removeStoreOwner(currentId: string, storeId: string, targetUserId: string) {
+    this.Controllers.Jobs.removeStoreOwner(currentId, storeId, targetUserId);
+  }
+  removeStoreManager(currentId: string, storeId: string, targetUserId: string) {
+    this.Controllers.Jobs.removeStoreManager(currentId, storeId, targetUserId);
+  }
+  setAddingProductToStorePermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ) {
+    this.Controllers.Jobs.setAddingProductToStorePermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission
+    );
+  }
+  canCreateProductInStore(currentId: string, storeId: string) {
+    return this.Controllers.Jobs.canCreateProductInStore(currentId, storeId);
+  }
+  isStoreOwner(userId: string, storeId: string) {
+    return this.Controllers.Jobs.isStoreOwner(userId, storeId);
+  }
+  isStoreManager(userId: string, storeId: string) {
+    return this.Controllers.Jobs.isStoreManager(userId, storeId);
+  }
+  isStoreFounder(userId: string, storeId: string) {
+    return this.Controllers.Jobs.isStoreFounder(userId, storeId);
+  }
+  getStoreFounderId(storeId: string) {
+    return this.Controllers.Jobs.getStoreFounderId(storeId);
+  }
+  getStoreOwnersIds(storeId: string) {
+    return this.Controllers.Jobs.getStoreOwnersIds(storeId);
+  }
+  getStoreManagersIds(storeId: string) {
+    return this.Controllers.Jobs.getStoreManagersIds(storeId);
   }
 }

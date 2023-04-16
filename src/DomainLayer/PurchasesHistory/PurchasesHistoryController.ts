@@ -85,7 +85,10 @@ export class PurchasesHistoryController
 
   addPurchase(cartPurchase: CartPurchase): void {
     // check that purchase with same id doesn't exist
-    if (this.Repos.CartPurchases.getPurchaseById(cartPurchase.PurchaseId) !== undefined) {
+    if (
+      this.Repos.CartPurchases.getPurchaseById(cartPurchase.PurchaseId) !==
+      undefined
+    ) {
       throw new Error("Purchase already exists");
     }
     this.Repos.CartPurchases.addCartPurchase(cartPurchase);
@@ -142,10 +145,18 @@ export class PurchasesHistoryController
       throw new Error("Product already reviewed");
     }
     if (
-      this.Repos.ProductsPurchases.getProductPurchaseById(purchaseId) ===
+      this.Repos.ProductsPurchases.getProductsPurchaseById(purchaseId) ===
       undefined
     ) {
       throw new Error("Purchase not found");
+    }
+    // check if there is product with productId in getProductsPurchaseById
+    if (
+      this.Repos.ProductsPurchases.getProductsPurchaseById(purchaseId).find(
+        (product) => product.ProductId === productId
+      ) === undefined
+    ) {
+      throw new Error("Product not found");
     }
     const productReview = new ProductReview({
       rating: rating,

@@ -155,12 +155,60 @@ describe("addProductPurchaseReview", () => {
     ).not.toThrow();
   });
 
-  it("❎adds product purchase review", () => {
+  // try to review the same product twice in the same purchase
+  it("❎adds two product purchase reviews", () => {
+    const productReview = createProductReview();
+    const cartPurchase = createCartPurchase();
     const purchasesHistoryController = new PurchasesHistoryController();
+    purchasesHistoryController.addPurchase(cartPurchase);
+    purchasesHistoryController.addProductPurchaseReview(
+      productReview.UserId,
+      productReview.PurchaseId,
+      productReview.ProductId!,
+      productReview.Rating,
+      productReview.Title,
+      productReview.Description
+    );
     expect(() =>
       purchasesHistoryController.addProductPurchaseReview(
         "userId",
         "purchaseId",
+        "productId",
+        5,
+        "title",
+        "description"
+      )
+    ).toThrow();
+  });
+
+  // try to review a product that doesn't exist in the purchase
+  it("❎adds product purchase review to a product that doesn't exist in the purchase", () => {
+    const productReview = createProductReview();
+    const cartPurchase = createCartPurchase();
+    const purchasesHistoryController = new PurchasesHistoryController();
+    purchasesHistoryController.addPurchase(cartPurchase);
+    expect(() =>
+      purchasesHistoryController.addProductPurchaseReview(
+        "userId",
+        "purchaseId",
+        "productId2",
+        5,
+        "title",
+        "description"
+      )
+    ).toThrow();
+  });
+
+  // try to add a review to a purchase that doesn't exist
+  it("❎adds product purchase review to a purchase that doesn't exist", () => {
+    const productReview = createProductReview();
+    const cartPurchase = createCartPurchase();
+    const purchasesHistoryController = new PurchasesHistoryController();
+    purchasesHistoryController.addPurchase(cartPurchase);
+    expect(() =>
+      purchasesHistoryController.addProductPurchaseReview(
+        "userId",
+        "purchaseId2",
         "productId",
         5,
         "title",
@@ -371,5 +419,45 @@ describe("getReviewsByStore", () => {
         5
       )
     ).toThrow();
+  });
+});
+
+// test get purchase by store id
+describe("getPurchasesByStore", () => {
+  it("✅gets purchases by store id", () => {
+    const purchasesHistoryController = new PurchasesHistoryController();
+    const cartPurchase = createCartPurchase();
+    purchasesHistoryController.addPurchase(cartPurchase);
+
+    expect(
+      purchasesHistoryController.getPurchasesByStore("storeId").length
+    ).toBe(1);
+  });
+  it("❎gets undefined purchases by store id", () => {
+    const purchasesHistoryController = new PurchasesHistoryController();
+    expect(
+      purchasesHistoryController.getPurchasesByStore("storeId").length
+    ).toBe(0);
+  });
+});
+
+// test getStoreRating
+describe("getStoreRating", () => {
+  it("✅gets store rating", () => {
+    const purchasesHistoryController = new PurchasesHistoryController();
+    const cartPurchase = createCartPurchase();
+    purchasesHistoryController.addPurchase(cartPurchase);
+    purchasesHistoryController.addStorePurchaseReview(
+      "userId",
+      "purchaseId",
+      "storeId",
+      5
+    );
+
+    expect(purchasesHistoryController.getStoreRating("storeId")).toBe(5);
+  });
+  it("❎gets undefined store rating", () => {
+    const purchasesHistoryController = new PurchasesHistoryController();
+    expect(purchasesHistoryController.getStoreRating("storeId")).toBe(NaN);
   });
 });

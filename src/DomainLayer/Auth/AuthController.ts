@@ -55,8 +55,9 @@ export interface IAuthController extends HasRepos {
    * @param password The user's password.
    * @throws Error if the email is already in use.
    * @throws Error if the password is invalid.
+   * @returns The user's ID.
    */
-  register(email: string, password: string): void;
+  register(email: string, password: string): string;
   /**
    * Changes the user's email.
    * @param userId The user's ID.
@@ -142,7 +143,7 @@ export class AuthController
     member.logout();//throws error if user is not connected
     return this.startSession();
   }
-  public register(email: string, password: string): void {
+  public register(email: string, password: string): string {
     // throw new Error("Method not implemented.");
     if(this.Repos.Users.getMemberByEmail(email) !== undefined){
       throw new Error("Email already in use, please try again with a different email");  
@@ -152,6 +153,7 @@ export class AuthController
     // }
     const ua= MemberUserAuth.create(email,password);
     this.Repos.Users.addMember(ua);
+    return ua.UserId;
   }
   
   public changeEmail(userId: string, newEmail: string): void {

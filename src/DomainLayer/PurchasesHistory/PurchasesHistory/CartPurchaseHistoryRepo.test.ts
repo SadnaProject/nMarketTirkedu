@@ -96,7 +96,6 @@ describe("getPurchasesByUser", () => {
     ]);
   });
 });
-
 describe("doesPurchaseExist", () => {
   const storeIdToBasket = new Map<string, BasketPurchase>();
 

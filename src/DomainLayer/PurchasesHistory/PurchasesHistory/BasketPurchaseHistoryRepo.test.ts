@@ -94,7 +94,6 @@ describe("getPurchaseByStoreId", () => {
     ).toBe(2);
   });
 });
-
 describe("hasPurchase", () => {
   const productIdToProductPurchase = new Map<string, ProductPurchase>();
   it("should return true", () => {
@@ -123,3 +122,4 @@ describe("hasPurchase", () => {
     );
   });
 });
+

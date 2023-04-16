@@ -54,7 +54,6 @@ describe("getAllStoreReviews", () => {
     ]);
   });
 });
-
 describe("doesStoreReviewExist", () => {
   it("✅returns true when store review exists", () => {
     const reviewRepo = new ReviewRepo();

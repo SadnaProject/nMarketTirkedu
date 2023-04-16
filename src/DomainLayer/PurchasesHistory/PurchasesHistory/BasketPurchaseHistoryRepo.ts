@@ -28,5 +28,9 @@ export class BasketPurchaseRepo {
     return this.BasketPurchases.some(
       (purchase) => purchase.PurchaseId === purchaseId
     );
+    if (purchase === undefined) {
+      throw new Error("Purchase not found");
+    }
+    return purchase;
   }
 }

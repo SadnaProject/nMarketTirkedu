@@ -20,7 +20,7 @@ export class MarketFacade extends Loggable {
     this.initializeSystemAdmin();
   }
   private initializeSystemAdmin() {
-    const userId=this.controllers.Auth.register("admin","admin");
+    const userId = this.controllers.Auth.register("admin", "admin");
     this.controllers.Jobs.setInitialAdmin(userId);
   }
 
@@ -166,7 +166,7 @@ export class MarketFacade extends Loggable {
     this.controllers.Auth.changePassword(userId, oldPassword, newPassword);
   }
   makeStoreOwner(currentId: string, storeId: string, targetUserId: string) {
-    this.controllers.Jobs.makeStoreOwner(currentId, storeId, targetUserId);
+    this.controllers.Stores.makeStoreOwner(currentId, storeId, targetUserId);
   }
 
   makeStoreManager(
@@ -174,7 +174,7 @@ export class MarketFacade extends Loggable {
     storeId: string,
     targetUserId: string
   ): void {
-    this.controllers.Jobs.makeStoreManager(currentId, storeId, targetUserId);
+    this.controllers.Stores.makeStoreManager(currentId, storeId, targetUserId);
   }
 
   removeStoreOwner(
@@ -182,7 +182,11 @@ export class MarketFacade extends Loggable {
     storeId: string,
     targetUserId: string
   ): void {
-    this.controllers.Jobs.removeStoreManager(currentId, storeId, targetUserId);
+    this.controllers.Stores.removeStoreManager(
+      currentId,
+      storeId,
+      targetUserId
+    );
   }
 
   removeStoreManager(
@@ -190,7 +194,11 @@ export class MarketFacade extends Loggable {
     storeId: string,
     targetUserId: string
   ): void {
-    this.controllers.Jobs.removeStoreManager(currentId, storeId, targetUserId);
+    this.controllers.Stores.removeStoreManager(
+      currentId,
+      storeId,
+      targetUserId
+    );
   }
   setAddingProductToStorePermission(
     currentId: string,
@@ -198,7 +206,7 @@ export class MarketFacade extends Loggable {
     targetUserId: string,
     permission: boolean
   ): void {
-    this.controllers.Jobs.setAddingProductToStorePermission(
+    this.controllers.Stores.setAddingProductToStorePermission(
       currentId,
       storeId,
       targetUserId,
@@ -206,28 +214,28 @@ export class MarketFacade extends Loggable {
     );
   }
   canCreateProductInStore(currentId: string, storeId: string): boolean {
-    return this.controllers.Jobs.canCreateProductInStore(currentId, storeId);
+    return this.controllers.Stores.canCreateProductInStore(currentId, storeId);
   }
   isStoreOwner(userId: string, storeId: string): boolean {
-    return this.controllers.Jobs.isStoreOwner(userId, storeId);
+    return this.controllers.Stores.isStoreOwner(userId, storeId);
   }
   isStoreManager(userId: string, storeId: string): boolean {
-    return this.controllers.Jobs.isStoreManager(userId, storeId);
+    return this.controllers.Stores.isStoreManager(userId, storeId);
   }
   isStoreFounder(userId: string, storeId: string): boolean {
-    return this.controllers.Jobs.isStoreFounder(userId, storeId);
+    return this.controllers.Stores.isStoreFounder(userId, storeId);
   }
   isSystemAdmin(userId: string): boolean {
     return this.controllers.Jobs.isSystemAdmin(userId);
   }
   getStoreFounder(storeId: string): string {
-    return this.controllers.Jobs.getStoreFounderId(storeId);
+    return this.controllers.Stores.getStoreFounderId(storeId);
   }
   getStoreOwners(storeId: string): string[] {
-    return this.controllers.Jobs.getStoreOwnersIds(storeId);
+    return this.controllers.Stores.getStoreOwnersIds(storeId);
   }
   getStoreManagers(storeId: string): string[] {
-    return this.controllers.Jobs.getStoreManagersIds(storeId);
+    return this.controllers.Stores.getStoreManagersIds(storeId);
   }
   createProduct(
     userId: string,

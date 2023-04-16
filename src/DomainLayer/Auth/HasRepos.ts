@@ -33,11 +33,14 @@ export function createRepos() {
   }
   return repos as Repos;
 }
-
-export function createTestRepos() {
+export function createTestRepos(testedRepo: keyof Repos | null = null) {
   const repos: Record<string, unknown> = {};
   for (const [key, Repo] of Object.entries(reposMapping)) {
-    repos[key] = new Repo().test();
+    let repo = new Repo();
+    if (key !== testedRepo) {
+      repo = repo.test();
+    }
+    repos[key] = repo;
   }
   return repos as Repos;
 }

@@ -6,11 +6,11 @@ export class UserRepo {
     this.users = new Map();
   }
 
-  public addUser(userId :string,userName:string): void {
+  public addUser(userId :string): void {
     if (this.users.has(userId)) {
       throw new Error("User already exists");
     }
-    this.users.set(userId, new User({id:userId,name:userName}));
+    this.users.set(userId, new User(userId));
   }
 
   public getUser(id: string): User {

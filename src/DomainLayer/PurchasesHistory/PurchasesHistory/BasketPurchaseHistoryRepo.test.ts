@@ -94,3 +94,32 @@ describe("getPurchaseByStoreId", () => {
     ).toBe(2);
   });
 });
+
+describe("hasPurchase", () => {
+  const productIdToProductPurchase = new Map<string, ProductPurchase>();
+  it("should return true", () => {
+    const basketPurchase = new BasketPurchase(
+      basketPurchaseData.storeId,
+      productIdToProductPurchase,
+      basketPurchaseData.price,
+      basketPurchaseData.purchaseId
+    );
+    const basketPurchaseRepo = new BasketPurchaseRepo();
+    basketPurchaseRepo.addBasketPurchase(basketPurchase);
+    expect(basketPurchaseRepo.hasPurchase(basketPurchase.PurchaseId)).toBe(
+      true
+    );
+  });
+  it("should return false", () => {
+    const basketPurchase = new BasketPurchase(
+      basketPurchaseData.storeId,
+      productIdToProductPurchase,
+      basketPurchaseData.price,
+      basketPurchaseData.purchaseId
+    );
+    const basketPurchaseRepo = new BasketPurchaseRepo();
+    expect(basketPurchaseRepo.hasPurchase(basketPurchase.PurchaseId)).toBe(
+      false
+    );
+  });
+});

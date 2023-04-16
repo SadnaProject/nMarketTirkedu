@@ -54,3 +54,22 @@ describe("getAllStoreReviews", () => {
     ]);
   });
 });
+
+describe("doesStoreReviewExist", () => {
+  it("✅returns true when store review exists", () => {
+    const reviewRepo = new ReviewRepo();
+    const review = createReview();
+    reviewRepo.addStoreReview(review);
+    expect(
+      reviewRepo.doesStoreReviewExist(review.PurchaseId, review.StoreId!)
+    ).toBe(true);
+  });
+
+  it("✅returns false when store review does not exist", () => {
+    const reviewRepo = new ReviewRepo();
+    const review = createReview();
+    expect(
+      reviewRepo.doesStoreReviewExist(review.PurchaseId, review.StoreId!)
+    ).toBe(false);
+  });
+});

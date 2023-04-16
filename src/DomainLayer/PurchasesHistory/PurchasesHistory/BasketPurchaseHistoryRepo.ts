@@ -24,4 +24,9 @@ export class BasketPurchaseRepo {
     }
     return purchase;
   }
+  public hasPurchase(purchaseId: string): boolean {
+    return this.BasketPurchases.some(
+      (purchase) => purchase.PurchaseId === purchaseId
+    );
+  }
 }

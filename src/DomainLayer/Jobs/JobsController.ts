@@ -109,7 +109,7 @@ export interface IJobsController {
    * @param currentId The id of the user that is currently logged in.
    * @param storeId The id of the store that is related to the permission.
    * @param targetUserId The id of the user that his permission is being set.
-   * @param permission The permission that is being set( true = can remove, false = can't remove).  
+   * @param permission The permission that is being set( true = can remove, false = can't remove).
    */
   setRemovingProductFromStorePermission(
     currentId: string,
@@ -145,10 +145,7 @@ export interface IJobsController {
    * @throws Error if the store doesn't exist.
    * @throws Error if the user doesn't exist.
    */
-  canRemoveProductFromStore(
-    userId: string,
-    storeId: string
-  ): boolean;
+  canRemoveProductFromStore(userId: string, storeId: string): boolean;
   /**
    * This function returns whether a user has permission to edit a product in a store.
    * @param userId The id of the user that we are checking the permission of.
@@ -156,11 +153,8 @@ export interface IJobsController {
    * @returns A boolean that represents the permission.
    * @throws Error if the store doesn't exist.
    * @throws Error if the user doesn't exist.
-   */ 
-  canEditProductInStore(
-    userId: string,
-    storeId: string
-  ): boolean;
+   */
+  canEditProductInStore(userId: string, storeId: string): boolean;
   /**
    * This function returns whether a user has permission to active the store.
    * @param userId The id of the user that we are checking the permission of.
@@ -178,10 +172,7 @@ export interface IJobsController {
    * @throws Error if the store doesn't exist.
    * @throws Error if the user doesn't exist.
    */
-  canDeactivateStore( 
-    userId: string,
-    storeId: string
-  ): boolean;
+  canDeactivateStore(userId: string, storeId: string): boolean;
   /**
    * This function returns whether a user has permission to close the store permanently.
    * @param userId The id of the user that we are checking the permission of.
@@ -242,6 +233,18 @@ export interface IJobsController {
    *
    */
   setInitialAdmin(userId: string): void;
+  /**
+   * This function checks if a user can receive any data from a store(owners, managers, products, etc.)
+   * @param userId
+   * @param storeId
+   */
+  canReceiveDataFromStore(userId: string, storeId: string): boolean;
+  /**
+   * This function checks if a user can receive purchase history from a store.
+   * @param userId
+   * @param storeId
+   */
+  canReceivePurchaseHistoryFromStore(userId: string, storeId: string): boolean;
 }
 
 @testable
@@ -260,6 +263,25 @@ export class JobsController
     // this.managerRole = new ManagerRole();
     // this.ownerRole = new OwnerRole();
     // this.founderRole = new FounderRole();
+  }
+  canReceiveDataFromStore(userId: string, storeId: string): boolean {
+    const positionHolder: PositionHolder | undefined =
+      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId, storeId);
+    if (positionHolder === undefined) {
+      return false;
+    }
+    return positionHolder.Role.hasPermission("SeeStoreData");
+  }
+  canReceivePurchaseHistoryFromStore(userId: string, storeId: string): boolean {
+    if (this.isSystemAdmin(userId)) {
+      return true;
+    }
+    const positionHolder: PositionHolder | undefined =
+      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId, storeId);
+    if (positionHolder === undefined) {
+      return false;
+    }
+    return positionHolder.Role.hasPermission("SeeStoreData");
   }
 
   InitializeStore(founderId: string, storeId: string): void {

@@ -52,7 +52,9 @@ export class ProductPurchase extends HasRepos {
     return new ProductPurchase({
       productId: basketProductDTO.storeProductId,
       quantity: basketProductDTO.quantity,
-      price: basketProductDTO.price,
+      price: new StoresController().getProductPrice(
+        basketProductDTO.storeProductId
+      ),
       purchaseId: purchaseId,
     });
   }

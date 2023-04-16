@@ -87,7 +87,7 @@ export interface IUsersController {
   ): string;
   /**
    * This function will start new session for user.
-   **/
+   */
   startSession(): string;
   /**
    * This function will end the current session for user.
@@ -95,14 +95,14 @@ export interface IUsersController {
    */
   disconnect(userId: string): void;
   /**
-   * this function will logs in the member to the system.
+   * This function will logs in the member to the system.
    * @param guestId The id of the guest that is currently logged in.
    * @param email The email of the user that want to login.
    * @param password The password of the user that want to login.
-   **/
+   */
   login(guestId: string, email: string, password: string): string
   /**
-   * this function will logs out the member from the system.
+   * This function will logs out the member from the system.
    * @param userId The id of the user that is currently logged in.
    */
   logout(userId: string): string;
@@ -165,6 +165,7 @@ export class UsersController
     const notificationMsg = `The cart ${cart.toString()} has been purchased for ${price}.`;
     const notification = new Notification("purchase", notificationMsg);
     user.addNotification(notification);
+    user.clearCart(); /// notice we clear the cart in the end of the purchase.
   }
   addUser(userId: string): void {
     this.Repos.Users.addUser(userId);
@@ -196,6 +197,7 @@ export class UsersController
     return guestId;
   }
   login(guestId: string, email: string, password: string): string {
+    this.Repos.Users.getUser(guestId);
     const MemberId = this.Controllers.Auth.login(guestId, email, password);
     this.Repos.Users.addUser(MemberId);
     this.Repos.Users.clone(guestId, MemberId);

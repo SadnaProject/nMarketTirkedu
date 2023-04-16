@@ -1,6 +1,5 @@
 import { MarketFacade } from "../DomainLayer/MarketFacade";
 import { type CartDTO } from "../DomainLayer/Users/Cart";
-import { type StoreDTO } from "../DomainLayer/Stores/Store";
 import { type BasketDTO } from "../DomainLayer/Users/Basket";
 import {
   type StoreProductDTO,

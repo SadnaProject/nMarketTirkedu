@@ -309,11 +309,17 @@ export class StoresController
   }
 
   activateStore(userId: string, storeId: string): void {
-    throw new Error("Method not implemented.");
+    if (!this.Controllers.Jobs.canActivateStore(userId, storeId)) {
+      throw new Error("User does not have permission to activate store.");
+    }
+    Store.fromStoreId(storeId, this.Repos).IsActive = true;
   }
 
   deactivateStore(userId: string, storeId: string): void {
-    throw new Error("Method not implemented.");
+    if (!this.Controllers.Jobs.canDeactivateStore(userId, storeId)) {
+      throw new Error("User does not have permission to deactivate store.");
+    }
+    Store.fromStoreId(storeId, this.Repos).IsActive = false;
   }
 
   closeStorePermanently(userId: string, storeId: string): void {

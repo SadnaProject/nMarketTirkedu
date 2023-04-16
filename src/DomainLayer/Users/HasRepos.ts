@@ -16,7 +16,6 @@ export class HasRepos {
     this.repos = repos;
     return this;
   }
-
   public get Repos(): Repos {
     if (this.repos === undefined) {
       throw new Error("PurchaseHistory has no repos");

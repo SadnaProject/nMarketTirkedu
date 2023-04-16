@@ -73,7 +73,7 @@ export class MarketFacade extends Loggable {
     this.isConnectionValid(userId);
     return this.controllers.Users.getNotifications(userId);
   }
-  public purchaseCart(userId: string, cart: CartDTO, creditCard: string) {
+  public purchaseCart(userId: string, creditCard: string) {
     this.isConnectionValid(userId);
     this.controllers.Users.purchaseCart(userId, creditCard);
   }
@@ -301,12 +301,7 @@ export class MarketFacade extends Loggable {
   }
   //TODO: Duplicate code from down here, be careful!
   public startSession(): string {
-    const userId = this.controllers.Auth.startSession();
-    this.addUser(userId, "Guest");
-    return userId;
-  }
-  private addUser(userId: string, userName: string) {
-    this.controllers.Users.addUser(userId, userName);
+    return this.controllers.Users.startSession();
   }
   public registerMember(userId: string, email: string, password: string): void {
     this.isConnectionValid(userId);
@@ -314,17 +309,17 @@ export class MarketFacade extends Loggable {
   }
   public loginMember(userId: string, email: string, password: string): string {
     this.isConnectionValid(userId);
-    return this.controllers.Auth.login(userId, email, password);
+    return this.controllers.Users.login(userId, email, password);
   }
   public logoutMember(userId: string): string {
     this.isConnectionValid(userId);
-    return this.controllers.Auth.logout(userId);
+    return this.controllers.Users.logout(userId);
   }
   //This is not called logout because it also disconnects guest users which were not logged in.
   //disconnects a user. if the user is a guest user, the user is removed from the system.
   //if the user is a member user, the users session is invalidated.
   public disconnectUser(userId: string): void {
     this.isConnectionValid(userId);
-    this.controllers.Auth.disconnect(userId);
+    this.controllers.Users.disconnect(userId);
   }
 }

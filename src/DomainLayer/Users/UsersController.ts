@@ -85,6 +85,27 @@ export interface IUsersController {
     notificationType: string,
     notificationMsg: string
   ): string;
+  /**
+   * This function will start new session for user.
+   **/
+  startSession(): string;
+  /**
+   * This function will end the current session for user.
+   * @param userId The id of the user that is currently logged in.
+   */
+  disconnect(userId: string): void;
+  /**
+   * this function will logs in the member to the system.
+   * @param guestId The id of the guest that is currently logged in.
+   * @param email The email of the user that want to login.
+   * @param password The password of the user that want to login.
+   **/
+  login(guestId: string, email: string, password: string): string
+  /**
+   * this function will logs out the member from the system.
+   * @param userId The id of the user that is currently logged in.
+   */
+  logout(userId: string): string;
 }
 
 @testable
@@ -134,7 +155,7 @@ export class UsersController
   purchaseCart(userId: string, creditCard: string): void {
     const user = this.Repos.Users.getUser(userId);
     const cart = user.Cart;
-    const price = this.getTotalPrice(userId);
+    const price = this.Controllers.Stores.getCartPrice(this.getCart(userId));
     this.Controllers.PurchasesHistory.purchaseCart(
       userId,
       cart,
@@ -144,26 +165,12 @@ export class UsersController
     const notificationMsg = `The cart ${cart.toString()} has been purchased for ${price}.`;
     const notification = new Notification("purchase", notificationMsg);
     user.addNotification(notification);
-    user.clearCart();
   }
-  addUser(userId: string, userName: string): void {
-    this.Repos.Users.addUser(userId, userName);
+  addUser(userId: string): void {
+    this.Repos.Users.addUser(userId);
   }
   removeUser(userId: string): void {
     this.Repos.Users.removeUser(userId);
-  }
-  getTotalPrice(userId: string): number {
-    return this.Controllers.Stores.getCartPrice(
-      this.Repos.Users.getUser(userId).Cart
-    );
-  }
-  getBasketTotalPrice(userId: string, storeId: string): number {
-    const x =
-      this.Repos.Users.getUser(userId).Cart.storeIdToBasket.get(storeId);
-    if (x == undefined) {
-      throw new Error("The user does not have a basket in this store.");
-    }
-    return this.Controllers.Stores.getBasketPrice(x);
   }
   readNotification(userId: string, notificationId: string): void {
     const user = this.Repos.Users.getUser(userId);
@@ -183,4 +190,28 @@ export class UsersController
     user.addNotification(notification);
     return notification.Id;
   }
+  startSession(): string {
+    const guestId = this.Controllers.Auth.startSession();
+    this.addUser(guestId);
+    return guestId;
+  }
+  login(guestId: string, email: string, password: string): string {
+    const MemberId = this.Controllers.Auth.login(guestId, email, password);
+    this.Repos.Users.addUser(MemberId);
+    this.Repos.Users.clone(guestId, MemberId);
+    this.Repos.Users.removeUser(guestId);
+    return MemberId;
+  }
+  logout(userId: string): string {
+    const guestId =this.Controllers.Auth.logout(userId);
+    this.Repos.Users.addUser(guestId);
+    return guestId;
+  }
+  disconnect(userId: string): void {
+    if (this.Controllers.Auth.isGuest(userId)) {
+      this.Repos.Users.removeUser(userId);
+    }
+    this.Controllers.Auth.disconnect(userId);
+  }
+
 }

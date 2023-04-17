@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createTestControllers } from "../_createControllers";
+import { createMockControllers } from "../_createControllers";
 import { type Repos, createMockRepos } from "./_HasRepos";
 import {
   createProduct,
@@ -16,7 +16,7 @@ describe("search products", () => {
   let products: StoreProduct[];
   beforeEach(() => {
     repos = createMockRepos();
-    controllers = createTestControllers("Stores");
+    controllers = createMockControllers("Stores");
     controllers.Stores.initRepos(repos);
     products = Array.from({ length: 3 }, () =>
       createProduct(generateProductArgs(), repos)

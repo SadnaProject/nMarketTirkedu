@@ -7,7 +7,7 @@ import {
   storeProductArgsSchema,
 } from "./StoreProduct";
 import { type Repos, createMockRepos } from "./_HasRepos";
-import { createTestControllers } from "../_createControllers";
+import { createMockControllers } from "../_createControllers";
 import { Store } from "./Store";
 import { type Controllers } from "../_HasController";
 import { vi } from "vitest";
@@ -39,7 +39,7 @@ export function generateProductDTO() {
 export function createStore(
   storeName: string,
   repos: Repos = createMockRepos(),
-  controllers: Controllers = createTestControllers("Stores")
+  controllers: Controllers = createMockControllers("Stores")
 ) {
   return new Store(storeName).initRepos(repos).initControllers(controllers);
 }

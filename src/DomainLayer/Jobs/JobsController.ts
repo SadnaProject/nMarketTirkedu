@@ -1,13 +1,13 @@
 import { Mixin } from "ts-mixer";
-import { HasControllers } from "../HasController";
+import { HasControllers } from "../_HasController";
 import { type StoreDTO } from "../Stores/Store";
-import { Testable, testable } from "~/Testable";
+import { Testable, testable } from "~/_Testable";
 import { ManagerRole } from "./ManagerRole";
 import { OwnerRole } from "./OwnerRole";
-import { HasRepos } from "./HasRepos";
+import { HasRepos, createRepos } from "./_HasRepos";
 import { PositionHolder } from "./PositionHolder";
 import { FounderRole } from "./FounderRole";
-import { EditablePermission } from "./Role";
+import { type EditablePermission } from "./Role";
 
 export interface IJobsController {
   /**
@@ -233,6 +233,18 @@ export interface IJobsController {
    *
    */
   setInitialAdmin(userId: string): void;
+  /**
+   * This function checks if a user can receive any data from a store(owners, managers, products, etc.).
+   * @param userId
+   * @param storeId
+   */
+  canReceiveDataFromStore(userId: string, storeId: string): boolean;
+  /**
+   * This function checks if a user can receive purchase history from a store.
+   * @param userId
+   * @param storeId
+   */
+  canReceivePurchaseHistoryFromStore(userId: string, storeId: string): boolean;
 }
 
 @testable
@@ -246,11 +258,34 @@ export class JobsController
   private wasAdminInitialized: boolean;
   constructor() {
     super();
+    this.initRepos(createRepos());
     this.wasAdminInitialized = false;
+    this.initRepos(createRepos());
     // this.managerRole = new ManagerRole();
     // this.ownerRole = new OwnerRole();
     // this.founderRole = new FounderRole();
   }
+
+  canReceiveDataFromStore(userId: string, storeId: string): boolean {
+    const positionHolder: PositionHolder | undefined =
+      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId, storeId);
+    if (positionHolder === undefined) {
+      return false;
+    }
+    return positionHolder.Role.hasPermission("SeeStoreData");
+  }
+  canReceivePurchaseHistoryFromStore(userId: string, storeId: string): boolean {
+    if (this.isSystemAdmin(userId)) {
+      return true;
+    }
+    const positionHolder: PositionHolder | undefined =
+      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId, storeId);
+    if (positionHolder === undefined) {
+      return false;
+    }
+    return positionHolder.Role.hasPermission("SeeStoreData");
+  }
+
 
   InitializeStore(founderId: string, storeId: string): void {
     const positionHolder: PositionHolder = new PositionHolder(

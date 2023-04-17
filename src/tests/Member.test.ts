@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker/locale/en";
 import { beforeEach } from "vitest";
 import { describe, expect, it } from "vitest";
-import { generateStoreName } from "~/DomainLayer/Stores/Store.test";
+import { generateStoreName } from "~/DomainLayer/Stores/_data";
 import { Service } from "~/ServiceLayer/Service";
 
 let service: Service;
@@ -16,7 +16,8 @@ describe("Member Logout", () => {
     const id = service.startSession();
     service.registerMember(id, email, password);
     const uid = service.loginMember(id, email, password);
-    expect(true).toBe(true);
+    const nid = service.logoutMember(uid);
+    expect(service.isConnected(nid) && service.isGuest(nid)).toBe(true);
   });
 });
 

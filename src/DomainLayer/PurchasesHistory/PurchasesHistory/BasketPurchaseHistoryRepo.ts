@@ -1,9 +1,12 @@
-import { BasketPurchase } from "../BasketPurchaseHistory";
+import { Testable, testable } from "~/_Testable";
+import { type BasketPurchase } from "../BasketPurchaseHistory";
 
-export class BasketPurchaseRepo {
+@testable
+export class BasketPurchaseRepo extends Testable {
   private BasketPurchases: BasketPurchase[];
 
   constructor() {
+    super();
     this.BasketPurchases = [];
   }
   public addBasketPurchase(BasketPurchase: BasketPurchase) {
@@ -15,9 +18,19 @@ export class BasketPurchaseRepo {
       (purchase) => purchase.StoreId === storeId
     );
   }
-  public getPurchaseById(purchaseId: string): BasketPurchase | undefined {
-    return this.BasketPurchases.find(
+  public getPurchaseById(purchaseId: string): BasketPurchase {
+    const purchase = this.BasketPurchases.find(
       (purchase) => purchase.PurchaseId === purchaseId
     );
+    if (purchase === undefined) {
+      throw new Error("Purchase not found");
+    }
+    return purchase;
+  }
+  public hasPurchase(purchaseId: string): boolean {
+    const purchase = this.BasketPurchases.find(
+      (purchase) => purchase.PurchaseId === purchaseId
+    );
+    return purchase !== undefined;
   }
 }

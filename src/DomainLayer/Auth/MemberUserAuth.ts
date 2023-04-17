@@ -3,6 +3,7 @@ const { randomUUID } = await import("crypto");
 import { z } from "zod";
 import { UserAuth, UserType, UserAuthDTO } from "./UserAuth";
 
+
 export type MemberUserAuthDTO = {
   email: string;
   password: string;

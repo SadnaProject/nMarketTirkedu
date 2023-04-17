@@ -5,6 +5,8 @@ import {
   type StoreProductDTO,
   type StoreProductArgs,
 } from "../DomainLayer/Stores/StoreProduct";
+import { type CartPurchaseDTO } from "~/DomainLayer/PurchasesHistory/CartPurchaseHistory";
+import { type BasketPurchaseDTO } from "~/DomainLayer/PurchasesHistory/BasketPurchaseHistory";
 export type SearchArgs = {
   name?: string;
   category?: string;
@@ -51,7 +53,7 @@ export class Service {
     return this.facade.getNotifications(userId);
   }
   public purchaseCart(userId: string, creditCard: string) {
-    this.facade.purchaseCart(userId, creditCard);
+    // this.facade.purchaseCart(userId, creditCard);
   }
   public removeUser(userId: string) {
     this.facade.removeUser(userId);
@@ -112,8 +114,8 @@ export class Service {
     this.facade.disconnectUser(userId);
   }
 
-  public getStoreProducts(storeId: string) {
-    return this.facade.getStoreProducts(storeId);
+  public getStoreProducts(userId: string, storeId: string) {
+    return this.facade.getStoreProducts(userId, storeId);
   }
 
   public createStore(founderId: string, storeName: string) {
@@ -214,8 +216,8 @@ export class Service {
   ): string {
     return this.facade.createProduct(userId, storeId, product);
   }
-  isStoreActive(storeId: string): boolean {
-    return this.facade.isStoreActive(storeId);
+  isStoreActive(userId: string, storeId: string): boolean {
+    return this.facade.isStoreActive(userId, storeId);
   }
   setProductQuantity(
     userId: string,
@@ -243,23 +245,27 @@ export class Service {
   closeStorePermanently(userId: string, storeId: string): void {
     this.facade.closeStorePermanently(userId, storeId);
   }
-  getProductPrice(productId: string): number {
-    return this.facade.getProductPrice(productId);
+  getProductPrice(userId: string, productId: string): number {
+    return this.facade.getProductPrice(userId, productId);
   }
-  isProductQuantityInStock(productId: string, quantity: number): boolean {
-    return this.facade.isProductQuantityInStock(productId, quantity);
+  isProductQuantityInStock(
+    userId: string,
+    productId: string,
+    quantity: number
+  ): boolean {
+    return this.facade.isProductQuantityInStock(userId, productId, quantity);
   }
-  getStoreIdByProductId(productId: string): string {
-    return this.facade.getStoreIdByProductId(productId);
+  getStoreIdByProductId(userId: string, productId: string): string {
+    return this.facade.getStoreIdByProductId(userId, productId);
   }
-  getCartPrice(cartDTO: CartDTO): number {
-    return this.facade.getCartPrice(cartDTO);
+  getCartPrice(userId: string, cartDTO: CartDTO): number {
+    return this.facade.getCartPrice(userId, cartDTO);
   }
-  getBasketPrice(basketDTO: BasketDTO): number {
-    return this.facade.getBasketPrice(basketDTO);
+  getBasketPrice(userId: string, basketDTO: BasketDTO): number {
+    return this.facade.getBasketPrice(userId, basketDTO);
   }
-  searchProducts(searchArgs: SearchArgs): StoreProductDTO[] {
-    return this.facade.searchProducts(searchArgs);
+  searchProducts(userId: string, searchArgs: SearchArgs): StoreProductDTO[] {
+    return this.facade.searchProducts(userId, searchArgs);
   }
   //TODO: Duplicate code from down here, be careful!
   public startSession(): string {
@@ -268,5 +274,21 @@ export class Service {
 
   public registerMember(userId: string, email: string, password: string): void {
     this.facade.registerMember(userId, email, password);
+  }
+
+  public logoutMember(userId: string): string {
+    return this.facade.logoutMember(userId);
+  }
+  public getPurchasesByUser(
+    adminId: string,
+    userId: string
+  ): CartPurchaseDTO[] {
+    return this.facade.getPurchasesByUser(adminId, userId);
+  }
+  public getPurchasesByStore(
+    userId: string,
+    storeId: string
+  ): BasketPurchaseDTO[] {
+    return this.facade.getPurchasesByStore(userId, storeId);
   }
 }

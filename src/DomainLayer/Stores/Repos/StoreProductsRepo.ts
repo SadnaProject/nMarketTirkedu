@@ -1,5 +1,5 @@
 import { type StoreProduct } from "~/DomainLayer/Stores/StoreProduct";
-import { Testable, testable } from "~/Testable";
+import { Testable, testable } from "~/_Testable";
 
 @testable
 export class StoreProductsRepo extends Testable {

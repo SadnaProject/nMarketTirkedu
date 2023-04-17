@@ -1,7 +1,7 @@
-import { HasControllers } from "../HasController";
+import { HasControllers } from "../_HasController";
 import { type CartDTO } from "../Users/Cart";
 import {
-  BasketPurchase,
+  type BasketPurchase,
   type BasketPurchaseDTO,
 } from "./BasketPurchaseHistory";
 import { CartPurchase, type CartPurchaseDTO } from "./CartPurchaseHistory";
@@ -9,10 +9,13 @@ import { type ProductReviewDTO, ProductReview } from "./ProductReview";
 import { Review, type ReviewDTO } from "./Review";
 import { randomUUID } from "crypto";
 import { Mixin } from "ts-mixer";
-import { Testable, testable } from "~/Testable";
-import { HasRepos, createRepos } from "./HasRepos";
+import { Testable, testable } from "~/_Testable";
+import { HasRepos, createRepos } from "./_HasRepos";
 import { PaymentAdapter } from "./PaymentAdaptor";
-import { ProductPurchase } from "./ProductPurchaseHistory";
+import { type ProductPurchase } from "./ProductPurchaseHistory";
+import { error } from "console";
+import { createControllers } from "../_createControllers";
+import { JobsController } from "../Jobs/JobsController";
 
 export interface IPurchasesHistoryController {
   getPurchase(purchaseId: string): CartPurchaseDTO;
@@ -42,7 +45,7 @@ export interface IPurchasesHistoryController {
     reviews: ProductReviewDTO[];
     avgRating: number;
   };
-  getPurchasesByUser(userId: string): CartPurchaseDTO[];
+  getPurchasesByUser(admingId: string, userId: string): CartPurchaseDTO[];
   getPurchasesByStore(storeId: string): BasketPurchaseDTO[];
 }
 
@@ -55,7 +58,10 @@ export class PurchasesHistoryController
     super();
     this.initRepos(createRepos());
   }
-  getPurchasesByUser(userId: string): CartPurchaseDTO[] {
+  getPurchasesByUser(admingId: string, userId: string): CartPurchaseDTO[] {
+    if (new JobsController().isSystemAdmin(admingId) === false) {
+      throw new Error("Not admin");
+    }
     return this.Repos.CartPurchases.getPurchasesByUser(userId).map((purchase) =>
       purchase.ToDTO()
     );
@@ -85,7 +91,8 @@ export class PurchasesHistoryController
 
   addPurchase(cartPurchase: CartPurchase): void {
     // check that purchase with same id doesn't exist
-    if (this.Repos.CartPurchases.getPurchaseById(cartPurchase.PurchaseId) !== undefined) {
+    // if this.Repos.CartPurchases.getPurchaseById(cartPurchase.PurchaseId) dosent throw, throw error
+    if (this.Repos.CartPurchases.doesPurchaseExist(cartPurchase.PurchaseId)) {
       throw new Error("Purchase already exists");
     }
     this.Repos.CartPurchases.addCartPurchase(cartPurchase);
@@ -111,10 +118,10 @@ export class PurchasesHistoryController
     storeId: string,
     rating: number
   ): void {
-    if (this.Repos.Reviews.getStoreReview(purchaseId, storeId) !== undefined) {
+    if (this.Repos.Reviews.doesStoreReviewExist(purchaseId, storeId)) {
       throw new Error("Store already reviewed");
     }
-    if (this.Repos.BasketPurchases.getPurchaseById(purchaseId) === undefined) {
+    if (this.Repos.BasketPurchases.hasPurchase(purchaseId) === false) {
       throw new Error("Purchase not found");
     }
     const review = new Review({
@@ -136,16 +143,23 @@ export class PurchasesHistoryController
     description: string
   ): void {
     if (
-      this.Repos.ProductReviews.getProductReview(purchaseId, productId) !==
-      undefined
+      this.Repos.ProductReviews.doesProductReviewExist(purchaseId, productId)
     ) {
       throw new Error("Product already reviewed");
     }
     if (
-      this.Repos.ProductsPurchases.getProductPurchaseById(purchaseId) ===
+      this.Repos.ProductsPurchases.getProductsPurchaseById(purchaseId) ===
       undefined
     ) {
       throw new Error("Purchase not found");
+    }
+    // check if there is product with productId in getProductsPurchaseById
+    if (
+      this.Repos.ProductsPurchases.getProductsPurchaseById(purchaseId).find(
+        (product) => product.ProductId === productId
+      ) === undefined
+    ) {
+      throw new Error("Product not found");
     }
     const productReview = new ProductReview({
       rating: rating,
@@ -167,7 +181,7 @@ export class PurchasesHistoryController
       sum += review.Rating;
       count++;
     }
-    return sum / count;
+    return sum / count || 0;
   }
   getReviewsByStore(storeId: string): number {
     const reviews = this.Repos.Reviews.getAllStoreReviews(storeId);
@@ -184,11 +198,11 @@ export class PurchasesHistoryController
     }
     return {
       reviews: reviews.map((review) => review.ProductReviewToDTO()),
-      avgRating: sum / reviews.length,
+      avgRating: sum / reviews.length || 0,
     };
   }
   getPurchase(purchaseId: string): CartPurchaseDTO {
-    if (this.Repos.CartPurchases.getPurchaseById(purchaseId) === undefined) {
+    if (this.Repos.CartPurchases.doesPurchaseExist(purchaseId) === false) {
       throw new Error("Purchase not found");
     }
     return this.Repos.CartPurchases.getPurchaseById(purchaseId)!.ToDTO();

@@ -1,23 +1,22 @@
-import { ProductPurchase } from "../ProductPurchaseHistory";
+import { Testable, testable } from "~/_Testable";
+import { type ProductPurchase } from "../ProductPurchaseHistory";
 
-export class ProductPurchaseRepo {
+@testable
+export class ProductPurchaseRepo extends Testable {
   private ProductPurchases: ProductPurchase[];
 
   constructor() {
+    super();
     this.ProductPurchases = [];
   }
 
   public addProductPurchase(ProductPurchase: ProductPurchase) {
     this.ProductPurchases.push(ProductPurchase);
   }
-
-  public getProductPurchaseById(ProductPurchaseId: string) {
-    const ProductPurchase = this.ProductPurchases.find(
+  // return all products with the same purchaseId
+  public getProductsPurchaseById(ProductPurchaseId: string): ProductPurchase[] {
+    return this.ProductPurchases.filter(
       (ProductPurchase) => ProductPurchase.PurchaseId === ProductPurchaseId
     );
-    if (!ProductPurchase) {
-      throw new Error("ProductPurchase not found");
-    }
-    return ProductPurchase;
   }
 }

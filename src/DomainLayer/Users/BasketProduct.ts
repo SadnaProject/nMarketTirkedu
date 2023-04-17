@@ -14,9 +14,9 @@ export class BasketProduct {
     return {
       storeProductId: this.storeProductId,
       quantity: this.quantity,
-    };  
+    };
   }
-  
+
   public get ProductId(): string {
     return this.storeProductId;
   }
@@ -29,5 +29,4 @@ export class BasketProduct {
   public toString(): string {
     return `Product id: ${this.ProductId} Quantity: ${this.quantity}. \n`;
   }
-  
 }

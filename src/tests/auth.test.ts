@@ -9,6 +9,3 @@ describe("test name", () => {
     }).rejects.toThrow();
   });
 });
-
-
-

@@ -12,11 +12,9 @@ beforeEach(() => {
 describe("Guest Entrance", () => {
   it("✅ Guest enters the system", () => {
     const id = service.startSession();
-    expect(
-      service.isConnected(id) &&
-        service.isGuest(id) &&
-        service.getCart(id).storeIdToBasket.size == 0
-    ).toBe(true);
+    expect(service.isConnected(id)).toBe(true);
+    expect(service.isGuest(id)).toBe(true);
+    expect(service.getCart(id).storeIdToBasket.size).toBe(0);
   });
 });
 

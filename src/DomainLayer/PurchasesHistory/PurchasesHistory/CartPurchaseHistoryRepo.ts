@@ -1,9 +1,12 @@
-import { CartPurchase } from "../CartPurchaseHistory";
+import { Testable, testable } from "~/_Testable";
+import { type CartPurchase } from "../CartPurchaseHistory";
 
-export class CartPurchaseRepo {
+@testable
+export class CartPurchaseRepo extends Testable {
   private CartPurchase: CartPurchase[];
 
   constructor() {
+    super();
     this.CartPurchase = [];
   }
   public addCartPurchase(CartPurchase: CartPurchase) {
@@ -13,8 +16,17 @@ export class CartPurchaseRepo {
   public getPurchasesByUser(userId: string): CartPurchase[] {
     return this.CartPurchase.filter((purchase) => purchase.UserId === userId);
   }
-  public getPurchaseById(purchaseId: string): CartPurchase | undefined {
-    return this.CartPurchase.find(
+  public getPurchaseById(purchaseId: string): CartPurchase {
+    const purchase = this.CartPurchase.find(
+      (purchase) => purchase.PurchaseId === purchaseId
+    );
+    if (purchase === undefined) {
+      throw new Error("Purchase not found");
+    }
+    return purchase;
+  }
+  public doesPurchaseExist(purchaseId: string): boolean {
+    return this.CartPurchase.some(
       (purchase) => purchase.PurchaseId === purchaseId
     );
   }

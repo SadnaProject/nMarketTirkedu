@@ -135,4 +135,7 @@ export class Store extends Mixin(HasRepos, HasControllers) {
   get ManagersIds() {
     return this.Controllers.Jobs.getStoreManagersIds(this.Id);
   }
+  get Purchases() {
+    return this.Controllers.PurchasesHistory.getPurchasesByStore(this.Id);
+  }
 }

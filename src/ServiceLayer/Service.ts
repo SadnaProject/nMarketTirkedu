@@ -5,7 +5,8 @@ import {
   type StoreProductDTO,
   type StoreProductArgs,
 } from "../DomainLayer/Stores/StoreProduct";
-import { CartPurchaseDTO } from "~/DomainLayer/PurchasesHistory/CartPurchaseHistory";
+import { type CartPurchaseDTO } from "~/DomainLayer/PurchasesHistory/CartPurchaseHistory";
+import { type BasketPurchaseDTO } from "~/DomainLayer/PurchasesHistory/BasketPurchaseHistory";
 export type SearchArgs = {
   name?: string;
   category?: string;
@@ -287,7 +288,7 @@ export class Service {
   public getPurchasesByStore(
     userId: string,
     storeId: string
-  ): CartPurchaseDTO[] {
+  ): BasketPurchaseDTO[] {
     return this.facade.getPurchasesByStore(userId, storeId);
   }
 }

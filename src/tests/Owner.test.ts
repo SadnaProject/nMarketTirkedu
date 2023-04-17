@@ -1,11 +1,9 @@
 import { faker } from "@faker-js/faker/locale/en";
-import { throws } from "assert";
 import { beforeEach } from "vitest";
 import { describe, expect, it } from "vitest";
 import { Service } from "~/ServiceLayer/Service";
 import { generateStoreName } from "~/DomainLayer/Stores/Store.test";
 import {
-  createProduct,
   generateProductArgs,
 } from "~/DomainLayer/Stores/StoreProduct.test";
 
@@ -110,7 +108,7 @@ describe("Stock Management", () => {
     pargs.price = 16;
     const pid = service.createProduct(oid, storeId, pargs);
     service.setProductPrice(oid, pid, 17);
-    expect(service.getProductPrice(pid) == 17).toBe(true);
+    expect(service.getProductPrice(oid, pid) == 17).toBe(true);
   });
   it("✅ Decrease product quantity within range", () => {
     const email = faker.internet.email();
@@ -131,8 +129,8 @@ describe("Stock Management", () => {
     const pid = service.createProduct(oid, storeId, pargs);
     service.decreaseProductQuantity(pid, 4);
     expect(
-      service.isProductQuantityInStock(pid, 1) &&
-        !service.isProductQuantityInStock(pid, 2)
+      service.isProductQuantityInStock(oid, pid, 1) &&
+        !service.isProductQuantityInStock(oid, pid, 2)
     ).toBe(true);
   });
   it("❎ Decrease product quantity exceeding range", () => {
@@ -504,8 +502,8 @@ describe("Get Purchase History by a store", () => {
     const hist = service.getPurchasesByStore(oid, storeId);
     expect(
       hist.length == 2 &&
-        hist.at(0)?.totalPrice == pargs.price &&
-        hist.at(1)?.totalPrice == 2 * pargs2.price &&
+        hist.at(0)?.price == pargs.price &&
+        hist.at(1)?.price == 2 * pargs2.price &&
         hist.at(0)?.userId == umid &&
         hist.at(1)?.userId == umid
     ).toBe(true);
@@ -588,8 +586,8 @@ it("✅ Applied by a founder", () => {
   const hist = service.getPurchasesByStore(uid, storeId);
   expect(
     hist.length == 2 &&
-      hist.at(0)?.totalPrice == pargs.price &&
-      hist.at(1)?.totalPrice == 2 * pargs2.price &&
+      hist.at(0)?.price == pargs.price &&
+      hist.at(1)?.price == 2 * pargs2.price &&
       hist.at(0)?.userId == umid &&
       hist.at(1)?.userId == umid
   ).toBe(true);

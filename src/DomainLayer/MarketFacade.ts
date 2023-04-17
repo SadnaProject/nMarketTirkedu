@@ -9,6 +9,7 @@ import {
 import { Loggable, loggable } from "./Loggable";
 import { type SearchArgs } from "./Stores/StoresController";
 import { type CartPurchaseDTO } from "./PurchasesHistory/CartPurchaseHistory";
+import { type BasketPurchaseDTO } from "./PurchasesHistory/BasketPurchaseHistory";
 
 @loggable
 export class MarketFacade extends Loggable {
@@ -354,9 +355,7 @@ export class MarketFacade extends Loggable {
   public getPurchasesByStore(
     userId: string,
     storeId: string
-  ): CartPurchaseDTO[] {
-    throw new Error(
-      "Please link it when implemented in the appropriate component"
-    );
+  ): BasketPurchaseDTO[] {
+    return this.controllers.Stores.getPurchasesByStoreId(userId, storeId);
   }
 }

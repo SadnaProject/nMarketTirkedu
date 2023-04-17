@@ -93,8 +93,8 @@ describe("Get Purchase History by a store", () => {
     const hist = service.getPurchasesByStore(uid, storeId);
     expect(
       hist.length == 2 &&
-        hist.at(0)?.totalPrice == pargs.price &&
-        hist.at(1)?.totalPrice == 2 * pargs2.price
+        hist.at(0)?.price == pargs.price &&
+        hist.at(1)?.price == 2 * pargs2.price
     ).toBe(true);
   });
 });

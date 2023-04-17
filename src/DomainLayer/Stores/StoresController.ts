@@ -11,6 +11,7 @@ import { type CartDTO } from "../Users/Cart";
 import { type BasketDTO } from "../Users/Basket";
 import { Testable, testable } from "~/Testable";
 import fuzzysearch from "fuzzysearch-ts";
+import { type BasketPurchaseDTO } from "../PurchasesHistory/BasketPurchaseHistory";
 
 export type SearchArgs = {
   name?: string;
@@ -217,6 +218,7 @@ export interface IStoresController extends HasRepos {
   getStoreFounderId(storeId: string): string;
   getStoreOwnersIds(storeId: string): string[];
   getStoreManagersIds(storeId: string): string[];
+  getPurchasesByStoreId(userId: string, storeId: string): BasketPurchaseDTO[];
 }
 
 @testable
@@ -230,11 +232,8 @@ export class StoresController
   }
   searchProducts(userId: string, args: SearchArgs): StoreProductDTO[] {
     return StoreProduct.getAll(this.Repos)
-      .filter((p) => 
-         this.Controllers.Jobs.canReceiveDataFromStore(
-          userId,
-          p.Store.Id
-        )
+      .filter((p) =>
+        this.Controllers.Jobs.canReceiveDataFromStore(userId, p.Store.Id)
       )
       .filter((p) => {
         const productRating =
@@ -505,5 +504,9 @@ export class StoresController
   }
   getStoreManagersIds(storeId: string) {
     return Store.fromStoreId(storeId, this.Repos).ManagersIds;
+  }
+  getPurchasesByStoreId(userId: string, storeId: string) {
+    this.Controllers.Jobs.canReceivePurchaseHistoryFromStore(userId, storeId);
+    return Store.fromStoreId(storeId, this.Repos).Purchases;
   }
 }

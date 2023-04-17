@@ -1,8 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import {
-  createStore,
-  generateStoreName,
-} from "~/DomainLayer/Stores/Store.test";
+import { createStore, generateStoreName } from "../data";
 import { type Repos, createTestRepos } from "../HasRepos";
 
 let repos: Repos;

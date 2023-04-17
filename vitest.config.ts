@@ -10,6 +10,7 @@ export default defineConfig({
         "**/HasController.ts",
         "**/createControllers.ts",
         "**/Testable.ts",
+        "**/data.ts",
       ],
       provider: "istanbul",
       reporter: ["lcov"],

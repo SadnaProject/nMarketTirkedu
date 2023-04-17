@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createTestControllers } from "../createControllers";
 import { type Repos, createTestRepos } from "./HasRepos";
-import { createProduct, generateProductArgs } from "./StoreProduct.test";
-import { createStore, generateStoreName } from "./Store.test";
+import { createProduct, createStore, generateProductArgs, generateStoreName } from "./data";
 import { type Controllers } from "../HasController";
 import { type StoreProduct } from "./StoreProduct";
 

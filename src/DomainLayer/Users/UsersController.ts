@@ -100,7 +100,7 @@ export interface IUsersController {
    * @param email The email of the user that want to login.
    * @param password The password of the user that want to login.
    */
-  login(guestId: string, email: string, password: string): string
+  login(guestId: string, email: string, password: string): string;
   /**
    * This function will logs out the member from the system.
    * @param userId The id of the user that is currently logged in.
@@ -122,9 +122,16 @@ export class UsersController
   }
   addProductToCart(userId: string, productId: string, quantity: number): void {
     const user = this.Repos.Users.getUser(userId); // notice that we get the user from the repo and not from the system
-    const storeId = this.Controllers.Stores.getStoreIdByProductId(productId);
+    const storeId = this.Controllers.Stores.getStoreIdByProductId(
+      userId,
+      productId
+    );
     if (
-      !this.Controllers.Stores.isProductQuantityInStock(productId, quantity)
+      !this.Controllers.Stores.isProductQuantityInStock(
+        userId,
+        productId,
+        quantity
+      )
     ) {
       throw new Error("store don't have such amount of product");
     }
@@ -132,7 +139,10 @@ export class UsersController
   }
   removeProductFromCart(userId: string, productId: string): void {
     const user = this.Repos.Users.getUser(userId);
-    const storeId = this.Controllers.Stores.getStoreIdByProductId(productId);
+    const storeId = this.Controllers.Stores.getStoreIdByProductId(
+      userId,
+      productId
+    );
     user.removeProductFromCart(productId, storeId);
   }
   editProductQuantityInCart(
@@ -142,11 +152,18 @@ export class UsersController
   ): void {
     const user = this.Repos.Users.getUser(userId);
     if (
-      !this.Controllers.Stores.isProductQuantityInStock(productId, quantity)
+      !this.Controllers.Stores.isProductQuantityInStock(
+        userId,
+        productId,
+        quantity
+      )
     ) {
       throw new Error("store don't have such amount of product");
     }
-    const storeId = this.Controllers.Stores.getStoreIdByProductId(productId);
+    const storeId = this.Controllers.Stores.getStoreIdByProductId(
+      userId,
+      productId
+    );
     user.editProductQuantityInCart(productId, storeId, quantity);
   }
   getCart(userId: string): CartDTO {
@@ -155,7 +172,10 @@ export class UsersController
   purchaseCart(userId: string, creditCard: string): void {
     const user = this.Repos.Users.getUser(userId);
     const cart = user.Cart;
-    const price = this.Controllers.Stores.getCartPrice(this.getCart(userId));
+    const price = this.Controllers.Stores.getCartPrice(
+      userId,
+      this.getCart(userId)
+    );
     this.Controllers.PurchasesHistory.purchaseCart(
       userId,
       cart,
@@ -199,15 +219,15 @@ export class UsersController
   login(guestId: string, email: string, password: string): string {
     this.Repos.Users.getUser(guestId);
     const MemberId = this.Controllers.Auth.login(guestId, email, password);
-    if(!this.Repos.Users.isUserExist(MemberId)) {
-    this.Repos.Users.addUser(MemberId);
-    this.Repos.Users.clone(guestId, MemberId);
+    if (!this.Repos.Users.isUserExist(MemberId)) {
+      this.Repos.Users.addUser(MemberId);
+      this.Repos.Users.clone(guestId, MemberId);
     }
     this.Repos.Users.removeUser(guestId);
     return MemberId;
   }
   logout(userId: string): string {
-    const guestId =this.Controllers.Auth.logout(userId);
+    const guestId = this.Controllers.Auth.logout(userId);
     this.Repos.Users.addUser(guestId);
     return guestId;
   }
@@ -217,5 +237,4 @@ export class UsersController
     }
     this.Controllers.Auth.disconnect(userId);
   }
-
 }

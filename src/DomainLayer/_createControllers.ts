@@ -44,10 +44,13 @@ export function createMockControllers(testedController: keyof Controllers) {
   return controllers as Controllers;
 }
 
-export function createTestControllers(testType: string) {
+export function createTestControllers(
+  testType: string,
+  testedController: keyof Controllers
+) {
   switch (testType) {
     case "unit":
-      return createMockControllers("Stores");
+      return createMockControllers(testedController);
     case "integration":
       return createControllers();
     default:

@@ -1,4 +1,3 @@
-import { UserAuthRepo } from "~/DomainLayer/Auth/UserAuthRepo";
 import { JobsRepo } from "~/DomainLayer/Jobs/JobsRepo";
 
 export const reposMapping = {
@@ -35,10 +34,14 @@ export function createRepos() {
   return repos as Repos;
 }
 
-export function createMockRepos() {
+export function createMockRepos(testedRepo: keyof Repos | null = null) {
   const repos: Record<string, unknown> = {};
   for (const [key, Repo] of Object.entries(reposMapping)) {
-    repos[key] = new Repo().test();
+    let repo = new Repo();
+    if (key !== testedRepo) {
+      repo = repo.test();
+    }
+    repos[key] = repo;
   }
   return repos as Repos;
 }

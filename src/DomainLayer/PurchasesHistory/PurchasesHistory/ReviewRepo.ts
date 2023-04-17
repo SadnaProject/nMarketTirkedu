@@ -1,9 +1,12 @@
-import { Review } from "../Review";
+import { Testable, testable } from "~/_Testable";
+import { type Review } from "../Review";
 
-export class ReviewRepo {
+@testable
+export class ReviewRepo extends Testable {
   private Reviews: Review[];
 
   constructor() {
+    super();
     this.Reviews = [];
   }
   public getStoreReview(purchaseId: string, storeId: string): Review {
@@ -16,7 +19,6 @@ export class ReviewRepo {
     return review;
   }
   public getAllStoreReviews(storeId: string): Review[] {
-
     return this.Reviews.filter((review) => review.StoreId === storeId);
   }
   public addStoreReview(review: Review): void {

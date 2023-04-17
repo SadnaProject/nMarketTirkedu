@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { type Repos, createTestRepos } from "./HasRepos";
+import { type Repos, createMockRepos } from "./_HasRepos";
 import { MemberUserAuth } from "./MemberUserAuth";
 import { GuestUserAuth } from "./GuestUserAuth";
 
@@ -17,7 +17,7 @@ function getGuestI(i: number): GuestUserAuth {
 }
 let repos: Repos;
 beforeEach(() => {
-  repos = createTestRepos("Users");
+  repos = createMockRepos("Users");
 });
 describe("add user", () => {
   it("✅adds member", () => {

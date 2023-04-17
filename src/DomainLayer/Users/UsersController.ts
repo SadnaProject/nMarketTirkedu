@@ -1,9 +1,9 @@
-import { HasControllers } from "../HasController";
+import { HasControllers } from "../_HasController";
 import { Mixin } from "ts-mixer";
 import { type CartDTO } from "./Cart";
 import { Notification } from "./Notification";
-import { HasRepos, createRepos } from "./HasRepos";
-import { Testable, testable } from "~/Testable";
+import { HasRepos, createRepos } from "./_HasRepos";
+import { Testable, testable } from "~/_Testable";
 export interface IUsersController {
   /**
    * This function gets the notifications of a user.

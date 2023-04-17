@@ -6,10 +6,10 @@ import {
   StoreProductDTOSchema,
   storeProductArgsSchema,
 } from "./StoreProduct";
-import { type Repos, createTestRepos } from "./HasRepos";
-import { createTestControllers } from "../createControllers";
+import { type Repos, createMockRepos } from "./_HasRepos";
+import { createTestControllers } from "../_createControllers";
 import { Store } from "./Store";
-import { type Controllers } from "../HasController";
+import { type Controllers } from "../_HasController";
 import { vi } from "vitest";
 
 export function generateStoreName() {
@@ -38,7 +38,7 @@ export function generateProductDTO() {
 
 export function createStore(
   storeName: string,
-  repos: Repos = createTestRepos(),
+  repos: Repos = createMockRepos(),
   controllers: Controllers = createTestControllers("Stores")
 ) {
   return new Store(storeName).initRepos(repos).initControllers(controllers);
@@ -46,14 +46,14 @@ export function createStore(
 
 export function createProduct(
   args: StoreProductArgs,
-  repos: Repos = createTestRepos()
+  repos: Repos = createMockRepos()
 ) {
   return new StoreProduct(args).initRepos(repos);
 }
 
 export function createStoreWithProduct(
   productData: StoreProductArgs,
-  repos: Repos = createTestRepos()
+  repos: Repos = createMockRepos()
 ) {
   const store = createStore(generateStoreName(), repos);
   vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();

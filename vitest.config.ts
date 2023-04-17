@@ -5,13 +5,7 @@ export default defineConfig({
   test: {
     restoreMocks: true,
     coverage: {
-      exclude: [
-        "**/HasRepos.ts",
-        "**/HasController.ts",
-        "**/createControllers.ts",
-        "**/Testable.ts",
-        "**/data.ts",
-      ],
+      exclude: ["**/_*.ts"],
       provider: "istanbul",
       reporter: ["lcov"],
     },

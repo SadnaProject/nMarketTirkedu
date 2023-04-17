@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { z } from "zod";
-import { HasRepos, type Repos } from "./HasRepos";
+import { HasRepos, type Repos } from "./_HasRepos";
 
 const nameSchema = z.string().nonempty("Name must be nonempty");
 const quantitySchema = z.number().positive("Quantity must be positive");

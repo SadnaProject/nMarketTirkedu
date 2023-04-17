@@ -1,8 +1,8 @@
 import { Mixin } from "ts-mixer";
-import { HasControllers } from "../HasController";
-import { Testable, testable } from "~/Testable";
-import { HasRepos } from "./HasRepos";
-import { createRepos } from "./HasRepos";
+import { HasControllers } from "../_HasController";
+import { Testable, testable } from "~/_Testable";
+import { HasRepos } from "./_HasRepos";
+import { createRepos } from "./_HasRepos";
 import { UserAuth } from "./UserAuth";
 import { GuestUserAuth, GuestUserAuthDTO } from "./GuestUserAuth";
 import { MemberUserAuth, MemberUserAuthDTO } from "./MemberUserAuth";

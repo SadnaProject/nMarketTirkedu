@@ -5,7 +5,7 @@ import { type StoreProductArgs } from "~/DomainLayer/Stores/StoreProduct";
 import {
   generateProductArgs,
   generateStoreName,
-} from "~/DomainLayer/Stores/data";
+} from "~/DomainLayer/Stores/_data";
 import { Service } from "~/ServiceLayer/Service";
 
 let service: Service;

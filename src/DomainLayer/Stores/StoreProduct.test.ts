@@ -1,15 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { StoreProduct } from "./StoreProduct";
-import { createTestRepos } from "./HasRepos";
+import { createMockRepos, createTestRepos } from "./_HasRepos";
 import {
   createProduct,
   createStoreWithProduct,
   generateProductArgs,
-} from "./data";
+} from "./_data";
 import { ZodError } from "zod";
+import { itUnitIntegration } from "../_mock";
 
 describe("constructor", () => {
-  it("✅creates a product", () => {
+  itUnitIntegration("✅creates a product", () => {
     const productData = generateProductArgs();
     const product = createProduct(productData);
     expect(product.Name).toBe(productData.name);
@@ -17,21 +18,21 @@ describe("constructor", () => {
     expect(product.Price).toBe(productData.price);
   });
 
-  it("❎gets empty name", () => {
+  itUnitIntegration("❎gets empty name", () => {
     const productData = generateProductArgs();
     expect(() => new StoreProduct({ ...productData, name: "" })).toThrow(
       ZodError
     );
   });
 
-  it("❎gets negative quantity", () => {
+  itUnitIntegration("❎gets negative quantity", () => {
     const productData = generateProductArgs();
     expect(() => new StoreProduct({ ...productData, quantity: -1 })).toThrow(
       ZodError
     );
   });
 
-  it("❎gets negative price", () => {
+  itUnitIntegration("❎gets negative price", () => {
     const productData = generateProductArgs();
     expect(() => new StoreProduct({ ...productData, price: -1 })).toThrow(
       ZodError
@@ -40,15 +41,15 @@ describe("constructor", () => {
 });
 
 describe("set name", () => {
-  it("✅sets name", () => {
+  itUnitIntegration("✅sets name", (testType) => {
     const productData = generateProductArgs();
-    const repos = createTestRepos();
+    const repos = createTestRepos(testType);
     const store = createProduct(productData, repos);
     store.Name = "new name";
     expect(store.Name).toBe("new name");
   });
 
-  it("❎gets empty name", () => {
+  itUnitIntegration("❎gets empty name", () => {
     const productData = generateProductArgs();
     const store = createProduct(productData);
     expect(() => {
@@ -58,15 +59,15 @@ describe("set name", () => {
 });
 
 describe("set quantity", () => {
-  it("✅sets quantity", () => {
+  itUnitIntegration("✅sets quantity", (testType) => {
     const productData = generateProductArgs();
-    const repos = createTestRepos();
+    const repos = createTestRepos(testType);
     const store = createProduct(productData, repos);
     store.Quantity = 2;
     expect(store.Quantity).toBe(2);
   });
 
-  it("❎gets negative quantity", () => {
+  itUnitIntegration("❎gets negative quantity", () => {
     const productData = generateProductArgs();
     const store = createProduct(productData);
     expect(() => {
@@ -76,15 +77,15 @@ describe("set quantity", () => {
 });
 
 describe("set price", () => {
-  it("✅sets price", () => {
+  itUnitIntegration("✅sets price", (testType) => {
     const productData = generateProductArgs();
-    const repos = createTestRepos();
+    const repos = createTestRepos(testType);
     const store = createProduct(productData, repos);
     store.Price = 2;
     expect(store.Price).toBe(2);
   });
 
-  it("❎gets negative price", () => {
+  itUnitIntegration("❎gets negative price", () => {
     const productData = generateProductArgs();
     const store = createProduct(productData);
     expect(() => {
@@ -94,15 +95,15 @@ describe("set price", () => {
 });
 
 describe("set category", () => {
-  it("✅sets category", () => {
+  itUnitIntegration("✅sets category", (testType) => {
     const productData = generateProductArgs();
-    const repos = createTestRepos();
+    const repos = createTestRepos(testType);
     const store = createProduct(productData, repos);
     store.Category = "new category";
     expect(store.Category).toBe("new category");
   });
 
-  it("❎gets empty category", () => {
+  itUnitIntegration("❎gets empty category", () => {
     const productData = generateProductArgs();
     const store = createProduct(productData);
     expect(() => {
@@ -112,15 +113,15 @@ describe("set category", () => {
 });
 
 describe("set description", () => {
-  it("✅sets description", () => {
+  itUnitIntegration("✅sets description", (testType) => {
     const productData = generateProductArgs();
-    const repos = createTestRepos();
+    const repos = createTestRepos(testType);
     const store = createProduct(productData, repos);
     store.Description = "new description";
     expect(store.Description).toBe("new description");
   });
 
-  it("❎gets empty description", () => {
+  itUnitIntegration("❎gets empty description", () => {
     const productData = generateProductArgs();
     const store = createProduct(productData);
     expect(() => {
@@ -144,7 +145,7 @@ describe("is quantity in stock", () => {
 
   it("❎gets inactive store", () => {
     const productData = generateProductArgs();
-    const repos = createTestRepos();
+    const repos = createMockRepos();
     const { product, store } = createStoreWithProduct(productData, repos);
     store.IsActive = false;
     expect(() => product.isQuantityInStock(1)).toThrow("Store is not active");
@@ -163,7 +164,7 @@ describe("get price", () => {
 describe("decrease quantity", () => {
   it("✅decreases quantity", () => {
     const productData = generateProductArgs();
-    const repos = createTestRepos();
+    const repos = createMockRepos();
     const { product } = createStoreWithProduct(productData, repos);
     product.decreaseQuantity(1);
     expect(product.Quantity).toBe(productData.quantity - 1);
@@ -171,7 +172,7 @@ describe("decrease quantity", () => {
 
   it("❎gets negative quantity", () => {
     const productData = generateProductArgs();
-    const repos = createTestRepos();
+    const repos = createMockRepos();
     const { product } = createStoreWithProduct(productData, repos);
     expect(() => product.decreaseQuantity(-1)).toThrow(
       "Quantity must be positive"
@@ -180,7 +181,7 @@ describe("decrease quantity", () => {
 
   it("❎gets inactive store", () => {
     const productData = generateProductArgs();
-    const repos = createTestRepos();
+    const repos = createMockRepos();
     const { product, store } = createStoreWithProduct(productData, repos);
     store.IsActive = false;
     expect(() => product.decreaseQuantity(1)).toThrow("Store is not active");

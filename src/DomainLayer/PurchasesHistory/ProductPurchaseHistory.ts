@@ -1,4 +1,4 @@
-import { HasRepos } from "./HasRepos";
+import { HasRepos } from "./_HasRepos";
 import { type ProductReview, type ProductReviewDTO } from "./ProductReview";
 import { BasketProductDTO } from "../Users/BasketProduct";
 import { StoresController } from "../Stores/StoresController";

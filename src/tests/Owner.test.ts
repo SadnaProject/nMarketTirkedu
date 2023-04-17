@@ -5,7 +5,7 @@ import { Service } from "~/ServiceLayer/Service";
 import {
   generateProductArgs,
   generateStoreName,
-} from "~/DomainLayer/Stores/data";
+} from "~/DomainLayer/Stores/_data";
 
 let service: Service;
 beforeEach(() => {

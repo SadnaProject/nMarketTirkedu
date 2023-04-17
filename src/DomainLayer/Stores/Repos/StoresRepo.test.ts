@@ -3,7 +3,6 @@ import {
   createStore,
   generateStoreName,
 } from "~/DomainLayer/Stores/Store.test";
-import { Store } from "~/DomainLayer/Stores/Store";
 import { type Repos, createTestRepos } from "../HasRepos";
 
 let repos: Repos;

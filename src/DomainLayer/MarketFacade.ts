@@ -251,11 +251,11 @@ export class MarketFacade extends Loggable {
     this.isConnectionValid(userId);
     return this.controllers.Stores.createProduct(userId, storeId, product);
   }
-  isStoreActive(storeId: string): boolean {
-    return this.controllers.Stores.isStoreActive(storeId);
+  isStoreActive(userId: string, storeId: string): boolean {
+    return this.controllers.Stores.isStoreActive(userId, storeId);
   }
-  getStoreProducts(storeId: string): StoreProductDTO[] {
-    return this.controllers.Stores.getStoreProducts(storeId);
+  getStoreProducts(userId: string, storeId: string): StoreProductDTO[] {
+    return this.controllers.Stores.getStoreProducts(userId, storeId);
   }
   setProductQuantity(
     userId: string,
@@ -293,26 +293,31 @@ export class MarketFacade extends Loggable {
     this.isConnectionValid(userId);
     this.controllers.Stores.closeStorePermanently(userId, storeId);
   }
-  getProductPrice(productId: string): number {
-    return this.controllers.Stores.getProductPrice(productId);
+  getProductPrice(userId: string, productId: string): number {
+    return this.controllers.Stores.getProductPrice(userId, productId);
   }
-  isProductQuantityInStock(productId: string, quantity: number): boolean {
+  isProductQuantityInStock(
+    userId: string,
+    productId: string,
+    quantity: number
+  ): boolean {
     return this.controllers.Stores.isProductQuantityInStock(
+      userId,
       productId,
       quantity
     );
   }
-  getStoreIdByProductId(productId: string): string {
-    return this.controllers.Stores.getStoreIdByProductId(productId);
+  getStoreIdByProductId(userId: string, productId: string): string {
+    return this.controllers.Stores.getStoreIdByProductId(userId, productId);
   }
-  getCartPrice(cartDTO: CartDTO): number {
-    return this.controllers.Stores.getCartPrice(cartDTO);
+  getCartPrice(userId: string, cartDTO: CartDTO): number {
+    return this.controllers.Stores.getCartPrice(userId, cartDTO);
   }
-  getBasketPrice(basketDTO: BasketDTO): number {
-    return this.controllers.Stores.getBasketPrice(basketDTO);
+  getBasketPrice(userId: string, basketDTO: BasketDTO): number {
+    return this.controllers.Stores.getBasketPrice(userId, basketDTO);
   }
-  searchProducts(searchArgs: SearchArgs): StoreProductDTO[] {
-    return this.controllers.Stores.searchProducts(searchArgs);
+  searchProducts(userId: string, searchArgs: SearchArgs): StoreProductDTO[] {
+    return this.controllers.Stores.searchProducts(userId, searchArgs);
   }
   //TODO: Duplicate code from down here, be careful!
   public startSession(): string {

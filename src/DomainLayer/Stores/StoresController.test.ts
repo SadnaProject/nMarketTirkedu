@@ -33,82 +33,94 @@ describe("search products", () => {
   });
 
   it("✅should return all products", () => {
-    const res = controllers.Stores.searchProducts({});
+    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    const res = controllers.Stores.searchProducts("uid", {});
     expect(res).toEqual(products.map((p) => p.DTO));
   });
 
   it("✅should return some products because of name filter", () => {
-    const res = controllers.Stores.searchProducts({
+    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    const res = controllers.Stores.searchProducts("uid", {
       name: products[0]?.Name.toUpperCase().split(" ")[0],
     });
     expect(res).toContainEqual(products[0]?.DTO);
   });
 
   it("✅should return some products because of keywords", () => {
-    const res = controllers.Stores.searchProducts({
+    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    const res = controllers.Stores.searchProducts("uid", {
       keywords: [products[1]?.Description.toUpperCase().split(" ")[1] ?? ""],
     });
     expect(res).toContainEqual(products[1]?.DTO);
   });
 
   it("✅shouldn't return products because of made up name", () => {
-    const res = controllers.Stores.searchProducts({
+    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    const res = controllers.Stores.searchProducts("uid", {
       name: "made up name that doesn't exist",
     });
     expect(res).toEqual([]);
   });
 
   it("✅shouldn't return products because of made up category", () => {
-    const res = controllers.Stores.searchProducts({
+    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    const res = controllers.Stores.searchProducts("uid", {
       category: "made up category that doesn't exist",
     });
     expect(res).toEqual([]);
   });
 
   it("✅shouldn't return products because of made up keywords", () => {
-    const res = controllers.Stores.searchProducts({
+    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    const res = controllers.Stores.searchProducts("uid", {
       keywords: ["made up keyword that doesn't exist"],
     });
     expect(res).toEqual([]);
   });
 
   it("✅shouldn't return products because of high min price", () => {
-    const res = controllers.Stores.searchProducts({
+    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    const res = controllers.Stores.searchProducts("uid", {
       minPrice: Infinity,
     });
     expect(res).toEqual([]);
   });
 
   it("✅shouldn't return products because of low max price", () => {
-    const res = controllers.Stores.searchProducts({
+    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    const res = controllers.Stores.searchProducts("uid", {
       maxPrice: 0,
     });
     expect(res).toEqual([]);
   });
 
   it("✅shouldn't return products because of high min store rating", () => {
-    const res = controllers.Stores.searchProducts({
+    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    const res = controllers.Stores.searchProducts("uid", {
       minStoreRating: Infinity,
     });
     expect(res).toEqual([]);
   });
 
   it("✅shouldn't return products because of low max store rating", () => {
-    const res = controllers.Stores.searchProducts({
+    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    const res = controllers.Stores.searchProducts("uid", {
       maxStoreRating: 0,
     });
     expect(res).toEqual([]);
   });
 
   it("✅shouldn't return products because of high min product rating", () => {
-    const res = controllers.Stores.searchProducts({
+    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    const res = controllers.Stores.searchProducts("uid", {
       minProductRating: Infinity,
     });
     expect(res).toEqual([]);
   });
 
   it("✅shouldn't return products because of low max product rating", () => {
-    const res = controllers.Stores.searchProducts({
+    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    const res = controllers.Stores.searchProducts("uid", {
       maxProductRating: 0,
     });
     expect(res).toEqual([]);

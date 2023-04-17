@@ -404,7 +404,7 @@ describe("Store Inactivating", () => {
     const mmid = service.loginMember(mem2, mmail, mempass);
     service.deactivateStore(uid, storeId);
     expect(
-      !service.isStoreActive(storeId) &&
+      !service.isStoreActive(uid, storeId) &&
         service.getNotifications(oid).length != 0 &&
         service.getNotifications(mid).length != 0 &&
         service.getNotifications(mmid).length == 0

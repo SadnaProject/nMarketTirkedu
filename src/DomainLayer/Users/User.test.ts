@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { randomUUID } from "crypto";
 import {
   createControllers,
-  createTestControllers,
+  createMockControllers,
 } from "../_createControllers";
 //* Vitest Docs: https://vitest.dev/api
 // userController.addUser({id: "123456", name: "username"});

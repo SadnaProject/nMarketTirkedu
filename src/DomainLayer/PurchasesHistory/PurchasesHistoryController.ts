@@ -81,6 +81,9 @@ export class PurchasesHistoryController
     if (PaymentAdapter.pay(creditCard, price) === false) {
       throw new Error("Payment failed");
     }
+    if (cart.storeIdToBasket.size === 0) {
+      throw new Error("Cart is empty");
+    }
     const cartPurchase = CartPurchase.CartPurchaseDTOfromCartDTO(
       cart,
       userId,

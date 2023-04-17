@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { Store } from "./Store";
-import { type Repos, createTestRepos, createRepos } from "./HasRepos";
+import { type Repos, createTestRepos } from "./HasRepos";
 import {
   createStoreWithProduct,
   generateProductArgs,

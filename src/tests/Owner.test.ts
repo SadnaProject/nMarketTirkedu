@@ -167,7 +167,7 @@ describe("Store Inactivating", () => {
     service.makeStoreManager(oid, storeId, mid);
     service.deactivateStore(uid, storeId);
     expect(
-      !service.isStoreActive(storeId) &&
+      !service.isStoreActive(uid, storeId) &&
         service.getNotifications(oid).length != 0 &&
         service.getNotifications(mid).length != 0
     ).toBe(true);

@@ -4,8 +4,8 @@ import { Testable, testable } from "~/Testable";
 import { HasRepos } from "./HasRepos";
 import { createRepos } from "./HasRepos";
 import { UserAuth } from "./UserAuth";
-import { GuestUserAuth,GuestUserAuthDTO } from "./GuestUserAuth";
-import { MemberUserAuth,MemberUserAuthDTO } from "./MemberUserAuth";
+import { GuestUserAuth, GuestUserAuthDTO } from "./GuestUserAuth";
+import { MemberUserAuth, MemberUserAuthDTO } from "./MemberUserAuth";
 
 export interface IAuthController extends HasRepos {
   /**
@@ -43,7 +43,7 @@ export interface IAuthController extends HasRepos {
    */
   login(guestId: string, email: string, password: string): string;
   /**
-   * disconnects a user. if the user is a guest user, the user is removed from the system. if the user is a member user, the users session is invalidated. 
+   * disconnects a user. if the user is a guest user, the user is removed from the system. if the user is a member user, the users session is invalidated.
    * @param userId The user's ID.
    * @throws Error if the user is not connected.
    */
@@ -83,19 +83,18 @@ export interface IAuthController extends HasRepos {
    * @param userId The user's ID.
    * @throws Error if the user is not connected or not a user
    * @returns The new guest user's ID.(After the logout the user is a guest user again)
-    */
-  logout(userId: string): string
+   */
+  logout(userId: string): string;
 }
 
 @testable
 export class AuthController
-  extends Mixin(Testable, HasControllers,HasRepos)
+  extends Mixin(Testable, HasControllers, HasRepos)
   implements IAuthController
 {
   constructor() {
     super();
     this.initRepos(createRepos());
-    
   }
 
   public startSession(): string {
@@ -108,8 +107,10 @@ export class AuthController
   public login(guestId: string, email: string, password: string): string {
     // throw new Error("Method not implemented.");
     const member: MemberUserAuth = this.Repos.Users.getMemberByEmail(email);
-    if(!member.isPasswordCorrect(password)){
-      throw new Error("Password is incorrect, please try again with a different password");
+    if (!member.isPasswordCorrect(password)) {
+      throw new Error(
+        "Password is incorrect, please try again with a different password"
+      );
     }
     member.login();
     this.Repos.Users.removeGuest(guestId);
@@ -117,44 +118,49 @@ export class AuthController
   }
   public disconnect(userId: string): void {
     //TODO - do i need to call the logout method of the users component?
-    if(this.isGuest(userId)){
+    if (this.isGuest(userId)) {
       this.Repos.Users.removeGuest(userId);
       return;
-    }
-    else{
+    } else {
       const member: MemberUserAuth = this.Repos.Users.getMemberById(userId);
-      
-      member.logout();//throws error if user is not connected
+
+      member.logout(); //throws error if user is not connected
     }
   }
   public logout(userId: string): string {
-    if(this.isGuest(userId)){
-      throw new Error("User is not a member, please try again with a different user");
+    if (this.isGuest(userId)) {
+      throw new Error(
+        "User is not a member, please try again with a different user"
+      );
     }
-    const member: MemberUserAuth= this.Repos.Users.getMemberById(userId);
-    member.logout();//throws error if user is not connected
+    const member: MemberUserAuth = this.Repos.Users.getMemberById(userId);
+    member.logout(); //throws error if user is not connected
     return this.startSession();
   }
   public register(email: string, password: string): string {
     // throw new Error("Method not implemented.");
-    if(this.Repos.Users.doesMemberExistByEmail(email)){
-      throw new Error("Email already in use, please try again with a different email");  
+    if (this.Repos.Users.doesMemberExistByEmail(email)) {
+      throw new Error(
+        "Email already in use, please try again with a different email"
+      );
     }
     // if(!this.validatePassword(password)){
     //   throw new Error("Password is invalid, please try again with a different password");
     // }
-    const ua= MemberUserAuth.create(email,password);
+    const ua = MemberUserAuth.create(email, password);
     this.Repos.Users.addMember(ua);
     return ua.UserId;
   }
-  
+
   public changeEmail(userId: string, newEmail: string): void {
     // throw new Error("Method not implemented.");
     const member = this.Repos.Users.getMemberById(userId);
-    if(this.Repos.Users.doesMemberExistByEmail(newEmail)){
-      throw new Error("Email already in use, please try again with a different email");  
+    if (this.Repos.Users.doesMemberExistByEmail(newEmail)) {
+      throw new Error(
+        "Email already in use, please try again with a different email"
+      );
     }
-    member.Email=newEmail;
+    member.Email = newEmail;
   }
   public changePassword(
     userId: string,
@@ -162,32 +168,29 @@ export class AuthController
     newPassword: string
   ): void {
     // throw new Error("Method not implemented.");
-    const member: MemberUserAuth = this.Repos.Users.getMemberById(userId); 
-    if(!member.isPasswordCorrect(oldPassword)){
-      throw new Error("Password is incorrect, please try again with a different password");
+    const member: MemberUserAuth = this.Repos.Users.getMemberById(userId);
+    if (!member.isPasswordCorrect(oldPassword)) {
+      throw new Error(
+        "Password is incorrect, please try again with a different password"
+      );
     }
-    member.Password=newPassword;
+    member.Password = newPassword;
   }
   public isGuest(userId: string): boolean {
-    if(this.Repos.Users.getGuestById(userId) !== undefined){
-      return true;
-    }
-    return false;
+    return this.Repos.Users.doesGuestExistById(userId);
   }
   public isMember(userId: string): boolean {
-    
-    if(this.Repos.Users.doesMemberExistById(userId)){
+    if (this.Repos.Users.doesMemberExistById(userId)) {
       return true;
     }
     return false;
   }
+
   public isConnected(userId: string): boolean {
-    const guest: GuestUserAuth | undefined = this.Repos.Users.getGuestById(userId);
-    if(guest !== undefined){
-      return guest.isUserLoggedInAsGuest();
+    if (this.Repos.Users.doesGuestExistById(userId)) {
+      return this.Repos.Users.getGuestById(userId).isUserLoggedInAsGuest();
     }
-    if(!this.Repos.Users.doesMemberExistById(userId))
-      return false;
+    if (!this.Repos.Users.doesMemberExistById(userId)) return false;
     const member: MemberUserAuth = this.Repos.Users.getMemberById(userId);
     return member.isUserLoggedInAsMember();
   }

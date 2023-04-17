@@ -338,7 +338,20 @@ export class MarketFacade extends Loggable {
     this.controllers.Users.disconnect(userId);
   }
 
-  public getPurchasesByUser(userId: string): CartPurchaseDTO[] {
-    return this.controllers.PurchasesHistory.getPurchasesByUser(userId);
+  public getPurchasesByUser(
+    adminId: string,
+    userId: string
+  ): CartPurchaseDTO[] {
+    throw new Error(
+      "Please link it when implemented in the appropriate component"
+    );
+  }
+  public getPurchasesByStore(
+    userId: string,
+    storeId: string
+  ): CartPurchaseDTO[] {
+    throw new Error(
+      "Please link it when implemented in the appropriate component"
+    );
   }
 }

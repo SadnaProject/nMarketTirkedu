@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ProductReview } from "../ProductReview";
 import { ProductReviewRepo } from "./ProductReviewsRepo";
+import { itUnitIntegration } from "~/DomainLayer/_mock";
 
 const productReviewData = {
   id: "id",
@@ -14,7 +15,7 @@ const productReviewData = {
 };
 
 describe("addProductReview,", () => {
-  it("should add a product review", () => {
+  itUnitIntegration("should add a product review", () => {
     const productReview = new ProductReview(productReviewData);
     const productReviewRepo = new ProductReviewRepo();
     productReviewRepo.addProductReview(productReview);
@@ -25,7 +26,7 @@ describe("addProductReview,", () => {
 });
 
 describe("getProductReview", () => {
-  it("should return the product review", () => {
+  itUnitIntegration("should return the product review", () => {
     const productReview = new ProductReview(productReviewData);
     const productReviewRepo = new ProductReviewRepo();
     productReviewRepo.addProductReview(productReview);
@@ -37,28 +38,31 @@ describe("getProductReview", () => {
     ).toEqual(productReview);
   });
 
-  it("should throw an error if the product review is not found", () => {
-    const productReview = new ProductReview(productReviewData);
-    const productReviewRepo = new ProductReviewRepo();
-    productReviewRepo.addProductReview(productReview);
-    expect(() =>
-      productReviewRepo.getProductReview(
-        "wrongPurchaseId",
-        productReview.ProductId!
-      )
-    ).toThrow();
-  });
+  itUnitIntegration(
+    "should throw an error if the product review is not found",
+    () => {
+      const productReview = new ProductReview(productReviewData);
+      const productReviewRepo = new ProductReviewRepo();
+      productReviewRepo.addProductReview(productReview);
+      expect(() =>
+        productReviewRepo.getProductReview(
+          "wrongPurchaseId",
+          productReview.ProductId!
+        )
+      ).toThrow();
+    }
+  );
 });
 
 describe("getAllProductReviews", () => {
-  it("should return all product reviews", () => {
+  itUnitIntegration("should return all product reviews", () => {
     const productReview = new ProductReview(productReviewData);
     const productReviewRepo = new ProductReviewRepo();
     productReviewRepo.addProductReview(productReview);
     expect(productReviewRepo.getAllProductReviews(productReview.ProductId!))
       .length;
   });
-  it("should return two product reviews", () => {
+  itUnitIntegration("should return two product reviews", () => {
     const productReview = new ProductReview(productReviewData);
     const productReviewRepo = new ProductReviewRepo();
     productReviewRepo.addProductReview(productReview);

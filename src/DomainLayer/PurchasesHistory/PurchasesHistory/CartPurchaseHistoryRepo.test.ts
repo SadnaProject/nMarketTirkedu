@@ -6,6 +6,7 @@ import { ProductPurchaseRepo } from "./ProductPurchaseHistoryRepo";
 import { CartPurchase } from "../CartPurchaseHistory";
 import { CartPurchaseRepo } from "./CartPurchaseHistoryRepo";
 import { type BasketPurchase } from "../BasketPurchaseHistory";
+import { itUnitIntegration } from "~/DomainLayer/_mock";
 
 const CartPurchaseData = {
   id: "id",
@@ -20,7 +21,7 @@ const CartPurchaseData = {
 describe("addCartPurchase", () => {
   const storeIdToBasket = new Map<string, BasketPurchase>();
 
-  it("should add a cart purchase", () => {
+  itUnitIntegration("should add a cart purchase", () => {
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
@@ -37,7 +38,7 @@ describe("addCartPurchase", () => {
 describe("getPurchaseById", () => {
   const storeIdToBasket = new Map<string, BasketPurchase>();
 
-  it("should return the cart purchase", () => {
+  itUnitIntegration("should return the cart purchase", () => {
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
@@ -50,7 +51,7 @@ describe("getPurchaseById", () => {
       cartPurchase
     );
   });
-  it("should throw if purchase not found", () => {
+  itUnitIntegration("should throw if purchase not found", () => {
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
@@ -67,7 +68,7 @@ describe("getPurchaseById", () => {
 describe("getPurchasesByUser", () => {
   const storeIdToBasket = new Map<string, BasketPurchase>();
 
-  it("should return the cart purchase", () => {
+  itUnitIntegration("should return the cart purchase", () => {
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
@@ -80,7 +81,7 @@ describe("getPurchasesByUser", () => {
       cartPurchase,
     ]);
   });
-  it("should return two cart purchases", () => {
+  itUnitIntegration("should return two cart purchases", () => {
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
@@ -99,7 +100,7 @@ describe("getPurchasesByUser", () => {
 describe("doesPurchaseExist", () => {
   const storeIdToBasket = new Map<string, BasketPurchase>();
 
-  it("should return true if purchase exists", () => {
+  itUnitIntegration("should return true if purchase exists", () => {
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
@@ -112,7 +113,7 @@ describe("doesPurchaseExist", () => {
       true
     );
   });
-  it("should return false if purchase does not exist", () => {
+  itUnitIntegration("should return false if purchase does not exist", () => {
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,

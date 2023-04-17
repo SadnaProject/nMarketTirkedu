@@ -6,6 +6,7 @@ import { ProductPurchaseRepo } from "./ProductPurchaseHistoryRepo";
 import { BasketPurchase } from "../BasketPurchaseHistory";
 import { BasketPurchaseRepo } from "./BasketPurchaseHistoryRepo";
 import { array } from "zod";
+import { itUnitIntegration } from "~/DomainLayer/_mock";
 
 const basketPurchaseData = {
   id: "id",
@@ -20,7 +21,7 @@ const basketPurchaseData = {
 
 describe("addBasketPurchase", () => {
   const productIdToProductPurchase = new Map<string, ProductPurchase>();
-  it("should add a basket purchase", () => {
+  itUnitIntegration("should add a basket purchase", () => {
     const basketPurchase = new BasketPurchase(
       basketPurchaseData.storeId,
       productIdToProductPurchase,
@@ -37,7 +38,7 @@ describe("addBasketPurchase", () => {
 
 describe("getPurchaseById", () => {
   const productIdToProductPurchase = new Map<string, ProductPurchase>();
-  it("should return the basket purchase", () => {
+  itUnitIntegration("should return the basket purchase", () => {
     const basketPurchase = new BasketPurchase(
       basketPurchaseData.storeId,
       productIdToProductPurchase,
@@ -50,7 +51,7 @@ describe("getPurchaseById", () => {
       basketPurchaseRepo.getPurchaseById(basketPurchase.PurchaseId)
     ).toEqual(basketPurchase);
   });
-  it("should throw if purchase not found", () => {
+  itUnitIntegration("should throw if purchase not found", () => {
     const basketPurchase = new BasketPurchase(
       basketPurchaseData.storeId,
       productIdToProductPurchase,
@@ -66,7 +67,7 @@ describe("getPurchaseById", () => {
 
 describe("getPurchaseByStoreId", () => {
   const productIdToProductPurchase = new Map<string, ProductPurchase>();
-  it("should return the basket purchase", () => {
+  itUnitIntegration("should return the basket purchase", () => {
     const basketPurchase = new BasketPurchase(
       basketPurchaseData.storeId,
       productIdToProductPurchase,
@@ -79,7 +80,7 @@ describe("getPurchaseByStoreId", () => {
       basketPurchaseRepo.getPurchasesByStore(basketPurchase.StoreId)
     ).toEqual([basketPurchase]);
   });
-  it("it should return two purchases", () => {
+  itUnitIntegration("it should return two purchases", () => {
     const basketPurchase = new BasketPurchase(
       basketPurchaseData.storeId,
       productIdToProductPurchase,
@@ -96,7 +97,7 @@ describe("getPurchaseByStoreId", () => {
 });
 describe("hasPurchase", () => {
   const productIdToProductPurchase = new Map<string, ProductPurchase>();
-  it("should return true", () => {
+  itUnitIntegration("should return true", () => {
     const basketPurchase = new BasketPurchase(
       basketPurchaseData.storeId,
       productIdToProductPurchase,

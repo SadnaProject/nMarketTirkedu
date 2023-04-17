@@ -3,6 +3,7 @@ import { ProductReview } from "../ProductReview";
 import { ProductReviewRepo } from "./ProductReviewsRepo";
 import { ProductPurchase } from "../ProductPurchaseHistory";
 import { ProductPurchaseRepo } from "./ProductPurchaseHistoryRepo";
+import { itUnitIntegration } from "~/DomainLayer/_mock";
 
 const productPurchaseData = {
   id: "id",
@@ -15,7 +16,7 @@ const productPurchaseData = {
 };
 
 describe("addProductPurchase", () => {
-  it("should add a product purchase", () => {
+  itUnitIntegration("should add a product purchase", () => {
     const productPurchase = new ProductPurchase(productPurchaseData);
     const productPurchaseRepo = new ProductPurchaseRepo();
     productPurchaseRepo.addProductPurchase(productPurchase);
@@ -27,7 +28,7 @@ describe("addProductPurchase", () => {
 });
 
 describe("getProductsPurchaseById", () => {
-  it("should return the product purchase", () => {
+  itUnitIntegration("should return the product purchase", () => {
     const productPurchase = new ProductPurchase(productPurchaseData);
     const productPurchaseRepo = new ProductPurchaseRepo();
     productPurchaseRepo.addProductPurchase(productPurchase);
@@ -36,7 +37,7 @@ describe("getProductsPurchaseById", () => {
     ).toEqual([productPurchase]);
   });
 
-  it("should return two product purchases", () => {
+  itUnitIntegration("should return two product purchases", () => {
     const productPurchase = new ProductPurchase(productPurchaseData);
     const productPurchaseRepo = new ProductPurchaseRepo();
     productPurchaseRepo.addProductPurchase(productPurchase);

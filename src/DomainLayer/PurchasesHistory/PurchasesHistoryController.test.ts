@@ -1,7 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { PurchasesHistoryController } from "./PurchasesHistoryController";
 import { ProductReviewArgs, ProductReview } from "./ProductReview";
-import { type Repos, createRepos } from "./_HasRepos";
+import {
+  type Repos,
+  createRepos,
+  createMockRepos,
+  createTestRepos,
+} from "./_HasRepos";
 import { Review } from "./Review";
 import { ProductPurchase } from "./ProductPurchaseHistory";
 import { BasketPurchase } from "./BasketPurchaseHistory";
@@ -15,12 +20,20 @@ import { ProductReviewRepo } from "./PurchasesHistory/ProductReviewsRepo";
 import { ReviewRepo } from "./PurchasesHistory/ReviewRepo";
 import { BasketPurchaseRepo } from "./PurchasesHistory/BasketPurchaseHistoryRepo";
 import { JobsController } from "../Jobs/JobsController";
+import { itUnitIntegration } from "../_mock";
+import { Controllers } from "../_HasController";
+import {
+  createMockControllers,
+  createTestControllers,
+} from "../_createControllers";
+import { AuthController } from "../Auth/AuthController";
+import { createControllers } from "../_createControllers";
 
 const reviewData = {
   rating: 5,
   id: "id",
   createdAt: new Date(),
-  userId: "userId",
+  userId: "admin",
   purchaseId: "purchaseId",
   productId: "productId",
 };
@@ -32,7 +45,7 @@ const productReviewData = {
 const productPurchaseData = {
   id: "id",
   createdAt: new Date(),
-  userId: "userId",
+  userId: "admin",
   purchaseId: "purchaseId",
   productId: "productId",
   quantity: 1,
@@ -50,7 +63,7 @@ const basketPurchaseData = {
 const cartPurchaseData = {
   //storeIdToBasketPurchases: Map<string, BasketPurchase>, totalPrice: number
   purchaseId: "purchaseId",
-  userId: "userId",
+  userId: "admin",
   storeIdToBasketPurchases: new Map<string, BasketPurchase>([
     [
       "storeId",
@@ -65,6 +78,14 @@ const cartPurchaseData = {
   totalPrice: 1,
   creditCard: "creditCard",
 };
+
+let repos: Repos;
+let controllers: Controllers;
+
+beforeEach(() => {
+  repos = createMockRepos();
+  controllers = createMockControllers("PurchasesHistory");
+});
 
 const createReview = (repos: Repos = createRepos()) =>
   new Review(reviewData).initRepos(repos);
@@ -89,7 +110,7 @@ const createCartPurchase = (repos: Repos = createRepos()) =>
 
 // add product purchase review
 describe("addProductPurchaseReview", () => {
-  it("✅adds product purchase review", () => {
+  itUnitIntegration("✅adds product purchase review", () => {
     const productReview = createProductReview();
     const cartPurchase = createCartPurchase();
     const purchasesHistoryController = new PurchasesHistoryController();
@@ -107,7 +128,7 @@ describe("addProductPurchaseReview", () => {
     purchasesHistoryController.addPurchase(cartPurchase);
     expect(() =>
       purchasesHistoryController.addProductPurchaseReview(
-        "userId",
+        "admin",
         "purchaseId",
         "productId",
         5,
@@ -118,7 +139,7 @@ describe("addProductPurchaseReview", () => {
   });
 
   // try to review the same product twice in the same purchase
-  it("❎adds two product purchase reviews", () => {
+  itUnitIntegration("❎adds two product purchase reviews", () => {
     const productReview = createProductReview();
     const cartPurchase = createCartPurchase();
     const purchasesHistoryController = new PurchasesHistoryController();
@@ -137,7 +158,7 @@ describe("addProductPurchaseReview", () => {
     ).mockReturnValue(true);
     expect(() =>
       purchasesHistoryController.addProductPurchaseReview(
-        "userId",
+        "admin",
         "purchaseId",
         "productId",
         5,
@@ -148,49 +169,55 @@ describe("addProductPurchaseReview", () => {
   });
 
   // try to review a product that doesn't exist in the purchase
-  it("❎adds product purchase review to a product that doesn't exist in the purchase", () => {
-    const productReview = createProductReview();
-    const cartPurchase = createCartPurchase();
-    const purchasesHistoryController = new PurchasesHistoryController();
-    purchasesHistoryController.addPurchase(cartPurchase);
-    vi.spyOn(
-      ProductPurchaseRepo.prototype,
-      "getProductsPurchaseById"
-    ).mockReturnValue([]);
-    expect(() =>
-      purchasesHistoryController.addProductPurchaseReview(
-        "userId",
-        "purchaseId",
-        "productId2",
-        5,
-        "title",
-        "description"
-      )
-    ).toThrow();
-  });
+  itUnitIntegration(
+    "❎adds product purchase review to a product that doesn't exist in the purchase",
+    () => {
+      const productReview = createProductReview();
+      const cartPurchase = createCartPurchase();
+      const purchasesHistoryController = new PurchasesHistoryController();
+      purchasesHistoryController.addPurchase(cartPurchase);
+      vi.spyOn(
+        ProductPurchaseRepo.prototype,
+        "getProductsPurchaseById"
+      ).mockReturnValue([]);
+      expect(() =>
+        purchasesHistoryController.addProductPurchaseReview(
+          "admin",
+          "purchaseId",
+          "productId2",
+          5,
+          "title",
+          "description"
+        )
+      ).toThrow();
+    }
+  );
 
   // try to add a review to a purchase that doesn't exist
-  it("❎adds product purchase review to a purchase that doesn't exist", () => {
-    const productReview = createProductReview();
-    const cartPurchase = createCartPurchase();
-    const purchasesHistoryController = new PurchasesHistoryController();
-    purchasesHistoryController.addPurchase(cartPurchase);
-    expect(() =>
-      purchasesHistoryController.addProductPurchaseReview(
-        "userId",
-        "purchaseId2",
-        "productId",
-        5,
-        "title",
-        "description"
-      )
-    ).toThrow();
-  });
+  itUnitIntegration(
+    "❎adds product purchase review to a purchase that doesn't exist",
+    () => {
+      const productReview = createProductReview();
+      const cartPurchase = createCartPurchase();
+      const purchasesHistoryController = new PurchasesHistoryController();
+      purchasesHistoryController.addPurchase(cartPurchase);
+      expect(() =>
+        purchasesHistoryController.addProductPurchaseReview(
+          "admin",
+          "purchaseId2",
+          "productId",
+          5,
+          "title",
+          "description"
+        )
+      ).toThrow();
+    }
+  );
 });
 
 // add store purchase review
 describe("addStorePurchaseReview", () => {
-  it("✅adds store purchase review", () => {
+  itUnitIntegration("✅adds store purchase review", () => {
     const cartPurchase = createCartPurchase();
     const purchasesHistoryController = new PurchasesHistoryController();
     purchasesHistoryController.addPurchase(cartPurchase);
@@ -200,19 +227,19 @@ describe("addStorePurchaseReview", () => {
     vi.spyOn(BasketPurchaseRepo.prototype, "hasPurchase").mockReturnValue(true);
     expect(() =>
       purchasesHistoryController.addStorePurchaseReview(
-        "userId",
+        "admin",
         "purchaseId",
         "storeId",
         5
       )
     ).not.toThrow();
   });
-  it("❎ adds two store purchase reviews", () => {
+  itUnitIntegration("❎ adds two store purchase reviews", () => {
     const cartPurchase = createCartPurchase();
     const purchasesHistoryController = new PurchasesHistoryController();
     purchasesHistoryController.addPurchase(cartPurchase);
     purchasesHistoryController.addStorePurchaseReview(
-      "userId",
+      "admin",
       "purchaseId",
       "storeId",
       5
@@ -222,14 +249,14 @@ describe("addStorePurchaseReview", () => {
     );
     expect(() =>
       purchasesHistoryController.addStorePurchaseReview(
-        "userId",
+        "admin",
         "purchaseId",
         "storeId",
         5
       )
     ).toThrow();
   });
-  it("❎No such store", () => {
+  itUnitIntegration("❎No such store", () => {
     const productPurchase = createProductPurchase();
     const productReview = createProductReview();
     const purchasesHistoryController = new PurchasesHistoryController();
@@ -238,7 +265,7 @@ describe("addStorePurchaseReview", () => {
     );
     expect(() =>
       purchasesHistoryController.addStorePurchaseReview(
-        "userId",
+        "admin",
         "storeId",
         "purchaseId",
         5
@@ -249,10 +276,38 @@ describe("addStorePurchaseReview", () => {
 
 describe("getCartPurchaseByUserId", () => {
   it("✅gets cart purchase", () => {
-    const cartPurchase = createCartPurchase();
-    const purchasesHistoryController = new PurchasesHistoryController();
+    controllers.PurchasesHistory.initRepos(repos);
+    const cartPurchase = createCartPurchase(repos);
+    const purchasesHistoryController = new PurchasesHistoryController(repos);
+    purchasesHistoryController.initControllers(controllers);
+    vi.spyOn(AuthController.prototype, "register").mockReturnValue("admin");
+    const userId = purchasesHistoryController.Controllers.Auth.register(
+      "admin",
+      "admin"
+    );
+    vi.spyOn(JobsController.prototype, "setInitialAdmin").mockReturnValue();
+    purchasesHistoryController.Controllers.Jobs.setInitialAdmin(userId);
+    vi.spyOn(CartPurchaseRepo.prototype, "addCartPurchase").mockReturnValue();
+    vi.spyOn(
+      BasketPurchaseRepo.prototype,
+      "addBasketPurchase"
+    ).mockReturnValue();
+    vi.spyOn(
+      ProductPurchaseRepo.prototype,
+      "addProductPurchase"
+    ).mockReturnValue();
+    vi.spyOn(
+      CartPurchaseRepo.prototype,
+      "doesPurchaseExist"
+    ).mockReturnValueOnce(false);
     purchasesHistoryController.addPurchase(cartPurchase);
     vi.spyOn(JobsController.prototype, "isSystemAdmin").mockReturnValue(true);
+    vi.spyOn(CartPurchaseRepo.prototype, "doesPurchaseExist").mockReturnValue(
+      true
+    );
+    vi.spyOn(CartPurchaseRepo.prototype, "getPurchasesByUser").mockReturnValue([
+      cartPurchase,
+    ]);
     expect(
       purchasesHistoryController.getPurchasesByUser(
         "admin",
@@ -262,22 +317,30 @@ describe("getCartPurchaseByUserId", () => {
   });
   it("❎gets undefined cart purchase", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
+    purchasesHistoryController.initControllers(controllers);
+    vi.spyOn(AuthController.prototype, "register").mockReturnValue("admin");
+    const userId = purchasesHistoryController.Controllers.Auth.register(
+      "admin",
+      "admin"
+    );
+    vi.spyOn(JobsController.prototype, "setInitialAdmin").mockReturnValue();
+    purchasesHistoryController.Controllers.Jobs.setInitialAdmin(userId);
     vi.spyOn(JobsController.prototype, "isSystemAdmin").mockReturnValue(true);
     expect(
-      purchasesHistoryController.getPurchasesByUser("admin", "userId")
+      purchasesHistoryController.getPurchasesByUser("admin", "admin")
     ).toStrictEqual([]);
   });
-  it("❎try to get purchases when not an admin", () => {
+  itUnitIntegration("❎try to get purchases when not an admin", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
     vi.spyOn(JobsController.prototype, "isSystemAdmin").mockReturnValue(false);
     expect(() =>
-      purchasesHistoryController.getPurchasesByUser("admin", "userId")
+      purchasesHistoryController.getPurchasesByUser("admin", "admin")
     ).toThrow();
   });
 });
 
 describe("getCartPurchaseByPurchaseId", () => {
-  it("✅gets cart purchase", () => {
+  itUnitIntegration("✅gets cart purchase", () => {
     const cartPurchase = createCartPurchase();
     const purchasesHistoryController = new PurchasesHistoryController();
 
@@ -289,7 +352,7 @@ describe("getCartPurchaseByPurchaseId", () => {
       purchasesHistoryController.getPurchase(cartPurchase.PurchaseId)
     ).toStrictEqual(cartPurchase.ToDTO());
   });
-  it("❎gets undefined cart purchase", () => {
+  itUnitIntegration("❎gets undefined cart purchase", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
     expect(() =>
       purchasesHistoryController.getPurchase("purchaseId")
@@ -299,7 +362,7 @@ describe("getCartPurchaseByPurchaseId", () => {
 
 // test add purchase
 describe("addPurchase", () => {
-  it("✅adds purchase", () => {
+  itUnitIntegration("✅adds purchase", () => {
     const cartPurchase = createCartPurchase();
     const purchasesHistoryController = new PurchasesHistoryController();
     purchasesHistoryController.addPurchase(cartPurchase);
@@ -311,7 +374,7 @@ describe("addPurchase", () => {
     ).toStrictEqual(cartPurchase.ToDTO());
   });
 
-  it("❎ add two purchases with same id", () => {
+  itUnitIntegration("❎ add two purchases with same id", () => {
     const cartPurchase = createCartPurchase();
     const purchasesHistoryController = new PurchasesHistoryController();
 
@@ -327,7 +390,7 @@ describe("addPurchase", () => {
 
 // test get reviews by product id
 describe("getReviewsByProductId", () => {
-  it("✅gets reviews by product id", () => {
+  itUnitIntegration("✅gets reviews by product id", () => {
     const productReview = createProductReview();
     const purchasesHistoryController = new PurchasesHistoryController();
     const cartPurchase = createCartPurchase();
@@ -336,7 +399,7 @@ describe("getReviewsByProductId", () => {
     );
     purchasesHistoryController.addPurchase(cartPurchase);
     purchasesHistoryController.addProductPurchaseReview(
-      "userId",
+      "admin",
       "purchaseId",
       "productId",
       5,
@@ -351,7 +414,7 @@ describe("getReviewsByProductId", () => {
       purchasesHistoryController.getReviewsByProduct("productId").avgRating
     ).toBe(5);
   });
-  it("❎gets undefined reviews by product id", () => {
+  itUnitIntegration("❎gets undefined reviews by product id", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
     expect(
       purchasesHistoryController.getReviewsByProduct("productId").reviews
@@ -361,12 +424,12 @@ describe("getReviewsByProductId", () => {
 
 // test get reviews by store id
 describe("getReviewsByStore", () => {
-  it("✅gets reviews by store id", () => {
+  itUnitIntegration("✅gets reviews by store id", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
     const cartPurchase = createCartPurchase();
     purchasesHistoryController.addPurchase(cartPurchase);
     purchasesHistoryController.addStorePurchaseReview(
-      "userId",
+      "admin",
       "purchaseId",
       "storeId",
       5
@@ -376,19 +439,19 @@ describe("getReviewsByStore", () => {
     ]);
     expect(purchasesHistoryController.getReviewsByStore("storeId")).toBe(1);
   });
-  it("❎gets undefined reviews by store id", () => {
+  itUnitIntegration("❎gets undefined reviews by store id", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
     expect(
       purchasesHistoryController.getReviewsByStore("storeId")
     ).toStrictEqual(0);
   });
 
-  it("❎try and review a store twice", () => {
+  itUnitIntegration("❎try and review a store twice", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
     const cartPurchase = createCartPurchase();
     purchasesHistoryController.addPurchase(cartPurchase);
     purchasesHistoryController.addStorePurchaseReview(
-      "userId",
+      "admin",
       "purchaseId",
       "storeId",
       5
@@ -398,7 +461,7 @@ describe("getReviewsByStore", () => {
     );
     expect(() =>
       purchasesHistoryController.addStorePurchaseReview(
-        "userId",
+        "admin",
         "purchaseId",
         "storeId",
         5
@@ -409,7 +472,7 @@ describe("getReviewsByStore", () => {
 
 // test get purchase by store id
 describe("getPurchasesByStore", () => {
-  it("✅gets purchases by store id", () => {
+  itUnitIntegration("✅gets purchases by store id", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
     const cartPurchase = createCartPurchase();
     purchasesHistoryController.addPurchase(cartPurchase);
@@ -420,7 +483,7 @@ describe("getPurchasesByStore", () => {
       purchasesHistoryController.getPurchasesByStore("storeId").length
     ).toBe(1);
   });
-  it("❎gets undefined purchases by store id", () => {
+  itUnitIntegration("❎gets undefined purchases by store id", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
     expect(
       purchasesHistoryController.getPurchasesByStore("storeId").length
@@ -430,12 +493,12 @@ describe("getPurchasesByStore", () => {
 
 // test getStoreRating
 describe("getStoreRating", () => {
-  it("✅gets store rating", () => {
+  itUnitIntegration("✅gets store rating", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
     const cartPurchase = createCartPurchase();
     purchasesHistoryController.addPurchase(cartPurchase);
     purchasesHistoryController.addStorePurchaseReview(
-      "userId",
+      "admin",
       "purchaseId",
       "storeId",
       5
@@ -445,7 +508,7 @@ describe("getStoreRating", () => {
     ]);
     expect(purchasesHistoryController.getStoreRating("storeId")).toBe(5);
   });
-  it("❎gets undefined store rating", () => {
+  itUnitIntegration("❎gets undefined store rating", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
     expect(purchasesHistoryController.getStoreRating("storeId")).toBe(0);
   });
@@ -474,7 +537,7 @@ describe("PurchaseCart", () => {
       cartPurchase.ToDTO()
     );
     vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
-    purchasesHistoryController.purchaseCart("userId", cartDTO, 1, "creditCard");
+    purchasesHistoryController.purchaseCart("admin", cartDTO, 1, "creditCard");
 
     expect(
       purchasesHistoryController.getPurchase(cartPurchase.PurchaseId)
@@ -501,78 +564,10 @@ describe("PurchaseCart", () => {
       cartPurchase.ToDTO()
     );
     vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
-    purchasesHistoryController.purchaseCart("userId", cartDTO, 1, "creditCard");
+    purchasesHistoryController.purchaseCart("admin", cartDTO, 1, "creditCard");
 
     expect(() =>
-      purchasesHistoryController.purchaseCart(
-        "userId",
-        cartDTO,
-        1,
-        "creditCard"
-      )
-    ).toThrow();
-  });
-});
-
-describe("PurchaseCart", () => {
-  it("✅purchase cart", () => {
-    const cartPurchase = createCartPurchase();
-    const basketDTO = {
-      storeId: "storeId",
-      products: [
-        {
-          storeProductId: "productId",
-          quantity: 1,
-        },
-      ],
-    };
-    const StoreIDToBasketMap = new Map<string, BasketDTO>();
-    StoreIDToBasketMap.set("storeId", basketDTO);
-    const cartDTO = {
-      storeIdToBasket: StoreIDToBasketMap,
-    };
-    // spy on storeproductrepo getProductById
-    const purchasesHistoryController = new PurchasesHistoryController();
-    vi.spyOn(CartPurchase, "CartPurchaseDTOfromCartDTO").mockReturnValue(
-      cartPurchase.ToDTO()
-    );
-    vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
-    purchasesHistoryController.purchaseCart("userId", cartDTO, 1, "creditCard");
-
-    expect(
-      purchasesHistoryController.getPurchase(cartPurchase.PurchaseId)
-    ).toStrictEqual(cartPurchase.ToDTO());
-  });
-  it("❎purchase cart with no cart", () => {
-    const purchasesHistoryController = new PurchasesHistoryController();
-    const cartPurchase = createCartPurchase();
-    const basketDTO = {
-      storeId: "storeId",
-      products: [
-        {
-          storeProductId: "productId",
-          quantity: 1,
-        },
-      ],
-    };
-    const StoreIDToBasketMap = new Map<string, BasketDTO>();
-    StoreIDToBasketMap.set("storeId", basketDTO);
-    const cartDTO = {
-      storeIdToBasket: StoreIDToBasketMap,
-    };
-    vi.spyOn(CartPurchase, "CartPurchaseDTOfromCartDTO").mockReturnValue(
-      cartPurchase.ToDTO()
-    );
-    vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
-    purchasesHistoryController.purchaseCart("userId", cartDTO, 1, "creditCard");
-
-    expect(() =>
-      purchasesHistoryController.purchaseCart(
-        "userId",
-        cartDTO,
-        1,
-        "creditCard"
-      )
+      purchasesHistoryController.purchaseCart("admin", cartDTO, 1, "creditCard")
     ).toThrow();
   });
 });

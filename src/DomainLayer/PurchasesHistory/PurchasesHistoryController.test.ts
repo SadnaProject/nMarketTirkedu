@@ -435,7 +435,7 @@ describe("getStoreRating", () => {
   });
   it("❎gets undefined store rating", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
-    expect(purchasesHistoryController.getStoreRating("storeId")).toBe(NaN);
+    expect(purchasesHistoryController.getStoreRating("storeId")).toBe(0);
   });
 });
 

@@ -25,12 +25,9 @@ export class BasketPurchaseRepo {
     return purchase;
   }
   public hasPurchase(purchaseId: string): boolean {
-    return this.BasketPurchases.some(
+    const purchase = this.BasketPurchases.find(
       (purchase) => purchase.PurchaseId === purchaseId
     );
-    if (purchase === undefined) {
-      throw new Error("Purchase not found");
-    }
-    return purchase;
+    return purchase !== undefined;
   }
 }

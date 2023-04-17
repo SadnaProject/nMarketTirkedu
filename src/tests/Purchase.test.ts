@@ -34,7 +34,7 @@ describe("Get information about stores and products", () => {
     const mid = service.startSession();
     service.registerMember(mid, memail, mpassword);
     const umid = service.loginMember(mid, memail, mpassword);
-    const products = service.getStoreProducts(umid, storeId);
+    const products = service.getStoreProducts(uid, storeId);
     const cond =
       products[0]?.id == pid && service.getStoreFounder(storeId) == uid;
     expect(cond).toBe(true);
@@ -392,7 +392,7 @@ describe("Purchase Cart", () => {
     service.registerMember(mid, memail, mpassword);
     const umid = service.loginMember(mid, memail, mpassword);
     service.addProductToCart(umid, pid, 1);
-    service.addProductToCart(umid, pid2, 3);
+    expect(() => service.addProductToCart(umid, pid2, 3)).toThrow();
     const card = faker.finance.creditCardNumber();
     expect(() => service.purchaseCart(umid, card)).toThrow();
   });
@@ -457,7 +457,7 @@ describe("Purchase Cart", () => {
     service.registerMember(mid, memail, mpassword);
     const umid = service.loginMember(mid, memail, mpassword);
     const card = faker.finance.creditCardNumber();
-    expect(service.purchaseCart(umid, card)).toBe(true);
+    expect(() => service.purchaseCart(umid, card)).toThrow();
     expect(() => service.removeProductFromCart(umid, pid)).toThrow();
   });
 });

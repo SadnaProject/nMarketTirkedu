@@ -84,6 +84,21 @@ export class PurchasesHistoryController
     if (cart.storeIdToBasket.size === 0) {
       throw new Error("Cart is empty");
     }
+    //TODO fix
+    // cart.storeIdToBasket.forEach((basket) => {
+    //   basket.products.forEach((product) => {
+    //     if (
+    //       this.Controllers.Stores.isProductQuantityInStock(
+    //         userId,
+    //         product.storeProductId,
+    //         product.quantity
+    //       )
+    //     ) {
+    //       throw new Error("Product quantity is not available");
+    //     }
+    //   });
+    // });
+
     const cartPurchase = CartPurchase.CartPurchaseDTOfromCartDTO(
       cart,
       userId,

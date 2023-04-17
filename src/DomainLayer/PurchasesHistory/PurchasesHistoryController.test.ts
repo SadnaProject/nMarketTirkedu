@@ -14,6 +14,7 @@ import { CartPurchaseRepo } from "./PurchasesHistory/CartPurchaseHistoryRepo";
 import { ProductReviewRepo } from "./PurchasesHistory/ProductReviewsRepo";
 import { ReviewRepo } from "./PurchasesHistory/ReviewRepo";
 import { BasketPurchaseRepo } from "./PurchasesHistory/BasketPurchaseHistoryRepo";
+import { JobsController } from "../Jobs/JobsController";
 
 const reviewData = {
   rating: 5,
@@ -251,16 +252,27 @@ describe("getCartPurchaseByUserId", () => {
     const cartPurchase = createCartPurchase();
     const purchasesHistoryController = new PurchasesHistoryController();
     purchasesHistoryController.addPurchase(cartPurchase);
-
+    vi.spyOn(JobsController.prototype, "isSystemAdmin").mockReturnValue(true);
     expect(
-      purchasesHistoryController.getPurchasesByUser(cartPurchase.UserId)
+      purchasesHistoryController.getPurchasesByUser(
+        "admin",
+        cartPurchase.UserId
+      )
     ).toStrictEqual([cartPurchase.ToDTO()]);
   });
   it("❎gets undefined cart purchase", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
+    vi.spyOn(JobsController.prototype, "isSystemAdmin").mockReturnValue(true);
     expect(
-      purchasesHistoryController.getPurchasesByUser("userId")
+      purchasesHistoryController.getPurchasesByUser("admin", "userId")
     ).toStrictEqual([]);
+  });
+  it("❎try to get purchases when not an admin", () => {
+    const purchasesHistoryController = new PurchasesHistoryController();
+    vi.spyOn(JobsController.prototype, "isSystemAdmin").mockReturnValue(false);
+    expect(() =>
+      purchasesHistoryController.getPurchasesByUser("admin", "userId")
+    ).toThrow();
   });
 });
 
@@ -438,7 +450,6 @@ describe("getStoreRating", () => {
     expect(purchasesHistoryController.getStoreRating("storeId")).toBe(0);
   });
 });
-
 
 describe("PurchaseCart", () => {
   it("✅purchase cart", () => {

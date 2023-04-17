@@ -14,6 +14,8 @@ import { HasRepos, createRepos } from "./_HasRepos";
 import { PaymentAdapter } from "./PaymentAdaptor";
 import { ProductPurchase } from "./ProductPurchaseHistory";
 import { error } from "console";
+import { createControllers } from "../_createControllers";
+import { JobsController } from "../Jobs/JobsController";
 
 export interface IPurchasesHistoryController {
   getPurchase(purchaseId: string): CartPurchaseDTO;
@@ -57,7 +59,7 @@ export class PurchasesHistoryController
     this.initRepos(createRepos());
   }
   getPurchasesByUser(admingId: string, userId: string): CartPurchaseDTO[] {
-    if (this.Controllers.Jobs.isSystemAdmin(admingId) === false) {
+    if (new JobsController().isSystemAdmin(admingId) === false) {
       throw new Error("Not admin");
     }
     return this.Repos.CartPurchases.getPurchasesByUser(userId).map((purchase) =>

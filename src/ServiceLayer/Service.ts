@@ -102,9 +102,6 @@ export class Service {
     return this.facade.getStoreRating(storeId);
   }
 
-  public register(email: string, password: string) {
-    this.facade.register(email, password);
-  }
 
   public loginMember(userId: string, email: string, password: string): string {
     return this.facade.loginMember(userId, email, password);

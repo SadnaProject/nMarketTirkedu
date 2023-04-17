@@ -30,8 +30,8 @@ describe("Stock Management", () => {
     const pargs = generateProductArgs();
     const pid = service.createProduct(oid, storeId, pargs);
     expect(
-      service.getProductPrice(pid) == pargs.price &&
-        service.getStoreIdByProductId(pid) == storeId
+      service.getProductPrice(uid,pid) == pargs.price &&
+        service.getStoreIdByProductId(uid,pid) == storeId
     ).toBe(true);
   });
   it("❎ product creation - empty name", () => {
@@ -504,8 +504,8 @@ describe("Get Purchase History by a store", () => {
       hist.length == 2 &&
         hist.at(0)?.price == pargs.price &&
         hist.at(1)?.price == 2 * pargs2.price &&
-        hist.at(0)?.userId == umid &&
-        hist.at(1)?.userId == umid
+        hist.at(0)?.storeId == storeId &&
+        hist.at(1)?.storeId == storeId
     ).toBe(true);
   });
   it("❎ Applied by a regular member", () => {
@@ -588,8 +588,8 @@ it("✅ Applied by a founder", () => {
     hist.length == 2 &&
       hist.at(0)?.price == pargs.price &&
       hist.at(1)?.price == 2 * pargs2.price &&
-      hist.at(0)?.userId == umid &&
-      hist.at(1)?.userId == umid
+      hist.at(0)?.storeId == storeId &&
+      hist.at(1)?.storeId== storeId
   ).toBe(true);
 });
 /*

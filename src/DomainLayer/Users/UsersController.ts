@@ -6,6 +6,12 @@ import { HasRepos, createRepos } from "./_HasRepos";
 import { Testable, testable } from "~/_Testable";
 export interface IUsersController {
   /**
+   * this fuction checks if a user exists.
+   * @param userId The id of the user that is currently logged in.
+   * @returns True if the user exists, false otherwise.
+   **/
+  isUserExist(userId: string): boolean;
+  /**
    * This function gets the notifications of a user.
    * @param userId The id of the user that is currently logged in.
    * @returns The notifications of the user.
@@ -85,6 +91,7 @@ export interface IUsersController {
     notificationType: string,
     notificationMsg: string
   ): string;
+  register(email:string,password:string):string;
   /**
    * This function will start new session for user.
    */
@@ -216,14 +223,15 @@ export class UsersController
     this.addUser(guestId);
     return guestId;
   }
+  register(email: string, password: string): string {
+    const MemberId = this.Controllers.Auth.register(email, password);
+    this.Repos.Users.addUser(MemberId);
+    return MemberId;
+  }
   login(guestId: string, email: string, password: string): string {
     this.Repos.Users.getUser(guestId);
     const MemberId = this.Controllers.Auth.login(guestId, email, password);
-    if (!this.Repos.Users.isUserExist(MemberId)) {
-      this.Repos.Users.addUser(MemberId);
-      this.Repos.Users.clone(guestId, MemberId);
-    }
-    this.Repos.Users.removeUser(guestId);
+    this.Repos.Users.getUser(MemberId);
     return MemberId;
   }
   logout(userId: string): string {
@@ -236,5 +244,8 @@ export class UsersController
       this.Repos.Users.removeUser(userId);
     }
     this.Controllers.Auth.disconnect(userId);
+  }
+  isUserExist(userId: string): boolean {
+    return this.Repos.Users.isUserExist(userId);
   }
 }

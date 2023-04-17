@@ -1,13 +1,13 @@
 import { Mixin } from "ts-mixer";
-import { HasControllers } from "../HasController";
+import { HasControllers } from "../_HasController";
 import { type StoreDTO } from "../Stores/Store";
-import { Testable, testable } from "~/Testable";
+import { Testable, testable } from "~/_Testable";
 import { ManagerRole } from "./ManagerRole";
 import { OwnerRole } from "./OwnerRole";
-import { HasRepos, createRepos } from "./HasRepos";
+import { HasRepos, createRepos } from "./_HasRepos";
 import { PositionHolder } from "./PositionHolder";
 import { FounderRole } from "./FounderRole";
-import { EditablePermission } from "./Role";
+import { type EditablePermission } from "./Role";
 
 export interface IJobsController {
   /**
@@ -234,7 +234,7 @@ export interface IJobsController {
    */
   setInitialAdmin(userId: string): void;
   /**
-   * This function checks if a user can receive any data from a store(owners, managers, products, etc.)
+   * This function checks if a user can receive any data from a store(owners, managers, products, etc.).
    * @param userId
    * @param storeId
    */

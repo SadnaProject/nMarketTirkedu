@@ -1,9 +1,9 @@
 import { z } from "zod";
-import { HasRepos, type Repos } from "./HasRepos";
+import { HasRepos, type Repos } from "./_HasRepos";
 import { StoreProduct, type StoreProductArgs } from "./StoreProduct";
 import { type BasketDTO } from "../Users/Basket";
 import { Mixin } from "ts-mixer";
-import { type Controllers, HasControllers } from "../HasController";
+import { type Controllers, HasControllers } from "../_HasController";
 const { randomUUID } = await import("crypto");
 
 export const nameSchema = z.string().nonempty();

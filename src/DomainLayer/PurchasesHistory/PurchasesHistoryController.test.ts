@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { PurchasesHistoryController } from "./PurchasesHistoryController";
 import { ProductReviewArgs, ProductReview } from "./ProductReview";
-import { Repos, createRepos } from "./HasRepos";
+import { Repos, createRepos } from "./_HasRepos";
 import { Review } from "./Review";
 import { ProductPurchase } from "./ProductPurchaseHistory";
 import { BasketPurchase } from "./BasketPurchaseHistory";
@@ -438,7 +438,6 @@ describe("getStoreRating", () => {
     expect(purchasesHistoryController.getStoreRating("storeId")).toBe(NaN);
   });
 });
-
 
 describe("PurchaseCart", () => {
   it("✅purchase cart", () => {

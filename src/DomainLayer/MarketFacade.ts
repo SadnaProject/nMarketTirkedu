@@ -1,12 +1,12 @@
-import { type Controllers } from "./HasController";
+import { type Controllers } from "./_HasController";
 import { type CartDTO } from "./Users/Cart";
-import { createControllers } from "./createControllers";
+import { createControllers } from "./_createControllers";
 import { type BasketDTO } from "./Users/Basket";
 import {
   type StoreProductDTO,
   type StoreProductArgs,
 } from "./Stores/StoreProduct";
-import { Loggable, loggable } from "./Loggable";
+import { Loggable, loggable } from "./_Loggable";
 import { type SearchArgs } from "./Stores/StoresController";
 import { type CartPurchaseDTO } from "./PurchasesHistory/CartPurchaseHistory";
 import { type BasketPurchaseDTO } from "./PurchasesHistory/BasketPurchaseHistory";

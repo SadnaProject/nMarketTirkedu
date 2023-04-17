@@ -1,8 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createTestControllers } from "../createControllers";
-import { type Repos, createTestRepos } from "./HasRepos";
-import { createProduct, createStore, generateProductArgs, generateStoreName } from "./data";
-import { type Controllers } from "../HasController";
+import { createTestControllers } from "../_createControllers";
+import { type Repos, createMockRepos } from "./_HasRepos";
+import {
+  createProduct,
+  createStore,
+  generateProductArgs,
+  generateStoreName,
+} from "./_data";
+import { type Controllers } from "../_HasController";
 import { type StoreProduct } from "./StoreProduct";
 
 describe("search products", () => {
@@ -10,7 +15,7 @@ describe("search products", () => {
   let controllers: Controllers;
   let products: StoreProduct[];
   beforeEach(() => {
-    repos = createTestRepos();
+    repos = createMockRepos();
     controllers = createTestControllers("Stores");
     controllers.Stores.initRepos(repos);
     products = Array.from({ length: 3 }, () =>

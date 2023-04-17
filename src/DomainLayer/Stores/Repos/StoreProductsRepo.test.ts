@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { type Repos, createTestRepos } from "../HasRepos";
-import { createProduct, generateProductArgs } from "../data";
+import { type Repos, createMockRepos } from "../_HasRepos";
+import { createProduct, generateProductArgs } from "../_data";
 
 let repos: Repos;
 
 beforeEach(() => {
-  repos = createTestRepos("Products");
+  repos = createMockRepos("Products");
 });
 
 describe("add product", () => {

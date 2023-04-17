@@ -1,4 +1,4 @@
-import { Testable, testable } from "~/Testable";
+import { Testable, testable } from "~/_Testable";
 import { type Store } from "../Store";
 
 @testable

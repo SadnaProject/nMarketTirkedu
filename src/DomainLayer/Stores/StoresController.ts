@@ -1,4 +1,4 @@
-import { HasControllers } from "../HasController";
+import { HasControllers } from "../_HasController";
 import { Mixin } from "ts-mixer";
 import { Store } from "./Store";
 import {
@@ -6,10 +6,10 @@ import {
   type StoreProductDTO,
   type StoreProductArgs,
 } from "./StoreProduct";
-import { HasRepos, createRepos } from "./HasRepos";
+import { HasRepos, createRepos } from "./_HasRepos";
 import { type CartDTO } from "../Users/Cart";
 import { type BasketDTO } from "../Users/Basket";
-import { Testable, testable } from "~/Testable";
+import { Testable, testable } from "~/_Testable";
 import fuzzysearch from "fuzzysearch-ts";
 import { type BasketPurchaseDTO } from "../PurchasesHistory/BasketPurchaseHistory";
 

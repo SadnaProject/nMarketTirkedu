@@ -46,10 +46,13 @@ export function createMockRepos(testedRepo: keyof Repos | null = null) {
   return repos as Repos;
 }
 
-export function createTestRepos(testType: string) {
+export function createTestRepos(
+  testType: string,
+  testedRepo: keyof Repos | null = null
+) {
   switch (testType) {
     case "unit":
-      return createMockRepos();
+      return createMockRepos(testedRepo);
     case "integration":
       return createRepos();
     default:

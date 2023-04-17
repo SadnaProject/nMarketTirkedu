@@ -293,7 +293,7 @@ export class StoresController
     quantity: number
   ): boolean {
     const product = StoreProduct.fromProductId(productId, this.Repos);
-    this.checkDataRetrievalPermission(userId, product.Store.Id);
+    // this.checkDataRetrievalPermission(userId, product.Store.Id);
     return product.isQuantityInStock(quantity);
   }
 
@@ -441,7 +441,7 @@ export class StoresController
 
   getStoreIdByProductId(userId: string, productId: string): string {
     const product = StoreProduct.fromProductId(productId, this.Repos);
-    this.checkDataRetrievalPermission(userId, product.Store.Id);
+    // this.checkDataRetrievalPermission(userId, product.Store.Id);
     return product.Store.Id;
   }
 

@@ -30,8 +30,8 @@ describe("Stock Management", () => {
     const pargs = generateProductArgs();
     const pid = service.createProduct(oid, storeId, pargs);
     expect(
-      service.getProductPrice(uid,pid) == pargs.price &&
-        service.getStoreIdByProductId(uid,pid) == storeId
+      service.getProductPrice(uid, pid) == pargs.price &&
+        service.getStoreIdByProductId(uid, pid) == storeId
     ).toBe(true);
   });
   it("❎ product creation - empty name", () => {
@@ -589,7 +589,7 @@ it("✅ Applied by a founder", () => {
       hist.at(0)?.price == pargs.price &&
       hist.at(1)?.price == 2 * pargs2.price &&
       hist.at(0)?.storeId == storeId &&
-      hist.at(1)?.storeId== storeId
+      hist.at(1)?.storeId == storeId
   ).toBe(true);
 });
 /*

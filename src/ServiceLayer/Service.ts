@@ -53,7 +53,7 @@ export class Service {
     return this.facade.getNotifications(userId);
   }
   public purchaseCart(userId: string, creditCard: string) {
-    // this.facade.purchaseCart(userId, creditCard);
+    this.facade.purchaseCart(userId, creditCard);
   }
   public removeUser(userId: string) {
     this.facade.removeUser(userId);
@@ -101,7 +101,6 @@ export class Service {
   public getStoreRating(storeId: string) {
     return this.facade.getStoreRating(storeId);
   }
-
 
   public loginMember(userId: string, email: string, password: string): string {
     return this.facade.loginMember(userId, email, password);

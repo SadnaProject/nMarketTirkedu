@@ -326,7 +326,7 @@ export class MarketFacade extends Loggable {
   }
   public registerMember(userId: string, email: string, password: string): void {
     this.isConnectionValid(userId);
-    this.controllers.Auth.register(email, password);
+    this.controllers.Users.register( email, password);
   }
   public loginMember(userId: string, email: string, password: string): string {
     this.isConnectionValid(userId);

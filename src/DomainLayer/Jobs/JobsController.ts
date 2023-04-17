@@ -265,6 +265,7 @@ export class JobsController
     // this.ownerRole = new OwnerRole();
     // this.founderRole = new FounderRole();
   }
+
   canReceiveDataFromStore(userId: string, storeId: string): boolean {
     const positionHolder: PositionHolder | undefined =
       this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId, storeId);
@@ -284,6 +285,7 @@ export class JobsController
     }
     return positionHolder.Role.hasPermission("SeeStoreData");
   }
+
 
   InitializeStore(founderId: string, storeId: string): void {
     const positionHolder: PositionHolder = new PositionHolder(

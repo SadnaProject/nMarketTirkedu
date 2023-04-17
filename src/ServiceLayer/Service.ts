@@ -5,6 +5,7 @@ import {
   type StoreProductDTO,
   type StoreProductArgs,
 } from "../DomainLayer/Stores/StoreProduct";
+import { CartPurchaseDTO } from "~/DomainLayer/PurchasesHistory/CartPurchaseHistory";
 export type SearchArgs = {
   name?: string;
   category?: string;
@@ -51,7 +52,7 @@ export class Service {
     return this.facade.getNotifications(userId);
   }
   public purchaseCart(userId: string, creditCard: string) {
-    this.facade.purchaseCart(userId, creditCard);
+    // this.facade.purchaseCart(userId, creditCard);
   }
   public removeUser(userId: string) {
     this.facade.removeUser(userId);
@@ -272,5 +273,21 @@ export class Service {
 
   public registerMember(userId: string, email: string, password: string): void {
     this.facade.registerMember(userId, email, password);
+  }
+
+  public logoutMember(userId: string): string {
+    return this.facade.logoutMember(userId);
+  }
+  public getPurchasesByUser(
+    adminId: string,
+    userId: string
+  ): CartPurchaseDTO[] {
+    return this.facade.getPurchasesByUser(adminId, userId);
+  }
+  public getPurchasesByStore(
+    userId: string,
+    storeId: string
+  ): CartPurchaseDTO[] {
+    return this.facade.getPurchasesByStore(userId, storeId);
   }
 }

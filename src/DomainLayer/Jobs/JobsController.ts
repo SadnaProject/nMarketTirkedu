@@ -258,6 +258,7 @@ export class JobsController
   private wasAdminInitialized: boolean;
   constructor() {
     super();
+    this.initRepos(createRepos());
     this.wasAdminInitialized = false;
     this.initRepos(createRepos());
     // this.managerRole = new ManagerRole();

@@ -5,6 +5,7 @@ export default defineConfig({
   test: {
     restoreMocks: true,
     coverage: {
+      exclude: ["**/_*.ts"],
       provider: "istanbul",
       reporter: ["lcov"],
     },

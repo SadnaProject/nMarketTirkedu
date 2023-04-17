@@ -4,14 +4,20 @@
   "private": true,
   "scripts": {
     "test": "vitest --coverage",
+    "format": "eslint --fix ./src && prettier --write ./src",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@anatine/zod-mock": "^3.10.0",
+    "@faker-js/faker": "^7.6.0",
     "@trpc/server": "^10.18.0",
     "dayjs": "^1.11.7",
+    "fuzzysearch-ts": "^1.0.3",
+    "pnpm": "^8.2.0",
     "superjson": "1.12.2",
+    "ts-mixer": "^6.0.3",
     "zod": "^3.21.4"
   },
   "devDependencies": {

@@ -1,19 +1,26 @@
 import { type Session } from "./Session";
+const { randomUUID } = await import("crypto");
+import { z } from "zod";
 
 export type UserType = "GUEST" | "MEMBER";
 
-export class UserAuth {
-  private userId: string;
-  private email: string;
-  private password: string;
-  private type: UserType;
-  private sessions: Session[];
+export type UserAuthDTO = {
+  userId: string;
+  // email: string;
+  // password: string;
+  type: UserType;
+  sessions: Session[];
+};
+export abstract class UserAuth {
+  protected userId: string;
+  // private email: string;
+  // private password: string;
+  protected type: UserType;
+  protected sessions: Session[];
 
-  constructor(userId: string, type: UserType, email: string, password: string) {
-    this.userId = userId;
+  protected constructor(type: UserType) {
+    this.userId = randomUUID();
     this.type = type;
-    this.email = email;
-    this.password = password;
     this.sessions = [];
   }
 
@@ -21,7 +28,41 @@ export class UserAuth {
     return this.userId;
   }
 
-  public get Email(): string {
-    return this.email;
+  public get DTO(): UserAuthDTO {
+    return {
+      userId: this.userId,
+      // email: this.email,
+      // password: this.password,
+      type: this.type,
+      sessions: this.sessions,
+    };
+  }
+
+  protected addSession(session: Session): void {
+    this.sessions.push(session);
+  }
+
+  public isConnectionValid(): boolean {
+    const latestSession = this.getLatestSession();
+    if (latestSession === undefined) {
+      return false;
+    }
+    return latestSession.isValid();
+  }
+  protected getLatestSession(): Session | undefined {
+    if (this.sessions.length === 0) {
+      return undefined;
+    }
+    return this.sessions[this.sessions.length - 1];
+  }
+  //Logged in= has a valid session as a member
+  //Connected= has a valid session as a guest or a member
+  abstract isUserLoggedInAsMember(): boolean;
+  abstract isUserLoggedInAsGuest(): boolean;
+  public isGuest(): boolean {
+    return this.type === "GUEST";
+  }
+  public isMember(): boolean {
+    return this.type === "MEMBER";
   }
 }

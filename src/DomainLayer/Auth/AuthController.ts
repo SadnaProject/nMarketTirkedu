@@ -1,4 +1,19 @@
-export interface IAuthController {
+import { Mixin } from "ts-mixer";
+import { HasControllers } from "../_HasController";
+import { Testable, testable } from "~/_Testable";
+import { HasRepos } from "./_HasRepos";
+import { createRepos } from "./_HasRepos";
+import { UserAuth } from "./UserAuth";
+import { GuestUserAuth, GuestUserAuthDTO } from "./GuestUserAuth";
+import { MemberUserAuth, MemberUserAuthDTO } from "./MemberUserAuth";
+
+export interface IAuthController extends HasRepos {
+  /**
+   * Starts a new session. This method should be called when a new user connects to the system.
+   * The user is signed in as a guest user and is assigned a new session.
+   * @returns The user's ID(Notice this is the id only for this session as the user is a guest in this time).
+   */
+  startSession(): string;
   /**
    * Returns true if the provided userId is a guest user.
    * @param userId
@@ -7,8 +22,8 @@ export interface IAuthController {
   isGuest(userId: string): boolean;
   /**
    * Checks if a user is a member of the group.
-   * @param userId: string
-   * @return boolean
+   * @param userId: String.
+   * @returns Boolean.
    */
 
   isMember(userId: string): boolean;
@@ -21,26 +36,28 @@ export interface IAuthController {
   isConnected(userId: string): boolean;
   /**
    * Logs in a user.
+   * @param guestId The user's ID.(The id of the guest user that was created when the user connected to the system and preforms the login).
    * @param email The user's email.
    * @param password The user's password.
    * @returns The user's ID.
    */
-  login(email: string, password: string): string;
+  login(guestId: string, email: string, password: string): string;
   /**
-   * Logs out the user.
+   * Disconnects a user. If the user is a guest user, the user is removed from the system. If the user is a member user, the users session is invalidated.
    * @param userId The user's ID.
    * @throws Error if the user is not connected.
    */
 
-  logout(userId: string): void;
+  disconnect(userId: string): void;
   /**
    * Registers a new user.
    * @param email The user's email.
    * @param password The user's password.
+   * @returns The user's ID.
    * @throws Error if the email is already in use.
    * @throws Error if the password is invalid.
    */
-  register(email: string, password: string): void;
+  register(email: string, password: string): string;
   /**
    * Changes the user's email.
    * @param userId The user's ID.
@@ -61,35 +78,120 @@ export interface IAuthController {
     oldPassword: string,
     newPassword: string
   ): void;
+  /**
+   * Logs out a logged in member user.
+   * @param userId The user's ID.
+   * @returns The new guest user's ID.(After the logout the user is a guest user again).
+   * @throws Error if the user is not connected or not a user.
+   */
+  logout(userId: string): string;
 }
 
-export class AuthController implements IAuthController {
-  login(email: string, password: string): string {
-    throw new Error("Method not implemented.");
+@testable
+export class AuthController
+  extends Mixin(Testable, HasControllers, HasRepos)
+  implements IAuthController
+{
+  constructor() {
+    super();
+    this.initRepos(createRepos());
   }
-  logout(userId: string): void {
-    throw new Error("Method not implemented.");
+
+  public startSession(): string {
+    // throw new Error("Method not implemented.");
+    const guest = GuestUserAuth.create();
+    this.Repos.Users.addGuest(guest);
+    return guest.UserId;
   }
-  register(email: string, password: string): void {
-    throw new Error("Method not implemented.");
+
+  public login(guestId: string, email: string, password: string): string {
+    // throw new Error("Method not implemented.");
+    const member: MemberUserAuth = this.Repos.Users.getMemberByEmail(email);
+    if (!member.isPasswordCorrect(password)) {
+      throw new Error(
+        "Password is incorrect, please try again with a different password"
+      );
+    }
+    member.login();
+    this.Repos.Users.removeGuest(guestId);
+    return member.UserId;
   }
-  changeEmail(userId: string, newEmail: string): boolean {
-    throw new Error("Method not implemented.");
+  public disconnect(userId: string): void {
+    //TODO - do i need to call the logout method of the users component?
+    if (this.isGuest(userId)) {
+      this.Repos.Users.removeGuest(userId);
+      return;
+    } else {
+      const member: MemberUserAuth = this.Repos.Users.getMemberById(userId);
+
+      member.logout(); //throws error if user is not connected
+    }
   }
-  changePassword(
+  public logout(userId: string): string {
+    if (this.isGuest(userId)) {
+      throw new Error(
+        "User is not a member, please try again with a different user"
+      );
+    }
+    const member: MemberUserAuth = this.Repos.Users.getMemberById(userId);
+    member.logout(); //throws error if user is not connected
+    return this.startSession();
+  }
+  public register(email: string, password: string): string {
+    // throw new Error("Method not implemented.");
+    if (this.Repos.Users.doesMemberExistByEmail(email)) {
+      throw new Error(
+        "Email already in use, please try again with a different email"
+      );
+    }
+    // if(!this.validatePassword(password)){
+    //   throw new Error("Password is invalid, please try again with a different password");
+    // }
+    const ua = MemberUserAuth.create(email, password);
+    this.Repos.Users.addMember(ua);
+    return ua.UserId;
+  }
+
+  public changeEmail(userId: string, newEmail: string): void {
+    // throw new Error("Method not implemented.");
+    const member = this.Repos.Users.getMemberById(userId);
+    if (this.Repos.Users.doesMemberExistByEmail(newEmail)) {
+      throw new Error(
+        "Email already in use, please try again with a different email"
+      );
+    }
+    member.Email = newEmail;
+  }
+  public changePassword(
     userId: string,
     oldPassword: string,
     newPassword: string
-  ): boolean {
-    throw new Error("Method not implemented.");
+  ): void {
+    // throw new Error("Method not implemented.");
+    const member: MemberUserAuth = this.Repos.Users.getMemberById(userId);
+    if (!member.isPasswordCorrect(oldPassword)) {
+      throw new Error(
+        "Password is incorrect, please try again with a different password"
+      );
+    }
+    member.Password = newPassword;
   }
-  isGuest(userId: string): boolean {
-    throw new Error("Method not implemented.");
+  public isGuest(userId: string): boolean {
+    return this.Repos.Users.doesGuestExistById(userId);
   }
-  isMember(userId: string): boolean {
-    throw new Error("Method not implemented.");
+  public isMember(userId: string): boolean {
+    if (this.Repos.Users.doesMemberExistById(userId)) {
+      return true;
+    }
+    return false;
   }
-  isConnected(userId: string): boolean {
-    throw new Error("Method not implemented.");
+
+  public isConnected(userId: string): boolean {
+    if (this.Repos.Users.doesGuestExistById(userId)) {
+      return this.Repos.Users.getGuestById(userId).isUserLoggedInAsGuest();
+    }
+    if (!this.Repos.Users.doesMemberExistById(userId)) return false;
+    const member: MemberUserAuth = this.Repos.Users.getMemberById(userId);
+    return member.isUserLoggedInAsMember();
   }
 }

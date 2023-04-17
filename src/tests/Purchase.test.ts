@@ -1,20 +1,12 @@
 import { faker } from "@faker-js/faker/locale/en";
 import { beforeEach } from "vitest";
 import { describe, expect, it } from "vitest";
-import { generateStoreName } from "~/DomainLayer/Stores/Store.test";
-import { Service } from "~/ServiceLayer/Service";
+import { type StoreProductArgs } from "~/DomainLayer/Stores/StoreProduct";
 import {
-  createProduct,
   generateProductArgs,
-} from "~/DomainLayer/Stores/StoreProduct.test";
-import { CartDTO } from "~/DomainLayer/Users/Cart";
-import { BasketDTO } from "~/DomainLayer/Users/Basket";
-import { pid } from "process";
-import { parseArgs } from "util";
-import {
-  StoreProductArgs,
-  StoreProductDTO,
-} from "~/DomainLayer/Stores/StoreProduct";
+  generateStoreName,
+} from "~/DomainLayer/Stores/data";
+import { Service } from "~/ServiceLayer/Service";
 
 let service: Service;
 beforeEach(() => {
@@ -42,7 +34,7 @@ describe("Get information about stores and products", () => {
     const mid = service.startSession();
     service.registerMember(mid, memail, mpassword);
     const umid = service.loginMember(mid, memail, mpassword);
-    const products = service.getStoreProducts(storeId);
+    const products = service.getStoreProducts(umid, storeId);
     const cond =
       products[0]?.id == pid && service.getStoreFounder(storeId) == uid;
     expect(cond).toBe(true);
@@ -75,7 +67,8 @@ describe("Get information about stores and products", () => {
 describe("Search Products", () => {
   let pargs1: StoreProductArgs,
     pargs2: StoreProductArgs,
-    pargs3: StoreProductArgs;
+    pargs3: StoreProductArgs,
+    umid: string;
   let storeId: string;
   beforeEach(() => {
     pargs1 = generateProductArgs();
@@ -103,7 +96,7 @@ describe("Search Products", () => {
     const mpassword = faker.internet.password();
     const mid = service.startSession();
     service.registerMember(mid, memail, mpassword);
-    const umid = service.loginMember(mid, memail, mpassword);
+    umid = service.loginMember(mid, memail, mpassword);
     const products = [
       {
         ...pargs1,
@@ -120,53 +113,53 @@ describe("Search Products", () => {
     ];
   });
   it("✅should return all products", () => {
-    const res = service.searchProducts({});
+    const res = service.searchProducts(umid, {});
     expect(res.length).toEqual(3);
   });
   it("✅should return some products because of name filter", () => {
-    const res = service.searchProducts({
+    const res = service.searchProducts(umid, {
       name: pargs1.name.toUpperCase().split(" ")[0],
     });
     expect(res.keys.length > 0).toBe(true);
   });
 
   it("✅should return some products because of keywords", () => {
-    const res = service.searchProducts({
+    const res = service.searchProducts(umid, {
       keywords: [pargs1.description.toUpperCase().split(" ")[1] ?? ""],
     });
     expect(res.keys.length > 0).toBe(true);
   });
 
   it("✅shouldn't return products because of made up name", () => {
-    const res = service.searchProducts({
+    const res = service.searchProducts(umid, {
       name: "made up name that doesn't exist",
     });
     expect(res).toEqual([]);
   });
 
   it("✅shouldn't return products because of made up category", () => {
-    const res = service.searchProducts({
+    const res = service.searchProducts(umid, {
       category: "made up category that doesn't exist",
     });
     expect(res).toEqual([]);
   });
 
   it("✅shouldn't return products because of made up keywords", () => {
-    const res = service.searchProducts({
+    const res = service.searchProducts(umid, {
       keywords: ["made up keyword that doesn't exist"],
     });
     expect(res).toEqual([]);
   });
 
   it("✅shouldn't return products because of high min price", () => {
-    const res = service.searchProducts({
+    const res = service.searchProducts(umid, {
       minPrice: Infinity,
     });
     expect(res).toEqual([]);
   });
 
   it("✅shouldn't return products because of low max price", () => {
-    const res = service.searchProducts({
+    const res = service.searchProducts(umid, {
       maxPrice: 0,
     });
     expect(res).toEqual([]);
@@ -367,10 +360,10 @@ describe("Purchase Cart", () => {
     const cart = service.getCart(umid).storeIdToBasket;
     expect(
       cart.get(storeId)?.products.length == 0 &&
-        !service.isProductQuantityInStock(pid, 7) &&
-        service.isProductQuantityInStock(pid, 6) &&
-        !service.isProductQuantityInStock(pid2, 3) &&
-        service.isProductQuantityInStock(pid2, 2)
+        !service.isProductQuantityInStock(umid, pid, 7) &&
+        service.isProductQuantityInStock(umid, pid, 6) &&
+        !service.isProductQuantityInStock(umid, pid2, 3) &&
+        service.isProductQuantityInStock(umid, pid2, 2)
     ).toBe(true);
   });
   it("❎ Purchase cart with out of stock product", () => {

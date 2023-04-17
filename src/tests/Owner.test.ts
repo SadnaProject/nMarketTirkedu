@@ -2,10 +2,10 @@ import { faker } from "@faker-js/faker/locale/en";
 import { beforeEach } from "vitest";
 import { describe, expect, it } from "vitest";
 import { Service } from "~/ServiceLayer/Service";
-import { generateStoreName } from "~/DomainLayer/Stores/Store.test";
 import {
   generateProductArgs,
-} from "~/DomainLayer/Stores/StoreProduct.test";
+  generateStoreName,
+} from "~/DomainLayer/Stores/data";
 
 let service: Service;
 beforeEach(() => {

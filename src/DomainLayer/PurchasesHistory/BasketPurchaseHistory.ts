@@ -4,8 +4,8 @@ import {
   ProductPurchase,
 } from "./ProductPurchaseHistory";
 import { type ProductReviewDTO } from "./ProductReview";
-import { ReviewDTO, type Review } from "./Review";
-import { BasketDTO } from "../Users/Basket";
+import { type ReviewDTO, type Review } from "./Review";
+import { type BasketDTO } from "../Users/Basket";
 import { UsersController } from "../Users/UsersController";
 import { StoresController } from "../Stores/StoresController";
 
@@ -38,7 +38,8 @@ export class BasketPurchase extends HasRepos {
 
   static BasketPurchaseDTOFromBasketDTO(
     basketDTO: BasketDTO,
-    purchaseId: string
+    purchaseId: string,
+    userId: string
   ): BasketPurchaseDTO {
     const products = new Map<string, ProductPurchaseDTO>();
     basketDTO.products.forEach((product) => {
@@ -46,7 +47,8 @@ export class BasketPurchase extends HasRepos {
         product.storeProductId,
         ProductPurchase.ProductPurchaseDTOFromBasketProductDTO(
           product,
-          purchaseId
+          purchaseId,
+          userId
         )
       );
     });
@@ -54,7 +56,7 @@ export class BasketPurchase extends HasRepos {
       purchaseId: purchaseId,
       storeId: basketDTO.storeId,
       products: products,
-      price: new StoresController().getBasketPrice(basketDTO),
+      price: new StoresController().getBasketPrice(userId, basketDTO),
     };
   }
 

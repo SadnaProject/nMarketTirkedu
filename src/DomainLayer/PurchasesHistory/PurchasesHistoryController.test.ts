@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { PurchasesHistoryController } from "./PurchasesHistoryController";
 import { ProductReviewArgs, ProductReview } from "./ProductReview";
-import { Repos, createRepos } from "./_HasRepos";
+import { type Repos, createRepos } from "./_HasRepos";
 import { Review } from "./Review";
 import { ProductPurchase } from "./ProductPurchaseHistory";
 import { BasketPurchase } from "./BasketPurchaseHistory";
@@ -9,7 +9,7 @@ import { CartPurchase } from "./CartPurchaseHistory";
 import { ProductPurchaseRepo } from "~/DomainLayer/PurchasesHistory/PurchasesHistory/ProductPurchaseHistoryRepo";
 import exp from "constants";
 import { BasketProductDTO } from "../Users/BasketProduct";
-import { BasketDTO } from "../Users/Basket";
+import { type BasketDTO } from "../Users/Basket";
 import { CartPurchaseRepo } from "./PurchasesHistory/CartPurchaseHistoryRepo";
 import { ProductReviewRepo } from "./PurchasesHistory/ProductReviewsRepo";
 import { ReviewRepo } from "./PurchasesHistory/ReviewRepo";

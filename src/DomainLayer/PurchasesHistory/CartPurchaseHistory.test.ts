@@ -1,6 +1,12 @@
 import { expect, vi, describe, it } from "vitest";
-import { BasketPurchase, BasketPurchaseDTO } from "./BasketPurchaseHistory";
-import { ProductPurchase, ProductPurchaseDTO } from "./ProductPurchaseHistory";
+import {
+  BasketPurchase,
+  type BasketPurchaseDTO,
+} from "./BasketPurchaseHistory";
+import {
+  ProductPurchase,
+  type ProductPurchaseDTO,
+} from "./ProductPurchaseHistory";
 import { BasketProduct } from "../Users/BasketProduct";
 import { StoresController } from "../Stores/StoresController";
 import { CartPurchase } from "./CartPurchaseHistory";

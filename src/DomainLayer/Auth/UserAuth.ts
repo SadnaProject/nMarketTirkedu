@@ -1,7 +1,6 @@
-import { Session } from "./Session";
-const {randomUUID} = await import("crypto");
+import { type Session } from "./Session";
+const { randomUUID } = await import("crypto");
 import { z } from "zod";
-
 
 export type UserType = "GUEST" | "MEMBER";
 
@@ -25,7 +24,6 @@ export abstract class UserAuth {
     this.sessions = [];
   }
 
-    
   public get UserId(): string {
     return this.userId;
   }
@@ -67,6 +65,4 @@ export abstract class UserAuth {
   public isMember(): boolean {
     return this.type === "MEMBER";
   }
-  
 }
-

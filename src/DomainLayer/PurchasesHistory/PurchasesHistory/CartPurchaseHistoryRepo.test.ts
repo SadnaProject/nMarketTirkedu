@@ -5,7 +5,7 @@ import { ProductPurchase } from "../ProductPurchaseHistory";
 import { ProductPurchaseRepo } from "./ProductPurchaseHistoryRepo";
 import { CartPurchase } from "../CartPurchaseHistory";
 import { CartPurchaseRepo } from "./CartPurchaseHistoryRepo";
-import { BasketPurchase } from "../BasketPurchaseHistory";
+import { type BasketPurchase } from "../BasketPurchaseHistory";
 
 const CartPurchaseData = {
   id: "id",

@@ -36,14 +36,14 @@ export interface IAuthController extends HasRepos {
   isConnected(userId: string): boolean;
   /**
    * Logs in a user.
-   * @param guestId The user's ID.(The id of the guest user that was created when the user connected to the system and preforms the login)
+   * @param guestId The user's ID.(The id of the guest user that was created when the user connected to the system and preforms the login).
    * @param email The user's email.
    * @param password The user's password.
    * @returns The user's ID.
    */
   login(guestId: string, email: string, password: string): string;
   /**
-   * disconnects a user. if the user is a guest user, the user is removed from the system. if the user is a member user, the users session is invalidated.
+   * Disconnects a user. If the user is a guest user, the user is removed from the system. If the user is a member user, the users session is invalidated.
    * @param userId The user's ID.
    * @throws Error if the user is not connected.
    */
@@ -53,9 +53,9 @@ export interface IAuthController extends HasRepos {
    * Registers a new user.
    * @param email The user's email.
    * @param password The user's password.
+   * @returns The user's ID.
    * @throws Error if the email is already in use.
    * @throws Error if the password is invalid.
-   * @returns The user's ID.
    */
   register(email: string, password: string): string;
   /**
@@ -81,8 +81,8 @@ export interface IAuthController extends HasRepos {
   /**
    * Logs out a logged in member user.
    * @param userId The user's ID.
-   * @throws Error if the user is not connected or not a user
-   * @returns The new guest user's ID.(After the logout the user is a guest user again)
+   * @returns The new guest user's ID.(After the logout the user is a guest user again).
+   * @throws Error if the user is not connected or not a user.
    */
   logout(userId: string): string;
 }

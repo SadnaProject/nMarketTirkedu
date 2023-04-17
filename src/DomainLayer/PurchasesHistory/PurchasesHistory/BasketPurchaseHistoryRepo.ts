@@ -1,9 +1,12 @@
-import { BasketPurchase } from "../BasketPurchaseHistory";
+import { Testable, testable } from "~/_Testable";
+import { type BasketPurchase } from "../BasketPurchaseHistory";
 
-export class BasketPurchaseRepo {
+@testable
+export class BasketPurchaseRepo extends Testable {
   private BasketPurchases: BasketPurchase[];
 
   constructor() {
+    super();
     this.BasketPurchases = [];
   }
   public addBasketPurchase(BasketPurchase: BasketPurchase) {

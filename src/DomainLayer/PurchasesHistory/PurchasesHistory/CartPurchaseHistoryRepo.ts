@@ -1,9 +1,12 @@
-import { CartPurchase } from "../CartPurchaseHistory";
+import { Testable, testable } from "~/_Testable";
+import { type CartPurchase } from "../CartPurchaseHistory";
 
-export class CartPurchaseRepo {
+@testable
+export class CartPurchaseRepo extends Testable {
   private CartPurchase: CartPurchase[];
 
   constructor() {
+    super();
     this.CartPurchase = [];
   }
   public addCartPurchase(CartPurchase: CartPurchase) {

@@ -1,7 +1,8 @@
 import { Session } from "./Session";
 const { randomUUID } = await import("crypto");
 import { z } from "zod";
-import { UserAuth, UserType, type UserAuthDTO } from "./UserAuth";
+import { UserAuth, UserType, UserAuthDTO } from "./UserAuth";
+
 
 export type MemberUserAuthDTO = {
   email: string;
@@ -70,6 +71,8 @@ export class MemberUserAuth extends UserAuth {
   }
 
   public login(): Session {
+    if (this.isUserLoggedInAsMember())
+      throw new Error("The Member is already logged in");
     const session = new Session(this.userId);
     this.addSession(session);
     return session;

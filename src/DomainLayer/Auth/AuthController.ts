@@ -178,6 +178,8 @@ export class AuthController
   }
   public isGuest(userId: string): boolean {
     return this.Repos.Users.doesGuestExistById(userId);
+
+
   }
   public isMember(userId: string): boolean {
     if (this.Repos.Users.doesMemberExistById(userId)) {
@@ -187,7 +189,9 @@ export class AuthController
   }
 
   public isConnected(userId: string): boolean {
-    if (this.Repos.Users.doesGuestExistById(userId)) {
+    if(this.Repos.Users.doesGuestExistById(userId))
+    {
+
       return this.Repos.Users.getGuestById(userId).isUserLoggedInAsGuest();
     }
     if (!this.Repos.Users.doesMemberExistById(userId)) return false;

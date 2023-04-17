@@ -14,6 +14,8 @@ import { HasRepos, createRepos } from "./_HasRepos";
 import { PaymentAdapter } from "./PaymentAdaptor";
 import { ProductPurchase } from "./ProductPurchaseHistory";
 import { error } from "console";
+import { createControllers } from "../_createControllers";
+import { JobsController } from "../Jobs/JobsController";
 
 export interface IPurchasesHistoryController {
   getPurchase(purchaseId: string): CartPurchaseDTO;
@@ -43,7 +45,7 @@ export interface IPurchasesHistoryController {
     reviews: ProductReviewDTO[];
     avgRating: number;
   };
-  getPurchasesByUser(userId: string): CartPurchaseDTO[];
+  getPurchasesByUser(admingId: string, userId: string): CartPurchaseDTO[];
   getPurchasesByStore(storeId: string): BasketPurchaseDTO[];
 }
 
@@ -56,7 +58,10 @@ export class PurchasesHistoryController
     super();
     this.initRepos(createRepos());
   }
-  getPurchasesByUser(userId: string): CartPurchaseDTO[] {
+  getPurchasesByUser(admingId: string, userId: string): CartPurchaseDTO[] {
+    if (new JobsController().isSystemAdmin(admingId) === false) {
+      throw new Error("Not admin");
+    }
     return this.Repos.CartPurchases.getPurchasesByUser(userId).map((purchase) =>
       purchase.ToDTO()
     );

@@ -14,6 +14,7 @@ import { CartPurchaseRepo } from "./PurchasesHistory/CartPurchaseHistoryRepo";
 import { ProductReviewRepo } from "./PurchasesHistory/ProductReviewsRepo";
 import { ReviewRepo } from "./PurchasesHistory/ReviewRepo";
 import { BasketPurchaseRepo } from "./PurchasesHistory/BasketPurchaseHistoryRepo";
+import { JobsController } from "../Jobs/JobsController";
 
 const reviewData = {
   rating: 5,
@@ -251,16 +252,27 @@ describe("getCartPurchaseByUserId", () => {
     const cartPurchase = createCartPurchase();
     const purchasesHistoryController = new PurchasesHistoryController();
     purchasesHistoryController.addPurchase(cartPurchase);
-
+    vi.spyOn(JobsController.prototype, "isSystemAdmin").mockReturnValue(true);
     expect(
-      purchasesHistoryController.getPurchasesByUser(cartPurchase.UserId)
+      purchasesHistoryController.getPurchasesByUser(
+        "admin",
+        cartPurchase.UserId
+      )
     ).toStrictEqual([cartPurchase.ToDTO()]);
   });
   it("❎gets undefined cart purchase", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
+    vi.spyOn(JobsController.prototype, "isSystemAdmin").mockReturnValue(true);
     expect(
-      purchasesHistoryController.getPurchasesByUser("userId")
+      purchasesHistoryController.getPurchasesByUser("admin", "userId")
     ).toStrictEqual([]);
+  });
+  it("❎try to get purchases when not an admin", () => {
+    const purchasesHistoryController = new PurchasesHistoryController();
+    vi.spyOn(JobsController.prototype, "isSystemAdmin").mockReturnValue(false);
+    expect(() =>
+      purchasesHistoryController.getPurchasesByUser("admin", "userId")
+    ).toThrow();
   });
 });
 
@@ -435,7 +447,70 @@ describe("getStoreRating", () => {
   });
   it("❎gets undefined store rating", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
-    expect(purchasesHistoryController.getStoreRating("storeId")).toBe(NaN);
+    expect(purchasesHistoryController.getStoreRating("storeId")).toBe(0);
+  });
+});
+
+describe("PurchaseCart", () => {
+  it("✅purchase cart", () => {
+    const cartPurchase = createCartPurchase();
+    const basketDTO = {
+      storeId: "storeId",
+      products: [
+        {
+          storeProductId: "productId",
+          quantity: 1,
+        },
+      ],
+    };
+    const StoreIDToBasketMap = new Map<string, BasketDTO>();
+    StoreIDToBasketMap.set("storeId", basketDTO);
+    const cartDTO = {
+      storeIdToBasket: StoreIDToBasketMap,
+    };
+    // spy on storeproductrepo getProductById
+    const purchasesHistoryController = new PurchasesHistoryController();
+    vi.spyOn(CartPurchase, "CartPurchaseDTOfromCartDTO").mockReturnValue(
+      cartPurchase.ToDTO()
+    );
+    vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
+    purchasesHistoryController.purchaseCart("userId", cartDTO, 1, "creditCard");
+
+    expect(
+      purchasesHistoryController.getPurchase(cartPurchase.PurchaseId)
+    ).toStrictEqual(cartPurchase.ToDTO());
+  });
+  it("❎purchase cart with no cart", () => {
+    const purchasesHistoryController = new PurchasesHistoryController();
+    const cartPurchase = createCartPurchase();
+    const basketDTO = {
+      storeId: "storeId",
+      products: [
+        {
+          storeProductId: "productId",
+          quantity: 1,
+        },
+      ],
+    };
+    const StoreIDToBasketMap = new Map<string, BasketDTO>();
+    StoreIDToBasketMap.set("storeId", basketDTO);
+    const cartDTO = {
+      storeIdToBasket: StoreIDToBasketMap,
+    };
+    vi.spyOn(CartPurchase, "CartPurchaseDTOfromCartDTO").mockReturnValue(
+      cartPurchase.ToDTO()
+    );
+    vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
+    purchasesHistoryController.purchaseCart("userId", cartDTO, 1, "creditCard");
+
+    expect(() =>
+      purchasesHistoryController.purchaseCart(
+        "userId",
+        cartDTO,
+        1,
+        "creditCard"
+      )
+    ).toThrow();
   });
 });
 

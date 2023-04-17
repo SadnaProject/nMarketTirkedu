@@ -11,11 +11,9 @@ import { BasketProduct } from "../Users/BasketProduct";
 import { StoresController } from "../Stores/StoresController";
 import { CartPurchase } from "./CartPurchaseHistory";
 import { BasketDTO } from "../Users/Basket";
+import { itUnitIntegration } from "../_mock";
 
 const productPurchaseData = {
-  id: "id",
-  createdAt: new Date(),
-  userId: "userId",
   purchaseId: "purchaseId",
   productId: "productId",
   quantity: 1,
@@ -50,7 +48,7 @@ const cartPurchaseData = {
 };
 
 describe("constructor", () => {
-  it("should create a CartPurchase", () => {
+  itUnitIntegration("should create a CartPurchase", () => {
     const cartPurchase = new CartPurchase(
       "userId",
       "purchaseId",
@@ -87,7 +85,7 @@ describe("constructor", () => {
 });
 
 describe("ToDTO", () => {
-  it("should return a DTO", () => {
+  itUnitIntegration("should return a DTO", () => {
     const cartPurchase = new CartPurchase(
       "userId",
       "purchaseId",
@@ -136,7 +134,7 @@ describe("ToDTO", () => {
 });
 
 describe("fromDTO", () => {
-  it("should return a CartPurchase", () => {
+  itUnitIntegration("should return a CartPurchase", () => {
     vi.spyOn(BasketPurchase, "fromDTO").mockReturnValueOnce(
       new BasketPurchase(
         basketPurchaseData.storeId,

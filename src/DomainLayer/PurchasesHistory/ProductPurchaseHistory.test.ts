@@ -6,6 +6,11 @@ import { StoresController } from "../Stores/StoresController";
 import { CartPurchase } from "./CartPurchaseHistory";
 import { BasketDTO } from "../Users/Basket";
 import { ProductReview } from "./ProductReview";
+import { itUnitIntegration } from "../_mock";
+import {
+  createControllers,
+  createMockControllers,
+} from "../_createControllers";
 
 const productPurchaseData = {
   id: "id",
@@ -18,7 +23,7 @@ const productPurchaseData = {
 };
 
 describe("constructor", () => {
-  it("should create a product purchase", () => {
+  itUnitIntegration("should create a product purchase", (testType) => {
     const productPurchase = new ProductPurchase(productPurchaseData);
     expect(productPurchase).toEqual({
       purchaseId: productPurchaseData.purchaseId,
@@ -30,7 +35,8 @@ describe("constructor", () => {
 });
 
 describe("ProductPurchaseDTOFromBasketProductDTO", () => {
-  it("should create a product purchase DTO from a basket product DTO", () => {
+  it("should create a product purchase DTO from a basket product DTO", // add product to store
+  (testType) => {
     vi.spyOn(StoresController.prototype, "getProductPrice").mockReturnValue(1);
     const productPurchaseDTO =
       ProductPurchase.ProductPurchaseDTOFromBasketProductDTO(
@@ -51,7 +57,7 @@ describe("ProductPurchaseDTOFromBasketProductDTO", () => {
 });
 
 describe("ToDTO", () => {
-  it("should return a DTO", () => {
+  itUnitIntegration("should return a DTO", () => {
     const productPurchase = new ProductPurchase(productPurchaseData);
     const dto = productPurchase.ToDTO();
     expect(dto).toEqual({
@@ -64,7 +70,7 @@ describe("ToDTO", () => {
 });
 
 describe("setReview", () => {
-  it("should set the review", () => {
+  itUnitIntegration("should set the review", () => {
     const productPurchase = new ProductPurchase(productPurchaseData);
     const date = new Date();
     const review = new ProductReview({

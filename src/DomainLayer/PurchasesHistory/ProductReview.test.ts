@@ -5,6 +5,7 @@ import { BasketProduct } from "../Users/BasketProduct";
 import { StoresController } from "../Stores/StoresController";
 import { ProductReview } from "./ProductReview";
 import { type Repos, createRepos } from "./_HasRepos";
+import { itUnitIntegration } from "../_mock";
 
 const reviewData = {
   rating: 5,
@@ -24,7 +25,7 @@ const createProductReview = (repos: Repos = createRepos()) =>
   new ProductReview(productReviewData).initRepos(repos);
 
 describe("ProductReview constructor", () => {
-  it("✅creates a product review", () => {
+  itUnitIntegration("✅creates a product review", () => {
     const productReview = createProductReview();
     expect(productReview.Rating).toBe(reviewData.rating);
     expect(productReview.Id).toBe(reviewData.id);
@@ -36,23 +37,23 @@ describe("ProductReview constructor", () => {
     expect(productReview.Description).toBe(productReviewData.description);
   });
 
-  it("❎gets negative rating", () => {
+  itUnitIntegration("❎gets negative rating", () => {
     expect(
       () => new ProductReview({ ...productReviewData, rating: -1 })
     ).toThrow();
   });
 
-  it("❎gets rating over 5", () => {
+  itUnitIntegration("❎gets rating over 5", () => {
     expect(
       () => new ProductReview({ ...productReviewData, rating: 6 })
     ).toThrow();
   });
-  it("❎gets storeId and productId", () => {
+  itUnitIntegration("❎gets storeId and productId", () => {
     expect(
       () => new ProductReview({ ...productReviewData, storeId: "storeId" })
     ).toThrow();
   });
-  it("❎gets undefined productId", () => {
+  itUnitIntegration("❎gets undefined productId", () => {
     expect(
       () => new ProductReview({ ...productReviewData, productId: undefined })
     ).toThrow();
@@ -60,7 +61,7 @@ describe("ProductReview constructor", () => {
 });
 
 describe("ProductReview ToDTO", () => {
-  it("✅returns a DTO", () => {
+  itUnitIntegration("✅returns a DTO", () => {
     const productReview = createProductReview();
     const dto = productReview.ProductReviewToDTO();
     expect(dto).toEqual({

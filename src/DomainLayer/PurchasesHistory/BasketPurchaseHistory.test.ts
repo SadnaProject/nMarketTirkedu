@@ -9,6 +9,7 @@ import {
 } from "./ProductPurchaseHistory";
 import { BasketProduct } from "../Users/BasketProduct";
 import { StoresController } from "../Stores/StoresController";
+import { itUnitIntegration } from "../_mock";
 
 const productPurchaseData = {
   id: "id",
@@ -30,7 +31,7 @@ const basketPurchaseData = {
 };
 
 describe("constructor", () => {
-  it("should create a BasketPurchase", () => {
+  itUnitIntegration("should create a BasketPurchase", () => {
     const products = new Map<string, ProductPurchase>([
       ["productId", new ProductPurchase(productPurchaseData)],
     ]);
@@ -45,7 +46,7 @@ describe("constructor", () => {
 });
 
 describe("ToDTO", () => {
-  it("should return a DTO", () => {
+  itUnitIntegration("should return a DTO", () => {
     const products = new Map<string, ProductPurchase>([
       ["productId", new ProductPurchase(productPurchaseData)],
     ]);
@@ -68,7 +69,7 @@ describe("ToDTO", () => {
 });
 
 describe("FromDTO", () => {
-  it("should return a BasketPurchase", () => {
+  itUnitIntegration("should return a BasketPurchase", () => {
     vi.spyOn(ProductPurchase, "fromDTO").mockReturnValueOnce(
       new ProductPurchase(productPurchaseData)
     );

@@ -10,14 +10,14 @@ import { Review, type ReviewDTO } from "./Review";
 import { randomUUID } from "crypto";
 import { Mixin } from "ts-mixer";
 import { Testable, testable } from "~/_Testable";
-import { HasRepos, createRepos } from "./_HasRepos";
+import { HasRepos, Repos, createRepos } from "./_HasRepos";
 import { PaymentAdapter } from "./PaymentAdaptor";
 import { type ProductPurchase } from "./ProductPurchaseHistory";
 import { error } from "console";
 import { createControllers } from "../_createControllers";
 import { JobsController } from "../Jobs/JobsController";
 
-export interface IPurchasesHistoryController {
+export interface IPurchasesHistoryController extends HasRepos {
   getPurchase(purchaseId: string): CartPurchaseDTO;
   purchaseCart(
     userId: string,
@@ -54,9 +54,9 @@ export class PurchasesHistoryController
   extends Mixin(Testable, HasControllers, HasRepos)
   implements IPurchasesHistoryController
 {
-  constructor() {
+  constructor(repos: Repos = createRepos()) {
     super();
-    this.initRepos(createRepos());
+    this.initRepos(repos);
   }
   getPurchasesByUser(admingId: string, userId: string): CartPurchaseDTO[] {
     if (new JobsController().isSystemAdmin(admingId) === false) {
@@ -80,6 +80,9 @@ export class PurchasesHistoryController
   ): void {
     if (PaymentAdapter.pay(creditCard, price) === false) {
       throw new Error("Payment failed");
+    }
+    if (cart.storeIdToBasket.size === 0) {
+      throw new Error("Cart is empty");
     }
     const cartPurchase = CartPurchase.CartPurchaseDTOfromCartDTO(
       cart,

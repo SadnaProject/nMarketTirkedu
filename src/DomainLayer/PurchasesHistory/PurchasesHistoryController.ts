@@ -1,4 +1,4 @@
-import { HasControllers } from "../HasController";
+import { HasControllers } from "../_HasController";
 import { type CartDTO } from "../Users/Cart";
 import {
   BasketPurchase,
@@ -9,8 +9,8 @@ import { type ProductReviewDTO, ProductReview } from "./ProductReview";
 import { Review, type ReviewDTO } from "./Review";
 import { randomUUID } from "crypto";
 import { Mixin } from "ts-mixer";
-import { Testable, testable } from "~/Testable";
-import { HasRepos, createRepos } from "./HasRepos";
+import { Testable, testable } from "~/_Testable";
+import { HasRepos, createRepos } from "./_HasRepos";
 import { PaymentAdapter } from "./PaymentAdaptor";
 import { ProductPurchase } from "./ProductPurchaseHistory";
 import { error } from "console";

@@ -1,4 +1,4 @@
-import { HasControllers } from "../HasController";
+import { HasControllers } from "../_HasController";
 import { Mixin } from "ts-mixer";
 import { Store } from "./Store";
 import {
@@ -6,11 +6,12 @@ import {
   type StoreProductDTO,
   type StoreProductArgs,
 } from "./StoreProduct";
-import { HasRepos, createRepos } from "./HasRepos";
+import { HasRepos, createRepos } from "./_HasRepos";
 import { type CartDTO } from "../Users/Cart";
 import { type BasketDTO } from "../Users/Basket";
-import { Testable, testable } from "~/Testable";
+import { Testable, testable } from "~/_Testable";
 import fuzzysearch from "fuzzysearch-ts";
+import { type BasketPurchaseDTO } from "../PurchasesHistory/BasketPurchaseHistory";
 
 export type SearchArgs = {
   name?: string;
@@ -39,17 +40,19 @@ export interface IStoresController extends HasRepos {
   ): string;
   /**
    * This function checks if a store is active.
+   * @param userId The id of the user that is currently logged in.
    * @param storeId The id of the store that is being checked.
    * @returns True if the store is active, false otherwise.
    */
-  isStoreActive(storeId: string): boolean;
+  isStoreActive(userId: string, storeId: string): boolean;
   /**
    * This function gets all the products in a store.
+   * @param userId The id of the user that is currently logged in.
    * @param storeId The id of the store that the products are being fetched from.
    * @returns An array of products.
    *@throws Error if the store is not active.
    */
-  getStoreProducts(storeId: string): StoreProductDTO[];
+  getStoreProducts(userId: string, storeId: string): StoreProductDTO[];
   /**
    * This function sets the quantity of a product in a store.
    * @param userId The id of the user that is currently logged in.
@@ -131,47 +134,57 @@ export interface IStoresController extends HasRepos {
   closeStorePermanently(userId: string, storeId: string): void; //! should it be deleted?
   /**
    * This function returns the product's price in a store.
+   * @param userId The id of the user that is currently logged in.
    * @param productId The id of the product.
    * @returns The price of the product in the store.
    */
-  getProductPrice(productId: string): number;
+  getProductPrice(userId: string, productId: string): number;
   /**
    * This function checks if a product is in stock.
+   * @param userId The id of the user that is currently logged in.
    * @param productId The id of the product.
    * @param quantity The quantity of the product.
    * @returns True if the product is in stock, false otherwise.
    * @throws Error if the store is not active.
    * @throws Error if the product does not exist.
    */
-  isProductQuantityInStock(productId: string, quantity: number): boolean;
+  isProductQuantityInStock(
+    userId: string,
+    productId: string,
+    quantity: number
+  ): boolean;
   /**
    * This function returns the store id of a product.
+   * @param userId The id of the user that is currently logged in.
    * @param productId The id of the product.
    * @returns The id of the store that the product is in.
    * @throws Error if the product does not exist.
    */
-  getStoreIdByProductId(productId: string): string;
+  getStoreIdByProductId(userId: string, productId: string): string;
   /**
    * This function returns the total price of a cart.
+   * @param userId The id of the user that is currently logged in.
    * @param cartDTO The cart.
    * @returns The total price of the cart.
    * @throws Error if a product does not exist.
    * @throws Error if a product does not belong to the store of its basket.
    */
-  getCartPrice(cartDTO: CartDTO): number;
+  getCartPrice(userId: string, cartDTO: CartDTO): number;
   /**
    * This function returns the total price of a basket.
+   * @param userId The id of the user that is currently logged in.
    * @param basketDTO The basket.
    * @returns The total price of the basket.
    * @throws Error if a product does not exist.
    * @throws Error if a product does not belong to the store of its basket.
    */
-  getBasketPrice(basketDTO: BasketDTO): number;
+  getBasketPrice(userId: string, basketDTO: BasketDTO): number;
   /**
    * This function returns the products that match the search arguments.
+   * @param userId The id of the user that is currently logged in.
    * @param searchArgs The search arguments.
    */
-  searchProducts(searchArgs: SearchArgs): StoreProductDTO[];
+  searchProducts(userId: string, searchArgs: SearchArgs): StoreProductDTO[];
   makeStoreOwner(
     currentId: string,
     storeId: string,
@@ -205,6 +218,7 @@ export interface IStoresController extends HasRepos {
   getStoreFounderId(storeId: string): string;
   getStoreOwnersIds(storeId: string): string[];
   getStoreManagersIds(storeId: string): string[];
+  getPurchasesByStoreId(userId: string, storeId: string): BasketPurchaseDTO[];
 }
 
 @testable
@@ -216,8 +230,11 @@ export class StoresController
     super();
     this.initRepos(createRepos());
   }
-  searchProducts(args: SearchArgs): StoreProductDTO[] {
+  searchProducts(userId: string, args: SearchArgs): StoreProductDTO[] {
     return StoreProduct.getAll(this.Repos)
+      .filter((p) =>
+        this.Controllers.Jobs.canReceiveDataFromStore(userId, p.Store.Id)
+      )
       .filter((p) => {
         const productRating =
           this.Controllers.PurchasesHistory.getReviewsByProduct(p.Id).avgRating;
@@ -270,8 +287,13 @@ export class StoresController
       : true;
   }
 
-  isProductQuantityInStock(productId: string, quantity: number): boolean {
+  isProductQuantityInStock(
+    userId: string,
+    productId: string,
+    quantity: number
+  ): boolean {
     const product = StoreProduct.fromProductId(productId, this.Repos);
+    this.checkDataRetrievalPermission(userId, product.Store.Id);
     return product.isQuantityInStock(quantity);
   }
 
@@ -280,11 +302,7 @@ export class StoresController
     storeId: string,
     product: StoreProductArgs
   ): string {
-    const hasPermission = this.Controllers.Jobs.canCreateProductInStore(
-      userId,
-      storeId
-    );
-    if (!hasPermission) {
+    if (!this.Controllers.Jobs.canCreateProductInStore(userId, storeId)) {
       throw new Error(
         "User does not have permission to create product in store."
       );
@@ -293,12 +311,22 @@ export class StoresController
     return store.createProduct(product);
   }
 
-  isStoreActive(storeId: string): boolean {
+  isStoreActive(userId: string, storeId: string): boolean {
+    this.checkDataRetrievalPermission(userId, storeId);
     return Store.fromStoreId(storeId, this.Repos).IsActive;
   }
 
-  getStoreProducts(storeId: string): StoreProductDTO[] {
+  getStoreProducts(userId: string, storeId: string): StoreProductDTO[] {
+    this.checkDataRetrievalPermission(userId, storeId);
     return Store.fromStoreId(storeId, this.Repos).Products;
+  }
+
+  private checkDataRetrievalPermission(userId: string, storeId: string) {
+    if (!this.Controllers.Jobs.canReceiveDataFromStore(userId, storeId)) {
+      throw new Error(
+        "User does not have permission to receive data from store."
+      );
+    }
   }
 
   setProductQuantity(
@@ -306,11 +334,13 @@ export class StoresController
     productId: string,
     quantity: number
   ): void {
-    //TODO: this.Controllers.Jobs.per
-    // if (!hasPermission) {
-    //   throw new Error("User does not have permission to set product quantity.");
-    // }
-    StoreProduct.fromProductId(productId, this.Repos).Quantity = quantity;
+    const product = StoreProduct.fromProductId(productId, this.Repos);
+    if (
+      !this.Controllers.Jobs.canEditProductInStore(userId, product.Store.Id)
+    ) {
+      throw new Error("User does not have permission to set product quantity.");
+    }
+    product.Quantity = quantity;
   }
 
   decreaseProductQuantity(productId: string, quantity: number): void {
@@ -320,23 +350,32 @@ export class StoresController
   }
 
   deleteProduct(userId: string, productId: string): void {
-    //TODO: this.Controllers.Jobs.per
-    // if (!hasPermission) {
-    //   throw new Error("User does not have permission to delete product.");
-    // }
-    StoreProduct.fromProductId(productId, this.Repos).delete();
+    const product = StoreProduct.fromProductId(productId, this.Repos);
+    if (
+      !this.Controllers.Jobs.canRemoveProductFromStore(userId, product.Store.Id)
+    ) {
+      throw new Error("User does not have permission to delete product.");
+    }
+    product.delete();
   }
 
   setProductPrice(userId: string, productId: string, price: number): void {
-    //TODO: this.Controllers.Jobs.per
-    StoreProduct.fromProductId(productId, this.Repos).Price = price;
+    const product = StoreProduct.fromProductId(productId, this.Repos);
+    if (
+      !this.Controllers.Jobs.canEditProductInStore(userId, product.Store.Id)
+    ) {
+      throw new Error("User does not have permission to set product price.");
+    }
+    product.Price = price;
   }
 
   createStore(founderId: string, storeName: string): string {
     if (!this.Controllers.Auth.isMember(founderId)) {
       throw new Error("User is not a member.");
     }
-    const store = new Store(storeName).initRepos(this.Repos);
+    const store = new Store(storeName)
+      .initRepos(this.Repos)
+      .initControllers(this.Controllers);
     this.Controllers.Jobs.InitializeStore(founderId, store.Id);
     // todo needs to check if possible before doing any change
     if (this.Repos.Stores.getAllNames().has(storeName))
@@ -349,18 +388,44 @@ export class StoresController
     if (!this.Controllers.Jobs.canActivateStore(userId, storeId)) {
       throw new Error("User does not have permission to activate store.");
     }
-    Store.fromStoreId(storeId, this.Repos).IsActive = true;
+    const store = Store.fromStoreId(storeId, this.Repos);
+    store.IsActive = true;
+    const notifiedUserIds = [
+      store.FounderId,
+      ...store.OwnersIds,
+      ...store.ManagersIds,
+    ];
+    notifiedUserIds.forEach((uid) => {
+      this.Controllers.Users.addNotification(
+        uid,
+        "Store activated 💃",
+        `Store ${storeId} has been activated`
+      );
+    });
   }
 
   deactivateStore(userId: string, storeId: string): void {
     if (!this.Controllers.Jobs.canDeactivateStore(userId, storeId)) {
       throw new Error("User does not have permission to deactivate store.");
     }
-    Store.fromStoreId(storeId, this.Repos).IsActive = false;
+    const store = Store.fromStoreId(storeId, this.Repos);
+    store.IsActive = false;
+    const notifiedUserIds = [
+      store.FounderId,
+      ...store.OwnersIds,
+      ...store.ManagersIds,
+    ];
+    notifiedUserIds.forEach((uid) => {
+      this.Controllers.Users.addNotification(
+        uid,
+        "Store deactivated 💤",
+        `Store ${storeId} has been deactivated`
+      );
+    });
   }
 
   closeStorePermanently(userId: string, storeId: string): void {
-    if (!this.Controllers.Jobs.isSystemAdmin(userId)) {
+    if (!this.Controllers.Jobs.canCloseStorePermanently(userId, storeId)) {
       throw new Error(
         "User does not have permission to close store permanently."
       );
@@ -368,23 +433,28 @@ export class StoresController
     Store.fromStoreId(storeId, this.Repos).delete();
   }
 
-  getProductPrice(productId: string): number {
-    return StoreProduct.fromProductId(productId, this.Repos).Price;
+  getProductPrice(userId: string, productId: string): number {
+    const product = StoreProduct.fromProductId(productId, this.Repos);
+    this.checkDataRetrievalPermission(userId, product.Store.Id);
+    return product.Price;
   }
 
-  getStoreIdByProductId(productId: string): string {
-    return StoreProduct.fromProductId(productId, this.Repos).Store.Id;
+  getStoreIdByProductId(userId: string, productId: string): string {
+    const product = StoreProduct.fromProductId(productId, this.Repos);
+    this.checkDataRetrievalPermission(userId, product.Store.Id);
+    return product.Store.Id;
   }
 
-  getCartPrice(cartDTO: CartDTO): number {
+  getCartPrice(userId: string, cartDTO: CartDTO): number {
     let price = 0;
     cartDTO.storeIdToBasket.forEach((basket, storeId) => {
-      price += this.getBasketPrice(basket);
+      price += this.getBasketPrice(userId, basket);
     });
     return price;
   }
 
-  getBasketPrice(basketDTO: BasketDTO): number {
+  getBasketPrice(userId: string, basketDTO: BasketDTO): number {
+    this.checkDataRetrievalPermission(userId, basketDTO.storeId);
     const store = Store.fromStoreId(basketDTO.storeId, this.Repos);
     return store.getBasketPrice(basketDTO);
   }
@@ -415,24 +485,28 @@ export class StoresController
     );
   }
   canCreateProductInStore(currentId: string, storeId: string) {
-    return this.Controllers.Jobs.canCreateProductInStore(currentId, storeId);
+    return Store.fromStoreId(storeId, this.Repos).canCreateProduct(currentId);
   }
   isStoreOwner(userId: string, storeId: string) {
-    return this.Controllers.Jobs.isStoreOwner(userId, storeId);
+    return Store.fromStoreId(storeId, this.Repos).isOwner(userId);
   }
   isStoreManager(userId: string, storeId: string) {
-    return this.Controllers.Jobs.isStoreManager(userId, storeId);
+    return Store.fromStoreId(storeId, this.Repos).isManager(userId);
   }
   isStoreFounder(userId: string, storeId: string) {
-    return this.Controllers.Jobs.isStoreFounder(userId, storeId);
+    return Store.fromStoreId(storeId, this.Repos).isFounder(userId);
   }
   getStoreFounderId(storeId: string) {
-    return this.Controllers.Jobs.getStoreFounderId(storeId);
+    return Store.fromStoreId(storeId, this.Repos).FounderId;
   }
   getStoreOwnersIds(storeId: string) {
-    return this.Controllers.Jobs.getStoreOwnersIds(storeId);
+    return Store.fromStoreId(storeId, this.Repos).OwnersIds;
   }
   getStoreManagersIds(storeId: string) {
-    return this.Controllers.Jobs.getStoreManagersIds(storeId);
+    return Store.fromStoreId(storeId, this.Repos).ManagersIds;
+  }
+  getPurchasesByStoreId(userId: string, storeId: string) {
+    this.Controllers.Jobs.canReceivePurchaseHistoryFromStore(userId, storeId);
+    return Store.fromStoreId(storeId, this.Repos).Purchases;
   }
 }

@@ -1,4 +1,4 @@
-import { HasRepos } from "./HasRepos";
+import { HasRepos } from "./_HasRepos";
 import {
   type ProductPurchaseDTO,
   ProductPurchase,

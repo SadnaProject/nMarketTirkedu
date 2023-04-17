@@ -30,7 +30,7 @@ export function createControllers() {
   return controllers as Controllers;
 }
 
-export function createTestControllers(testedController: keyof Controllers) {
+export function createMockControllers(testedController: keyof Controllers) {
   const controllers: Record<string, unknown> = {};
   for (const [key, Controller] of Object.entries(controllersMapping)) {
     let controller = new Controller().initControllers(
@@ -42,4 +42,18 @@ export function createTestControllers(testedController: keyof Controllers) {
     controllers[key] = controller;
   }
   return controllers as Controllers;
+}
+
+export function createTestControllers(
+  testType: string,
+  testedController: keyof Controllers
+) {
+  switch (testType) {
+    case "unit":
+      return createMockControllers(testedController);
+    case "integration":
+      return createControllers();
+    default:
+      throw new Error(`Unknown test type: ${testType}`);
+  }
 }

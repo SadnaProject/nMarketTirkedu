@@ -1,7 +1,9 @@
 import { z } from "zod";
-import { HasRepos, type Repos } from "./HasRepos";
+import { HasRepos, type Repos } from "./_HasRepos";
 import { StoreProduct, type StoreProductArgs } from "./StoreProduct";
 import { type BasketDTO } from "../Users/Basket";
+import { Mixin } from "ts-mixer";
+import { type Controllers, HasControllers } from "../_HasController";
 const { randomUUID } = await import("crypto");
 
 export const nameSchema = z.string().nonempty();
@@ -12,7 +14,7 @@ export type StoreDTO = {
   isActive: boolean;
 };
 
-export class Store extends HasRepos {
+export class Store extends Mixin(HasRepos, HasControllers) {
   private id: string;
   private name: string;
   private isActive: boolean;
@@ -25,8 +27,10 @@ export class Store extends HasRepos {
     this.isActive = true;
   }
 
-  static fromDTO(dto: StoreDTO, repos: Repos) {
-    const store = new Store(dto.name).initRepos(repos);
+  static fromDTO(dto: StoreDTO, repos: Repos, controllers: Controllers) {
+    const store = new Store(dto.name)
+      .initRepos(repos)
+      .initControllers(controllers);
     store.id = dto.id;
     store.isActive = dto.isActive;
     return store;
@@ -71,9 +75,10 @@ export class Store extends HasRepos {
   }
 
   public getBasketPrice(basketDTO: BasketDTO): number {
+    const productsIds = this.Products.map((p) => p.id);
     return basketDTO.products.reduce((acc, curr) => {
       const product = this.Repos.Products.getProductById(curr.storeProductId);
-      if (product.Store.Id !== this.Id)
+      if (!productsIds.includes(curr.storeProductId))
         throw new Error(
           `Product ${curr.storeProductId} is not in store ${this.Id}`
         );
@@ -83,5 +88,54 @@ export class Store extends HasRepos {
 
   public delete() {
     this.Repos.Stores.deleteStore(this.Id);
+  }
+
+  makeOwner(currentId: string, targetUserId: string) {
+    this.Controllers.Jobs.makeStoreOwner(currentId, this.Id, targetUserId);
+  }
+  makeManager(currentId: string, targetUserId: string) {
+    this.Controllers.Jobs.makeStoreManager(currentId, this.Id, targetUserId);
+  }
+  removeOwner(currentId: string, targetUserId: string) {
+    this.Controllers.Jobs.removeStoreOwner(currentId, this.Id, targetUserId);
+  }
+  removeManager(currentId: string, targetUserId: string) {
+    this.Controllers.Jobs.removeStoreManager(currentId, this.Id, targetUserId);
+  }
+  setAddingProductPermission(
+    currentId: string,
+    targetUserId: string,
+    permission: boolean
+  ) {
+    this.Controllers.Jobs.setAddingProductToStorePermission(
+      currentId,
+      this.Id,
+      targetUserId,
+      permission
+    );
+  }
+  canCreateProduct(currentId: string) {
+    return this.Controllers.Jobs.canCreateProductInStore(currentId, this.Id);
+  }
+  isOwner(userId: string) {
+    return this.Controllers.Jobs.isStoreOwner(userId, this.Id);
+  }
+  isManager(userId: string) {
+    return this.Controllers.Jobs.isStoreManager(userId, this.Id);
+  }
+  isFounder(userId: string) {
+    return this.Controllers.Jobs.isStoreFounder(userId, this.Id);
+  }
+  get FounderId() {
+    return this.Controllers.Jobs.getStoreFounderId(this.Id);
+  }
+  get OwnersIds() {
+    return this.Controllers.Jobs.getStoreOwnersIds(this.Id);
+  }
+  get ManagersIds() {
+    return this.Controllers.Jobs.getStoreManagersIds(this.Id);
+  }
+  get Purchases() {
+    return this.Controllers.PurchasesHistory.getPurchasesByStore(this.Id);
   }
 }

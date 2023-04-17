@@ -1,12 +1,16 @@
+import { Testable, testable } from "~/_Testable";
 import { User } from "./User";
-export class UserRepo {
+
+@testable
+export class UserRepo extends Testable {
   private users: Map<string, User>;
 
   constructor() {
+    super();
     this.users = new Map();
   }
 
-  public addUser(userId :string): void {
+  public addUser(userId: string): void {
     if (this.users.has(userId)) {
       throw new Error("User already exists");
     }
@@ -27,16 +31,19 @@ export class UserRepo {
 
   public removeUser(id: string): void {
     if (!this.users.has(id)) {
-        throw new Error("User not found");
+      throw new Error("User not found");
     }
     this.users.delete(id);
   }
-  clone(userSource:string,userDest:string):void{
+  clone(userSource: string, userDest: string): void {
     const Dest = this.users.get(userDest);
     const Source = this.users.get(userSource);
-    if (Dest === undefined || Source === undefined  ) {
+    if (Dest === undefined || Source === undefined) {
       throw new Error("User not found");
     }
     Dest.clone(Source);
+  }
+  isUserExist(id: string): boolean {
+    return this.users.has(id);
   }
 }

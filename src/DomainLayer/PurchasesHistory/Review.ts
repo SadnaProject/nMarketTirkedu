@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { HasRepos } from "./HasRepos";
+import { HasRepos } from "./_HasRepos";
 
 export type ReviewDTO = {
   userId: string;
@@ -89,5 +89,4 @@ export class Review extends HasRepos {
   public get ProductId(): string | undefined {
     return this.productId;
   }
-
 }

@@ -1,9 +1,12 @@
-import { ProductPurchase } from "../ProductPurchaseHistory";
+import { Testable, testable } from "~/_Testable";
+import { type ProductPurchase } from "../ProductPurchaseHistory";
 
-export class ProductPurchaseRepo {
+@testable
+export class ProductPurchaseRepo extends Testable {
   private ProductPurchases: ProductPurchase[];
 
   constructor() {
+    super();
     this.ProductPurchases = [];
   }
 

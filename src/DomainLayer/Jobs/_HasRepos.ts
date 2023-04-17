@@ -1,7 +1,7 @@
-import { UserAuthRepo } from "~/DomainLayer/Auth/UserAuthRepo";
+import { JobsRepo } from "~/DomainLayer/Jobs/JobsRepo";
 
 export const reposMapping = {
-  Users: UserAuthRepo,
+  jobs: JobsRepo,
 };
 
 // NO TOUCHY BELOW THIS LINE 😉
@@ -33,7 +33,8 @@ export function createRepos() {
   }
   return repos as Repos;
 }
-export function createTestRepos(testedRepo: keyof Repos | null = null) {
+
+export function createMockRepos(testedRepo: keyof Repos | null = null) {
   const repos: Record<string, unknown> = {};
   for (const [key, Repo] of Object.entries(reposMapping)) {
     let repo = new Repo();
@@ -43,4 +44,18 @@ export function createTestRepos(testedRepo: keyof Repos | null = null) {
     repos[key] = repo;
   }
   return repos as Repos;
+}
+
+export function createTestRepos(
+  testType: string,
+  testedRepo: keyof Repos | null = null
+) {
+  switch (testType) {
+    case "unit":
+      return createMockRepos(testedRepo);
+    case "integration":
+      return createRepos();
+    default:
+      throw new Error(`Unknown test type: ${testType}`);
+  }
 }

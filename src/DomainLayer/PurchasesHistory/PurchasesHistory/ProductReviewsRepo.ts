@@ -1,9 +1,12 @@
-import { ProductReview } from "../ProductReview";
+import { Testable, testable } from "~/_Testable";
+import { type ProductReview } from "../ProductReview";
 
-export class ProductReviewRepo {
+@testable
+export class ProductReviewRepo extends Testable {
   private ProductReviews: ProductReview[];
 
   constructor() {
+    super();
     this.ProductReviews = [];
   }
   public addProductReview(ProductReview: ProductReview) {

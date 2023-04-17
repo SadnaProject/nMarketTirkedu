@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker/locale/en";
 import { beforeEach } from "vitest";
 import { describe, expect, it } from "vitest";
-import { generateStoreName } from "~/DomainLayer/Stores/Store.test";
+import { generateStoreName } from "~/DomainLayer/Stores/_data";
 import { Service } from "~/ServiceLayer/Service";
 
 let service: Service;

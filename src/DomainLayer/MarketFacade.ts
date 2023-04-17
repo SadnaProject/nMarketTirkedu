@@ -1,14 +1,15 @@
-import { type Controllers } from "./HasController";
+import { type Controllers } from "./_HasController";
 import { type CartDTO } from "./Users/Cart";
-import { createControllers } from "./createControllers";
+import { createControllers } from "./_createControllers";
 import { type BasketDTO } from "./Users/Basket";
 import {
   type StoreProductDTO,
   type StoreProductArgs,
 } from "./Stores/StoreProduct";
-import { Loggable, loggable } from "./Loggable";
+import { Loggable, loggable } from "./_Loggable";
 import { type SearchArgs } from "./Stores/StoresController";
-import { CartPurchaseDTO } from "./PurchasesHistory/CartPurchaseHistory";
+import { type CartPurchaseDTO } from "./PurchasesHistory/CartPurchaseHistory";
+import { type BasketPurchaseDTO } from "./PurchasesHistory/BasketPurchaseHistory";
 
 @loggable
 export class MarketFacade extends Loggable {
@@ -74,7 +75,7 @@ export class MarketFacade extends Loggable {
     this.isConnectionValid(userId);
     return this.controllers.Users.getNotifications(userId);
   }
-  public purchaseCart(userId: string, cart: CartDTO, creditCard: string) {
+  public purchaseCart(userId: string, creditCard: string) {
     this.isConnectionValid(userId);
     this.controllers.Users.purchaseCart(userId, creditCard);
   }
@@ -166,6 +167,7 @@ export class MarketFacade extends Loggable {
     this.controllers.Auth.changePassword(userId, oldPassword, newPassword);
   }
   makeStoreOwner(currentId: string, storeId: string, targetUserId: string) {
+    this.isConnectionValid(currentId);
     this.controllers.Stores.makeStoreOwner(currentId, storeId, targetUserId);
   }
 
@@ -174,6 +176,7 @@ export class MarketFacade extends Loggable {
     storeId: string,
     targetUserId: string
   ): void {
+    this.isConnectionValid(currentId);
     this.controllers.Stores.makeStoreManager(currentId, storeId, targetUserId);
   }
 
@@ -182,6 +185,7 @@ export class MarketFacade extends Loggable {
     storeId: string,
     targetUserId: string
   ): void {
+    this.isConnectionValid(currentId);
     this.controllers.Stores.removeStoreManager(
       currentId,
       storeId,
@@ -194,6 +198,7 @@ export class MarketFacade extends Loggable {
     storeId: string,
     targetUserId: string
   ): void {
+    this.isConnectionValid(currentId);
     this.controllers.Stores.removeStoreManager(
       currentId,
       storeId,
@@ -206,6 +211,7 @@ export class MarketFacade extends Loggable {
     targetUserId: string,
     permission: boolean
   ): void {
+    this.isConnectionValid(currentId);
     this.controllers.Stores.setAddingProductToStorePermission(
       currentId,
       storeId,
@@ -214,6 +220,7 @@ export class MarketFacade extends Loggable {
     );
   }
   canCreateProductInStore(currentId: string, storeId: string): boolean {
+    this.isConnectionValid(currentId);
     return this.controllers.Stores.canCreateProductInStore(currentId, storeId);
   }
   isStoreOwner(userId: string, storeId: string): boolean {
@@ -245,11 +252,11 @@ export class MarketFacade extends Loggable {
     this.isConnectionValid(userId);
     return this.controllers.Stores.createProduct(userId, storeId, product);
   }
-  isStoreActive(storeId: string): boolean {
-    return this.controllers.Stores.isStoreActive(storeId);
+  isStoreActive(userId: string, storeId: string): boolean {
+    return this.controllers.Stores.isStoreActive(userId, storeId);
   }
-  getStoreProducts(storeId: string): StoreProductDTO[] {
-    return this.controllers.Stores.getStoreProducts(storeId);
+  getStoreProducts(userId: string, storeId: string): StoreProductDTO[] {
+    return this.controllers.Stores.getStoreProducts(userId, storeId);
   }
   setProductQuantity(
     userId: string,
@@ -287,26 +294,31 @@ export class MarketFacade extends Loggable {
     this.isConnectionValid(userId);
     this.controllers.Stores.closeStorePermanently(userId, storeId);
   }
-  getProductPrice(productId: string): number {
-    return this.controllers.Stores.getProductPrice(productId);
+  getProductPrice(userId: string, productId: string): number {
+    return this.controllers.Stores.getProductPrice(userId, productId);
   }
-  isProductQuantityInStock(productId: string, quantity: number): boolean {
+  isProductQuantityInStock(
+    userId: string,
+    productId: string,
+    quantity: number
+  ): boolean {
     return this.controllers.Stores.isProductQuantityInStock(
+      userId,
       productId,
       quantity
     );
   }
-  getStoreIdByProductId(productId: string): string {
-    return this.controllers.Stores.getStoreIdByProductId(productId);
+  getStoreIdByProductId(userId: string, productId: string): string {
+    return this.controllers.Stores.getStoreIdByProductId(userId, productId);
   }
-  getCartPrice(cartDTO: CartDTO): number {
-    return this.controllers.Stores.getCartPrice(cartDTO);
+  getCartPrice(userId: string, cartDTO: CartDTO): number {
+    return this.controllers.Stores.getCartPrice(userId, cartDTO);
   }
-  getBasketPrice(basketDTO: BasketDTO): number {
-    return this.controllers.Stores.getBasketPrice(basketDTO);
+  getBasketPrice(userId: string, basketDTO: BasketDTO): number {
+    return this.controllers.Stores.getBasketPrice(userId, basketDTO);
   }
-  searchProducts(searchArgs: SearchArgs): StoreProductDTO[] {
-    return this.controllers.Stores.searchProducts(searchArgs);
+  searchProducts(userId: string, searchArgs: SearchArgs): StoreProductDTO[] {
+    return this.controllers.Stores.searchProducts(userId, searchArgs);
   }
   //TODO: Duplicate code from down here, be careful!
   public startSession(): string {
@@ -332,7 +344,18 @@ export class MarketFacade extends Loggable {
     this.controllers.Users.disconnect(userId);
   }
 
-  public getPurchasesByUser(userId: string): CartPurchaseDTO[] {
-    return this.controllers.PurchasesHistory.getPurchasesByUser(userId);
+  public getPurchasesByUser(
+    adminId: string,
+    userId: string
+  ): CartPurchaseDTO[] {
+    throw new Error(
+      "Please link it when implemented in the appropriate component"
+    );
+  }
+  public getPurchasesByStore(
+    userId: string,
+    storeId: string
+  ): BasketPurchaseDTO[] {
+    return this.controllers.Stores.getPurchasesByStoreId(userId, storeId);
   }
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { PurchasesHistoryController } from "./PurchasesHistoryController";
 import { ProductReviewArgs, ProductReview } from "./ProductReview";
-import { Repos, createRepos } from "./HasRepos";
+import { Repos, createRepos } from "./_HasRepos";
 import { Review } from "./Review";
 import { ProductPurchase } from "./ProductPurchaseHistory";
 import { BasketPurchase } from "./BasketPurchaseHistory";
@@ -439,6 +439,69 @@ describe("getStoreRating", () => {
   });
 });
 
+
+describe("PurchaseCart", () => {
+  it("✅purchase cart", () => {
+    const cartPurchase = createCartPurchase();
+    const basketDTO = {
+      storeId: "storeId",
+      products: [
+        {
+          storeProductId: "productId",
+          quantity: 1,
+        },
+      ],
+    };
+    const StoreIDToBasketMap = new Map<string, BasketDTO>();
+    StoreIDToBasketMap.set("storeId", basketDTO);
+    const cartDTO = {
+      storeIdToBasket: StoreIDToBasketMap,
+    };
+    // spy on storeproductrepo getProductById
+    const purchasesHistoryController = new PurchasesHistoryController();
+    vi.spyOn(CartPurchase, "CartPurchaseDTOfromCartDTO").mockReturnValue(
+      cartPurchase.ToDTO()
+    );
+    vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
+    purchasesHistoryController.purchaseCart("userId", cartDTO, 1, "creditCard");
+
+    expect(
+      purchasesHistoryController.getPurchase(cartPurchase.PurchaseId)
+    ).toStrictEqual(cartPurchase.ToDTO());
+  });
+  it("❎purchase cart with no cart", () => {
+    const purchasesHistoryController = new PurchasesHistoryController();
+    const cartPurchase = createCartPurchase();
+    const basketDTO = {
+      storeId: "storeId",
+      products: [
+        {
+          storeProductId: "productId",
+          quantity: 1,
+        },
+      ],
+    };
+    const StoreIDToBasketMap = new Map<string, BasketDTO>();
+    StoreIDToBasketMap.set("storeId", basketDTO);
+    const cartDTO = {
+      storeIdToBasket: StoreIDToBasketMap,
+    };
+    vi.spyOn(CartPurchase, "CartPurchaseDTOfromCartDTO").mockReturnValue(
+      cartPurchase.ToDTO()
+    );
+    vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
+    purchasesHistoryController.purchaseCart("userId", cartDTO, 1, "creditCard");
+
+    expect(() =>
+      purchasesHistoryController.purchaseCart(
+        "userId",
+        cartDTO,
+        1,
+        "creditCard"
+      )
+    ).toThrow();
+  });
+});
 
 describe("PurchaseCart", () => {
   it("✅purchase cart", () => {

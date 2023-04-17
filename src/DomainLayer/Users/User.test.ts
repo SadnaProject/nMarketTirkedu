@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { randomUUID } from "crypto";
-import { createControllers, createTestControllers } from "../createControllers";
+import {
+  createControllers,
+  createMockControllers,
+} from "../_createControllers";
 //* Vitest Docs: https://vitest.dev/api
 // userController.addUser({id: "123456", name: "username"});
 // const storeId = storeController.createStore("123456", "storeName");
@@ -231,7 +234,7 @@ describe("purchase cart", () => {
     vi.spyOn(controllers.PurchasesHistory, "purchaseCart").mockReturnValue();
     const notificationSizeBefore =
       controllers.Users.getNotifications(userId).length;
-    controllers.Users.purchaseCart(userId,"credit card");
+    controllers.Users.purchaseCart(userId, "credit card");
     const notificationSizeAfter =
       controllers.Users.getNotifications(userId).length;
     expect(notificationSizeAfter).toBe(notificationSizeBefore + 1);
@@ -253,9 +256,9 @@ describe("purchase cart", () => {
     );
     vi.spyOn(controllers.Stores, "getCartPrice").mockReturnValueOnce(100);
     vi.spyOn(controllers.PurchasesHistory, "purchaseCart").mockReturnValue();
-    expect(() => controllers.Users.purchaseCart("Blabla","credit card")).toThrow(
-      "User not found"
-    );
+    expect(() =>
+      controllers.Users.purchaseCart("Blabla", "credit card")
+    ).toThrow("User not found");
     controllers.Users.removeUser(userId);
   });
 });
@@ -303,12 +306,14 @@ describe("get unread notifications", () => {
         storeId
       );
       const productId = randomUUID();
-      controllers.Users.addProductToCart(userId,productId , 5);
+      controllers.Users.addProductToCart(userId, productId, 5);
       const password = "1234";
-      const email ="email";
+      const email = "email";
       const MemberId = randomUUID();
-      vi.spyOn(controllers.Auth,"login").mockReturnValueOnce(MemberId);
-      expect(controllers.Users.login(userId, email,password)===MemberId).toBe(true);
+      vi.spyOn(controllers.Auth, "login").mockReturnValueOnce(MemberId);
+      expect(
+        controllers.Users.login(userId, email, password) === MemberId
+      ).toBe(true);
       expect(controllers.Users.getCart(MemberId).storeIdToBasket.size).toBe(1);
       expect(
         controllers.Users.getCart(MemberId)
@@ -330,12 +335,12 @@ describe("get unread notifications", () => {
       userId = randomUUID();
       controllers.Users.addUser(userId);
       const password = "1234";
-      expect(() => controllers.Users.login(userId, "email",password)).toThrow(
-        "Email not found, please try again with a different email"
+      expect(() => controllers.Users.login(userId, "email", password)).toThrow(
+        "User with email: email not found"
       );
-      expect(() => controllers.Users.login("blabla", "email",password)).toThrow(
-        "User not found"
-      );
+      expect(() =>
+        controllers.Users.login("blabla", "email", password)
+      ).toThrow("User not found");
       controllers.Users.removeUser(userId);
     });
   });
@@ -352,22 +357,21 @@ describe("get unread notifications", () => {
         storeId
       );
       const productId = randomUUID();
-      controllers.Users.addProductToCart(userId,productId , 5);
+      controllers.Users.addProductToCart(userId, productId, 5);
       const password = "1234";
-      const email ="email";
+      const email = "email";
       const MemberId = randomUUID();
-      vi.spyOn(controllers.Auth,"login").mockReturnValueOnce(MemberId);
-      controllers.Users.login(userId, email,password);
+      vi.spyOn(controllers.Auth, "login").mockReturnValueOnce(MemberId);
+      controllers.Users.login(userId, email, password);
       controllers.Users.logout(MemberId);
       expect(controllers.Users.getCart(MemberId).storeIdToBasket.size).toBe(0);
-      controllers.Users.login(userId, email,password);
-      
+      controllers.Users.login(userId, email, password);
     });
     it("should test edge cases in logout functionality ", () => {
       userId = randomUUID();
       controllers.Users.addUser(userId);
       expect(() => controllers.Users.logout("blabla")).toThrow(
-        "User not found"
+        "User with id: blabla not found"
       );
       controllers.Users.removeUser(userId);
     });

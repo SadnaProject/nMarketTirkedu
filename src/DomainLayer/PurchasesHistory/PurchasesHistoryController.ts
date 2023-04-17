@@ -43,7 +43,7 @@ export interface IPurchasesHistoryController {
     reviews: ProductReviewDTO[];
     avgRating: number;
   };
-  getPurchasesByUser(userId: string): CartPurchaseDTO[];
+  getPurchasesByUser(admingId: string, userId: string): CartPurchaseDTO[];
   getPurchasesByStore(storeId: string): BasketPurchaseDTO[];
 }
 
@@ -56,7 +56,10 @@ export class PurchasesHistoryController
     super();
     this.initRepos(createRepos());
   }
-  getPurchasesByUser(userId: string): CartPurchaseDTO[] {
+  getPurchasesByUser(admingId: string, userId: string): CartPurchaseDTO[] {
+    if (this.Controllers.Jobs.isSystemAdmin(admingId) === false) {
+      throw new Error("Not admin");
+    }
     return this.Repos.CartPurchases.getPurchasesByUser(userId).map((purchase) =>
       purchase.ToDTO()
     );

@@ -1,6 +1,9 @@
 import { randomUUID } from "crypto";
 import { type CartDTO } from "../Users/Cart";
-import { BasketPurchase, BasketPurchaseDTO } from "./BasketPurchaseHistory";
+import {
+  BasketPurchase,
+  type BasketPurchaseDTO,
+} from "./BasketPurchaseHistory";
 import { HasRepos } from "./_HasRepos";
 
 // TODO: Does a class need to know its related id, or should the parent hold a map for it?
@@ -29,7 +32,8 @@ export class CartPurchase extends HasRepos {
         storeId,
         BasketPurchase.BasketPurchaseDTOFromBasketDTO(
           basketPurchase,
-          purchaseId
+          purchaseId,
+          userId
         )
       );
     });

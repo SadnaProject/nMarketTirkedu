@@ -1,6 +1,6 @@
 import { JobsController } from "./JobsController";
 import { ManagerRole } from "./ManagerRole";
-import { EditablePermission, Role } from "./Role";
+import { type EditablePermission, type Role } from "./Role";
 
 export type PositionHolderDTO = {
   role: Role;

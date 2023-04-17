@@ -1,7 +1,7 @@
 import { HasControllers } from "../_HasController";
 import { type CartDTO } from "../Users/Cart";
 import {
-  BasketPurchase,
+  type BasketPurchase,
   type BasketPurchaseDTO,
 } from "./BasketPurchaseHistory";
 import { CartPurchase, type CartPurchaseDTO } from "./CartPurchaseHistory";
@@ -12,7 +12,7 @@ import { Mixin } from "ts-mixer";
 import { Testable, testable } from "~/_Testable";
 import { HasRepos, createRepos } from "./_HasRepos";
 import { PaymentAdapter } from "./PaymentAdaptor";
-import { ProductPurchase } from "./ProductPurchaseHistory";
+import { type ProductPurchase } from "./ProductPurchaseHistory";
 import { error } from "console";
 import { createControllers } from "../_createControllers";
 import { JobsController } from "../Jobs/JobsController";

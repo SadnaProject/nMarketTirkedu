@@ -4,7 +4,7 @@ import { ProductPurchase, ProductPurchaseDTO } from "./ProductPurchaseHistory";
 import { BasketProduct } from "../Users/BasketProduct";
 import { StoresController } from "../Stores/StoresController";
 import { ProductReview } from "./ProductReview";
-import { Repos, createRepos } from "./_HasRepos";
+import { type Repos, createRepos } from "./_HasRepos";
 
 const reviewData = {
   rating: 5,

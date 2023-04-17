@@ -1,5 +1,5 @@
 import { expect, vi, describe, it } from "vitest";
-import { Repos, createRepos } from "../_HasRepos";
+import { type Repos, createRepos } from "../_HasRepos";
 import { Review } from "../Review";
 import { ReviewRepo } from "./ReviewRepo";
 

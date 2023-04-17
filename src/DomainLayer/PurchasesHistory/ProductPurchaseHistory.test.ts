@@ -38,7 +38,8 @@ describe("ProductPurchaseDTOFromBasketProductDTO", () => {
           storeProductId: "productId",
           quantity: 1,
         },
-        "purchaseId"
+        "purchaseId",
+        "userId"
       );
     expect(productPurchaseDTO).toEqual({
       purchaseId: "purchaseId",

@@ -1,17 +1,12 @@
 import { Session } from "./Session";
-import { UserAuth} from "./UserAuth";
-import type {UserAuthDTO } from "./UserAuth";
+import { UserAuth } from "./UserAuth";
+import type { UserAuthDTO } from "./UserAuth";
 import { z } from "zod";
 
-
-
-export type GuestUserAuthDTO = UserAuthDTO
+export type GuestUserAuthDTO = UserAuthDTO;
 export class GuestUserAuth extends UserAuth {
-  
-
   constructor() {
     super("GUEST");
-
   }
   static create(): GuestUserAuth {
     const guestUserAuth = new GuestUserAuth();
@@ -33,7 +28,6 @@ export class GuestUserAuth extends UserAuth {
     };
   }
 
-
   //Logged in= has a valid session as a member
   //Connected= has a valid session as a guest or a member
   public isUserLoggedInAsMember(): boolean {
@@ -43,4 +37,3 @@ export class GuestUserAuth extends UserAuth {
     return this.isConnectionValid();
   }
 }
-

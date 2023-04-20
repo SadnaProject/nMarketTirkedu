@@ -17,12 +17,24 @@ jobs:
 
       - name: Install Dependencies
         run: npm install
+        run: npm run postinstall
 
       - name: Typecheck
         run: npm run typecheck
 
       - name: Lint
         run: npm run lint
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        run: npm install
+        run: npm run postinstall
 
       - name: Test
         run: npm run test

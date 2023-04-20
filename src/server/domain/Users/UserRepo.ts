@@ -1,0 +1,49 @@
+import { Testable, testable } from "@/server/_Testable";
+import { User } from "./User";
+
+@testable
+export class UserRepo extends Testable {
+  private users: Map<string, User>;
+
+  constructor() {
+    super();
+    this.users = new Map();
+  }
+
+  public addUser(userId: string): void {
+    if (this.users.has(userId)) {
+      throw new Error("User already exists");
+    }
+    this.users.set(userId, new User(userId));
+  }
+
+  public getUser(id: string): User {
+    const user = this.users.get(id);
+    if (!user) {
+      throw new Error("User not found");
+    }
+    return user;
+  }
+
+  public getAllUsers(): User[] {
+    return Array.from(this.users.values());
+  }
+
+  public removeUser(id: string): void {
+    if (!this.users.has(id)) {
+      throw new Error("User not found");
+    }
+    this.users.delete(id);
+  }
+  clone(userSource: string, userDest: string): void {
+    const Dest = this.users.get(userDest);
+    const Source = this.users.get(userSource);
+    if (Dest === undefined || Source === undefined) {
+      throw new Error("User not found");
+    }
+    Dest.clone(Source);
+  }
+  isUserExist(id: string): boolean {
+    return this.users.has(id);
+  }
+}

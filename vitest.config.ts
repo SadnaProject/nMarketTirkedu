@@ -1,8 +1,9 @@
-import path from "path";
 import { defineConfig } from "vitest/config";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   test: {
+    dir: "src/server",
     restoreMocks: true,
     coverage: {
       exclude: ["**/_*.ts"],
@@ -10,9 +11,10 @@ export default defineConfig({
       reporter: ["lcov"],
     },
   },
-  resolve: {
-    alias: {
-      "~": path.resolve(__dirname, "./src"),
-    },
-  },
+  plugins: [tsconfigPaths()],
+  // resolve: {
+  //   alias: {
+  //     "@": path.resolve(__dirname, "./src"),
+  //   },
+  // },
 });

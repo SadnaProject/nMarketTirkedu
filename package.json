@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test:server": "vitest --coverage",
+    "test-dev-server": "vitest --coverage",
     "test:client": "playwright test",
     "dev": "pnpm db-push && run-p dev:*",
     "typecheck": "tsc --noEmit",
@@ -14,7 +14,7 @@
     "db-seed": "prisma db seed",
     "build": "prisma generate && prisma migrate deploy && run-s build:*",
     "start": "run-p start:*",
-    "start:wss": "cross-env PORT=3001 NODE_ENV=production tsx src/server/service/wssDevServer.ts --tsconfig tsconfig.server.json",
+    "start:wss": "cross-env PORT=3001 NODE_ENV=production tsx watch src/server/service/wssDevServer.ts --tsconfig tsconfig.server.json",
     "start:next": "next start",
     "dev:wss": "cross-env PORT=3001 NODE_ENV=development tsx watch src/server/service/wssDevServer.ts --tsconfig tsconfig.server.json",
     "dev:next": "next dev",
@@ -26,6 +26,7 @@
     "test-all-start": "cross-env APP_ENV=test WS_URL=ws://localhost:3000 start-server-and-test start 3000 test",
     "db-migrate-dev": "prisma migrate dev && prisma generate",
     "test": "run-p test:*",
+    "test:server": "vitest run",
     "prebuild": "prisma generate && prisma migrate deploy",
     "postinstall": "prisma generate"
   },
@@ -80,7 +81,8 @@
     "tailwindcss": "^3.3.0",
     "ts-mixer": "^6.0.3",
     "typescript": "^5.0.2",
-    "vitest": "^0.29.7"
+    "vitest": "^0.29.7",
+    "vitest-tsconfig-paths": "^3.4.1"
   },
   "ct3aMetadata": {
     "initVersion": "7.11.0"

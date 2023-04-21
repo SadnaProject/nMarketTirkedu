@@ -1,4 +1,5 @@
 import { defineConfig } from "vitest/config";
+import tsconfigPaths from "vitest-tsconfig-paths";
 
 export default defineConfig({
   test: {
@@ -10,10 +11,10 @@ export default defineConfig({
       reporter: ["lcov"],
     },
   },
-  plugins: [],
+  plugins: [tsconfigPaths()],
   // resolve: {
-  //   alias: {
-  //     "@": path.resolve(__dirname, "./src"),
-  //   },
+  // alias: {
+  //   "@": path.resolve(__dirname, "./src"),
+  // },
   // },
 });

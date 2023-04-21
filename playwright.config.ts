@@ -5,7 +5,7 @@ console.log(`ℹ️ Using base URL "${baseUrl}"`);
 
 const opts = {
   // launch headless on CI, in browser locally
-  headless: false, //!!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS,
+  headless: true, //!!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS,
   // collectCoverage: !!process.env.PLAYWRIGHT_HEADLESS
 };
 const config: PlaywrightTestConfig = {

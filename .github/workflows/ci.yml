@@ -9,7 +9,7 @@ env:
   WS_URL: "ws://localhost:3001"
 
 jobs:
-  build:
+  typecheck:
     runs-on: ubuntu-latest
 
     steps:

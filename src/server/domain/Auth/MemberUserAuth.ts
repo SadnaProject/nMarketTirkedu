@@ -1,7 +1,7 @@
 import { Session } from "./Session";
 const { randomUUID } = await import("crypto");
 import { z } from "zod";
-import { UserAuth, UserType, UserAuthDTO } from "./UserAuth";
+import { UserAuth, UserType, type UserAuthDTO } from "./UserAuth";
 
 
 export type MemberUserAuthDTO = {

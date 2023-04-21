@@ -10,7 +10,7 @@ import { Review, type ReviewDTO } from "./Review";
 import { randomUUID } from "crypto";
 import { Mixin } from "ts-mixer";
 import { Testable, testable } from "@/server/_Testable";
-import { HasRepos, Repos, createRepos } from "./_HasRepos";
+import { HasRepos, type Repos, createRepos } from "./_HasRepos";
 import { PaymentAdapter } from "./PaymentAdaptor";
 import { type ProductPurchase } from "./ProductPurchaseHistory";
 import { error } from "console";

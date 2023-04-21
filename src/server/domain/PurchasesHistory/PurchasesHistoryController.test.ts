@@ -21,7 +21,7 @@ import { ReviewRepo } from "./PurchasesHistory/ReviewRepo";
 import { BasketPurchaseRepo } from "./PurchasesHistory/BasketPurchaseHistoryRepo";
 import { JobsController } from "../Jobs/JobsController";
 import { itUnitIntegration } from "../_mock";
-import { Controllers } from "../_HasController";
+import { type Controllers } from "../_HasController";
 import {
   createMockControllers,
   createTestControllers,

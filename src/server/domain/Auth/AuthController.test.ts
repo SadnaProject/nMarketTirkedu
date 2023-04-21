@@ -5,7 +5,7 @@ import { MemberUserAuth } from "./MemberUserAuth";
 import { GuestUserAuth } from "./GuestUserAuth";
 import { itUnitIntegration } from "../_mock";
 import { createMockControllers } from "../_createControllers";
-import { Controllers } from "../_HasController";
+import { type Controllers } from "../_HasController";
 
 export function createMember(name: string, password: string) {
   return MemberUserAuth.create(name, password);

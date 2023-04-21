@@ -1,5 +1,5 @@
+import { randomUUID } from "crypto";
 import { type Session } from "./Session";
-const { randomUUID } = await import("crypto");
 import { z } from "zod";
 
 export type UserType = "GUEST" | "MEMBER";

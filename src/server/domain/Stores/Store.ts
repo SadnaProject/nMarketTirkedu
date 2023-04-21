@@ -4,7 +4,7 @@ import { StoreProduct, type StoreProductArgs } from "./StoreProduct";
 import { type BasketDTO } from "../Users/Basket";
 import { Mixin } from "ts-mixer";
 import { type Controllers, HasControllers } from "../_HasController";
-const { randomUUID } = await import("crypto");
+import { randomUUID } from "crypto";
 
 export const nameSchema = z.string().nonempty();
 

@@ -3,8 +3,8 @@ name: CI
 on: [push, pull_request]
 
 env:
-  DATABASE_URL: "https://fake.com"
-  NEXTAUTH_URL: "https://fake.com"
+  DATABASE_URL: "file:./db.sqlite"
+  NEXTAUTH_URL: "localhost:3000"
   NEXTAUTH_SECRET: "SECRET"
   WS_URL: "ws://localhost:3001"
 

@@ -3,29 +3,87 @@ name: CI
 on: [push, pull_request]
 
 env:
-  DATABASE_URL: "https://fake.com"
-  NEXTAUTH_URL: "https://fake.com"
+  DATABASE_URL: "file:./db.sqlite"
+  NEXTAUTH_URL: "localhost:3000"
   NEXTAUTH_SECRET: "SECRET"
+  WS_URL: "ws://localhost:3001"
 
 jobs:
-  build:
+  typecheck:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7.26.0
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          cache: "pnpm" # You can active this cache when your repo has a lockfile
 
       - name: Install Dependencies
-        run: npm install
+        run: pnpm install && pnpm run postinstall
+
+      - name: Next.js cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/.next/cache
+          key: ${{ runner.os }}-${{ runner.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}-nextjs
 
       - name: Typecheck
-        run: npm run typecheck
+        run: pnpm run typecheck
 
       - name: Lint
-        run: npm run lint
+        run: pnpm run lint
 
-      - name: Test
-        run: npm run test
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7.26.0
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          # cache: 'pnpm' # You can active this cache when your repo has a lockfile
+
+      - name: Install Dependencies
+        run: pnpm install && pnpm run postinstall
+
+      - name: Install Chromium
+        run: pnpm playwright install chromium
+
+      - name: Next.js cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ github.workspace }}/.next/cache
+          key: ${{ runner.os }}-${{ runner.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}-nextjs
+
+      - name: Build and test
+        run: pnpm test-all-dev
+
+      - name: Upload test results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: test results
+          path: |
+            test-results
 
       # - name: Print Environment Variable
       #   run: echo $MY_ENV_VAR

@@ -1,19 +1,30 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const path = require("path");
+
 /** @type {import("eslint").Linter.Config} */
 const config = {
+  overrides: [
+    {
+      extends: [
+        "plugin:@typescript-eslint/recommended-requiring-type-checking",
+      ],
+      files: ["*.ts", "*.tsx"],
+      parserOptions: {
+        project: path.join(__dirname, "tsconfig.json"),
+      },
+    },
+  ],
   parser: "@typescript-eslint/parser",
-  env: {
-    node: true,
-  },
-  ignorePatterns: ["node_modules", "coverage", "docs"],
   parserOptions: {
-    project: "tsconfig.json",
-    tsconfigRootDir: __dirname,
+    project: path.join(__dirname, "tsconfig.json"),
   },
   plugins: ["@typescript-eslint", "jsdoc"],
   extends: [
-    "eslint:recommended",
+    "next/core-web-vitals",
     "plugin:@typescript-eslint/recommended",
-    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    // "plugin:prettier/recommended",
   ],
   rules: {
     "@typescript-eslint/consistent-type-imports": [
@@ -24,6 +35,8 @@ const config = {
       },
     ],
     "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+    "react/react-in-jsx-scope": "off",
+
     "jsdoc/check-access": 1, // Recommended
     "jsdoc/check-alignment": 1, // Recommended
     // "jsdoc/check-examples": 1,
@@ -72,6 +85,11 @@ const config = {
     "jsdoc/sort-tags": 1,
     "jsdoc/tag-lines": 1, // Recommended
     "jsdoc/valid-types": 1, // Recommended
+  },
+  settings: {
+    react: {
+      version: "detect",
+    },
   },
 };
 

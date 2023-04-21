@@ -7,13 +7,15 @@ const opts = {
   // launch headless on CI, in browser locally
   headless: true, //!!process.env.CI || !!process.env.PLAYWRIGHT_HEADLESS,
   // collectCoverage: !!process.env.PLAYWRIGHT_HEADLESS
-};
+  video: "on",
+} as const;
 const config: PlaywrightTestConfig = {
   testDir: "./src/test",
+  fullyParallel: true,
   use: {
     ...devices["Desktop Chrome"],
     baseURL: baseUrl,
-    headless: opts.headless,
+    ...opts,
   },
 };
 

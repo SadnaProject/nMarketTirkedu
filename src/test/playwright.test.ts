@@ -1,12 +1,14 @@
 import { test } from "@playwright/test";
 
-test.setTimeout(35e3);
+// test.setTimeout(35e3);
 
 test("send message", async ({ browser, page }) => {
   const viewer = await browser.newPage();
-  await viewer.goto("/");
+  await page.goto("/");
 
-  await page.goto("/api/auth/signin");
+  await page.waitForTimeout(1e3);
+
+  // await page.goto("/api/auth/signin");
   // await page.type('[name="name"]', "test");
   // await page.click('[type="submit"]');
 
@@ -22,5 +24,3 @@ test("send message", async ({ browser, page }) => {
   // await viewer.waitForSelector(`text=${nonce}`);
   await viewer.close();
 });
-
-export {};

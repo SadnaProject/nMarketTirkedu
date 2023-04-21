@@ -59,7 +59,7 @@ jobs:
         with:
           name: test results
           path: |
-            playwright/test-results
+            test-results
 
       # - name: Print Environment Variable
       #   run: echo $MY_ENV_VAR

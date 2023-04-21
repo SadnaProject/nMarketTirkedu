@@ -17,14 +17,13 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      
+
       - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7.26.0
 
       - name: Install Dependencies
-        run: pnpm install
-        run: pnpm run postinstall
+        run: pnpm install && pnpm run postinstall
 
       - name: Typecheck
         run: pnpm run typecheck
@@ -40,19 +39,19 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      
+
       - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7.26.0
 
       - name: Install Dependencies
-        run: pnpm install
-        run: pnpm run postinstall
+        run: pnpm install && pnpm run postinstall
+
+      - name: Install Chromium
         run: pnpm playwright install chromium
 
       - name: Build and test
-        run: pnpm prebuild
-        run: pnpm build && pnpm test-start && pnpm test-dev
+        run: pnpm prebuild && pnpm build && pnpm test-start && pnpm test-dev
 
       - name: Upload test results
         if: ${{ always() }}
@@ -61,7 +60,6 @@ jobs:
           name: test results
           path: |
             playwright/test-results
-
 
       # - name: Print Environment Variable
       #   run: echo $MY_ENV_VAR

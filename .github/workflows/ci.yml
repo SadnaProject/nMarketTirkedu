@@ -22,6 +22,12 @@ jobs:
         with:
           version: 7.26.0
 
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          cache: "pnpm" # You can active this cache when your repo has a lockfile
+
       - name: Install Dependencies
         run: pnpm install && pnpm run postinstall
 
@@ -43,6 +49,12 @@ jobs:
       - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7.26.0
+
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+          # cache: 'pnpm' # You can active this cache when your repo has a lockfile
 
       - name: Install Dependencies
         run: pnpm install && pnpm run postinstall

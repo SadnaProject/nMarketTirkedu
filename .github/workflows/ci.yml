@@ -51,7 +51,7 @@ jobs:
         run: pnpm playwright install chromium
 
       - name: Build and test
-        run: pnpm prebuild && pnpm build && pnpm test-start && pnpm test-dev
+        run: pnpm prebuild && pnpm build && pnpm start && pnpm test
 
       - name: Upload test results
         if: ${{ always() }}

@@ -1,4 +1,4 @@
-import { JobsRepo } from "@domain/Jobs/JobsRepo";
+import { JobsRepo } from "./JobsRepo";
 
 export const reposMapping = {
   jobs: JobsRepo,

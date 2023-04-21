@@ -1,6 +1,6 @@
 import { Mixin } from "ts-mixer";
 import { HasControllers } from "../_HasController";
-import { Testable, testable } from "@/server/_Testable";
+import { Testable, testable } from "server/domain/_Testable";
 import { HasRepos } from "./_HasRepos";
 import { createRepos } from "./_HasRepos";
 import { UserAuth } from "./UserAuth";

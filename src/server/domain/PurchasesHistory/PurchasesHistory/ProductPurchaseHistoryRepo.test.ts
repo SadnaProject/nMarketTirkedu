@@ -1,9 +1,7 @@
-import { describe, expect, it } from "vitest";
-import { ProductReview } from "../ProductReview";
-import { ProductReviewRepo } from "./ProductReviewsRepo";
+import { describe, expect } from "vitest";
 import { ProductPurchase } from "../ProductPurchaseHistory";
 import { ProductPurchaseRepo } from "./ProductPurchaseHistoryRepo";
-import { itUnitIntegration } from "@domain/_mock";
+import { itUnitIntegration } from "server/domain/_mock";
 
 const productPurchaseData = {
   id: "id",

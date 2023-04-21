@@ -1,4 +1,4 @@
-import { Testable, testable } from "@/server/_Testable";
+import { Testable, testable } from "server/domain/_Testable";
 import type { MemberUserAuth } from "./MemberUserAuth";
 import type { GuestUserAuth } from "./GuestUserAuth";
 

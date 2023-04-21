@@ -17,12 +17,7 @@
     "jsx": "preserve",
     "incremental": true,
     "noUncheckedIndexedAccess": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"],
-      "@domain/*": ["./src/server/domain/*"],
-      "@service/*": ["./src/server/service/*"]
-    }
+    "baseUrl": "./src"
   },
   "include": [
     ".eslintrc.cjs",
@@ -32,5 +27,5 @@
     "**/*.cjs",
     "**/*.mjs"
   ],
-  "exclude": ["node_modules", "coverage", "docs"]
+  "exclude": ["node_modules", "coverage", "docs", "dist"]
 }

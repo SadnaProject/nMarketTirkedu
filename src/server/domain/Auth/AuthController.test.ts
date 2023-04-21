@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, vi } from "vitest";
 import { type Repos, createMockRepos, createTestRepos } from "./_HasRepos";
 import { MemberUserAuth } from "./MemberUserAuth";
 import { GuestUserAuth } from "./GuestUserAuth";

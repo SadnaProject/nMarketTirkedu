@@ -1,7 +1,6 @@
 import { faker } from "@faker-js/faker/locale/en";
-import { beforeEach } from "vitest";
-import { describe, expect, it } from "vitest";
-import { Service } from "@service/Service";
+import { Service } from "server/service/Service";
+import { describe, expect, it, beforeEach } from "vitest";
 
 let service: Service;
 beforeEach(() => {

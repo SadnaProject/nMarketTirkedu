@@ -1,4 +1,4 @@
-import { Testable, testable } from "@/server/_Testable";
+import { Testable, testable } from "server/domain/_Testable";
 import { type ProductReview } from "../ProductReview";
 
 @testable

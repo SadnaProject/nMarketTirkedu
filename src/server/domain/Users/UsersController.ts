@@ -3,7 +3,7 @@ import { Mixin } from "ts-mixer";
 import { type CartDTO } from "./Cart";
 import { Notification } from "./Notification";
 import { HasRepos, createRepos } from "./_HasRepos";
-import { Testable, testable } from "@/server/_Testable";
+import { Testable, testable } from "server/domain/_Testable";
 export interface IUsersController {
   /**
    * This fuction checks if a user exists.

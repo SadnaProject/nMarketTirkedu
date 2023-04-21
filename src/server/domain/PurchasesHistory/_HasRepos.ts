@@ -1,8 +1,8 @@
-import { BasketPurchaseRepo } from "@domain/PurchasesHistory/PurchasesHistory/BasketPurchaseHistoryRepo";
-import { CartPurchaseRepo } from "@domain/PurchasesHistory/PurchasesHistory/CartPurchaseHistoryRepo";
-import { ProductPurchaseRepo } from "@domain/PurchasesHistory/PurchasesHistory/ProductPurchaseHistoryRepo";
-import { ProductReviewRepo } from "@domain/PurchasesHistory/PurchasesHistory/ProductReviewsRepo";
-import { ReviewRepo } from "@domain/PurchasesHistory/PurchasesHistory/ReviewRepo";
+import { ReviewRepo } from "./PurchasesHistory/ReviewRepo";
+import { ProductPurchaseRepo } from "./PurchasesHistory/ProductPurchaseHistoryRepo";
+import { ProductReviewRepo } from "./PurchasesHistory/ProductReviewsRepo";
+import { BasketPurchaseRepo } from "./PurchasesHistory/BasketPurchaseHistoryRepo";
+import { CartPurchaseRepo } from "./PurchasesHistory/CartPurchaseHistoryRepo";
 
 export const reposMapping = {
   Reviews: ReviewRepo,

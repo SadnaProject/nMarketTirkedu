@@ -1,9 +1,11 @@
 import { faker } from "@faker-js/faker/locale/en";
-import { beforeEach } from "vitest";
-import { describe, expect, it } from "vitest";
-import { type StoreProductArgs } from "@domain/Stores/StoreProduct";
-import { generateProductArgs, generateStoreName } from "@domain/Stores/_data";
-import { Service } from "@service/Service";
+import { type StoreProductArgs } from "server/domain/Stores/StoreProduct";
+import {
+  generateProductArgs,
+  generateStoreName,
+} from "server/domain/Stores/_data";
+import { Service } from "server/service/Service";
+import { describe, expect, it, beforeEach } from "vitest";
 
 let service: Service;
 beforeEach(() => {

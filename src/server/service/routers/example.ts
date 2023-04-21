@@ -1,10 +1,9 @@
 import { z } from "zod";
-
 import {
   createTRPCRouter,
   publicProcedure,
   authedProcedure,
-} from "@/server/service/trpc";
+} from "server/service/trpc";
 import { observable } from "@trpc/server/observable";
 
 export const exampleRouter = createTRPCRouter({

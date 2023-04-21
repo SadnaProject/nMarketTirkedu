@@ -9,7 +9,7 @@ import {
 import { HasRepos, createRepos } from "./_HasRepos";
 import { type CartDTO } from "../Users/Cart";
 import { type BasketDTO } from "../Users/Basket";
-import { Testable, testable } from "@/server/_Testable";
+import { Testable, testable } from "server/domain/_Testable";
 import fuzzysearch from "fuzzysearch-ts";
 import { type BasketPurchaseDTO } from "../PurchasesHistory/BasketPurchaseHistory";
 

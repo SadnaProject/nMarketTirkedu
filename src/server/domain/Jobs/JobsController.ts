@@ -1,7 +1,7 @@
 import { Mixin } from "ts-mixer";
 import { HasControllers } from "../_HasController";
 import { type StoreDTO } from "../Stores/Store";
-import { Testable, testable } from "@/server/_Testable";
+import { Testable, testable } from "server/domain/_Testable";
 import { ManagerRole } from "./ManagerRole";
 import { OwnerRole } from "./OwnerRole";
 import { HasRepos, createRepos } from "./_HasRepos";

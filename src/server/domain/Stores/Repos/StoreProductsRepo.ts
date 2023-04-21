@@ -1,5 +1,5 @@
-import { type StoreProduct } from "@domain/Stores/StoreProduct";
-import { Testable, testable } from "@/server/_Testable";
+import { Testable, testable } from "server/domain/_Testable";
+import { type StoreProduct } from "../StoreProduct";
 
 @testable
 export class StoreProductsRepo extends Testable {

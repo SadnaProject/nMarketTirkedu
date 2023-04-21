@@ -1,5 +1,5 @@
-import { Testable, testable } from "@/server/_Testable";
-import { type PositionHolder } from "@domain/Jobs/PositionHolder";
+import { Testable, testable } from "server/domain/_Testable";
+import { type PositionHolder } from "./PositionHolder";
 
 @testable
 export class JobsRepo extends Testable {

@@ -9,7 +9,7 @@ import { type ProductReviewDTO, ProductReview } from "./ProductReview";
 import { Review, type ReviewDTO } from "./Review";
 import { randomUUID } from "crypto";
 import { Mixin } from "ts-mixer";
-import { Testable, testable } from "@/server/_Testable";
+import { Testable, testable } from "server/domain/_Testable";
 import { HasRepos, type Repos, createRepos } from "./_HasRepos";
 import { PaymentAdapter } from "./PaymentAdaptor";
 import { type ProductPurchase } from "./ProductPurchaseHistory";

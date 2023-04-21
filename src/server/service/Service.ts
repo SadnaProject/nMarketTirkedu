@@ -1,12 +1,13 @@
-import { MarketFacade } from "@domain/MarketFacade";
-import { type CartDTO } from "@domain/Users/Cart";
-import { type BasketDTO } from "@domain/Users/Basket";
+import { MarketFacade } from "server/domain/MarketFacade";
+import { type BasketPurchaseDTO } from "server/domain/PurchasesHistory/BasketPurchaseHistory";
+import { type CartPurchaseDTO } from "server/domain/PurchasesHistory/CartPurchaseHistory";
 import {
-  type StoreProductDTO,
   type StoreProductArgs,
-} from "@domain/Stores/StoreProduct";
-import { type CartPurchaseDTO } from "@domain/PurchasesHistory/CartPurchaseHistory";
-import { type BasketPurchaseDTO } from "@domain/PurchasesHistory/BasketPurchaseHistory";
+  type StoreProductDTO,
+} from "server/domain/Stores/StoreProduct";
+import { type BasketDTO } from "server/domain/Users/Basket";
+import { type CartDTO } from "server/domain/Users/Cart";
+
 export type SearchArgs = {
   name?: string;
   category?: string;

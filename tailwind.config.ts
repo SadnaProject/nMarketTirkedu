@@ -1,9 +1,14 @@
 import { type Config } from "tailwindcss";
 
 export default {
-  content: ["./src/**/*.{js,ts,jsx,tsx}"],
+  content: ["./src/**/*.{js,ts,jsx,tsx}", "node_modules/preline/dist/*.js"],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        primary: "var(--primary)",
+      },
+    },
   },
-  plugins: [],
+  darkMode: "class",
+  plugins: [require("preline/plugin"), require("tailwind-scrollbar")],
 } satisfies Config;

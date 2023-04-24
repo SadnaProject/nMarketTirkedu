@@ -3,7 +3,7 @@ import Image from "next/image";
 import { api } from "utils/api";
 
 export default function Home() {
-  const hello = api.example.hello.useQuery({ text: "from tRPC" });
+  const hello = api.example.hello.useQuery({ text: "from tRPC", price: 45 });
 
   return (
     <div className="flex h-full flex-col items-center justify-center gap-4">

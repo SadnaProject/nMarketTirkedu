@@ -1,0 +1,35 @@
+<svg
+  fill="#1e3a8a"
+  xmlns="http://www.w3.org/2000/svg"
+  width="200"
+  zoomAndPan="magnify"
+  viewBox="0 0 375 374.999991"
+  height="200"
+>
+  <g>
+    <path
+      id="pathAttribute"
+      d="M 344.105469 366.273438 L 32.230469 366.273438 C 19.386719 366.273438 8.917969 355.808594 8.917969 342.960938 L 8.917969 31.085938 C 8.917969 18.242188 19.386719 7.773438 32.230469 7.773438 L 344.105469 7.773438 C 356.949219 7.773438 367.417969 18.242188 367.417969 31.085938 L 367.417969 342.960938 C 367.417969 355.808594 356.949219 366.273438 344.105469 366.273438 "
+      fillOpacity="1"
+      fillRule="nonzero"
+    ></path>
+  </g>
+  <g id="inner-icon" transform="translate(10,10) scale(1.78)">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="200"
+      height="200"
+      viewBox="0 0 24 24"
+      stroke="white"
+      strokeWidth="2"
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path
+        d="M7 20v-16l10 16v-16"
+        id="mainIconPathAttribute"
+      ></path>
+    </svg>
+  </g>
+</svg>

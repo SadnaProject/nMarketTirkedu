@@ -6,10 +6,22 @@ import {
 } from "server/service/trpc";
 import { observable } from "@trpc/server/observable";
 
+// export const createStoreSchema = z.object({ text: z.string(), price:z.number() });
+
+// type CreateStore = z.infer<typeof createStoreSchema>;
+
+// function createStore(input:CreateStore){
+
+// }
+
 export const exampleRouter = createTRPCRouter({
+  // {
+  //   text: "hi"
+  // }
   hello: publicProcedure
-    .input(z.object({ text: z.string() }))
+    .input(z.object({ text: z.string(), price: z.number() }))
     .query(({ input }) => {
+      const { text, price } = input;
       return {
         greeting: `Hello ${input.text}`,
       };
@@ -21,6 +33,11 @@ export const exampleRouter = createTRPCRouter({
 
   getSecretMessage: authedProcedure.query(() => {
     return "you can now see this secret message!";
+  }),
+
+  createStore: authedProcedure.mutation(() => {
+    // create on db
+    return "created store";
   }),
 
   randomNumber: publicProcedure.subscription(() => {

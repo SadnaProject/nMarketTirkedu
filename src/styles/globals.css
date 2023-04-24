@@ -1,3 +1,41 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --primary: theme(colors.blue.900);
+  }
+}
+
+.rc-slider-mark-text {
+  @apply text-blue-200 transition-all !important;
+}
+
+.rc-slider-mark-text-active {
+  @apply font-bold text-white transition-all !important;
+}
+
+.rc-slider-dot-active {
+  @apply border-none !important;
+}
+
+.rc-slider-step {
+  @apply h-2 !important;
+}
+
+.rc-slider-dot {
+  @apply h-4 w-4 !important;
+}
+
+.rc-slider-track {
+  @apply bg-white !important;
+}
+
+.rc-slider-handle {
+  @apply border-none bg-blue-800 opacity-100 transition-all !important;
+}
+
+.rc-slider-handle-dragging {
+  @apply shadow-none !important;
+}

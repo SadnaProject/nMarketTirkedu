@@ -1,7 +1,7 @@
 const PATHS = {
   home: { path: "/" },
-  signup: { path: "/signup" },
-  signin: { path: "/signin" },
+  register: { path: "/register" },
+  login: { path: "/login" },
   products: { path: "/products" },
   product: { path: "/product" },
   stores: { path: "/stores" },

@@ -4,7 +4,6 @@ import { useMemo } from "react";
 import Link from "next/link";
 import PATHS from "utils/paths";
 import Card from "./card";
-import Balancer from "react-wrap-balancer";
 
 function AfterDecimal(num: number) {
   return (Math.round(num * 100) / 100).toFixed(2).split(".")[1];

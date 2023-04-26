@@ -1,7 +1,4 @@
-/* eslint-disable jsdoc/no-restricted-syntax */
 /* eslint-disable jsdoc/require-param-description */
-/* eslint-disable jsdoc/require-example */
-/* eslint-disable jsdoc/require-param-type */
 /* eslint-disable jsdoc/require-returns */
 /**
  * YOU PROBABLY DON'T NEED TO EDIT THIS FILE, UNLESS:

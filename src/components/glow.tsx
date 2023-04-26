@@ -19,9 +19,12 @@ export default function Glow({ children, className }: Props) {
   });
 
   return (
-    <div className="flex">
-      <div className="peer relative z-10">{children}</div>
-      <div ref={ref} className={twMerge("absolute transition-all", className)}>
+    <div className="z-0 flex">
+      <div className="peer relative">{children}</div>
+      <div
+        ref={ref}
+        className={twMerge("absolute -z-10 transition-all", className)}
+      >
         {children}
       </div>
     </div>

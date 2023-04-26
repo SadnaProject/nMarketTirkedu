@@ -7,5 +7,7 @@ const PATHS = {
   stores: { path: "/stores" },
   store: { path: "/store" },
   myStores: { path: "/myStores" },
+  receipt: { path: "/receipt" },
+  chat: { path: "/chat" },
 } as const;
 export default PATHS;

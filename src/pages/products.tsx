@@ -2,6 +2,7 @@ import ProductCard from "components/productCard";
 import Gallery from "components/gallery";
 import RateSlider from "components/slider";
 import Input from "components/input";
+import Layout from "./_layout";
 
 const products = [
   {
@@ -110,7 +111,7 @@ export default function Home() {
   // }, []);
 
   return (
-    <>
+    <Layout>
       <div className="rounded-md shadow-sm sm:flex">
         <CategoryDropdown />
         <Input placeholder="Product name" className="border-e-2 border-s-2" />
@@ -132,7 +133,7 @@ export default function Home() {
         getId={(product) => product.id}
         getItem={(product) => <ProductCard product={product} />}
       />
-    </>
+    </Layout>
   );
 }
 

@@ -1,9 +1,10 @@
 import Glow from "components/glow";
 import PATHS from "utils/paths";
+import Layout from "./_layout";
 
 export default function Home() {
   return (
-    <>
+    <Layout>
       <div className="mt-7 rounded-xl border border-gray-200 bg-white shadow-sm">
         <div className="p-4 sm:p-7">
           <div className="text-center">
@@ -165,6 +166,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-    </>
+    </Layout>
   );
 }

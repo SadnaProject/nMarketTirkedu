@@ -8,34 +8,65 @@
   }
 }
 
+/* SLIDER 👇 */
 .rc-slider-mark-text {
   @apply text-blue-200 transition-all !important;
 }
-
 .rc-slider-mark-text-active {
   @apply font-bold text-white transition-all !important;
 }
-
 .rc-slider-dot-active {
   @apply border-none !important;
 }
-
 .rc-slider-step {
   @apply h-2 !important;
 }
-
 .rc-slider-dot {
   @apply h-4 w-4 !important;
 }
-
 .rc-slider-track {
   @apply bg-white !important;
 }
-
 .rc-slider-handle {
   @apply border-none bg-blue-800 opacity-100 transition-all !important;
 }
-
 .rc-slider-handle-dragging {
   @apply shadow-none !important;
+}
+.rc-slider-rail {
+  /* @apply shadow-middle; */
+}
+/* SLIDER 👆 */
+
+.shadow-middle {
+  box-shadow: 0 0 6px 0px black;
+}
+
+.tooltip-right,
+.tooltip-left {
+  position: relative;
+}
+
+.tooltip-right:after,
+.tooltip-left:after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  top: 6px;
+  border-width: 4px 0px 4px 4px;
+  border-color: transparent transparent transparent #fff;
+}
+
+.tooltip-left:after {
+  right: auto;
+  left: -4px;
+  border-width: 4px 4px 4px 0px;
+  border-color: transparent #fff transparent transparent;
+
+  /* content: "";
+  position: absolute;
+  left: -4px;
+  top: 10px;
+  border-width: 4px 4px 4px 0px;
+  border-color: transparent #fff transparent transparent; */
 }

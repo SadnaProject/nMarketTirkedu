@@ -16,9 +16,9 @@ export default function Navbar() {
   const { data: session } = useSession();
 
   return (
-    <header className="flex w-full flex-wrap bg-white py-4 text-sm drop-shadow-xl sm:flex-nowrap sm:justify-start">
+    <header className="flex w-full flex-wrap bg-white text-sm drop-shadow-xl sm:flex-nowrap sm:justify-start">
       <nav
-        className="mx-auto w-full max-w-[85rem] px-4 sm:flex sm:items-center sm:justify-between"
+        className="mx-auto w-full max-w-[85rem] overflow-hidden px-4 py-4 sm:flex sm:items-center sm:justify-between"
         aria-label="Global"
       >
         <div className="flex items-center justify-between">
@@ -94,7 +94,7 @@ export default function Navbar() {
         </div>
         <div
           id="navbar-image-1"
-          className="hs-collapse hidden grow basis-full overflow-hidden transition-all duration-300 sm:block"
+          className="hs-collapse hidden grow basis-full transition-all duration-300 sm:block"
         >
           <div className="mt-5 flex flex-col gap-5 sm:mt-0 sm:flex-row sm:items-center sm:justify-end sm:pl-5">
             {links.map((link) => (
@@ -111,16 +111,80 @@ export default function Navbar() {
                 {link.name}
               </Link>
             ))}
-            {session ? (
-              <button>
-                <span className="inline-flex h-[2.375rem] w-[2.375rem] items-center justify-center rounded-full bg-primary">
-                  <span className="text-lg font-medium leading-none text-white">
-                    O
+            {!session ? (
+              <>
+                <div className="hs-dropdown relative inline-flex w-fit">
+                  <button
+                    id="hs-dropdown-with-dividers"
+                    type="button"
+                    className="hs-dropdown-toggle inline-flex items-center justify-center gap-2 rounded-md border bg-white px-4 py-3 align-middle text-sm font-medium text-gray-700 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white hover:bg-gray-50"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      fill="currentColor"
+                      viewBox="0 0 16 16"
+                    >
+                      <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2zM8 1.918l-.797.161A4.002 4.002 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4.002 4.002 0 0 0-3.203-3.92L8 1.917zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5.002 5.002 0 0 1 13 6c0 .88.32 4.2 1.22 6z" />
+                    </svg>
+                    <span className="absolute right-0 top-0 inline-flex -translate-y-1/2 translate-x-1/2 transform items-center rounded-full bg-rose-800 px-1.5 py-0.5 text-xs font-medium text-white">
+                      99+
+                    </span>
+                  </button>
+                  <div
+                    className="hs-dropdown-menu duration shadow-middle z-10 mt-2 hidden min-w-[15rem] divide-y divide-gray-200 rounded-lg bg-white p-2 opacity-0 shadow-md transition-[opacity,margin] hs-dropdown-open:opacity-100"
+                    aria-labelledby="hs-dropdown-with-dividers"
+                  >
+                    <div className="py-2 first:pt-0 last:pb-0">
+                      <Link
+                        passHref
+                        legacyBehavior
+                        href={`${PATHS.receipt.path}/todo`}
+                      >
+                        <div className="flex cursor-pointer items-center gap-x-1.5 rounded-md px-3 py-2 text-sm text-gray-800 focus:ring-2 focus:ring-blue-500 hover:bg-gray-100">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="h-6 w-6"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          <div className="flex items-center gap-x-1">
+                            <Link href={`${PATHS.chat.path}/todo`}>
+                              <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-900 hover:bg-blue-200">
+                                Omer
+                              </span>
+                            </Link>
+                            bought from
+                            <Link href={`${PATHS.store.path}/todo`}>
+                              <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-900 hover:bg-blue-200">
+                                H&M
+                              </span>
+                            </Link>
+                          </div>
+                        </div>
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+                <button>
+                  <span className="inline-flex h-[2.375rem] w-[2.375rem] items-center justify-center rounded-full bg-primary">
+                    <span className="text-lg font-medium leading-none text-white">
+                      O
+                    </span>
                   </span>
-                </span>
-              </button>
+                </button>
+              </>
             ) : (
-              <Glow className="peer-hover:blur-sm">
+              <Glow className="invisible peer-hover:visible peer-hover:blur-sm">
                 <Link href={PATHS.register.path}>
                   <div className="inline-flex items-center justify-center gap-2 rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-semibold text-white transition-all">
                     Sign Up

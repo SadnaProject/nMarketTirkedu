@@ -24,11 +24,11 @@ const MyApp: AppType<{ session: Session | null }> = ({
           />
           <link rel="icon" href="/favicon.svg" />
         </Head>
-        <main className="h-screen bg-primary">
-          <Navbar />
-          <div className="container relative mx-auto flex max-w-6xl flex-col items-center gap-4 bg-primary p-4 pb-12 sm:p-12">
-            <Component {...pageProps} />
+        <main className="flex h-screen flex-col bg-primary">
+          <div className="shadow-middle relative z-10">
+            <Navbar />
           </div>
+          <Component {...pageProps} />
         </main>
         <Script src="/preline/preline.js"></Script>
       </Provider>

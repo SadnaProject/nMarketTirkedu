@@ -12,7 +12,7 @@ export default function Home() {
               <span>Already have an account? </span>
               <a
                 className="font-medium text-blue-600 decoration-2 hover:underline"
-                href={PATHS.signin.path}
+                href={PATHS.login.path}
               >
                 Sign in here
               </a>

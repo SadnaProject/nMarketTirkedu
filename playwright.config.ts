@@ -10,7 +10,7 @@ const opts = {
   video: "on",
 } as const;
 const config: PlaywrightTestConfig = {
-  testDir: "./src/test",
+  testDir: "./src/e2e",
   fullyParallel: true,
   use: {
     ...devices["Desktop Chrome"],

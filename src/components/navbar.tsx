@@ -4,7 +4,6 @@ import PATHS from "utils/paths";
 import classnames from "classnames";
 import { useSession } from "next-auth/react";
 import Glow from "./glow";
-import Image from "next/image";
 
 const links = [
   { name: "Products", path: PATHS.products.path },
@@ -122,7 +121,7 @@ export default function Navbar() {
               </button>
             ) : (
               <Glow className="peer-hover:blur-sm">
-                <Link href={PATHS.signup.path}>
+                <Link href={PATHS.register.path}>
                   <div className="inline-flex items-center justify-center gap-2 rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-semibold text-white transition-all">
                     Sign Up
                   </div>

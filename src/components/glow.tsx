@@ -30,3 +30,16 @@ export default function Glow({ children, className }: Props) {
     </div>
   );
 }
+
+export function GlowOnHover({ children, className }: Props) {
+  return (
+    <Glow
+      className={twMerge(
+        "invisible peer-hover:visible peer-hover:blur-sm",
+        className
+      )}
+    >
+      {children}
+    </Glow>
+  );
+}

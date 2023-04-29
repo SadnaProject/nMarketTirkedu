@@ -42,3 +42,19 @@ export default function Star({ fillAmount }: Props) {
     </svg>
   );
 }
+
+type RatingProps = {
+  rating: number;
+  votes?: number;
+};
+
+export function Rating({ rating, votes }: RatingProps) {
+  return (
+    <div className="flex justify-end">
+      {votes && <span className="me-1">({votes})</span>}
+      {Array.from({ length: 5 }, (_, i) => (
+        <Star key={i} fillAmount={rating - i} />
+      ))}
+    </div>
+  );
+}

@@ -1,8 +1,12 @@
 import Gallery from "components/gallery";
 import RateSlider from "components/slider";
-import StoreCard from "components/storeCard";
 import { type StoreDTO } from "server/domain/Stores/Store";
 import Layout from "./_layout";
+import Input from "components/input";
+import Link from "next/link";
+import Card from "components/card";
+import { Rating } from "components/star";
+import PATHS from "utils/paths";
 
 const stores: StoreDTO[] = [
   {
@@ -75,13 +79,9 @@ export default function Home() {
 
   return (
     <Layout>
-      <input
-        type="text"
-        placeholder="Store name"
-        className="relative -ml-px -mt-px block w-auto rounded-md border-e-2 border-s-2 border-gray-200 px-4 py-3 pr-11 text-sm shadow-sm focus:z-10 focus:border-blue-500 focus:ring-blue-500 sm:mt-0 sm:first:ml-0"
-      />
+      <Input placeholder="Store name" className="w-auto" />
       <div className="mb-6 flex items-center gap-4">
-        <span className="text-white">Store Rating</span>
+        <span>Store Rating</span>
         <RateSlider />
       </div>
       <Gallery
@@ -91,5 +91,20 @@ export default function Home() {
         className="grid-cols-1 lg:grid-cols-4"
       />
     </Layout>
+  );
+}
+
+type StoreCardProps = {
+  store: StoreDTO;
+};
+
+function StoreCard({ store }: StoreCardProps) {
+  return (
+    <Link href={`${PATHS.store.path}/${store.id}`}>
+      <Card>
+        <h3 className="text-lg font-bold text-slate-800">{store.name}</h3>
+        <Rating rating={3.25} votes={5} />
+      </Card>
+    </Link>
   );
 }

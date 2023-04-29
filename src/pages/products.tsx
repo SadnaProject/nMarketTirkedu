@@ -1,8 +1,13 @@
-import ProductCard from "components/productCard";
 import Gallery from "components/gallery";
 import RateSlider from "components/slider";
 import Input from "components/input";
 import Layout from "./_layout";
+import PATHS from "utils/paths";
+import Link from "next/link";
+import { type StoreProductDTO } from "server/domain/Stores/StoreProduct";
+import Card from "components/card";
+import Price from "components/price";
+import { Rating } from "components/star";
 
 const products = [
   {
@@ -114,16 +119,19 @@ export default function Home() {
     <Layout>
       <div className="rounded-md shadow-sm sm:flex">
         <CategoryDropdown />
-        <Input placeholder="Product name" className="border-e-2 border-s-2" />
-        <Input placeholder="Keywords" />
+        <Input placeholder="Product name" className="rounded-none" />
+        <Input
+          placeholder="Keywords"
+          className="rounded-t-none sm:rounded-l-none sm:rounded-tr-lg"
+        />
       </div>
       <div className="mb-6 flex flex-wrap justify-center gap-x-6 gap-y-6">
         <div className="flex items-center gap-4">
-          <span className="text-white">Product Rating</span>
+          <span className="text-slate-800">Product Rating</span>
           <RateSlider />
         </div>
         <div className="flex items-center justify-end gap-4">
-          <span className="text-white">Store Rating</span>
+          <span className="text-slate-800">Store Rating</span>
           <RateSlider />
         </div>
       </div>
@@ -131,7 +139,11 @@ export default function Home() {
       <Gallery
         list={products}
         getId={(product) => product.id}
-        getItem={(product) => <ProductCard product={product} />}
+        getItem={(product) => (
+          <Link href={`${PATHS.product.path}/${product.id}`}>
+            <ProductCard product={product} />
+          </Link>
+        )}
       />
     </Layout>
   );
@@ -143,7 +155,7 @@ function CategoryDropdown() {
       <button
         id="hs-dropdown-with-dividers"
         type="button"
-        className="hs-dropdown-toggle relative inline-flex w-full items-center justify-center gap-2 rounded-t-lg bg-white px-4 py-3 align-middle text-sm font-medium text-gray-700 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white hover:bg-gray-50 sm:rounded-l-lg sm:rounded-tr-none"
+        className="hs-dropdown-toggle relative inline-flex w-full items-center justify-center gap-2 rounded-t-lg border border-gray-300 bg-white px-4 py-3 align-middle text-sm font-medium text-slate-700 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white hover:bg-slate-50 sm:rounded-l-lg sm:rounded-tr-none"
       >
         Categories
         <DropdownSvg />
@@ -153,13 +165,13 @@ function CategoryDropdown() {
         aria-labelledby="hs-dropdown-with-dividers"
       >
         <a
-          className="flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm text-gray-800 focus:ring-2 focus:ring-blue-500 hover:bg-gray-100"
+          className="flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 hover:bg-slate-100"
           href="#"
         >
           Games
         </a>
         <a
-          className="flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm text-gray-800 focus:ring-2 focus:ring-blue-500 hover:bg-gray-100"
+          className="flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 hover:bg-slate-100"
           href="#"
         >
           Food
@@ -167,7 +179,7 @@ function CategoryDropdown() {
         {Array.from({ length: 30 }, (_, i) => (
           <a
             key={i}
-            className="flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm text-gray-800 focus:ring-2 focus:ring-blue-500 hover:bg-gray-100"
+            className="flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 hover:bg-slate-100"
             href="#"
           >
             Electronics
@@ -181,17 +193,14 @@ function CategoryDropdown() {
 function MinMaxPrice() {
   return (
     <div className="flex shadow-sm">
-      <div className="inline-flex min-w-fit items-center rounded-l-md border border-r-0 border-gray-200 bg-gray-50 px-2">
-        <span className="text-sm text-gray-600">$</span>
+      <div className="inline-flex min-w-fit items-center rounded-l-md border border-r-0 border-gray-300 bg-slate-50 px-2">
+        <span className="text-sm text-slate-600">$</span>
       </div>
-      <Input placeholder="0.00" className="w-24" />
-      <div className="inline-flex min-w-fit items-center border border-x-0 border-gray-200 bg-gray-50 px-2">
-        <span className="text-sm font-bold text-gray-600">-</span>
+      <Input placeholder="0.00" className="w-24 rounded-none" />
+      <div className="inline-flex min-w-fit items-center border-y border-gray-300 bg-slate-50 px-2">
+        <span className="text-sm font-bold text-slate-600">-</span>
       </div>
-      <Input
-        placeholder="∞"
-        className="w-24 rounded-r-md last:rounded-bl-none"
-      />
+      <Input placeholder="∞" className="w-24 rounded-l-none" />
     </div>
   );
 }
@@ -199,7 +208,7 @@ function MinMaxPrice() {
 function DropdownSvg() {
   return (
     <svg
-      className="h-2.5 w-2.5 text-gray-600 hs-dropdown-open:rotate-180"
+      className="h-2.5 w-2.5 text-slate-600 hs-dropdown-open:rotate-180"
       width="16"
       height="16"
       viewBox="0 0 16 16"
@@ -213,5 +222,33 @@ function DropdownSvg() {
         strokeLinecap="round"
       />
     </svg>
+  );
+}
+
+type ProductCardProps = {
+  product: StoreProductDTO;
+  nameClassName?: string;
+};
+
+function ProductCard({ product }: ProductCardProps) {
+  return (
+    <Card>
+      <h3 className="text-lg font-bold">{product.name}</h3>
+      <span className="font-bold text-slate-700">{product.category}</span>
+      <p
+        className="mt-2 h-[4.9rem] overflow-hidden"
+        style={{
+          WebkitLineClamp: 3,
+          WebkitBoxOrient: "vertical",
+          display: "-webkit-box",
+        }}
+      >
+        {product.description}
+      </p>
+      <div className="flex flex-col items-center justify-between md:flex-row">
+        <Price price={product.price} />
+        <Rating rating={3.24} votes={5} />
+      </div>
+    </Card>
   );
 }

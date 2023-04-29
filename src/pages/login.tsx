@@ -12,21 +12,13 @@ import Button from "components/button";
 import Href from "components/href";
 import { FormInput } from "components/form";
 
-const formSchema = z
-  .object({
-    email: z
-      .string()
-      .nonempty("Email is required")
-      .email("Invalid email address"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    passwordConfirm: z
-      .string()
-      .min(8, "Password must be at least 8 characters"),
-  })
-  .refine((obj) => obj.password === obj.passwordConfirm, {
-    message: "Passwords do not match",
-    path: ["passwordConfirm"],
-  });
+const formSchema = z.object({
+  email: z
+    .string()
+    .nonempty("Email is required")
+    .email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -55,11 +47,11 @@ export default function Home() {
     <Layout>
       <Card>
         <div className="text-center">
-          <h1 className="block text-2xl font-bold text-slate-800">Sign Up</h1>
+          <h1 className="block text-2xl font-bold text-slate-800">Login</h1>
           <p className="mt-2 flex flex-wrap justify-center gap-x-1 text-sm text-slate-600">
-            <span>Already have an account? </span>
-            <Href className="font-medium" href={PATHS.login.path}>
-              Login here
+            <span>Don&apos;t have an account? </span>
+            <Href className="font-medium" href={PATHS.register.path}>
+              Sign up here
             </Href>
           </p>
         </div>
@@ -80,13 +72,6 @@ export default function Home() {
               register={register}
               errors={errors}
             />
-            <FormInput
-              field="passwordConfirm"
-              label="Confirm Password"
-              type="password"
-              register={register}
-              errors={errors}
-            />
 
             <div className="mx-auto">
               <Button
@@ -97,7 +82,7 @@ export default function Home() {
                   void handleSignUp();
                 }}
               >
-                {isSubmitting && <Spinner />} Sign Up
+                {isSubmitting && <Spinner />} Login
               </Button>
             </div>
           </form>

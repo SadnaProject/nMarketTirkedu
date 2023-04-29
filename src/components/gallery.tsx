@@ -28,7 +28,7 @@ type Props<T> = {
   className?: string;
 };
 
-export default function Gallery<T extends object>({
+export default function Gallery<T>({
   list,
   getId,
   getItem,

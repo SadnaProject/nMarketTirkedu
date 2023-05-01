@@ -73,6 +73,9 @@ dependencies:
   react-wrap-balancer:
     specifier: ^0.4.0
     version: 0.4.0(react@18.2.0)
+  reflect-metadata:
+    specifier: ^0.1.13
+    version: 0.1.13
   superjson:
     specifier: 1.12.2
     version: 1.12.2
@@ -4271,6 +4274,10 @@ packages:
       sucrase: 3.32.0
       tslib: 1.14.1
     dev: true
+
+  /reflect-metadata@0.1.13:
+    resolution: {integrity: sha512-Ts1Y/anZELhSsjMcU605fU9RE4Oi3p5ORujwbIKXfWa+0Zxs510Qrmrce5/Jowq3cHSZSJqBjypxmHarc+vEWg==}
+    dev: false
 
   /regenerator-runtime@0.13.11:
     resolution: {integrity: sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==}

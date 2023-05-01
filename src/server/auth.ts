@@ -1,18 +1,16 @@
 import { type GetServerSidePropsContext } from "next";
-import NextAuth, {
+import {
   getServerSession,
   type NextAuthOptions,
   type DefaultSession,
   type DefaultUser,
-  Session,
 } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "server/db";
 import { env } from "env.mjs";
 import Credentials from "next-auth/providers/credentials";
-import { z } from "zod";
-import { randomUUID } from "crypto";
-import { JWT } from "next-auth/jwt";
+import { appRouter } from "./service/root";
+import zConvert from "./helpers/zConvert";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -68,18 +66,9 @@ export const authOptions: NextAuthOptions = {
         },
         password: { label: "Password", type: "password" },
       },
-      authorize: (credentials) => {
-        const loginSchema = z.object({
-          email: z.string().email(),
-          password: z.string(),
-        });
-        const res = loginSchema.safeParse(credentials);
-        if (!res.success) {
-          throw new Error(res.error.errors[0]?.message);
-        }
-        const { email, password } = res.data;
-        const id = randomUUID();
-        return { id, email, name: email };
+      authorize: async (credentials) => {
+        const caller = appRouter.createCaller({ session: null });
+        return await zConvert(() => caller.example.authorize(credentials));
 
         // const result = await prisma.user.findFirst({
         //   where: { email },

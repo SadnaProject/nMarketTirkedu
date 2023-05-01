@@ -41,7 +41,7 @@ type CreateContextOptions = {
 const createInnerTRPCContext = (opts: CreateContextOptions) => {
   return {
     session: opts.session,
-    prisma,
+    // prisma,
   };
 };
 
@@ -89,14 +89,17 @@ import { getSession } from "next-auth/react";
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
-    return {
-      ...shape,
-      data: {
-        ...shape.data,
-        zodError:
-          error.cause instanceof ZodError ? error.cause.flatten() : null,
-      },
-    };
+    if (error.cause instanceof ZodError) {
+      return {
+        ...shape,
+        message: error.cause.errors[0]?.message ?? error.message,
+        data: {
+          ...shape.data,
+          zodError: error.cause.flatten(),
+        },
+      };
+    }
+    return shape;
   },
 });
 

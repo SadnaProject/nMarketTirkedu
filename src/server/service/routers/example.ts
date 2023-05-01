@@ -6,6 +6,8 @@ import {
 } from "server/service/trpc";
 import { observable } from "@trpc/server/observable";
 import EventEmitter from "events";
+import { randomUUID } from "crypto";
+import { TRPCError } from "@trpc/server";
 
 // export const createStoreSchema = z.object({ text: z.string(), price:z.number() });
 
@@ -30,9 +32,9 @@ export const exampleRouter = createTRPCRouter({
       };
     }),
 
-  getAll: publicProcedure.query(({ ctx }) => {
-    return ctx.prisma.example.findMany();
-  }),
+  // getAll: publicProcedure.query(({ ctx }) => {
+  //   return ctx.prisma.example.findMany();
+  // }),
 
   getSecretMessage: authedProcedure.query(() => {
     return "you can now see this secret message!";
@@ -73,5 +75,25 @@ export const exampleRouter = createTRPCRouter({
         // in the purchase function, we will call eventEmitter.emit(`purchase store ${storeId}`, purchaseId)
         // (I need to add dependency injection for eventEmitter through HasEventEmitter class)
       });
+    }),
+
+  authorize: publicProcedure
+    .input(
+      z.undefined().or(
+        z.object({
+          email: z.string().email("Invalid email"),
+          password: z.string().min(8, "Password must be at least 8 characters"),
+        })
+      )
+    )
+    .mutation(({ input }) => {
+      if (!input) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "Credentials are required",
+        });
+      }
+      const id = randomUUID();
+      return { id, email: input.email, name: input.email };
     }),
 });

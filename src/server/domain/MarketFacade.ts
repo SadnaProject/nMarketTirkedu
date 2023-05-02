@@ -10,6 +10,7 @@ import { Loggable, censored, loggable } from "./_Loggable";
 import { type SearchArgs } from "./Stores/StoresController";
 import { type CartPurchaseDTO } from "./PurchasesHistory/CartPurchaseHistory";
 import { type BasketPurchaseDTO } from "./PurchasesHistory/BasketPurchaseHistory";
+import { TRPCError } from "@trpc/server";
 
 @loggable
 export class MarketFacade extends Loggable {
@@ -25,34 +26,43 @@ export class MarketFacade extends Loggable {
     this.controllers.Jobs.setInitialAdmin(userId);
   }
 
-  private isConnectionValid(userId: string): void {
+  private validateConnection(userId: string): void {
     if (!this.controllers.Auth.isConnected(userId))
-      throw new Error("User is not logged in");
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User is not logged in",
+      });
   }
 
   public getLogs(userId: string) {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     if (this.isSystemAdmin(userId)) {
       return this.Logs;
     }
-    throw new Error("User is not system admin");
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "User is not system admin",
+    });
   }
 
   public getErrors(userId: string) {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     if (this.isSystemAdmin(userId)) {
       return this.Errors;
     }
-    throw new Error("User is not system admin");
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "User is not system admin",
+    });
   }
 
   //Checking if user is logged in is done here.
   public addProductToCart(userId: string, productId: string, quantity: number) {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     this.controllers.Users.addProductToCart(userId, productId, quantity);
   }
   public removeProductFromCart(userId: string, productId: string) {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     this.controllers.Users.removeProductFromCart(userId, productId);
   }
   public editProductQuantityInCart(
@@ -60,7 +70,7 @@ export class MarketFacade extends Loggable {
     productId: string,
     quantity: number
   ) {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     this.controllers.Users.editProductQuantityInCart(
       userId,
       productId,
@@ -68,15 +78,16 @@ export class MarketFacade extends Loggable {
     );
   }
   public getCart(userId: string) {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     return this.controllers.Users.getCart(userId);
   }
   public getNotifications(userId: string) {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     return this.controllers.Users.getNotifications(userId);
   }
+
   public purchaseCart(userId: string, @censored creditCard: string) {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     this.controllers.Users.purchaseCart(userId, creditCard);
   }
 
@@ -84,7 +95,7 @@ export class MarketFacade extends Loggable {
     this.controllers.Users.removeUser(userId);
   }
   public readNotification(userId: string, notificationId: string) {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     this.controllers.Users.readNotification(userId, notificationId);
   }
   public addNotification(
@@ -99,7 +110,7 @@ export class MarketFacade extends Loggable {
     );
   }
   public getUnreadNotifications(userId: string) {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     return this.controllers.Users.getUnreadNotifications(userId);
   }
   public reviewStore(
@@ -108,7 +119,7 @@ export class MarketFacade extends Loggable {
     storeId: string,
     review: number
   ) {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     this.controllers.PurchasesHistory.addStorePurchaseReview(
       userId,
       purchaseId,
@@ -125,7 +136,7 @@ export class MarketFacade extends Loggable {
     reviewTitle: string,
     reviewDescription: string
   ) {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     this.controllers.PurchasesHistory.addProductPurchaseReview(
       userId,
       purchaseId,
@@ -167,7 +178,7 @@ export class MarketFacade extends Loggable {
     this.controllers.Auth.changePassword(userId, oldPassword, newPassword);
   }
   makeStoreOwner(currentId: string, storeId: string, targetUserId: string) {
-    this.isConnectionValid(currentId);
+    this.validateConnection(currentId);
     this.controllers.Stores.makeStoreOwner(currentId, storeId, targetUserId);
   }
 
@@ -176,7 +187,7 @@ export class MarketFacade extends Loggable {
     storeId: string,
     targetUserId: string
   ): void {
-    this.isConnectionValid(currentId);
+    this.validateConnection(currentId);
     this.controllers.Stores.makeStoreManager(currentId, storeId, targetUserId);
   }
 
@@ -185,7 +196,7 @@ export class MarketFacade extends Loggable {
     storeId: string,
     targetUserId: string
   ): void {
-    this.isConnectionValid(currentId);
+    this.validateConnection(currentId);
     this.controllers.Stores.removeStoreManager(
       currentId,
       storeId,
@@ -198,7 +209,7 @@ export class MarketFacade extends Loggable {
     storeId: string,
     targetUserId: string
   ): void {
-    this.isConnectionValid(currentId);
+    this.validateConnection(currentId);
     this.controllers.Stores.removeStoreManager(
       currentId,
       storeId,
@@ -211,7 +222,7 @@ export class MarketFacade extends Loggable {
     targetUserId: string,
     permission: boolean
   ): void {
-    this.isConnectionValid(currentId);
+    this.validateConnection(currentId);
     this.controllers.Stores.setAddingProductToStorePermission(
       currentId,
       storeId,
@@ -220,7 +231,7 @@ export class MarketFacade extends Loggable {
     );
   }
   canCreateProductInStore(currentId: string, storeId: string): boolean {
-    this.isConnectionValid(currentId);
+    this.validateConnection(currentId);
     return this.controllers.Stores.canCreateProductInStore(currentId, storeId);
   }
   isStoreOwner(userId: string, storeId: string): boolean {
@@ -249,7 +260,7 @@ export class MarketFacade extends Loggable {
     storeId: string,
     product: StoreProductArgs
   ): string {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     return this.controllers.Stores.createProduct(userId, storeId, product);
   }
   isStoreActive(userId: string, storeId: string): boolean {
@@ -263,35 +274,35 @@ export class MarketFacade extends Loggable {
     productId: string,
     quantity: number
   ): void {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     this.controllers.Stores.setProductQuantity(userId, productId, quantity);
   }
   decreaseProductQuantity(productId: string, quantity: number): void {
     this.controllers.Stores.decreaseProductQuantity(productId, quantity);
   }
   deleteProduct(userId: string, productId: string): void {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     this.controllers.Stores.deleteProduct(userId, productId);
   }
   setProductPrice(userId: string, productId: string, price: number): void {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     this.controllers.Stores.setProductPrice(userId, productId, price);
   }
 
   createStore(founderId: string, storeName: string): string {
-    this.isConnectionValid(founderId);
+    this.validateConnection(founderId);
     return this.controllers.Stores.createStore(founderId, storeName);
   }
   activateStore(userId: string, storeId: string): void {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     this.controllers.Stores.activateStore(userId, storeId);
   }
   deactivateStore(userId: string, storeId: string): void {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     this.controllers.Stores.deactivateStore(userId, storeId);
   }
   closeStorePermanently(userId: string, storeId: string): void {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     this.controllers.Stores.closeStorePermanently(userId, storeId);
   }
   getProductPrice(userId: string, productId: string): number {
@@ -324,12 +335,13 @@ export class MarketFacade extends Loggable {
   public startSession(): string {
     return this.controllers.Users.startSession();
   }
+
   public registerMember(
     userId: string,
     email: string,
     @censored password: string
   ): void {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     this.controllers.Users.register(email, password);
   }
   public loginMember(
@@ -337,18 +349,18 @@ export class MarketFacade extends Loggable {
     email: string,
     @censored password: string
   ): string {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     return this.controllers.Users.login(userId, email, password);
   }
   public logoutMember(userId: string): string {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     return this.controllers.Users.logout(userId);
   }
   //This is not called logout because it also disconnects guest users which were not logged in.
   //disconnects a user. if the user is a guest user, the user is removed from the system.
   //if the user is a member user, the users session is invalidated.
   public disconnectUser(userId: string): void {
-    this.isConnectionValid(userId);
+    this.validateConnection(userId);
     this.controllers.Users.disconnect(userId);
   }
 
@@ -356,9 +368,10 @@ export class MarketFacade extends Loggable {
     adminId: string,
     userId: string
   ): CartPurchaseDTO[] {
-    throw new Error(
-      "Please link it when implemented in the appropriate component"
-    );
+    throw new TRPCError({
+      code: "METHOD_NOT_SUPPORTED",
+      message: "Please link it when implemented in the appropriate component",
+    });
   }
   public getPurchasesByStore(
     userId: string,

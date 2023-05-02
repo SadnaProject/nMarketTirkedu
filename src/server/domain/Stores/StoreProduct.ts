@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import { HasRepos, type Repos } from "./_HasRepos";
+import { TRPCError } from "@trpc/server";
 
 const nameSchema = z.string().nonempty("Name must be nonempty");
 const quantitySchema = z.number().positive("Quantity must be positive");
@@ -82,7 +83,10 @@ export class StoreProduct extends HasRepos {
 
   public decreaseQuantity(quantity: number) {
     if (!this.isQuantityInStock(quantity)) {
-      throw new Error("Not enough quantity in stock");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Not enough quantity in stock",
+      });
     }
     this.Quantity -= quantity;
   }
@@ -132,10 +136,16 @@ export class StoreProduct extends HasRepos {
 
   public isQuantityInStock(quantity: number): boolean {
     if (!this.Store.IsActive) {
-      throw new Error("Store is not active");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Store is not active",
+      });
     }
     if (quantity <= 0) {
-      throw new Error("Quantity must be positive");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Quantity must be positive",
+      });
     }
     return this.Quantity >= quantity;
   }

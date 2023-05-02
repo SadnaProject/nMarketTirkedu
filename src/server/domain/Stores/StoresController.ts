@@ -12,6 +12,7 @@ import { type BasketDTO } from "../Users/Basket";
 import { Testable, testable } from "server/domain/_Testable";
 import fuzzysearch from "fuzzysearch-ts";
 import { type BasketPurchaseDTO } from "../PurchasesHistory/BasketPurchaseHistory";
+import { TRPCError } from "@trpc/server";
 
 export type SearchArgs = {
   name?: string;
@@ -303,9 +304,10 @@ export class StoresController
     product: StoreProductArgs
   ): string {
     if (!this.Controllers.Jobs.canCreateProductInStore(userId, storeId)) {
-      throw new Error(
-        "User does not have permission to create product in store."
-      );
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User does not have permission to create product in store",
+      });
     }
     const store = Store.fromStoreId(storeId, this.Repos);
     return store.createProduct(product);
@@ -323,9 +325,10 @@ export class StoresController
 
   private checkDataRetrievalPermission(userId: string, storeId: string) {
     if (!this.Controllers.Jobs.canReceiveDataFromStore(userId, storeId)) {
-      throw new Error(
-        "User does not have permission to receive data from store."
-      );
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User does not have permission to receive data from store",
+      });
     }
   }
 
@@ -338,7 +341,10 @@ export class StoresController
     if (
       !this.Controllers.Jobs.canEditProductInStore(userId, product.Store.Id)
     ) {
-      throw new Error("User does not have permission to set product quantity.");
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User does not have permission to set product quantity",
+      });
     }
     product.Quantity = quantity;
   }
@@ -354,7 +360,10 @@ export class StoresController
     if (
       !this.Controllers.Jobs.canRemoveProductFromStore(userId, product.Store.Id)
     ) {
-      throw new Error("User does not have permission to delete product.");
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User does not have permission to delete product",
+      });
     }
     product.delete();
   }
@@ -364,14 +373,20 @@ export class StoresController
     if (
       !this.Controllers.Jobs.canEditProductInStore(userId, product.Store.Id)
     ) {
-      throw new Error("User does not have permission to set product price.");
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User does not have permission to set product price",
+      });
     }
     product.Price = price;
   }
 
   createStore(founderId: string, storeName: string): string {
     if (!this.Controllers.Auth.isMember(founderId)) {
-      throw new Error("User is not a member.");
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User is not a member",
+      });
     }
     const store = new Store(storeName)
       .initRepos(this.Repos)
@@ -379,14 +394,20 @@ export class StoresController
     this.Controllers.Jobs.InitializeStore(founderId, store.Id);
     // todo needs to check if possible before doing any change
     if (this.Repos.Stores.getAllNames().has(storeName))
-      throw new Error("Store name is already taken");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Store name already exists",
+      });
     this.Repos.Stores.addStore(store);
     return store.Id;
   }
 
   activateStore(userId: string, storeId: string): void {
     if (!this.Controllers.Jobs.canActivateStore(userId, storeId)) {
-      throw new Error("User does not have permission to activate store.");
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User does not have permission to activate store",
+      });
     }
     const store = Store.fromStoreId(storeId, this.Repos);
     store.IsActive = true;
@@ -406,7 +427,10 @@ export class StoresController
 
   deactivateStore(userId: string, storeId: string): void {
     if (!this.Controllers.Jobs.canDeactivateStore(userId, storeId)) {
-      throw new Error("User does not have permission to deactivate store.");
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User does not have permission to deactivate store",
+      });
     }
     const store = Store.fromStoreId(storeId, this.Repos);
     store.IsActive = false;
@@ -426,9 +450,10 @@ export class StoresController
 
   closeStorePermanently(userId: string, storeId: string): void {
     if (!this.Controllers.Jobs.canCloseStorePermanently(userId, storeId)) {
-      throw new Error(
-        "User does not have permission to close store permanently."
-      );
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User does not have permission to close store permanently",
+      });
     }
     Store.fromStoreId(storeId, this.Repos).delete();
   }

@@ -1,5 +1,6 @@
 import { Testable, testable } from "server/domain/_Testable";
 import { type StoreProduct } from "../StoreProduct";
+import { TRPCError } from "@trpc/server";
 
 @testable
 export class StoreProductsRepo extends Testable {
@@ -23,7 +24,10 @@ export class StoreProductsRepo extends Testable {
   public getProductById(productId: string) {
     const product = this.getAllProducts().find((p) => p.Id === productId);
     if (!product) {
-      throw new Error("Product not found");
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Product not found",
+      });
     }
     return product;
   }
@@ -38,7 +42,10 @@ export class StoreProductsRepo extends Testable {
         return storeId;
       }
     }
-    throw new Error("Product not found");
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Product not found",
+    });
   }
 
   public deleteProduct(productId: string) {

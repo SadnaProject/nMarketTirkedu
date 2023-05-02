@@ -5,6 +5,7 @@ import { type BasketDTO } from "../Users/Basket";
 import { Mixin } from "ts-mixer";
 import { type Controllers, HasControllers } from "../_HasController";
 import { randomUUID } from "crypto";
+import { TRPCError } from "@trpc/server";
 
 export const nameSchema = z.string().nonempty();
 
@@ -79,9 +80,10 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     return basketDTO.products.reduce((acc, curr) => {
       const product = this.Repos.Products.getProductById(curr.storeProductId);
       if (!productsIds.includes(curr.storeProductId))
-        throw new Error(
-          `Product ${curr.storeProductId} is not in store ${this.Id}`
-        );
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: `Product ${curr.storeProductId} is not in store ${this.Id}`,
+        });
       return acc + product.getPriceByQuantity(curr.quantity);
     }, 0);
   }

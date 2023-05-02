@@ -6,7 +6,7 @@ import {
   type StoreProductDTO,
   type StoreProductArgs,
 } from "./Stores/StoreProduct";
-import { Loggable, loggable } from "./_Loggable";
+import { Loggable, censored, loggable } from "./_Loggable";
 import { type SearchArgs } from "./Stores/StoresController";
 import { type CartPurchaseDTO } from "./PurchasesHistory/CartPurchaseHistory";
 import { type BasketPurchaseDTO } from "./PurchasesHistory/BasketPurchaseHistory";
@@ -75,7 +75,7 @@ export class MarketFacade extends Loggable {
     this.isConnectionValid(userId);
     return this.controllers.Users.getNotifications(userId);
   }
-  public purchaseCart(userId: string, creditCard: string) {
+  public purchaseCart(userId: string, @censored creditCard: string) {
     this.isConnectionValid(userId);
     this.controllers.Users.purchaseCart(userId, creditCard);
   }
@@ -151,7 +151,7 @@ export class MarketFacade extends Loggable {
     return this.controllers.Auth.isConnected(userId);
   }
 
-  // register(email: string, password: string): void {
+  // register(email: string, @censored password: string): void {
   //   this.controllers.Auth.register(email, password);
   // }
 
@@ -161,8 +161,8 @@ export class MarketFacade extends Loggable {
 
   changePassword(
     userId: string,
-    oldPassword: string,
-    newPassword: string
+    @censored oldPassword: string,
+    @censored newPassword: string
   ): void {
     this.controllers.Auth.changePassword(userId, oldPassword, newPassword);
   }
@@ -324,11 +324,19 @@ export class MarketFacade extends Loggable {
   public startSession(): string {
     return this.controllers.Users.startSession();
   }
-  public registerMember(userId: string, email: string, password: string): void {
+  public registerMember(
+    userId: string,
+    email: string,
+    @censored password: string
+  ): void {
     this.isConnectionValid(userId);
-    this.controllers.Users.register( email, password);
+    this.controllers.Users.register(email, password);
   }
-  public loginMember(userId: string, email: string, password: string): string {
+  public loginMember(
+    userId: string,
+    email: string,
+    @censored password: string
+  ): string {
     this.isConnectionValid(userId);
     return this.controllers.Users.login(userId, email, password);
   }

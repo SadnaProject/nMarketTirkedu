@@ -17,6 +17,7 @@ import { itUnitIntegration } from "../_mock";
 import { type Controllers } from "../_HasController";
 import { createMockControllers } from "../_createControllers";
 import { AuthController } from "../Auth/AuthController";
+import { PaymentAdapter } from "./PaymentAdaptor";
 
 const reviewData = {
   rating: 5,
@@ -526,11 +527,43 @@ describe("PurchaseCart", () => {
       cartPurchase.ToDTO()
     );
     vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
-    purchasesHistoryController.purchaseCart("admin", cartDTO, 1, "creditCard");
+    purchasesHistoryController.purchaseCart("admin", cartDTO, 1, {
+      number: "316586",
+    });
 
     expect(
       purchasesHistoryController.getPurchase(cartPurchase.PurchaseId)
     ).toStrictEqual(cartPurchase.ToDTO());
+  });
+  it("❎purchase adaptor returns false", () => {
+    const cartPurchase = createCartPurchase();
+    const basketDTO = {
+      storeId: "storeId",
+      products: [
+        {
+          storeProductId: "productId",
+          quantity: 1,
+        },
+      ],
+    };
+    const StoreIDToBasketMap = new Map<string, BasketDTO>();
+    StoreIDToBasketMap.set("storeId", basketDTO);
+    const cartDTO = {
+      storeIdToBasket: StoreIDToBasketMap,
+    };
+    // spy on storeproductrepo getProductById
+    vi.spyOn(PaymentAdapter, "pay").mockReturnValue(false);
+    const purchasesHistoryController = new PurchasesHistoryController();
+    vi.spyOn(CartPurchase, "CartPurchaseDTOfromCartDTO").mockReturnValue(
+      cartPurchase.ToDTO()
+    );
+    vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
+    expect(() =>
+      purchasesHistoryController.purchaseCart("admin", cartDTO, 1, {
+        number: "316586",
+      })
+    ).toThrow();
+    
   });
   it("❎purchase cart with no cart", () => {
     const purchasesHistoryController = new PurchasesHistoryController();
@@ -553,10 +586,14 @@ describe("PurchaseCart", () => {
       cartPurchase.ToDTO()
     );
     vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
-    purchasesHistoryController.purchaseCart("admin", cartDTO, 1, "creditCard");
+    purchasesHistoryController.purchaseCart("admin", cartDTO, 1, {
+      number: "316586",
+    });
 
     expect(() =>
-      purchasesHistoryController.purchaseCart("admin", cartDTO, 1, "creditCard")
+      purchasesHistoryController.purchaseCart("admin", cartDTO, 1, {
+        number: "316586",
+      })
     ).toThrow();
   });
 });

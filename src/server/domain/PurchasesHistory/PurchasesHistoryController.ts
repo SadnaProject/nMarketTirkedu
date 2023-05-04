@@ -17,6 +17,7 @@ import { error } from "console";
 import { createControllers } from "../_createControllers";
 import { JobsController } from "../Jobs/JobsController";
 import { TRPCError } from "@trpc/server";
+import { emitter } from "server/Emitter";
 
 export interface IPurchasesHistoryController extends HasRepos {
   getPurchase(purchaseId: string): CartPurchaseDTO;
@@ -110,13 +111,16 @@ export class PurchasesHistoryController
     //     }
     //   });
     // });
-
+    // for every storeId in cart, EventEmmiter.emit("purchase", storeId, cart.storeIdToBasket.get(storeId))
     const cartPurchase = CartPurchase.CartPurchaseDTOfromCartDTO(
       cart,
       userId,
       price
-    );
-    this.addPurchase(CartPurchase.fromDTO(cartPurchase));
+      );
+      this.addPurchase(CartPurchase.fromDTO(cartPurchase));
+      for (const [storeId, basket] of cart.storeIdToBasket) {
+        emitter.emit(`purchase store ${storeId}`, {purchaseId: cartPurchase.purchaseId, userId: userId, storeId: storeId })
+      }
   }
 
   addPurchase(cartPurchase: CartPurchase): void {

@@ -1,6 +1,6 @@
 import { Testable, testable } from "server/domain/_Testable";
 import { User } from "./User";
-
+import { TRPCError } from "@trpc/server";
 @testable
 export class UserRepo extends Testable {
   private users: Map<string, User>;
@@ -12,7 +12,10 @@ export class UserRepo extends Testable {
 
   public addUser(userId: string): void {
     if (this.users.has(userId)) {
-      throw new Error("User already exists");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "User already exists",
+      });
     }
     this.users.set(userId, new User(userId));
   }
@@ -20,7 +23,10 @@ export class UserRepo extends Testable {
   public getUser(id: string): User {
     const user = this.users.get(id);
     if (!user) {
-      throw new Error("User not found");
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "User not found",
+      });
     }
     return user;
   }
@@ -31,7 +37,10 @@ export class UserRepo extends Testable {
 
   public removeUser(id: string): void {
     if (!this.users.has(id)) {
-      throw new Error("User not found");
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "User not found",
+      });
     }
     this.users.delete(id);
   }
@@ -39,7 +48,10 @@ export class UserRepo extends Testable {
     const Dest = this.users.get(userDest);
     const Source = this.users.get(userSource);
     if (Dest === undefined || Source === undefined) {
-      throw new Error("User not found");
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "User not found",
+      });  
     }
     Dest.clone(Source);
   }

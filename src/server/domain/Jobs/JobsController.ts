@@ -8,6 +8,7 @@ import { HasRepos, createRepos } from "./_HasRepos";
 import { PositionHolder } from "./PositionHolder";
 import { FounderRole } from "./FounderRole";
 import { type EditablePermission } from "./Role";
+import { TRPCError } from "@trpc/server";
 
 export interface IJobsController {
   /**
@@ -334,7 +335,10 @@ export class JobsController
     const phAppointer: PositionHolder | undefined =
       this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId, storeId);
     if (phAppointer === undefined) {
-      throw new Error("given user cannot appoint store owner");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "This user cannot appoint",
+      });
     }
     const positionHolder: PositionHolder | undefined =
       this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
@@ -348,7 +352,10 @@ export class JobsController
         this.removePositionHolder(positionHolder); //TODO - is this what we want to do in this case? or should we hold two roles/positions for the same user?
         phAppointer.appointStoreOwner(targetUserId);
       } else {
-        throw new Error("given user cannot be appointed to store owner");
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "This user cannot be appointed to store owner",
+        });
       }
     }
   }
@@ -367,7 +374,10 @@ export class JobsController
     const phAppointer: PositionHolder | undefined =
       this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId, storeId);
     if (phAppointer === undefined) {
-      throw new Error("given user cannot appoint store manager");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "This user cannot appoint",
+      });
     }
     const positionHolder: PositionHolder | undefined =
       this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
@@ -377,9 +387,11 @@ export class JobsController
     if (positionHolder === undefined) {
       phAppointer.appointStoreManager(targetUserId);
     } else {
-      throw new Error(
-        "given user cannot be appointed to store manager as he is already holding a position in the store"
-      );
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "This user cannot be appointed as he is already a position holder in this store",
+      });
     }
   }
 
@@ -406,7 +418,10 @@ export class JobsController
     const phRemover: PositionHolder | undefined =
       this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId, storeId);
     if (phRemover === undefined) {
-      throw new Error("given user cannot remove store owner");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "This user cannot remove appointee",
+      });
     }
     phRemover.removeAppointee(targetUserId);
   }
@@ -420,7 +435,10 @@ export class JobsController
     const phAppointer: PositionHolder | undefined =
       this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId, storeId);
     if (phAppointer === undefined) {
-      throw new Error("given user cannot appoint store owner");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "This user cannot appoint",
+      });
     }
     phAppointer.setAppointeePermission(
       targetUserId,
@@ -580,11 +598,17 @@ export class JobsController
     //find the position holder in the founder's tree
     const parent = this.findParent(positionHolder, founder);
     if (parent === undefined) {
-      throw new Error("Position holder not found");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Position holder not found",
+      });
     }
     const index = parent.Appointments.indexOf(positionHolder);
     if (index === -1) {
-      throw new Error("Position holder not found");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Position holder not found",
+      });
     }
     parent.Appointments.splice(index, 1);
   }

@@ -1,6 +1,7 @@
 import { Testable, testable } from "server/domain/_Testable";
 import type { MemberUserAuth } from "./MemberUserAuth";
 import type { GuestUserAuth } from "./GuestUserAuth";
+import { TRPCError } from "@trpc/server";
 
 @testable
 export class UserAuthRepo extends Testable {
@@ -19,13 +20,19 @@ export class UserAuthRepo extends Testable {
   public getMemberByEmail(email: string): MemberUserAuth {
     const user = this.members.find((user) => user.Email === email);
     if (user === undefined)
-      throw new Error("User with email: " + email + " not found");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "user with email: " + email + " not found",
+      });
     return user;
   }
   public getMemberById(userId: string): MemberUserAuth {
     const user = this.members.find((user) => user.UserId === userId);
     if (user === undefined)
-      throw new Error("User with id: " + userId + " not found");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "user with id: " + userId + " not found",
+      });
     return user;
   }
   public doesMemberExistByEmail(email: string): boolean {
@@ -37,7 +44,10 @@ export class UserAuthRepo extends Testable {
 
   public removeMember(userId: string): void {
     if (!this.doesMemberExistById(userId))
-      throw new Error("User with id: " + userId + " not found");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "user with id: " + userId + " not found",
+      });
     this.members = this.members.filter((user) => user.UserId !== userId);
   }
   public getAllMembers(): MemberUserAuth[] {
@@ -53,7 +63,10 @@ export class UserAuthRepo extends Testable {
   public getGuestById(userId: string): GuestUserAuth {
     const user = this.guests.find((user) => user.UserId === userId);
     if (user === undefined)
-      throw new Error("User with id: " + userId + " not found");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "User with id: " + userId + " not found",
+      });
     return user;
   }
   public doesGuestExistById(userId: string): boolean {
@@ -61,7 +74,13 @@ export class UserAuthRepo extends Testable {
   }
   public removeGuest(userId: string): void {
     if (!this.doesGuestExistById(userId))
-      throw new Error("User with id: " + userId + " not found");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "User with id: " +
+          userId +
+          " is not a guest, please try again with a different user",
+      });
     this.guests = this.guests.filter((user) => user.UserId !== userId);
   }
   //This is of course only the connected guests

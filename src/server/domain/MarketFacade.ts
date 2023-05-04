@@ -11,6 +11,7 @@ import { type SearchArgs } from "./Stores/StoresController";
 import { type CartPurchaseDTO } from "./PurchasesHistory/CartPurchaseHistory";
 import { type BasketPurchaseDTO } from "./PurchasesHistory/BasketPurchaseHistory";
 import { TRPCError } from "@trpc/server";
+import { type CreditCard } from "./PurchasesHistory/PaymentAdaptor";
 
 @loggable
 export class MarketFacade extends Loggable {
@@ -86,7 +87,7 @@ export class MarketFacade extends Loggable {
     return this.controllers.Users.getNotifications(userId);
   }
 
-  public purchaseCart(userId: string, @censored creditCard: string) {
+  public purchaseCart(userId: string, @censored creditCard: CreditCard) {
     this.validateConnection(userId);
     this.controllers.Users.purchaseCart(userId, creditCard);
   }

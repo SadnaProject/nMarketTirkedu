@@ -1,9 +1,16 @@
 import { z } from "zod";
-import { createTRPCRouter, authedProcedure } from "server/service/trpc";
+import {
+  createTRPCRouter,
+  authedProcedure,
+  publicProcedure,
+} from "server/service/trpc";
 
 import { MarketFacade } from "server/domain/MarketFacade";
+import { observable } from "@trpc/server/observable";
+import { EventEmitter } from "events";
 
 const facade = new MarketFacade();
+const eventEmitter = new EventEmitter();
 export const StoresRouter = createTRPCRouter({
   makeStoreOwner: authedProcedure
     .input(
@@ -323,5 +330,63 @@ export const StoresRouter = createTRPCRouter({
     .query(({ input }) => {
       const { userId, storeId } = input;
       return facade.getPurchasesByStore(userId, storeId);
+    }),
+
+  changeStoreState: publicProcedure
+    .input(z.object({ storeId: z.string() }))
+    .subscription(({ input }) => {
+      return observable<string>((emit) => {
+        const changeStoreState = (msg: string) => {
+          emit.next(msg);
+        };
+        eventEmitter.on(`store is changed ${input.storeId}`, changeStoreState);
+        return () => {
+          eventEmitter.off(
+            `store is changed ${input.storeId}`,
+            changeStoreState
+          );
+        };
+      });
+    }),
+
+  changeMemberState: publicProcedure
+    .input(z.object({ memberId: z.string() }))
+    .subscription(({ input }) => {
+      return observable<string>((emit) => {
+        const changeMemberState = (msg: string) => {
+          emit.next(msg);
+        };
+        eventEmitter.on(
+          `member is changed ${input.memberId}`,
+          changeMemberState
+        );
+        return () => {
+          eventEmitter.off(
+            `member is changed ${input.memberId}`,
+            changeMemberState
+          );
+        };
+      });
+    }),
+
+  onStorePurchase: publicProcedure
+    .input(z.object({ storeId: z.string() }))
+    // the function gets store id as input
+    .subscription(({ input }) => {
+      // we return an observable that emits a string on every purchase
+      return observable<string>((emit) => {
+        // the following function will be called on every purchase in the store
+        const onStorePurchase = (msg: string) => {
+          emit.next(msg);
+        };
+        // we listen to the event emitter for the store id
+        eventEmitter.on(`purchase store ${input.storeId}`, onStorePurchase);
+        // when the observable is unsubscribed, we remove the listener
+        return () => {
+          eventEmitter.off(`purchase store ${input.storeId}`, onStorePurchase);
+        };
+        // in the purchase function, we will call eventEmitter.emit(`purchase store ${storeId}`, purchaseId)
+        // (I need to add dependency injection for eventEmitter through HasEventEmitter class)
+      });
     }),
 });

@@ -1,6 +1,7 @@
 import { Session } from "./Session";
 import { z } from "zod";
 import { UserAuth, type UserAuthDTO } from "./UserAuth";
+import { TRPCError } from "@trpc/server";
 
 export type MemberUserAuthDTO = {
   email: string;
@@ -69,8 +70,12 @@ export class MemberUserAuth extends UserAuth {
   }
 
   public login(): Session {
-    if (this.isUserLoggedInAsMember())
-      throw new Error("The Member is already logged in");
+    if (this.isUserLoggedInAsMember()) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Member is already logged in",
+      });
+    }
     const session = new Session(this.userId);
     this.addSession(session);
     return session;
@@ -78,10 +83,16 @@ export class MemberUserAuth extends UserAuth {
   public logout(): void {
     const latestSession = this.getLatestSession();
     if (latestSession === undefined) {
-      throw new Error("No session to logout");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "No session to logout from",
+      });
     }
     if (latestSession.isValid() === false) {
-      throw new Error("The Member is not logged in");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "The member is not logged in",
+      });
     }
     latestSession.invalidate();
   }

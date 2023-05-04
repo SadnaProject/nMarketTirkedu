@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { type EditablePermission, Role } from "./Role";
 
 export class OwnerRole extends Role {
@@ -12,10 +13,16 @@ export class OwnerRole extends Role {
     this.permissions.push("AppointStoreManager");
   }
   grantPermission(permission: EditablePermission): void {
-    throw new Error("You are not allowed to grant permissions to the owner");
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "You are not allowed to grant permissions to the owner",
+    });
   }
   revokePermission(permission: EditablePermission): void {
-    throw new Error("You are not allowed to revoke permissions from the owner");
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "You are not allowed to revoke permissions from the owner",
+    });
   }
   canBeAppointedToStoreOwner(): boolean {
     return false;

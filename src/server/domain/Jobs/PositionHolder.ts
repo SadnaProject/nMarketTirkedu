@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { JobsController } from "./JobsController";
 import { ManagerRole } from "./ManagerRole";
 import { type EditablePermission, type Role } from "./Role";
@@ -58,7 +59,12 @@ export class PositionHolder {
   }
   public appointStoreOwner(userId: string): void {
     if (!this.role.hasPermission("AppointStoreOwner")) {
-      throw new Error("User does not have permission to appoint store owner");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "User does not have permission to appoint store owner for store with id: " +
+          this.storeId,
+      });
     }
     this.addPositionHolder(
       new PositionHolder(JobsController.ownerRole, this.storeId, userId)
@@ -68,7 +74,12 @@ export class PositionHolder {
   }
   public appointStoreManager(userId: string): void {
     if (!this.role.hasPermission("AppointStoreManager")) {
-      throw new Error("User does not have permission to appoint store manager");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "User does not have permission to appoint store manager for store with id: " +
+          this.storeId,
+      });
     }
     this.addPositionHolder(
       new PositionHolder(new ManagerRole(), this.storeId, userId)
@@ -80,7 +91,12 @@ export class PositionHolder {
       (positionHolder) => positionHolder.UserId === userId
     );
     if (index === -1) {
-      throw new Error("User is not appointed by this position holder");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "User is not appointed by this position holder for store with id: " +
+          this.storeId,
+      });
     }
     this.appointments.splice(index, 1);
   }
@@ -93,7 +109,12 @@ export class PositionHolder {
       (positionHolder) => positionHolder.UserId === targetUserId
     );
     if (appointee === undefined) {
-      throw new Error("User is not appointed by this position holder");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "User is not appointed by this position holder for store with id: " +
+          this.storeId,
+      });
     }
     if (permissionStatus) {
       appointee.Role.grantPermission(permission);

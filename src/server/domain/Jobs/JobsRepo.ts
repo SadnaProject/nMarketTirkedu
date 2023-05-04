@@ -1,5 +1,6 @@
 import { Testable, testable } from "server/domain/_Testable";
 import { type PositionHolder } from "./PositionHolder";
+import { TRPCError } from "@trpc/server";
 
 @testable
 export class JobsRepo extends Testable {
@@ -29,7 +30,13 @@ export class JobsRepo extends Testable {
   public GetStoreFounder(storeId: string): PositionHolder {
     const founder = this.storeIdToFounder.get(storeId);
     if (founder === undefined) {
-      throw new Error("Store founder not found");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "store founder not found for store with id: " +
+          storeId +
+          " not found",
+      });
     }
     return founder;
   }

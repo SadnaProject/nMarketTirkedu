@@ -6,6 +6,7 @@ import { createRepos } from "./_HasRepos";
 import { UserAuth } from "./UserAuth";
 import { GuestUserAuth, GuestUserAuthDTO } from "./GuestUserAuth";
 import { MemberUserAuth, MemberUserAuthDTO } from "./MemberUserAuth";
+import { TRPCError } from "@trpc/server";
 
 export interface IAuthController extends HasRepos {
   /**
@@ -108,9 +109,11 @@ export class AuthController
     // throw new Error("Method not implemented.");
     const member: MemberUserAuth = this.Repos.Users.getMemberByEmail(email);
     if (!member.isPasswordCorrect(password)) {
-      throw new Error(
-        "Password is incorrect, please try again with a different password"
-      );
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Password is incorrect, please try again with a different password",
+      });
     }
     member.login();
     this.Repos.Users.removeGuest(guestId);
@@ -129,9 +132,10 @@ export class AuthController
   }
   public logout(userId: string): string {
     if (this.isGuest(userId)) {
-      throw new Error(
-        "User is not a member, please try again with a different user"
-      );
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "User is not a member, please try again with a different user",
+      });
     }
     const member: MemberUserAuth = this.Repos.Users.getMemberById(userId);
     member.logout(); //throws error if user is not connected
@@ -140,9 +144,11 @@ export class AuthController
   public register(email: string, password: string): string {
     // throw new Error("Method not implemented.");
     if (this.Repos.Users.doesMemberExistByEmail(email)) {
-      throw new Error(
-        "Email already in use, please try again with a different email"
-      );
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Email already in use, please try again with a different email",
+      });
     }
     // if(!this.validatePassword(password)){
     //   throw new Error("Password is invalid, please try again with a different password");
@@ -156,9 +162,11 @@ export class AuthController
     // throw new Error("Method not implemented.");
     const member = this.Repos.Users.getMemberById(userId);
     if (this.Repos.Users.doesMemberExistByEmail(newEmail)) {
-      throw new Error(
-        "Email already in use, please try again with a different email"
-      );
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Email already in use, please try again with a different email",
+      });
     }
     member.Email = newEmail;
   }
@@ -170,9 +178,11 @@ export class AuthController
     // throw new Error("Method not implemented.");
     const member: MemberUserAuth = this.Repos.Users.getMemberById(userId);
     if (!member.isPasswordCorrect(oldPassword)) {
-      throw new Error(
-        "Password is incorrect, please try again with a different password"
-      );
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Password is incorrect, please try again with a different password",
+      });
     }
     member.Password = newPassword;
   }

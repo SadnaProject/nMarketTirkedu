@@ -4,13 +4,8 @@ import {
   publicProcedure,
   authedProcedure,
 } from "server/service/trpc";
-import { observable } from "@trpc/server/observable";
-import EventEmitter from "events";
-import { randomUUID } from "crypto";
-import { TRPCError } from "@trpc/server";
 import { MarketFacade } from "server/domain/MarketFacade";
 
-const eventEmitter = new EventEmitter();
 const facade = new MarketFacade();
 
 export const AuthRouter = createTRPCRouter({

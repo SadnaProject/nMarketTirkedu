@@ -1,3 +1,4 @@
+import { JobsRouter } from "./routers/JobsRouter";
 import { exampleRouter } from "./routers/example";
 import { createTRPCRouter } from "./trpc";
 
@@ -8,6 +9,7 @@ import { createTRPCRouter } from "./trpc";
  */
 export const appRouter = createTRPCRouter({
   example: exampleRouter,
+  jobs: JobsRouter,
 });
 
 // export type definition of API

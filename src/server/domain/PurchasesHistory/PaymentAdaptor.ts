@@ -1,5 +1,9 @@
 export class PaymentAdapter {
-  static pay(creditCard: string, price: number): boolean {
+  static pay(creditCard: CreditCard, price: number): boolean {
     return true;
   }
 }
+
+export type CreditCard = {
+  number: string;
+};

@@ -11,7 +11,7 @@ import { randomUUID } from "crypto";
 import { Mixin } from "ts-mixer";
 import { Testable, testable } from "server/domain/_Testable";
 import { HasRepos, type Repos, createRepos } from "./_HasRepos";
-import { PaymentAdapter } from "./PaymentAdaptor";
+import { CreditCard, PaymentAdapter } from "./PaymentAdaptor";
 import { type ProductPurchase } from "./ProductPurchaseHistory";
 import { error } from "console";
 import { createControllers } from "../_createControllers";
@@ -23,7 +23,7 @@ export interface IPurchasesHistoryController extends HasRepos {
     userId: string,
     cart: CartDTO,
     price: number,
-    creditCard: string
+    creditCard: CreditCard
   ): void; // TODO: add payment details
   addStorePurchaseReview(
     userId: string,
@@ -76,7 +76,7 @@ export class PurchasesHistoryController
     userId: string,
     cart: CartDTO,
     price: number,
-    creditCard: string
+    creditCard: CreditCard
   ): void {
     if (PaymentAdapter.pay(creditCard, price) === false) {
       throw new Error("Payment failed");

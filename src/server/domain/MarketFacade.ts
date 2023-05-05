@@ -393,4 +393,22 @@ export class MarketFacade extends Loggable {
   ): BasketPurchaseDTO[] {
     return this.controllers.Stores.getPurchasesByStoreId(userId, storeId);
   }
+  // eslint-disable-next-line jsdoc/require-param
+  /**
+   * Returns all the logged in members ids.
+   * @returns Array of strings.
+   */
+  getAllLoggedInMembersIds(userId: string): string[] {
+    this.validateConnection(userId);
+    return this.controllers.Auth.getAllLoggedInMembersIds();
+  }
+  // eslint-disable-next-line jsdoc/require-param
+  /**
+   * Returns all the logged out members ids.
+   * @returns Array of strings.
+   */
+  getAllLoggedOutMembersIds(userId: string): string[] {
+    this.validateConnection(userId);
+    return this.controllers.Auth.getAllLoggedOutMembersIds();
+  }
 }

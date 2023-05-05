@@ -95,6 +95,16 @@ export interface IAuthController extends HasRepos {
    * @throws Error if the member has any position(he cant be removed if he has any position)
    */
   removeMember(userIdOfActor: string, memberIdToRemove: string): void;
+  /**
+   * Returns all the logged in members ids.
+   * @returns Array of strings.
+   */
+  getAllLoggedInMembersIds(): string[];
+  /**
+   * Returns all the logged out members ids.
+   * @returns Array of strings.
+   */
+  getAllLoggedOutMembersIds(): string[];
 }
 
 @testable
@@ -221,5 +231,27 @@ export class AuthController
       });
     }
     this.Repos.Users.removeMember(memberIdToRemove);
+  }
+  public getAllLoggedInMembersIds(): string[] {
+    // throw new Error("Method not implemented.");
+    const loggedInUsersIds: string[] = [];
+    const members = this.Repos.Users.getAllMembers();
+    members.forEach((member) => {
+      if (member.isUserLoggedInAsMember()) {
+        loggedInUsersIds.push(member.UserId);
+      }
+    });
+    return loggedInUsersIds;
+  }
+  public getAllLoggedOutMembersIds(): string[] {
+    // throw new Error("Method not implemented.");
+    const loggedOutUsersIds: string[] = [];
+    const members = this.Repos.Users.getAllMembers();
+    members.forEach((member) => {
+      if (!member.isUserLoggedInAsMember()) {
+        loggedOutUsersIds.push(member.UserId);
+      }
+    });
+    return loggedOutUsersIds;
   }
 }

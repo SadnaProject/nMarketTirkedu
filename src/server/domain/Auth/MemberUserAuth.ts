@@ -45,7 +45,8 @@ export class MemberUserAuth extends UserAuth {
     return memberUserAuth;
   }
   private validatePasswordLegality(password: string): void {
-    z.string().parse(password);
+    // z.string().parse(password);
+    return;
   }
   private validateEmailLegality(email: string): void {
     if (email === "admin") return;

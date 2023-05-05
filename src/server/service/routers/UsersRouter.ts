@@ -165,4 +165,12 @@ export const UsersRouter = createTRPCRouter({
       const { userId } = input;
       return facade.disconnectUser(userId);
     }),
+  removeMember: authedProcedure
+    .input(
+      z.object({ userIdOfActor: z.string(), memberIdToRemove: z.string() })
+    )
+    .mutation(({ input }) => {
+      const { userIdOfActor, memberIdToRemove } = input;
+      return facade.removeMember(userIdOfActor, memberIdToRemove);
+    }),
 });

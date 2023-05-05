@@ -12,42 +12,6 @@ export const AuthRouter = createTRPCRouter({
   startSession: publicProcedure.mutation(() => {
     return facade.startSession();
   }),
-  loginMember: authedProcedure
-    .input(
-      z.object({ userId: z.string(), email: z.string(), password: z.string() })
-    )
-    .query(({ input }) => {
-      const { userId, email, password } = input;
-      return facade.loginMember(userId, email, password);
-    }),
-  disconnectUser: authedProcedure
-    .input(z.object({ userId: z.string() }))
-    .query(({ input }) => {
-      const { userId } = input;
-      return facade.disconnectUser(userId);
-    }),
-  logoutMember: authedProcedure
-    .input(z.object({ userId: z.string() }))
-    .query(({ input }) => {
-      const { userId } = input;
-      return facade.logoutMember(userId);
-    }),
-  registerMember: authedProcedure
-    .input(
-      z.object({ userId: z.string(), email: z.string(), password: z.string() })
-    )
-    .mutation(({ input }) => {
-      const { userId, email, password } = input;
-      return facade.registerMember(userId, email, password);
-    }),
-  removeMember: authedProcedure
-    .input(
-      z.object({ userIdOfActor: z.string(), memberIdToRemove: z.string() })
-    )
-    .mutation(({ input }) => {
-      const { userIdOfActor, memberIdToRemove } = input;
-      return facade.removeMember(userIdOfActor, memberIdToRemove);
-    }),
   changeEmail: authedProcedure
     .input(z.object({ userId: z.string(), newEmail: z.string() }))
     .mutation(({ input }) => {

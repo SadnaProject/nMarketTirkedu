@@ -345,6 +345,25 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     this.controllers.Users.register(email, password);
   }
+  // eslint-disable-next-line jsdoc/require-description
+  /**
+   *
+   * @param userIdOfActor The user id of the user that asks to remove the member
+   * @param memberIdToRemove The user id of the member to remove
+   * @throws Error if the asking user doesn't have the permission to remove the member(i.e the asking user is not the system admin).
+   * @throws Error if the member to remove is not a member.
+   * @throws Error if the member has any position(he cant be removed if he has any position)
+   */
+  removeMember(userIdOfActor: string, memberIdToRemove: string) {
+    this.validateConnection(userIdOfActor);
+    if (!this.isSystemAdmin(userIdOfActor)) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User is not system admin",
+      });
+    }
+    this.controllers.Auth.removeMember(userIdOfActor, memberIdToRemove);
+  }
   public loginMember(
     userId: string,
     email: string,

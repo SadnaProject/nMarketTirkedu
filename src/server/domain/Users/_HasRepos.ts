@@ -1,4 +1,4 @@
-import { UserRepo } from "./UserRepo";
+import { UserRepo } from "./Repos/UserRepo";
 import { TRPCError } from "@trpc/server";
 export const reposMapping = {
   Users: UserRepo,

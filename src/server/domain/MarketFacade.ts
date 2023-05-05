@@ -362,7 +362,8 @@ export class MarketFacade extends Loggable {
         message: "User is not system admin",
       });
     }
-    this.controllers.Auth.removeMember(userIdOfActor, memberIdToRemove);
+
+    this.controllers.Users.removeMember(userIdOfActor, memberIdToRemove);
   }
   public loginMember(
     userId: string,

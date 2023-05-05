@@ -274,10 +274,15 @@ export class JobsController
     this.initRepos(createRepos());
     this.wasAdminInitialized = false;
     this.initRepos(createRepos());
+    // this.initializeSystemAdmin();
     // this.managerRole = new ManagerRole();
     // this.ownerRole = new OwnerRole();
     // this.founderRole = new FounderRole();
   }
+  // private initializeSystemAdmin() {
+  //   const userId = this.Controllers.Auth.register("admin", "admin");
+  //   this.setInitialAdmin(userId);
+  // }
 
   canReceiveDataFromStore(userId: string, storeId: string): boolean {
     const positionHolder: PositionHolder | undefined =

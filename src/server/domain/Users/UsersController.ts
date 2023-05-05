@@ -116,6 +116,14 @@ export interface IUsersController {
    * @param userId The id of the user that is currently logged in.
    */
   logout(userId: string): string;
+  /**
+   * @param userIdOfActor The user id of the user that asks to remove the member
+   * @param memberIdToRemove The user id of the member to remove
+   * @throws Error if the asking user doesnt have the permission to remove the member(i.e the asking user is not the system admin)
+   * @throws Error if the member to remove is not a member
+   * @throws Error if the member has any position(he cant be removed if he has any position)
+   */
+  removeMember(userIdOfActor: string, memberIdToRemove: string): void;
 }
 
 @testable
@@ -256,5 +264,34 @@ export class UsersController
   }
   isUserExist(userId: string): boolean {
     return this.Repos.Users.isUserExist(userId);
+  }
+  removeMember(userIdOfActor: string, memberIdToRemove: string) {
+    if (this.Controllers.Jobs.canRemoveMember(userIdOfActor)) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User doesn't have permission to remove member",
+      });
+    }
+    // if (!this.Controllers.Auth.isMember(memberIdToRemove)) {
+    //   throw new TRPCError({
+    //     code: "NOT_FOUND",
+    //     message: "Given user id doesn't belong to a member",
+    //   });
+    // }
+    if (!this.isUserExist(memberIdToRemove)) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Given user id doesn't belong to a member",
+      });
+    }
+    if (this.Controllers.Jobs.isMemberInAnyPosition(memberIdToRemove)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Member is in a position, please remove him from the position first",
+      });
+    }
+    this.removeUser(memberIdToRemove);
+    this.Controllers.Auth.removeMember(userIdOfActor, memberIdToRemove);
   }
 }

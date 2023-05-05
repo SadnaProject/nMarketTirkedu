@@ -48,4 +48,16 @@ export const AuthRouter = createTRPCRouter({
       const { userId } = input;
       return facade.isConnected(userId);
     }),
+  getAllLoggedInMembersIds: authedProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(({ input }) => {
+      const { userId } = input;
+      return facade.getAllLoggedInMembersIds(userId);
+    }),
+  getAllLoggedOutMembersIds: authedProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(({ input }) => {
+      const { userId } = input;
+      return facade.getAllLoggedOutMembersIds(userId);
+    }),
 });

@@ -266,7 +266,7 @@ export class UsersController
     return this.Repos.Users.isUserExist(userId);
   }
   removeMember(userIdOfActor: string, memberIdToRemove: string) {
-    if (this.Controllers.Jobs.canRemoveMember(userIdOfActor)) {
+    if (!this.Controllers.Jobs.canRemoveMember(userIdOfActor)) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User doesn't have permission to remove member",
@@ -291,7 +291,7 @@ export class UsersController
           "Member is in a position, please remove him from the position first",
       });
     }
-    this.removeUser(memberIdToRemove);
     this.Controllers.Auth.removeMember(userIdOfActor, memberIdToRemove);
+    this.removeUser(memberIdToRemove);
   }
 }

@@ -356,13 +356,6 @@ export class MarketFacade extends Loggable {
    */
   removeMember(userIdOfActor: string, memberIdToRemove: string) {
     this.validateConnection(userIdOfActor);
-    if (!this.isSystemAdmin(userIdOfActor)) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "User is not system admin",
-      });
-    }
-
     this.controllers.Users.removeMember(userIdOfActor, memberIdToRemove);
   }
   public loginMember(

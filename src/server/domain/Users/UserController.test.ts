@@ -391,10 +391,57 @@ describe("remove member", () => {
     controllers = createTestControllers(testType, "Users");
     controllers.Users.addUser(userId);
     const password = "1234";
-    const email = "email";
-    const MemberId = randomUUID();
+    const email = "email@gmail.com";
+    // const MemberId = randomUUID();
+    const AdminId = controllers.Auth.register("admin", "admin");
+    controllers.Jobs.setInitialAdmin(AdminId);
     expect(true).toBe(true);
     //TODO: @ilaytzarfati1231 why does the line below crash?
-    // controllers.Users.register(email, password);
+    const guestId = controllers.Users.startSession();
+    controllers.Users.register(email, password);
+    //log the user in then check if the user exists, then remove the user and check if the user exists
+    const MemberId = controllers.Users.login(guestId, email, password);
+    expect(controllers.Users.isUserExist(MemberId)).toBe(true);
+    controllers.Users.removeMember(AdminId, MemberId);
+    expect(controllers.Users.isUserExist(MemberId)).toBe(false);
   });
+  //a test that fails because the user is not an admin
+  itUnitIntegration(
+    "❌fails to remove member because asking user is not an admin",
+    (testType) => {
+      testType = "integration";
+      controllers = createTestControllers(testType, "Users");
+      controllers.Users.addUser(userId);
+      const password = "1234";
+      const email = "email@gmail.com";
+      // const MemberId = randomUUID();
+      const AdminId = controllers.Auth.register("admin", "admin");
+      controllers.Jobs.setInitialAdmin(AdminId);
+      // expect(true).toBe(true);
+      const guestId = controllers.Users.startSession();
+      controllers.Users.register(email, password);
+      const MemberId = controllers.Users.login(guestId, email, password);
+      expect(controllers.Users.isUserExist(MemberId)).toBe(true);
+      expect(() =>
+        controllers.Users.removeMember(MemberId, MemberId)
+      ).toThrow();
+    }
+  );
+  //a test that fails because the user to remove is not a member
+  itUnitIntegration(
+    "❌fails to remove member because user to remove is not a member",
+    (testType) => {
+      testType = "integration";
+      controllers = createTestControllers(testType, "Users");
+      controllers.Users.addUser(userId);
+      const password = "1234";
+      const email = "email@gmail.com";
+      // const MemberId = randomUUID();
+      const AdminId = controllers.Auth.register("admin", "admin");
+      controllers.Jobs.setInitialAdmin(AdminId);
+      // expect(true).toBe(true);
+      const guestId = controllers.Users.startSession();
+      expect(() => controllers.Users.removeMember(AdminId, guestId)).toThrow();
+    }
+  );
 });

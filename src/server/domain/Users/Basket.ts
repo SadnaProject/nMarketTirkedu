@@ -16,7 +16,10 @@ export class Basket {
   // if the user wants to add he needs to use the edit product quantity method
   public addProduct(productId: string, quantity: number): void {
     if (quantity < 0) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: "Quantity cannot be negative" });
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Quantity cannot be negative",
+      });
     }
     const product = this.products.find((p) => p.ProductId === productId);
     if (product === undefined) {
@@ -43,7 +46,10 @@ export class Basket {
   }
   public editProductQuantity(productId: string, quantity: number): void {
     if (quantity < 0) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: "Quantity cannot be negative" });
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Quantity cannot be negative",
+      });
     }
     const product = this.products.find((p) => p.ProductId === productId);
     if (product === undefined) {

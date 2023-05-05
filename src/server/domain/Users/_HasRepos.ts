@@ -19,7 +19,7 @@ export class HasRepos {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Repos not initialized",
-      });  
+      });
     }
     return this.repos;
   }
@@ -59,6 +59,9 @@ export function createTestRepos(
     case "integration":
       return createRepos();
     default:
-      throw new TRPCError({code: "INTERNAL_SERVER_ERROR", message: "Invalid test type"});
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Invalid test type",
+      });
   }
 }

@@ -51,7 +51,7 @@ export class UserRepo extends Testable {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "User not found",
-      });  
+      });
     }
     Dest.clone(Source);
   }

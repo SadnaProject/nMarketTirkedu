@@ -385,16 +385,16 @@ describe("logout", () => {
   );
 });
 
-// describe("remove member", () => {
-//   itUnitIntegration("✅removes member ", (testType) => {
-//     testType = "integration";
-//     controllers = createTestControllers(testType, "Users");
-//     controllers.Users.addUser(userId);
-//     const password = "1234";
-//     const email = "email";
-//     const MemberId = randomUUID();
-//     expect(true).toBe(true);
-//     //TODO: @ilaytzarfati1231 why does the line below crash?
-//     // controllers.Users.register(email, password);
-//   });
-// });
+describe("remove member", () => {
+  itUnitIntegration("✅removes member ", (testType) => {
+    testType = "integration";
+    controllers = createTestControllers(testType, "Users");
+    controllers.Users.addUser(userId);
+    const password = "1234";
+    const email = "email";
+    const MemberId = randomUUID();
+    expect(true).toBe(true);
+    //TODO: @ilaytzarfati1231 why does the line below crash?
+    // controllers.Users.register(email, password);
+  });
+});

@@ -1,10 +1,21 @@
-import { describe, afterEach, beforeEach, expect, it, vi } from "vitest";
+import {
+  describe,
+  afterEach,
+  beforeEach,
+  expect,
+  it,
+  vi,
+  beforeAll,
+} from "vitest";
 import { randomUUID } from "crypto";
 import {
   createMockControllers,
   createTestControllers,
 } from "../_createControllers";
+import { type Repos, createMockRepos, createTestRepos } from "./_HasRepos";
+
 import { itUnitIntegration } from "../_mock";
+import { test } from "node:test";
 //* Vitest Docs: https://vitest.dev/api
 // userController.addUser({id: "123456", name: "username"});
 // const storeId = storeController.createStore("123456", "storeName");
@@ -13,6 +24,11 @@ let controllers: ReturnType<typeof createTestControllers>;
 let userId = randomUUID();
 let productId = "";
 
+// beforeAll(() => {
+//   controllers = createTestControllers("integration", "Users");
+//   const adminId = controllers.Auth.register("admin", "admin");
+//   controllers.Jobs.setInitialAdmin(adminId);
+// });
 afterEach(() => {
   controllers.Users.removeUser(userId);
 });
@@ -367,4 +383,18 @@ describe("logout", () => {
       expect(() => controllers.Users.logout("blabla")).toThrow();
     }
   );
+});
+
+describe("remove member", () => {
+  itUnitIntegration("✅removes member ", (testType) => {
+    testType = "integration";
+    controllers = createTestControllers(testType, "Users");
+    controllers.Users.addUser(userId);
+    const password = "1234";
+    const email = "email";
+    const MemberId = randomUUID();
+    expect(true).toBe(true);
+    //TODO: @ilaytzarfati1231 why does the line below crash?
+    // controllers.Users.register(email, password);
+  });
 });

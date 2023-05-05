@@ -78,8 +78,6 @@ export const UsersRouter = createTRPCRouter({
       return facade.purchaseCart(userId, { number });
     }),
 
-
-    
   removeUser: authedProcedure
     .input(
       z.object({

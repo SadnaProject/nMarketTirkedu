@@ -40,6 +40,14 @@ export const AuthRouter = createTRPCRouter({
       const { userId, email, password } = input;
       return facade.registerMember(userId, email, password);
     }),
+  removeMember: authedProcedure
+    .input(
+      z.object({ userIdOfActor: z.string(), memberIdToRemove: z.string() })
+    )
+    .mutation(({ input }) => {
+      const { userIdOfActor, memberIdToRemove } = input;
+      return facade.removeMember(userIdOfActor, memberIdToRemove);
+    }),
   changeEmail: authedProcedure
     .input(z.object({ userId: z.string(), newEmail: z.string() }))
     .mutation(({ input }) => {

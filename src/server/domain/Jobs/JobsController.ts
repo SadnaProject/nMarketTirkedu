@@ -246,6 +246,18 @@ export interface IJobsController {
    * @param storeId
    */
   canReceivePurchaseHistoryFromStore(userId: string, storeId: string): boolean;
+  /**
+   * This function checks if a user has the permission to remove a member of the system.
+   * @param userId The id of the user that is being checked.
+   */
+  canRemoveMember(userId: string): boolean;
+  /**
+   * This function checks if a user has any position in the system(Owner, Manager, Founder,System Admin).
+   * @param userId The id of the user that is being checked.
+   * @returns A boolean that represents if the user has any position in the system.
+   * @throws Error if the user doesn't exist.
+   */
+  isMemberInAnyPosition(userId: string): boolean;
 }
 
 @testable
@@ -262,10 +274,15 @@ export class JobsController
     this.initRepos(createRepos());
     this.wasAdminInitialized = false;
     this.initRepos(createRepos());
+    // this.initializeSystemAdmin();
     // this.managerRole = new ManagerRole();
     // this.ownerRole = new OwnerRole();
     // this.founderRole = new FounderRole();
   }
+  // private initializeSystemAdmin() {
+  //   const userId = this.Controllers.Auth.register("admin", "admin");
+  //   this.setInitialAdmin(userId);
+  // }
 
   canReceiveDataFromStore(userId: string, storeId: string): boolean {
     const positionHolder: PositionHolder | undefined =
@@ -626,5 +643,23 @@ export class JobsController
       }
     }
     return undefined;
+  }
+  canRemoveMember(userId: string): boolean {
+    return this.isSystemAdmin(userId);
+  }
+  isMemberInAnyPosition(userId: string): boolean {
+    if (this.isSystemAdmin(userId)) {
+      return true;
+    }
+    if (this.getStoreIdsByFounder(userId).length > 0) {
+      return true;
+    }
+    if (this.getStoreIdsByOwner(userId).length > 0) {
+      return true;
+    }
+    if (this.getStoreIdsByManager(userId).length > 0) {
+      return true;
+    }
+    return false;
   }
 }

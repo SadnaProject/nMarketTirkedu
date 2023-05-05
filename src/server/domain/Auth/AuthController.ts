@@ -86,6 +86,15 @@ export interface IAuthController extends HasRepos {
    * @throws Error if the user is not connected or not a user.
    */
   logout(userId: string): string;
+  /**
+   *
+   * @param userIdOfActor The user id of the user that asks to remove the member
+   * @param memberIdToRemove The user id of the member to remove
+   * @throws Error if the asking user doesnt have the permission to remove the member(i.e the asking user is not the system admin)
+   * @throws Error if the member to remove is not a member
+   * @throws Error if the member has any position(he cant be removed if he has any position)
+   */
+  removeMember(userIdOfActor: string, memberIdToRemove: string): void;
 }
 
 @testable
@@ -203,5 +212,14 @@ export class AuthController
     if (!this.Repos.Users.doesMemberExistById(userId)) return false;
     const member: MemberUserAuth = this.Repos.Users.getMemberById(userId);
     return member.isUserLoggedInAsMember();
+  }
+  public removeMember(userIdOfActor: string, memberIdToRemove: string): void {
+    if (!this.isMember(memberIdToRemove)) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Given user id doesn't belong to a member",
+      });
+    }
+    this.Repos.Users.removeMember(memberIdToRemove);
   }
 }

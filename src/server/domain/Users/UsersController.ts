@@ -4,7 +4,7 @@ import { type CartDTO } from "./Cart";
 import { Notification } from "./Notification";
 import { HasRepos, createRepos } from "./_HasRepos";
 import { Testable, testable } from "server/domain/_Testable";
-import  { type CreditCard } from "../PurchasesHistory/PaymentAdaptor";
+import { type CreditCard } from "../PurchasesHistory/PaymentAdaptor";
 import { TRPCError } from "@trpc/server";
 import { censored } from "../_Loggable";
 export interface IUsersController {
@@ -143,7 +143,10 @@ export class UsersController
         quantity
       )
     ) {
-      throw new TRPCError({code: "BAD_REQUEST", message: "store don't have such amount of product"});
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "store don't have such amount of product",
+      });
     }
     user.addProductToCart(productId, quantity, storeId);
   }
@@ -168,7 +171,10 @@ export class UsersController
         quantity
       )
     ) {
-      throw new TRPCError({code: "BAD_REQUEST", message: "store don't have such amount of product"});
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "store don't have such amount of product",
+      });
     }
     const storeId = this.Controllers.Stores.getStoreIdByProductId(
       userId,
@@ -231,7 +237,7 @@ export class UsersController
     this.Repos.Users.addUser(MemberId);
     return MemberId;
   }
-  login(guestId: string, email: string,@censored  password: string): string {
+  login(guestId: string, email: string, @censored password: string): string {
     this.Repos.Users.getUser(guestId);
     const MemberId = this.Controllers.Auth.login(guestId, email, password);
     this.Repos.Users.getUser(MemberId);

@@ -26,7 +26,14 @@ export type SearchArgs = {
   minStoreRating?: number;
   maxStoreRating?: number;
 };
-
+export type ProductWithQuantityDTO = {
+  product: StoreProductDTO;
+  quantity: number;
+};
+export type FullBasketDTO = {
+  storeId: string;
+  products: ProductWithQuantityDTO[];
+};
 export interface IStoresController extends HasRepos {
   /**
    * This function creates a product to a store.
@@ -508,11 +515,19 @@ export class StoresController
   }
   removeStoreOwner(currentId: string, storeId: string, targetUserId: string) {
     this.Controllers.Jobs.removeStoreOwner(currentId, storeId, targetUserId);
-    emitter.emit(`member is changed ${targetUserId}`, {changerId: currentId, changeeId: targetUserId, state: "removed as owner"});
+    emitter.emit(`member is changed ${targetUserId}`, {
+      changerId: currentId,
+      changeeId: targetUserId,
+      state: "removed as owner",
+    });
   }
   removeStoreManager(currentId: string, storeId: string, targetUserId: string) {
     this.Controllers.Jobs.removeStoreManager(currentId, storeId, targetUserId);
-    emitter.emit(`member is changed ${targetUserId}`, {changerId: currentId, changeeId: targetUserId, state: "removed as manager"});
+    emitter.emit(`member is changed ${targetUserId}`, {
+      changerId: currentId,
+      changeeId: targetUserId,
+      state: "removed as manager",
+    });
   }
   setAddingProductToStorePermission(
     currentId: string,

@@ -1,24 +1,26 @@
-import { describe ,afterEach, beforeEach , expect, it, vi } from "vitest";
+import { describe, afterEach, beforeEach, expect, it, vi } from "vitest";
 import { randomUUID } from "crypto";
 import {
   createMockControllers,
+  createTestControllers,
 } from "../_createControllers";
+import { itUnitIntegration } from "../_mock";
 //* Vitest Docs: https://vitest.dev/api
 // userController.addUser({id: "123456", name: "username"});
 // const storeId = storeController.createStore("123456", "storeName");
 // const productId = storeController.addProductToStore("123456", storeId, { name: "productName", price: 10, quantity: 10});
-const controllers = createMockControllers("Users"); 
+let controllers: ReturnType<typeof createTestControllers>;
 let userId = randomUUID();
 let productId = "";
-beforeEach(() => {
-  controllers.Users.addUser(userId);
-});
-afterEach(()=> {
+
+afterEach(() => {
   controllers.Users.removeUser(userId);
-}); 
+});
 describe("add product", () => {
   it("should test the add product functionality ", () => {
-    
+    controllers = createMockControllers("Users");
+    controllers.Users.addUser(userId);
+
     const sizeBefore = controllers.Users.getCart(userId).storeIdToBasket.size;
     vi.spyOn(
       controllers.Stores,
@@ -42,6 +44,8 @@ describe("add product", () => {
     ).toBe(5);
   });
   it("should test edge cases in add product functionality ", () => {
+    controllers = createMockControllers("Users");
+    controllers.Users.addUser(userId);
     const storeId = randomUUID();
     productId = randomUUID();
     vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockReturnValue(
@@ -73,6 +77,8 @@ describe("add product", () => {
 
 describe("remove product", () => {
   it("should test the remove product functionality ", () => {
+    controllers = createMockControllers("Users");
+    controllers.Users.addUser(userId);
     vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockReturnValue(
       true
     );
@@ -96,6 +102,8 @@ describe("remove product", () => {
     ).toBe(1);
   });
   it("should test edge cases in remove product functionality ", () => {
+    controllers = createMockControllers("Users");
+    controllers.Users.addUser(userId);
     const storeId = randomUUID();
     vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockReturnValue(
       storeId
@@ -105,7 +113,7 @@ describe("remove product", () => {
     ).toThrow("User not found");
     expect(() =>
       controllers.Users.removeProductFromCart(userId, productId)
-    ).toThrow("Basket not found");
+    ).toThrow("The requested basket not found");
     vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockReturnValue(
       true
     );
@@ -119,6 +127,8 @@ describe("remove product", () => {
 
 describe("edit product quantity", () => {
   it("should test the edit product quantity functionality ", () => {
+    controllers = createMockControllers("Users");
+    controllers.Users.addUser(userId);
     vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockReturnValue(
       true
     );
@@ -148,6 +158,8 @@ describe("edit product quantity", () => {
     ).toBe(withoutEditQuantity);
   });
   it("should test edge cases in edit product quantity functionality ", () => {
+    controllers = createMockControllers("Users");
+    controllers.Users.addUser(userId);
     const storeId = randomUUID();
     vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockReturnValue(
       storeId
@@ -172,7 +184,7 @@ describe("edit product quantity", () => {
     ).mockReturnValueOnce(true);
     expect(() =>
       controllers.Users.editProductQuantityInCart(userId, productId, 10)
-    ).toThrow("Basket not found");
+    ).toThrow("The requested basket not found");
     const productId2 = randomUUID();
     vi.spyOn(
       controllers.Stores,
@@ -198,6 +210,8 @@ describe("edit product quantity", () => {
 
 describe("purchase cart", () => {
   it("should test the purchase cart functionality ", () => {
+    controllers = createMockControllers("Users");
+    controllers.Users.addUser(userId);
     vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockReturnValue(
       true
     );
@@ -212,7 +226,7 @@ describe("purchase cart", () => {
     vi.spyOn(controllers.PurchasesHistory, "purchaseCart").mockReturnValue();
     const notificationSizeBefore =
       controllers.Users.getNotifications(userId).length;
-    controllers.Users.purchaseCart(userId, "credit card");
+    controllers.Users.purchaseCart(userId, { number: "123456789" });
     const notificationSizeAfter =
       controllers.Users.getNotifications(userId).length;
     expect(notificationSizeAfter).toBe(notificationSizeBefore + 1);
@@ -224,6 +238,8 @@ describe("purchase cart", () => {
     ).toBe(1);
   });
   it("should test edge cases in edit product quantity functionality ", () => {
+    controllers = createMockControllers("Users");
+    controllers.Users.addUser(userId);
     const storeId = randomUUID();
     vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockReturnValue(
       storeId
@@ -231,100 +247,124 @@ describe("purchase cart", () => {
     vi.spyOn(controllers.Stores, "getCartPrice").mockReturnValueOnce(100);
     vi.spyOn(controllers.PurchasesHistory, "purchaseCart").mockReturnValue();
     expect(() =>
-      controllers.Users.purchaseCart("Blabla", "credit card")
+      controllers.Users.purchaseCart("Blabla", { number: "123456789" })
     ).toThrow("User not found");
   });
 });
 
 describe("get unread notifications", () => {
-  it("should test the get unread notifications functionality ", () => {
-    const notificationSizeBefore =
-      controllers.Users.getNotifications(userId).length;
-    const notificationId = controllers.Users.addNotification(
-      userId,
-      "test",
-      "test"
-    );
-    const notificationSizeAfter =
-      controllers.Users.getNotifications(userId).length;
-    expect(notificationSizeAfter).toBe(notificationSizeBefore + 1);
-    expect(controllers.Users.getUnreadNotifications(userId).length).toBe(1);
-    controllers.Users.readNotification(userId, notificationId);
-    expect(controllers.Users.getUnreadNotifications(userId).length).toBe(0);
-    expect(controllers.Users.getNotifications(userId).length).toBe(1);
-  });
-  it("should test edge cases in get unread notifications functionality ", () => {
-    userId = randomUUID();
-    productId = randomUUID();
+  itUnitIntegration(
+    "should test the get unread notifications functionality ",
+    (testType) => {
+      controllers = createTestControllers(testType, "Users");
+      controllers.Users.addUser(userId);
+      const notificationSizeBefore =
+        controllers.Users.getNotifications(userId).length;
+      const notificationId = controllers.Users.addNotification(
+        userId,
+        "test",
+        "test"
+      );
+      const notificationSizeAfter =
+        controllers.Users.getNotifications(userId).length;
+      expect(notificationSizeAfter).toBe(notificationSizeBefore + 1);
+      expect(controllers.Users.getUnreadNotifications(userId).length).toBe(1);
+      controllers.Users.readNotification(userId, notificationId);
+      expect(controllers.Users.getUnreadNotifications(userId).length).toBe(0);
+      expect(controllers.Users.getNotifications(userId).length).toBe(1);
+    }
+  );
+  itUnitIntegration(
+    "should test edge cases in get unread notifications functionality ",
+    (testType) => {
+      controllers = createTestControllers(testType, "Users");
+      controllers.Users.addUser(userId);
+      userId = randomUUID();
+      productId = randomUUID();
+      controllers.Users.addUser(userId);
+      expect(() => controllers.Users.getUnreadNotifications("Blabla")).toThrow(
+        "User not found"
+      );
+    }
+  );
+});
+describe("register", () => {
+  it("should test the register functionality ", () => {
+    controllers = createMockControllers("Users");
     controllers.Users.addUser(userId);
-    expect(() => controllers.Users.getUnreadNotifications("Blabla")).toThrow(
-      "User not found"
+    const password = "1234";
+    const email = "email";
+    const MemberId = randomUUID();
+    vi.spyOn(controllers.Auth, "register").mockReturnValueOnce(MemberId);
+    expect(controllers.Users.register(email, password) === MemberId).toBe(true);
+    expect(controllers.Users.getCart(MemberId).storeIdToBasket.size).toBe(0);
+    expect(controllers.Users.Controllers.Users.isUserExist(MemberId)).toBe(
+      true
     );
-  })});
-  describe("register", () => {
-    it("should test the register functionality ", () => {
-      const password = "1234";
-      const email = "email";
-      const MemberId = randomUUID();
-      vi.spyOn(controllers.Auth, "register").mockReturnValueOnce(MemberId);
-      expect(
-        controllers.Users.register(email, password) === MemberId
-      ).toBe(true);
-      expect(controllers.Users.getCart(MemberId).storeIdToBasket.size).toBe(0);
-    expect(controllers.Users.Controllers.Users.isUserExist(MemberId)).toBe(true);
-    });
-    it("should test edge cases in register functionality ", () => {
-      const password = "1234";
-      const email = "email";
-      const MemberId = randomUUID();
-      vi.spyOn(controllers.Auth, "register").mockReturnValueOnce(MemberId);
-      expect(
-        controllers.Users.register(email, password)).toBe(MemberId);
-      expect(() => controllers.Users.register(email, password)).toThrow();  
-    });
   });
-  describe("login", () => {
-    it("should test the login functionality ", () => {
-      const password = "1234";
-      const email = "email";
-      const MemberId = randomUUID();
-      vi.spyOn(controllers.Auth, "register").mockReturnValueOnce(MemberId);
-      controllers.Users.register(email, password);
-      vi.spyOn(controllers.Auth, "login").mockReturnValueOnce(MemberId);
-      expect(controllers.Users.login(userId, email, password) ).toBe(MemberId);
-    });
-    it("should test edge cases in login functionality ", () => {
-      const password = "1234";
-      const email = "email";
-      const MemberId = randomUUID();
-      vi.spyOn(controllers.Auth, "login").mockReturnValueOnce(MemberId);
-      expect(() => controllers.Users.login(userId, email, password)).toThrow();
-      vi.spyOn(controllers.Auth, "register").mockReturnValueOnce(MemberId);
-      controllers.Users.register(email, password);
-      expect(() => controllers.Users.login(userId, "1234", password)).toThrow();
-      expect(() => controllers.Users.login(userId, email, "notPass")).toThrow();
-      vi.spyOn(controllers.Auth, "login").mockReturnValueOnce(MemberId);
-      const mem = controllers.Users.login(userId, email, password);
-      expect(() => controllers.Users.login(mem, email, password)).toThrow();
-    });    
+  it("should test edge cases in register functionality ", () => {
+    controllers = createMockControllers("Users");
+    controllers.Users.addUser(userId);
+    const password = "1234";
+    const email = "email";
+    const MemberId = randomUUID();
+    vi.spyOn(controllers.Auth, "register").mockReturnValueOnce(MemberId);
+    expect(controllers.Users.register(email, password)).toBe(MemberId);
+    expect(() => controllers.Users.register(email, password)).toThrow();
   });
+});
+describe("login", () => {
+  it("should test the login functionality ", () => {
+    controllers = createMockControllers("Users");
+    controllers.Users.addUser(userId);
+    const password = "1234";
+    const email = "email";
+    const MemberId = randomUUID();
+    vi.spyOn(controllers.Auth, "register").mockReturnValueOnce(MemberId);
+    controllers.Users.register(email, password);
+    vi.spyOn(controllers.Auth, "login").mockReturnValueOnce(MemberId);
+    expect(controllers.Users.login(userId, email, password)).toBe(MemberId);
+  });
+  it("should test edge cases in login functionality ", () => {
+    controllers = createMockControllers("Users");
+    controllers.Users.addUser(userId);
+    const password = "1234";
+    const email = "email";
+    const MemberId = randomUUID();
+    vi.spyOn(controllers.Auth, "login").mockReturnValueOnce(MemberId);
+    expect(() => controllers.Users.login(userId, email, password)).toThrow();
+    vi.spyOn(controllers.Auth, "register").mockReturnValueOnce(MemberId);
+    controllers.Users.register(email, password);
+    expect(() => controllers.Users.login(userId, "1234", password)).toThrow();
+    expect(() => controllers.Users.login(userId, email, "notPass")).toThrow();
+    vi.spyOn(controllers.Auth, "login").mockReturnValueOnce(MemberId);
+    const mem = controllers.Users.login(userId, email, password);
+    expect(() => controllers.Users.login(mem, email, password)).toThrow();
+  });
+});
 
-  describe("logout", () => {
-    it("should test the logout functionality ", () => {
-      
-      const password = "1234";
-      const email = "email";
-      const MemberId = randomUUID();
-      vi.spyOn(controllers.Auth, "register").mockReturnValueOnce(MemberId);
-      controllers.Users.register(email, password);
-      vi.spyOn(controllers.Auth, "login").mockReturnValueOnce(MemberId);
-      controllers.Users.login(userId, email, password);
-      const guestId = randomUUID();
-      vi.spyOn(controllers.Auth, "logout").mockReturnValueOnce(guestId);
-      expect(controllers.Users.logout(MemberId)).toBe(guestId);
-      expect(guestId).not.toBe(MemberId);
-    });
-    it("should test edge cases in logout functionality ", () => {
-      expect(() => controllers.Users.logout("blabla")).toThrow();
-    });
+describe("logout", () => {
+  it("should test the logout functionality ", () => {
+    controllers = createMockControllers("Users");
+    controllers.Users.addUser(userId);
+    const password = "1234";
+    const email = "email";
+    const MemberId = randomUUID();
+    vi.spyOn(controllers.Auth, "register").mockReturnValueOnce(MemberId);
+    controllers.Users.register(email, password);
+    vi.spyOn(controllers.Auth, "login").mockReturnValueOnce(MemberId);
+    controllers.Users.login(userId, email, password);
+    const guestId = randomUUID();
+    vi.spyOn(controllers.Auth, "logout").mockReturnValueOnce(guestId);
+    expect(controllers.Users.logout(MemberId)).toBe(guestId);
+    expect(guestId).not.toBe(MemberId);
   });
+  itUnitIntegration(
+    "should test edge cases in logout functionality ",
+    (testType) => {
+      controllers = createTestControllers(testType, "Users");
+      controllers.Users.addUser(userId);
+      expect(() => controllers.Users.logout("blabla")).toThrow();
+    }
+  );
+});

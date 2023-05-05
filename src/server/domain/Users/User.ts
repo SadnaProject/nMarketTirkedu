@@ -47,8 +47,10 @@ export class User {
       (notification) => notification.Id === notificationId
     );
     if (notification === undefined) {
-      throw new TRPCError({ code: "NOT_FOUND" ,
-      message: "The requested notification not found"});
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "The requested notification not found",
+      });
     }
     notification.read();
   }

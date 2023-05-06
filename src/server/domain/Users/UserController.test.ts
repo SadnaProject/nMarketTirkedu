@@ -396,7 +396,6 @@ describe("remove member", () => {
     const AdminId = controllers.Auth.register("admin", "admin");
     controllers.Jobs.setInitialAdmin(AdminId);
     expect(true).toBe(true);
-    //TODO: @ilaytzarfati1231 why does the line below crash?
     const guestId = controllers.Users.startSession();
     controllers.Users.register(email, password);
     //log the user in then check if the user exists, then remove the user and check if the user exists

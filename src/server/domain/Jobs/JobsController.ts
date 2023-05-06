@@ -239,7 +239,16 @@ export interface IJobsController {
    * @param userId
    * @param storeId
    */
-  canReceiveDataFromStore(userId: string, storeId: string): boolean;
+  canReceivePrivateDataFromStore(userId: string, storeId: string): boolean;
+  /**
+   * This function checks if a user can receive public data from a store.
+   * @param userId
+   * @param storeId
+   * @returns A boolean that represents if the user can receive public data from a store.
+   * @throws Error if the store doesn't exist.
+   * @throws Error if the user doesn't exist.
+   */
+  canReceivePublicDataFromStore(userId: string, storeId: string): boolean;
   /**
    * This function checks if a user can receive purchase history from a store.
    * @param userId
@@ -284,14 +293,31 @@ export class JobsController
   //   this.setInitialAdmin(userId);
   // }
 
-  canReceiveDataFromStore(userId: string, storeId: string): boolean {
+  canReceivePrivateDataFromStore(userId: string, storeId: string): boolean {
     const positionHolder: PositionHolder | undefined =
       this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId, storeId);
     if (positionHolder === undefined) {
       return false;
     }
-    return positionHolder.Role.hasPermission("SeeStoreData");
+
+    if (this.Controllers.Stores.isStoreActive(userId, storeId))
+      return positionHolder.Role.hasPermission("receivePrivateStoreData");
+    else
+      return (
+        positionHolder.Role.hasPermission("receiveClosedStoreData") &&
+        positionHolder.Role.hasPermission("receivePrivateStoreData")
+      );
   }
+  canReceivePublicDataFromStore(userId: string, storeId: string): boolean {
+    if (this.Controllers.Stores.isStoreActive(userId, storeId)) return true;
+    const positionHolder: PositionHolder | undefined =
+      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId, storeId);
+    if (positionHolder === undefined) {
+      return false;
+    }
+    return positionHolder.Role.hasPermission("receiveClosedStoreData");
+  }
+
   canReceivePurchaseHistoryFromStore(userId: string, storeId: string): boolean {
     if (this.isSystemAdmin(userId)) {
       return true;
@@ -301,7 +327,7 @@ export class JobsController
     if (positionHolder === undefined) {
       return false;
     }
-    return positionHolder.Role.hasPermission("SeeStoreData");
+    return positionHolder.Role.hasPermission("receivePrivateStoreData");
   }
 
   InitializeStore(founderId: string, storeId: string): void {

@@ -37,13 +37,19 @@ describe("search products", () => {
   });
 
   it("✅should return all products", () => {
-    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    vi.spyOn(
+      controllers.Jobs,
+      "canReceivePrivateDataFromStore"
+    ).mockReturnValue(true);
     const res = controllers.Stores.searchProducts("uid", {});
     expect(res).toEqual(products.map((p) => p.DTO));
   });
 
   it("✅should return some products because of name filter", () => {
-    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    vi.spyOn(
+      controllers.Jobs,
+      "canReceivePrivateDataFromStore"
+    ).mockReturnValue(true);
     const res = controllers.Stores.searchProducts("uid", {
       name: products[0]?.Name.toUpperCase().split(" ")[0],
     });
@@ -51,7 +57,10 @@ describe("search products", () => {
   });
 
   it("✅should return some products because of keywords", () => {
-    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    vi.spyOn(
+      controllers.Jobs,
+      "canReceivePrivateDataFromStore"
+    ).mockReturnValue(true);
     const res = controllers.Stores.searchProducts("uid", {
       keywords: [products[1]?.Description.toUpperCase().split(" ")[1] ?? ""],
     });
@@ -59,7 +68,10 @@ describe("search products", () => {
   });
 
   it("✅shouldn't return products because of made up name", () => {
-    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    vi.spyOn(
+      controllers.Jobs,
+      "canReceivePrivateDataFromStore"
+    ).mockReturnValue(true);
     const res = controllers.Stores.searchProducts("uid", {
       name: "made up name that doesn't exist",
     });
@@ -67,7 +79,10 @@ describe("search products", () => {
   });
 
   it("✅shouldn't return products because of made up category", () => {
-    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    vi.spyOn(
+      controllers.Jobs,
+      "canReceivePrivateDataFromStore"
+    ).mockReturnValue(true);
     const res = controllers.Stores.searchProducts("uid", {
       category: "made up category that doesn't exist",
     });
@@ -75,7 +90,10 @@ describe("search products", () => {
   });
 
   it("✅shouldn't return products because of made up keywords", () => {
-    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    vi.spyOn(
+      controllers.Jobs,
+      "canReceivePrivateDataFromStore"
+    ).mockReturnValue(true);
     const res = controllers.Stores.searchProducts("uid", {
       keywords: ["made up keyword that doesn't exist"],
     });
@@ -83,7 +101,10 @@ describe("search products", () => {
   });
 
   it("✅shouldn't return products because of high min price", () => {
-    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    vi.spyOn(
+      controllers.Jobs,
+      "canReceivePrivateDataFromStore"
+    ).mockReturnValue(true);
     const res = controllers.Stores.searchProducts("uid", {
       minPrice: Infinity,
     });
@@ -91,7 +112,10 @@ describe("search products", () => {
   });
 
   it("✅shouldn't return products because of low max price", () => {
-    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    vi.spyOn(
+      controllers.Jobs,
+      "canReceivePrivateDataFromStore"
+    ).mockReturnValue(true);
     const res = controllers.Stores.searchProducts("uid", {
       maxPrice: 0,
     });
@@ -99,7 +123,10 @@ describe("search products", () => {
   });
 
   it("✅shouldn't return products because of high min store rating", () => {
-    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    vi.spyOn(
+      controllers.Jobs,
+      "canReceivePrivateDataFromStore"
+    ).mockReturnValue(true);
     const res = controllers.Stores.searchProducts("uid", {
       minStoreRating: Infinity,
     });
@@ -107,7 +134,10 @@ describe("search products", () => {
   });
 
   it("✅shouldn't return products because of low max store rating", () => {
-    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    vi.spyOn(
+      controllers.Jobs,
+      "canReceivePrivateDataFromStore"
+    ).mockReturnValue(true);
     const res = controllers.Stores.searchProducts("uid", {
       maxStoreRating: 0,
     });
@@ -115,7 +145,10 @@ describe("search products", () => {
   });
 
   it("✅shouldn't return products because of high min product rating", () => {
-    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    vi.spyOn(
+      controllers.Jobs,
+      "canReceivePrivateDataFromStore"
+    ).mockReturnValue(true);
     const res = controllers.Stores.searchProducts("uid", {
       minProductRating: Infinity,
     });
@@ -123,7 +156,10 @@ describe("search products", () => {
   });
 
   it("✅shouldn't return products because of low max product rating", () => {
-    vi.spyOn(controllers.Jobs, "canReceiveDataFromStore").mockReturnValue(true);
+    vi.spyOn(
+      controllers.Jobs,
+      "canReceivePrivateDataFromStore"
+    ).mockReturnValue(true);
     const res = controllers.Stores.searchProducts("uid", {
       maxProductRating: 0,
     });

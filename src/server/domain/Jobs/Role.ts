@@ -3,12 +3,13 @@ export type Permission =
   | "ActivateStore"
   | EditablePermission
   | "AppointStoreOwner"
-  | "AppointStoreManager";
+  | "AppointStoreManager"
+  | "receiveClosedStoreData";
 export type EditablePermission =
   | "AddProduct"
   | "EditProductDetails"
   | "RemoveProduct"
-  | "SeeStoreData";
+  | "receivePrivateStoreData";
 export type RoleType = "Owner" | "Manager" | "Founder";
 export abstract class Role {
   protected permissions: Permission[];

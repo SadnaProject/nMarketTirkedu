@@ -11,9 +11,10 @@ export class FounderRole extends Role {
     this.permissions.push("AddProduct");
     this.permissions.push("EditProductDetails");
     this.permissions.push("RemoveProduct");
-    this.permissions.push("SeeStoreData");
+    this.permissions.push("receivePrivateStoreData");
     this.permissions.push("AppointStoreOwner");
     this.permissions.push("AppointStoreManager");
+    this.permissions.push("receiveClosedStoreData");
   }
   grantPermission(permission: EditablePermission): void {
     throw new TRPCError({

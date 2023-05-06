@@ -10,7 +10,7 @@ import { FounderRole } from "./FounderRole";
 import { type EditablePermission } from "./Role";
 import { TRPCError } from "@trpc/server";
 
-export interface IJobsController {
+export interface IJobsController extends HasRepos {
   /**
    * This function initializes the store's position holders, and setting the founder.
    * @param founderId The id of the user that will be the founder of the store.

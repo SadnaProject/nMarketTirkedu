@@ -36,7 +36,7 @@ export interface IJobsController extends HasRepos {
    * @param userId The id of the user that is currently logged in.
    * @returns The stores that the user is an owner of.
    */
-  getStoresByOwner(userId: string): StoreDTO[];
+  // getStoresByOwner(userId: string): StoreDTO[];
   makeStoreManager(
     currentId: string,
     storeId: string,
@@ -68,7 +68,7 @@ export interface IJobsController extends HasRepos {
    * @param userId The id of the user that is currently logged in.
    * @returns The stores that the user is a manager of.
    */
-  getStoresByManager(userId: string): StoreDTO[];
+  // getStoresByManager(userId: string): StoreDTO[];
   /**
    * This function removes a user from being a store owner.
    * @param currentId The id of the user that is currently logged in.
@@ -403,12 +403,12 @@ export class JobsController
     }
   }
 
-  getStoresByOwner(userId: string): StoreDTO[] {
-    throw new Error("Method Deprecated.");
-  }
-  getStoresByManager(userId: string): StoreDTO[] {
-    throw new Error("Method Deprecated");
-  }
+  // getStoresByOwner(userId: string): StoreDTO[] {
+  //   throw new Error("Method Deprecated.");
+  // }
+  // getStoresByManager(userId: string): StoreDTO[] {
+  //   throw new Error("Method Deprecated");
+  // }
   makeStoreManager(
     currentId: string,
     storeId: string,

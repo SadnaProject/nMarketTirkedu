@@ -35,15 +35,13 @@ function generatePasswordI(i: number): string {
   return "password" + i.toString();
 }
 beforeEach(() => {
-  repos = createMockRepos();
-  controllers = createMockControllers("Jobs");
+  const testType = "integration";
+  controllers = createTestControllers(testType, "Jobs");
+  repos = createTestRepos(testType);
+  controllers.Jobs.initRepos(repos);
 });
 describe("InitializeStore", () => {
   itUnitIntegration("✅InitializeStore", (testType) => {
-    testType = "integration";
-    controllers = createTestControllers(testType, "Jobs");
-    repos = createTestRepos(testType);
-    controllers.Jobs.initRepos(repos);
     const storeId = "store1";
     const founderId = "founder1";
 
@@ -57,10 +55,6 @@ describe("InitializeStore", () => {
 });
 describe("Make position holder", () => {
   itUnitIntegration("✅Make store owner", (testType) => {
-    testType = "integration";
-    controllers = createTestControllers(testType, "Jobs");
-    repos = createTestRepos(testType);
-    controllers.Jobs.initRepos(repos);
     const storeId = "store1";
     const founderId = "founder1";
     const owner1Id = "owner1";
@@ -77,10 +71,7 @@ describe("Make position holder", () => {
   itUnitIntegration(
     "❌Make store owner fails because the user appointing is not a store owner/founder",
     (testType) => {
-      testType = "integration";
-      controllers = createTestControllers(testType, "Jobs");
-      repos = createTestRepos(testType);
-      controllers.Jobs.initRepos(repos);
+      //
       const storeId = "store1";
       const founderId = "founder1";
       const owner1Id = "owner1";
@@ -95,10 +86,6 @@ describe("Make position holder", () => {
   );
   //make store manager
   itUnitIntegration("✅Make store manager", (testType) => {
-    testType = "integration";
-    controllers = createTestControllers(testType, "Jobs");
-    repos = createTestRepos(testType);
-    controllers.Jobs.initRepos(repos);
     const storeId = "store1";
     const founderId = "founder1";
     const owner1Id = "owner1";
@@ -118,10 +105,7 @@ describe("Make position holder", () => {
   itUnitIntegration(
     "❌Make store manager fails because the user appointing is not a store owner/founder",
     (testType) => {
-      testType = "integration";
-      controllers = createTestControllers(testType, "Jobs");
-      repos = createTestRepos(testType);
-      controllers.Jobs.initRepos(repos);
+      //
       const storeId = "store1";
       const founderId = "founder1";
       const manager1Id = "manager1";
@@ -149,10 +133,6 @@ describe("Make position holder", () => {
 });
 describe("Remove position holder", () => {
   itUnitIntegration("✅Remove store owner", (testType) => {
-    testType = "integration";
-    controllers = createTestControllers(testType, "Jobs");
-    repos = createTestRepos(testType);
-    controllers.Jobs.initRepos(repos);
     const storeId = "store1";
     const founderId = "founder1";
     const owner1Id = "owner1";
@@ -174,10 +154,7 @@ describe("Remove position holder", () => {
   itUnitIntegration(
     "❌Remove store owner fails because the user removing is not the appointer of the owner to be removed",
     (testType) => {
-      testType = "integration";
-      controllers = createTestControllers(testType, "Jobs");
-      repos = createTestRepos(testType);
-      controllers.Jobs.initRepos(repos);
+      //
       const storeId = "store1";
       const founderId = "founder1";
       const owner1Id = "owner1";
@@ -202,10 +179,7 @@ describe("Remove position holder", () => {
   itUnitIntegration(
     "❌Remove store owner fails because the user to be removed is not a store owner",
     (testType) => {
-      testType = "integration";
-      controllers = createTestControllers(testType, "Jobs");
-      repos = createTestRepos(testType);
-      controllers.Jobs.initRepos(repos);
+      //
       const storeId = "store1";
       const founderId = "founder1";
       const owner1Id = "owner1";
@@ -223,10 +197,6 @@ describe("Remove position holder", () => {
     }
   );
   itUnitIntegration("✅Remove store manager", (testType) => {
-    testType = "integration";
-    controllers = createTestControllers(testType, "Jobs");
-    repos = createTestRepos(testType);
-    controllers.Jobs.initRepos(repos);
     const storeId = "store1";
     const founderId = "founder1";
     const manager1Id = "manager1";
@@ -241,10 +211,7 @@ describe("Remove position holder", () => {
   itUnitIntegration(
     "❌Remove store manager fails because the user removing is not the appointer of the manager to be removed",
     (testType) => {
-      testType = "integration";
-      controllers = createTestControllers(testType, "Jobs");
-      repos = createTestRepos(testType);
-      controllers.Jobs.initRepos(repos);
+      //
       const storeId = "store1";
       const founderId = "founder1";
       const owner1Id = "owner1";
@@ -270,10 +237,7 @@ describe("permissions", () => {
   itUnitIntegration(
     "✅System admin has the correct permissions",
     (testType) => {
-      testType = "integration";
-      controllers = createTestControllers(testType, "Jobs");
-      repos = createTestRepos(testType);
-      controllers.Jobs.initRepos(repos);
+      //
       const AdminId = controllers.Auth.register("admin", "admin");
       controllers.Jobs.setInitialAdmin(AdminId);
       expect(controllers.Jobs.isSystemAdmin(AdminId)).toEqual(true);
@@ -289,10 +253,7 @@ describe("permissions", () => {
   itUnitIntegration(
     "✅Store founder has the correct permissions",
     (testType) => {
-      testType = "integration";
-      controllers = createTestControllers(testType, "Jobs");
-      repos = createTestRepos(testType);
-      controllers.Jobs.initRepos(repos);
+      //
       const storeId = "store1";
 
       const founderId = "founder1";
@@ -323,10 +284,7 @@ describe("permissions", () => {
     }
   );
   itUnitIntegration("✅Store Owner has the correct permissions", (testType) => {
-    testType = "integration";
-    controllers = createTestControllers(testType, "Jobs");
-    repos = createTestRepos(testType);
-    controllers.Jobs.initRepos(repos);
+    //
     const storeId = "store1";
     const founderId = "founder1";
     const owner1Id = "owner1";
@@ -357,10 +315,7 @@ describe("permissions", () => {
   itUnitIntegration(
     "✅Store Manger has the correct default permissions",
     (testType) => {
-      testType = "integration";
-      controllers = createTestControllers(testType, "Jobs");
-      repos = createTestRepos(testType);
-      controllers.Jobs.initRepos(repos);
+      //
       const storeId = "store1";
       const founderId = "founder1";
       const manager1Id = "manager1";
@@ -396,10 +351,7 @@ describe("permissions", () => {
   itUnitIntegration(
     "✅Store Manger has the correct permissions after being granted permissions",
     (testType) => {
-      testType = "integration";
-      controllers = createTestControllers(testType, "Jobs");
-      repos = createTestRepos(testType);
-      controllers.Jobs.initRepos(repos);
+      //
       const storeId = "store1";
       const founderId = "founder1";
       const manager1Id = "manager1";
@@ -480,10 +432,7 @@ describe("permissions", () => {
   itUnitIntegration(
     "❌Permissions are not granted because grantor is not the appointer",
     (testType) => {
-      testType = "integration";
-      controllers = createTestControllers(testType, "Jobs");
-      repos = createTestRepos(testType);
-      controllers.Jobs.initRepos(repos);
+      //
       const storeId = "store1";
       const founderId = "founder1";
       const owner1Id = "owner1";

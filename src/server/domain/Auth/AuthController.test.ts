@@ -20,6 +20,7 @@ function getMemberI(i: number): MemberUserAuth {
     "password" + i.toString()
   );
 }
+
 function getGuestI(i: number): GuestUserAuth {
   return GuestUserAuth.create();
 }
@@ -164,16 +165,12 @@ describe("get all members", () => {
     controllers = createTestControllers(testType, "Auth");
     repos = createTestRepos(testType);
     controllers.Auth.initRepos(repos);
-    controllers.Auth.register(getMemberI(1).Email, getMemberI(1).Password);
-    controllers.Auth.register(getMemberI(2).Email, getMemberI(2).Password);
+    controllers.Auth.register(generateEmailI(1), generatePasswordI(1));
+    controllers.Auth.register(generateEmailI(2), generatePasswordI(2));
     expect(controllers.Auth.getAllLoggedOutMembersIds().length).toEqual(2);
     expect(controllers.Auth.getAllLoggedInMembersIds().length).toEqual(0);
     const guestId = controllers.Auth.startSession();
-    controllers.Auth.login(
-      guestId,
-      getMemberI(1).Email,
-      getMemberI(1).Password
-    );
+    controllers.Auth.login(guestId, generateEmailI(1), generatePasswordI(1));
     expect(controllers.Auth.getAllLoggedOutMembersIds().length).toEqual(1);
     expect(controllers.Auth.getAllLoggedInMembersIds().length).toEqual(1);
   });

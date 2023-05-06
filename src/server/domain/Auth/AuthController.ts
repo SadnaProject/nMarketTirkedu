@@ -139,7 +139,6 @@ export class AuthController
     return member.UserId;
   }
   public disconnect(userId: string): void {
-    //TODO - do i need to call the logout method of the users component?
     if (this.isGuest(userId)) {
       this.Repos.Users.removeGuest(userId);
       return;

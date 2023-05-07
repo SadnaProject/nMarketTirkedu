@@ -11,6 +11,7 @@ import { type SearchArgs } from "./Stores/StoresController";
 import { type CartPurchaseDTO } from "./PurchasesHistory/CartPurchaseHistory";
 import { type BasketPurchaseDTO } from "./PurchasesHistory/BasketPurchaseHistory";
 import { TRPCError } from "@trpc/server";
+import { type CreditCard } from "./PurchasesHistory/PaymentAdaptor";
 
 @loggable
 export class MarketFacade extends Loggable {
@@ -86,7 +87,7 @@ export class MarketFacade extends Loggable {
     return this.controllers.Users.getNotifications(userId);
   }
 
-  public purchaseCart(userId: string, @censored creditCard: string) {
+  public purchaseCart(userId: string, @censored creditCard: CreditCard) {
     this.validateConnection(userId);
     this.controllers.Users.purchaseCart(userId, creditCard);
   }
@@ -344,6 +345,19 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     this.controllers.Users.register(email, password);
   }
+  // eslint-disable-next-line jsdoc/require-description
+  /**
+   *
+   * @param userIdOfActor The user id of the user that asks to remove the member
+   * @param memberIdToRemove The user id of the member to remove
+   * @throws Error if the asking user doesn't have the permission to remove the member(i.e the asking user is not the system admin).
+   * @throws Error if the member to remove is not a member.
+   * @throws Error if the member has any position(he cant be removed if he has any position)
+   */
+  removeMember(userIdOfActor: string, memberIdToRemove: string) {
+    this.validateConnection(userIdOfActor);
+    this.controllers.Users.removeMember(userIdOfActor, memberIdToRemove);
+  }
   public loginMember(
     userId: string,
     email: string,
@@ -378,5 +392,23 @@ export class MarketFacade extends Loggable {
     storeId: string
   ): BasketPurchaseDTO[] {
     return this.controllers.Stores.getPurchasesByStoreId(userId, storeId);
+  }
+  // eslint-disable-next-line jsdoc/require-param
+  /**
+   * Returns all the logged in members ids.
+   * @returns Array of strings.
+   */
+  getAllLoggedInMembersIds(userId: string): string[] {
+    this.validateConnection(userId);
+    return this.controllers.Auth.getAllLoggedInMembersIds();
+  }
+  // eslint-disable-next-line jsdoc/require-param
+  /**
+   * Returns all the logged out members ids.
+   * @returns Array of strings.
+   */
+  getAllLoggedOutMembersIds(userId: string): string[] {
+    this.validateConnection(userId);
+    return this.controllers.Auth.getAllLoggedOutMembersIds();
   }
 }

@@ -13,6 +13,7 @@ import { Testable, testable } from "server/domain/_Testable";
 import fuzzysearch from "fuzzysearch-ts";
 import { type BasketPurchaseDTO } from "../PurchasesHistory/BasketPurchaseHistory";
 import { TRPCError } from "@trpc/server";
+import { emitter } from "server/Emitter";
 
 export type SearchArgs = {
   name?: string;
@@ -25,7 +26,14 @@ export type SearchArgs = {
   minStoreRating?: number;
   maxStoreRating?: number;
 };
-
+export type ProductWithQuantityDTO = {
+  product: StoreProductDTO;
+  quantity: number;
+};
+export type FullBasketDTO = {
+  storeId: string;
+  products: ProductWithQuantityDTO[];
+};
 export interface IStoresController extends HasRepos {
   /**
    * This function creates a product to a store.
@@ -234,7 +242,7 @@ export class StoresController
   searchProducts(userId: string, args: SearchArgs): StoreProductDTO[] {
     return StoreProduct.getAll(this.Repos)
       .filter((p) =>
-        this.Controllers.Jobs.canReceiveDataFromStore(userId, p.Store.Id)
+        this.Controllers.Jobs.canReceivePrivateDataFromStore(userId, p.Store.Id)
       )
       .filter((p) => {
         const productRating =
@@ -314,7 +322,7 @@ export class StoresController
   }
 
   isStoreActive(userId: string, storeId: string): boolean {
-    this.checkDataRetrievalPermission(userId, storeId);
+    // this.checkDataRetrievalPermission(userId, storeId);
     return Store.fromStoreId(storeId, this.Repos).IsActive;
   }
 
@@ -324,7 +332,9 @@ export class StoresController
   }
 
   private checkDataRetrievalPermission(userId: string, storeId: string) {
-    if (!this.Controllers.Jobs.canReceiveDataFromStore(userId, storeId)) {
+    if (
+      !this.Controllers.Jobs.canReceivePrivateDataFromStore(userId, storeId)
+    ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to receive data from store",
@@ -423,6 +433,11 @@ export class StoresController
         `Store ${storeId} has been activated`
       );
     });
+    emitter.emit(`store is changed ${storeId}`, {
+      storeId: storeId,
+      userId: userId,
+      state: "activated",
+    });
   }
 
   deactivateStore(userId: string, storeId: string): void {
@@ -446,6 +461,11 @@ export class StoresController
         `Store ${storeId} has been deactivated`
       );
     });
+    emitter.emit(`store is changed ${storeId}`, {
+      storeId: storeId,
+      userId: userId,
+      state: "decativated",
+    });
   }
 
   closeStorePermanently(userId: string, storeId: string): void {
@@ -456,6 +476,11 @@ export class StoresController
       });
     }
     Store.fromStoreId(storeId, this.Repos).delete();
+    emitter.emit(`store is changed ${storeId}`, {
+      storeId: storeId,
+      userId: userId,
+      state: "closed",
+    });
   }
 
   getProductPrice(userId: string, productId: string): number {
@@ -492,9 +517,19 @@ export class StoresController
   }
   removeStoreOwner(currentId: string, storeId: string, targetUserId: string) {
     this.Controllers.Jobs.removeStoreOwner(currentId, storeId, targetUserId);
+    emitter.emit(`member is changed ${targetUserId}`, {
+      changerId: currentId,
+      changeeId: targetUserId,
+      state: "removed as owner",
+    });
   }
   removeStoreManager(currentId: string, storeId: string, targetUserId: string) {
     this.Controllers.Jobs.removeStoreManager(currentId, storeId, targetUserId);
+    emitter.emit(`member is changed ${targetUserId}`, {
+      changerId: currentId,
+      changeeId: targetUserId,
+      state: "removed as manager",
+    });
   }
   setAddingProductToStorePermission(
     currentId: string,

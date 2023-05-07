@@ -1,6 +1,5 @@
-import { HasControllers } from "../_HasController";
 import { type BasketProductDTO, BasketProduct } from "./BasketProduct";
-import { UsersController } from "./UsersController";
+import { TRPCError } from "@trpc/server";
 export type BasketDTO = {
   storeId: string;
   products: BasketProductDTO[];
@@ -17,7 +16,10 @@ export class Basket {
   // if the user wants to add he needs to use the edit product quantity method
   public addProduct(productId: string, quantity: number): void {
     if (quantity < 0) {
-      throw new Error("Quantity cannot be negative");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Quantity cannot be negative",
+      });
     }
     const product = this.products.find((p) => p.ProductId === productId);
     if (product === undefined) {
@@ -30,7 +32,7 @@ export class Basket {
   public removeProduct(productId: string): void {
     const product = this.products.find((p) => p.ProductId === productId);
     if (product === undefined) {
-      throw new Error("Product not found");
+      throw new TRPCError({ code: "NOT_FOUND", message: "Product not found" });
     } else {
       this.products = this.products.filter((p) => p.ProductId !== productId);
     }
@@ -44,11 +46,14 @@ export class Basket {
   }
   public editProductQuantity(productId: string, quantity: number): void {
     if (quantity < 0) {
-      throw new Error("Quantity cannot be negative");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Quantity cannot be negative",
+      });
     }
     const product = this.products.find((p) => p.ProductId === productId);
     if (product === undefined) {
-      throw new Error("Product not found");
+      throw new TRPCError({ code: "NOT_FOUND", message: "Product not found" });
     } else {
       if (quantity === 0) {
         this.products = this.products.filter((p) => p.ProductId !== productId);

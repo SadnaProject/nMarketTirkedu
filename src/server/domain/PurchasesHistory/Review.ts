@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import { HasRepos } from "./_HasRepos";
+import { TRPCError } from "@trpc/server";
 
 export type ReviewDTO = {
   userId: string;
@@ -39,17 +40,29 @@ export class Review extends HasRepos {
     this.userId = args.userId;
     this.purchaseId = args.purchaseId;
     if (this.rating < 1 || this.rating > 5) {
-      throw new Error("Rating must be between 1-5");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Rating must be between 1 and 5, but was: " + this.rating.toString(),
+      });
     }
     if (args.storeId === undefined) {
       if (args.productId === undefined) {
-        throw new Error("storeId and productId are both undefined");
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "storeId and productId are both undefined, one of them must be defined",
+        });
       }
       this.productId = args.productId;
     } else if (args.productId === undefined) {
       this.storeId = args.storeId;
     } else {
-      throw new Error("storeId and productId are both defined");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "storeId and productId are both defined, only one of them must be defined",
+      });
     }
   }
 

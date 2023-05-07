@@ -1,5 +1,5 @@
 import { type BasketDTO, Basket } from "./Basket";
-
+import { TRPCError } from "@trpc/server";
 export type CartDTO = {
   storeIdToBasket: Map<string, BasketDTO>;
 };
@@ -26,7 +26,10 @@ export class Cart {
   public removeProduct(productId: string, storeId: string): void {
     const basket = this.storeIdToBasket.get(storeId);
     if (basket === undefined) {
-      throw new Error("Basket not found");
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "The requested basket not found",
+      });
     } else {
       basket.removeProduct(productId);
     }
@@ -48,7 +51,10 @@ export class Cart {
   ): void {
     const basket = this.storeIdToBasket.get(storeId);
     if (basket === undefined) {
-      throw new Error("Basket not found");
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "The requested basket not found",
+      });
     } else {
       basket.editProductQuantity(productId, quantity);
     }

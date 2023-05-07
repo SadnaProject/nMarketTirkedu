@@ -1,5 +1,5 @@
-import { UserRepo } from "./UserRepo";
-
+import { UserRepo } from "./Repos/UserRepo";
+import { TRPCError } from "@trpc/server";
 export const reposMapping = {
   Users: UserRepo,
 };
@@ -16,7 +16,10 @@ export class HasRepos {
 
   public get Repos(): Repos {
     if (this.repos === undefined) {
-      throw new Error("Repos are not initialized");
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Repos not initialized",
+      });
     }
     return this.repos;
   }
@@ -56,6 +59,9 @@ export function createTestRepos(
     case "integration":
       return createRepos();
     default:
-      throw new Error(`Unknown test type: ${testType}`);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Invalid test type",
+      });
   }
 }

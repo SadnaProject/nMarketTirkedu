@@ -6,6 +6,7 @@ import { createRepos } from "./_HasRepos";
 import { UserAuth } from "./UserAuth";
 import { GuestUserAuth, GuestUserAuthDTO } from "./GuestUserAuth";
 import { MemberUserAuth, MemberUserAuthDTO } from "./MemberUserAuth";
+import { TRPCError } from "@trpc/server";
 
 export interface IAuthController extends HasRepos {
   /**
@@ -85,6 +86,25 @@ export interface IAuthController extends HasRepos {
    * @throws Error if the user is not connected or not a user.
    */
   logout(userId: string): string;
+  /**
+   *
+   * @param userIdOfActor The user id of the user that asks to remove the member
+   * @param memberIdToRemove The user id of the member to remove
+   * @throws Error if the asking user doesnt have the permission to remove the member(i.e the asking user is not the system admin)
+   * @throws Error if the member to remove is not a member
+   * @throws Error if the member has any position(he cant be removed if he has any position)
+   */
+  removeMember(userIdOfActor: string, memberIdToRemove: string): void;
+  /**
+   * Returns all the logged in members ids.
+   * @returns Array of strings.
+   */
+  getAllLoggedInMembersIds(): string[];
+  /**
+   * Returns all the logged out members ids.
+   * @returns Array of strings.
+   */
+  getAllLoggedOutMembersIds(): string[];
 }
 
 @testable
@@ -108,16 +128,17 @@ export class AuthController
     // throw new Error("Method not implemented.");
     const member: MemberUserAuth = this.Repos.Users.getMemberByEmail(email);
     if (!member.isPasswordCorrect(password)) {
-      throw new Error(
-        "Password is incorrect, please try again with a different password"
-      );
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Password is incorrect, please try again with a different password",
+      });
     }
     member.login();
     this.Repos.Users.removeGuest(guestId);
     return member.UserId;
   }
   public disconnect(userId: string): void {
-    //TODO - do i need to call the logout method of the users component?
     if (this.isGuest(userId)) {
       this.Repos.Users.removeGuest(userId);
       return;
@@ -129,9 +150,10 @@ export class AuthController
   }
   public logout(userId: string): string {
     if (this.isGuest(userId)) {
-      throw new Error(
-        "User is not a member, please try again with a different user"
-      );
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "User is not a member, please try again with a different user",
+      });
     }
     const member: MemberUserAuth = this.Repos.Users.getMemberById(userId);
     member.logout(); //throws error if user is not connected
@@ -140,9 +162,11 @@ export class AuthController
   public register(email: string, password: string): string {
     // throw new Error("Method not implemented.");
     if (this.Repos.Users.doesMemberExistByEmail(email)) {
-      throw new Error(
-        "Email already in use, please try again with a different email"
-      );
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Email already in use, please try again with a different email",
+      });
     }
     // if(!this.validatePassword(password)){
     //   throw new Error("Password is invalid, please try again with a different password");
@@ -156,9 +180,11 @@ export class AuthController
     // throw new Error("Method not implemented.");
     const member = this.Repos.Users.getMemberById(userId);
     if (this.Repos.Users.doesMemberExistByEmail(newEmail)) {
-      throw new Error(
-        "Email already in use, please try again with a different email"
-      );
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Email already in use, please try again with a different email",
+      });
     }
     member.Email = newEmail;
   }
@@ -170,9 +196,11 @@ export class AuthController
     // throw new Error("Method not implemented.");
     const member: MemberUserAuth = this.Repos.Users.getMemberById(userId);
     if (!member.isPasswordCorrect(oldPassword)) {
-      throw new Error(
-        "Password is incorrect, please try again with a different password"
-      );
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Password is incorrect, please try again with a different password",
+      });
     }
     member.Password = newPassword;
   }
@@ -193,5 +221,36 @@ export class AuthController
     if (!this.Repos.Users.doesMemberExistById(userId)) return false;
     const member: MemberUserAuth = this.Repos.Users.getMemberById(userId);
     return member.isUserLoggedInAsMember();
+  }
+  public removeMember(userIdOfActor: string, memberIdToRemove: string): void {
+    if (!this.isMember(memberIdToRemove)) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Given user id doesn't belong to a member",
+      });
+    }
+    this.Repos.Users.removeMember(memberIdToRemove);
+  }
+  public getAllLoggedInMembersIds(): string[] {
+    // throw new Error("Method not implemented.");
+    const loggedInUsersIds: string[] = [];
+    const members = this.Repos.Users.getAllMembers();
+    members.forEach((member) => {
+      if (member.isUserLoggedInAsMember()) {
+        loggedInUsersIds.push(member.UserId);
+      }
+    });
+    return loggedInUsersIds;
+  }
+  public getAllLoggedOutMembersIds(): string[] {
+    // throw new Error("Method not implemented.");
+    const loggedOutUsersIds: string[] = [];
+    const members = this.Repos.Users.getAllMembers();
+    members.forEach((member) => {
+      if (!member.isUserLoggedInAsMember()) {
+        loggedOutUsersIds.push(member.UserId);
+      }
+    });
+    return loggedOutUsersIds;
   }
 }

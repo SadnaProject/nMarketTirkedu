@@ -11,11 +11,14 @@ import { randomUUID } from "crypto";
 import { Mixin } from "ts-mixer";
 import { Testable, testable } from "server/domain/_Testable";
 import { HasRepos, type Repos, createRepos } from "./_HasRepos";
-import { PaymentAdapter } from "./PaymentAdaptor";
+import { type CreditCard, PaymentAdapter } from "./PaymentAdaptor";
 import { type ProductPurchase } from "./ProductPurchaseHistory";
 import { error } from "console";
 import { createControllers } from "../_createControllers";
 import { JobsController } from "../Jobs/JobsController";
+import { TRPCError } from "@trpc/server";
+import { emitter } from "server/Emitter";
+import { censored } from "../_Loggable";
 
 export interface IPurchasesHistoryController extends HasRepos {
   getPurchase(purchaseId: string): CartPurchaseDTO;
@@ -23,7 +26,7 @@ export interface IPurchasesHistoryController extends HasRepos {
     userId: string,
     cart: CartDTO,
     price: number,
-    creditCard: string
+    creditCard: CreditCard
   ): void; // TODO: add payment details
   addStorePurchaseReview(
     userId: string,
@@ -60,7 +63,11 @@ export class PurchasesHistoryController
   }
   getPurchasesByUser(admingId: string, userId: string): CartPurchaseDTO[] {
     if (new JobsController().isSystemAdmin(admingId) === false) {
-      throw new Error("Not admin");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "User is not a system admin, and therefore cannot view other users' purchases",
+      });
     }
     return this.Repos.CartPurchases.getPurchasesByUser(userId).map((purchase) =>
       purchase.ToDTO()
@@ -76,13 +83,20 @@ export class PurchasesHistoryController
     userId: string,
     cart: CartDTO,
     price: number,
-    creditCard: string
+    @censored creditCard: CreditCard
   ): void {
     if (PaymentAdapter.pay(creditCard, price) === false) {
-      throw new Error("Payment failed");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Payment failed, please check your credit card details and try again",
+      });
     }
     if (cart.storeIdToBasket.size === 0) {
-      throw new Error("Cart is empty");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Cart is empty, please add products to cart before purchasing",
+      });
     }
     //TODO fix
     // cart.storeIdToBasket.forEach((basket) => {
@@ -98,20 +112,31 @@ export class PurchasesHistoryController
     //     }
     //   });
     // });
-
+    // for every storeId in cart, EventEmmiter.emit("purchase", storeId, cart.storeIdToBasket.get(storeId))
     const cartPurchase = CartPurchase.CartPurchaseDTOfromCartDTO(
       cart,
       userId,
       price
     );
     this.addPurchase(CartPurchase.fromDTO(cartPurchase));
+    for (const [storeId, basket] of cart.storeIdToBasket) {
+      emitter.emit(`purchase store ${storeId}`, {
+        purchaseId: cartPurchase.purchaseId,
+        userId: userId,
+        storeId: storeId,
+      });
+    }
   }
 
   addPurchase(cartPurchase: CartPurchase): void {
     // check that purchase with same id doesn't exist
     // if this.Repos.CartPurchases.getPurchaseById(cartPurchase.PurchaseId) dosent throw, throw error
     if (this.Repos.CartPurchases.doesPurchaseExist(cartPurchase.PurchaseId)) {
-      throw new Error("Purchase already exists");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Purchase with same id already exists, please try again with a different cart",
+      });
     }
     this.Repos.CartPurchases.addCartPurchase(cartPurchase);
     // for each <string, basket> in cart do addBasketPurchase
@@ -137,10 +162,17 @@ export class PurchasesHistoryController
     rating: number
   ): void {
     if (this.Repos.Reviews.doesStoreReviewExist(purchaseId, storeId)) {
-      throw new Error("Store already reviewed");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Store already reviewed, please try again with a different purchase",
+      });
     }
     if (this.Repos.BasketPurchases.hasPurchase(purchaseId) === false) {
-      throw new Error("Purchase not found");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Purchase not found",
+      });
     }
     const review = new Review({
       rating: rating,
@@ -163,13 +195,20 @@ export class PurchasesHistoryController
     if (
       this.Repos.ProductReviews.doesProductReviewExist(purchaseId, productId)
     ) {
-      throw new Error("Product already reviewed");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Product already reviewed, please try again with a different purchase",
+      });
     }
     if (
       this.Repos.ProductsPurchases.getProductsPurchaseById(purchaseId) ===
       undefined
     ) {
-      throw new Error("Purchase not found");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Purchase not found",
+      });
     }
     // check if there is product with productId in getProductsPurchaseById
     if (
@@ -177,7 +216,10 @@ export class PurchasesHistoryController
         (product) => product.ProductId === productId
       ) === undefined
     ) {
-      throw new Error("Product not found");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Product not found in purchase",
+      });
     }
     const productReview = new ProductReview({
       rating: rating,
@@ -221,7 +263,10 @@ export class PurchasesHistoryController
   }
   getPurchase(purchaseId: string): CartPurchaseDTO {
     if (this.Repos.CartPurchases.doesPurchaseExist(purchaseId) === false) {
-      throw new Error("Purchase not found");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Purchase not found",
+      });
     }
     return this.Repos.CartPurchases.getPurchaseById(purchaseId)!.ToDTO();
   }

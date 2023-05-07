@@ -4,6 +4,9 @@ import { type CartDTO } from "./Cart";
 import { Notification } from "./Notification";
 import { HasRepos, createRepos } from "./_HasRepos";
 import { Testable, testable } from "server/domain/_Testable";
+import { type CreditCard } from "../PurchasesHistory/PaymentAdaptor";
+import { TRPCError } from "@trpc/server";
+import { censored } from "../_Loggable";
 export interface IUsersController {
   /**
    * This fuction checks if a user exists.
@@ -54,7 +57,7 @@ export interface IUsersController {
    * This function purchases the cart of a user.
    * @param userId The id of the user that is currently logged in.
    */
-  purchaseCart(userId: string, creditCard: string): void;
+  purchaseCart(userId: string, creditCard: CreditCard): void;
   /**
    * This function adds a user to the system.
    * @param user The user that is being added to the system.
@@ -113,6 +116,14 @@ export interface IUsersController {
    * @param userId The id of the user that is currently logged in.
    */
   logout(userId: string): string;
+  /**
+   * @param userIdOfActor The user id of the user that asks to remove the member
+   * @param memberIdToRemove The user id of the member to remove
+   * @throws Error if the asking user doesnt have the permission to remove the member(i.e the asking user is not the system admin)
+   * @throws Error if the member to remove is not a member
+   * @throws Error if the member has any position(he cant be removed if he has any position)
+   */
+  removeMember(userIdOfActor: string, memberIdToRemove: string): void;
 }
 
 @testable
@@ -140,7 +151,10 @@ export class UsersController
         quantity
       )
     ) {
-      throw new Error("store don't have such amount of product");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "store don't have such amount of product",
+      });
     }
     user.addProductToCart(productId, quantity, storeId);
   }
@@ -165,7 +179,10 @@ export class UsersController
         quantity
       )
     ) {
-      throw new Error("store don't have such amount of product");
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "store don't have such amount of product",
+      });
     }
     const storeId = this.Controllers.Stores.getStoreIdByProductId(
       userId,
@@ -176,7 +193,7 @@ export class UsersController
   getCart(userId: string): CartDTO {
     return this.Repos.Users.getUser(userId).Cart;
   }
-  purchaseCart(userId: string, creditCard: string): void {
+  purchaseCart(userId: string, @censored creditCard: CreditCard): void {
     const user = this.Repos.Users.getUser(userId);
     const cart = user.Cart;
     const price = this.Controllers.Stores.getCartPrice(
@@ -223,12 +240,12 @@ export class UsersController
     this.addUser(guestId);
     return guestId;
   }
-  register(email: string, password: string): string {
+  register(email: string, @censored password: string): string {
     const MemberId = this.Controllers.Auth.register(email, password);
     this.Repos.Users.addUser(MemberId);
     return MemberId;
   }
-  login(guestId: string, email: string, password: string): string {
+  login(guestId: string, email: string, @censored password: string): string {
     this.Repos.Users.getUser(guestId);
     const MemberId = this.Controllers.Auth.login(guestId, email, password);
     this.Repos.Users.getUser(MemberId);
@@ -247,5 +264,34 @@ export class UsersController
   }
   isUserExist(userId: string): boolean {
     return this.Repos.Users.isUserExist(userId);
+  }
+  removeMember(userIdOfActor: string, memberIdToRemove: string) {
+    if (!this.Controllers.Jobs.canRemoveMember(userIdOfActor)) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User doesn't have permission to remove member",
+      });
+    }
+    // if (!this.Controllers.Auth.isMember(memberIdToRemove)) {
+    //   throw new TRPCError({
+    //     code: "NOT_FOUND",
+    //     message: "Given user id doesn't belong to a member",
+    //   });
+    // }
+    if (!this.isUserExist(memberIdToRemove)) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Given user id doesn't belong to a member",
+      });
+    }
+    if (this.Controllers.Jobs.isMemberInAnyPosition(memberIdToRemove)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "Member is in a position, please remove him from the position first",
+      });
+    }
+    this.Controllers.Auth.removeMember(userIdOfActor, memberIdToRemove);
+    this.removeUser(memberIdToRemove);
   }
 }

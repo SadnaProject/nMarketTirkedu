@@ -4,7 +4,8 @@ import { type CartDTO } from "./Cart";
 import { Notification } from "./Notification";
 import { HasRepos, createRepos } from "./_HasRepos";
 import { Testable, testable } from "server/domain/_Testable";
-import { CreditCard } from "../PurchasesHistory/PaymentAdaptor";
+import { type CreditCard } from "../PurchasesHistory/PaymentAdaptor";
+import { censored } from "../_Loggable";
 export interface IUsersController {
   /**
    * This fuction checks if a user exists.
@@ -177,7 +178,7 @@ export class UsersController
   getCart(userId: string): CartDTO {
     return this.Repos.Users.getUser(userId).Cart;
   }
-  purchaseCart(userId: string, creditCard: CreditCard): void {
+  purchaseCart(userId: string, @censored creditCard: CreditCard): void {
     const user = this.Repos.Users.getUser(userId);
     const cart = user.Cart;
     const price = this.Controllers.Stores.getCartPrice(

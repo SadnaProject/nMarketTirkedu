@@ -508,11 +508,19 @@ export class StoresController
   }
   removeStoreOwner(currentId: string, storeId: string, targetUserId: string) {
     this.Controllers.Jobs.removeStoreOwner(currentId, storeId, targetUserId);
-    emitter.emit(`member is changed ${targetUserId}`, {changerId: currentId, changeeId: targetUserId, state: "removed as owner"});
+    emitter.emit(`member is changed ${targetUserId}`, {
+      changerId: currentId,
+      changeeId: targetUserId,
+      state: "removed as owner",
+    });
   }
   removeStoreManager(currentId: string, storeId: string, targetUserId: string) {
     this.Controllers.Jobs.removeStoreManager(currentId, storeId, targetUserId);
-    emitter.emit(`member is changed ${targetUserId}`, {changerId: currentId, changeeId: targetUserId, state: "removed as manager"});
+    emitter.emit(`member is changed ${targetUserId}`, {
+      changerId: currentId,
+      changeeId: targetUserId,
+      state: "removed as manager",
+    });
   }
   setAddingProductToStorePermission(
     currentId: string,

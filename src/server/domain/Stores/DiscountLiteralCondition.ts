@@ -1,8 +1,16 @@
+import { z } from "zod";
 import { IDiscountCondition } from "./DiscountCondition";
 import { FullBasketDTO } from "./StoresController";
-type Discount_on = "Product" | "Category" | "Basket";
-type Discount_Type = "AtLeast" | "AtMost" | "Exactly";
-
+const discountOnSchema = z.enum(["Product", "Category", "Basket"]);
+type Discount_on = z.infer<typeof discountOnSchema>;
+const discountTypeSchema = z.enum(["AtLeast", "AtMost", "Exactly"]);
+type Discount_Type = z.infer<typeof discountTypeSchema>;
+export const discountLiteralConditionSchema = z.object({
+  discountOn: discountOnSchema,
+  discountType: discountTypeSchema,
+  amount: z.number(),
+  searchFor: z.string(),
+});
 class DiscountLiteralCondition implements IDiscountCondition {
   private discount_on: Discount_on;
   private discount_type: Discount_Type;
@@ -25,20 +33,20 @@ class DiscountLiteralCondition implements IDiscountCondition {
       case "Product":
         basket.products.forEach((product) => {
           if (product.product.name === this.search_For) {
-            count += product.quantity;
+            count += product.BasketQuantity;
           }
         });
         break;
       case "Category":
         basket.products.forEach((product) => {
           if (product.product.category === this.search_For) {
-            count += product.quantity;
+            count += product.BasketQuantity;
           }
         });
         break;
       case "Basket":
         basket.products.forEach((product) => {
-          count += product.quantity;
+          count += product.BasketQuantity;
         });
         break;
     }

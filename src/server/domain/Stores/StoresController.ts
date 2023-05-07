@@ -28,7 +28,8 @@ export type SearchArgs = {
 };
 export type ProductWithQuantityDTO = {
   product: StoreProductDTO;
-  quantity: number;
+  BasketQuantity: number;
+  Discount: number;
 };
 export type FullBasketDTO = {
   storeId: string;

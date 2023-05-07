@@ -1,5 +1,5 @@
-import { IDiscountCondition } from "./DiscountCondition";
-import { FullBasketDTO } from "./StoresController";
+import { type IDiscountCondition } from "./DiscountCondition";
+import { type FullBasketDTO } from "./StoresController";
 
 class DiscountORCondition implements IDiscountCondition {
   private first: IDiscountCondition;

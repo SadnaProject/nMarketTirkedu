@@ -35,8 +35,7 @@ describe("constructor", () => {
 });
 
 describe("ProductPurchaseDTOFromBasketProductDTO", () => {
-  it("should create a product purchase DTO from a basket product DTO", // add product to store
-  (testType) => {
+  it("should create a product purchase DTO from a basket product DTO", (testType) => { // add product to store
     vi.spyOn(StoresController.prototype, "getProductPrice").mockReturnValue(1);
     const productPurchaseDTO =
       ProductPurchase.ProductPurchaseDTOFromBasketProductDTO(

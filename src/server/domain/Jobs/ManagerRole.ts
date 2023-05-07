@@ -4,7 +4,7 @@ import { Role, Permission, type EditablePermission } from "./Role";
 export class ManagerRole extends Role {
   constructor() {
     super();
-    this.permissions.push("SeeStoreData");
+    this.permissions.push("receivePrivateStoreData");
     this.roleType = "Manager";
   }
   grantPermission(permission: EditablePermission): void {

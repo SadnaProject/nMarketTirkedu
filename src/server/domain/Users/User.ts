@@ -1,6 +1,6 @@
 import { Cart, type CartDTO } from "./Cart";
 import { type Notification } from "./Notification";
-
+import { TRPCError } from "@trpc/server";
 export class User {
   private id: string;
   private notifications: Notification[];
@@ -47,7 +47,10 @@ export class User {
       (notification) => notification.Id === notificationId
     );
     if (notification === undefined) {
-      throw new Error("Notification not found");
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "The requested notification not found",
+      });
     }
     notification.read();
   }

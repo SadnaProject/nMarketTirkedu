@@ -26,7 +26,14 @@ export type SearchArgs = {
   minStoreRating?: number;
   maxStoreRating?: number;
 };
-
+export type ProductWithQuantityDTO = {
+  product: StoreProductDTO;
+  quantity: number;
+};
+export type FullBasketDTO = {
+  storeId: string;
+  products: ProductWithQuantityDTO[];
+};
 export interface IStoresController extends HasRepos {
   /**
    * This function creates a product to a store.
@@ -235,7 +242,7 @@ export class StoresController
   searchProducts(userId: string, args: SearchArgs): StoreProductDTO[] {
     return StoreProduct.getAll(this.Repos)
       .filter((p) =>
-        this.Controllers.Jobs.canReceiveDataFromStore(userId, p.Store.Id)
+        this.Controllers.Jobs.canReceivePrivateDataFromStore(userId, p.Store.Id)
       )
       .filter((p) => {
         const productRating =
@@ -315,7 +322,7 @@ export class StoresController
   }
 
   isStoreActive(userId: string, storeId: string): boolean {
-    this.checkDataRetrievalPermission(userId, storeId);
+    // this.checkDataRetrievalPermission(userId, storeId);
     return Store.fromStoreId(storeId, this.Repos).IsActive;
   }
 
@@ -325,7 +332,9 @@ export class StoresController
   }
 
   private checkDataRetrievalPermission(userId: string, storeId: string) {
-    if (!this.Controllers.Jobs.canReceiveDataFromStore(userId, storeId)) {
+    if (
+      !this.Controllers.Jobs.canReceivePrivateDataFromStore(userId, storeId)
+    ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to receive data from store",

@@ -7,6 +7,7 @@ import {
 } from "server/domain/Stores/StoreProduct";
 import { type BasketDTO } from "server/domain/Users/Basket";
 import { type CartDTO } from "server/domain/Users/Cart";
+import { type CreditCard } from "server/domain/PurchasesHistory/PaymentAdaptor";
 
 export type SearchArgs = {
   name?: string;
@@ -53,7 +54,7 @@ export class Service {
   public getNotifications(userId: string) {
     return this.facade.getNotifications(userId);
   }
-  public purchaseCart(userId: string, creditCard: string) {
+  public purchaseCart(userId: string, creditCard: CreditCard) {
     this.facade.purchaseCart(userId, creditCard);
   }
   public removeUser(userId: string) {

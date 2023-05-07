@@ -19,10 +19,12 @@ export class StoresRepo extends Testable {
     return this.stores;
   }
 
+  public getActiveStores() {
+    return this.stores.filter((store) => store.IsActive);
+  }
+
   public getAllNames() {
-    const names = new Set<string>();
-    this.stores.forEach((store) => names.add(store.Name));
-    return names;
+    return new Set(this.stores.map((store) => store.Name));
   }
 
   public getStoreById(storeId: string) {

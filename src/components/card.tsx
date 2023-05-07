@@ -3,10 +3,7 @@ import { twMerge } from "tailwind-merge";
 
 type Props = {
   children: React.ReactNode;
-} & React.DetailedHTMLProps<
-  React.HTMLAttributes<HTMLDivElement>,
-  HTMLDivElement
->;
+} & React.ComponentProps<"div">;
 
 export default forwardRef(function Card(
   { children, ...props }: Props,

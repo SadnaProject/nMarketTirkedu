@@ -1,8 +1,6 @@
 import Gallery from "components/gallery";
-import RateSlider from "components/slider";
 import { type StoreDTO } from "server/domain/Stores/Store";
 import Layout from "./_layout";
-import Input from "components/input";
 import Link from "next/link";
 import Card from "components/card";
 import { Rating } from "components/star";
@@ -79,16 +77,11 @@ export default function Home() {
 
   return (
     <Layout>
-      <h1>Search Stores</h1>
-      <Input placeholder="Store name" className="w-auto" />
-      <div className="mb-6 flex items-center gap-4">
-        <span>Store Rating</span>
-        <RateSlider />
-      </div>
+      <h1>My Stores</h1>
       <Gallery
         list={stores}
         getId={(store) => store.id}
-        getItem={(store) => <StoreCard store={store} />}
+        getItem={(store) => <StoreCard store={store} role="Founder" />}
         className="grid-cols-1 lg:grid-cols-4"
       />
     </Layout>
@@ -97,13 +90,15 @@ export default function Home() {
 
 type StoreCardProps = {
   store: StoreDTO;
+  role: string;
 };
 
-function StoreCard({ store }: StoreCardProps) {
+function StoreCard({ store, role }: StoreCardProps) {
   return (
     <Link href={PATHS.store.path(store.id)}>
       <Card>
         <h3 className="text-lg font-bold text-slate-800">{store.name}</h3>
+        <span className="mb-2 font-bold text-slate-700">{role}</span>
         <Rating rating={3.25} votes={5} />
       </Card>
     </Link>

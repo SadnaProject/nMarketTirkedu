@@ -21,6 +21,10 @@ export class StoreProductsRepo extends Testable {
     return Array.from(this.productsByStoreId.values()).flat();
   }
 
+  public getActiveProducts() {
+    return this.getAllProducts().filter((product) => product.Store.IsActive);
+  }
+
   public getProductById(productId: string) {
     const product = this.getAllProducts().find((p) => p.Id === productId);
     if (!product) {

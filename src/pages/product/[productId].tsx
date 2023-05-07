@@ -8,6 +8,9 @@ import Price from "components/price";
 import Profile from "components/profile";
 import Gallery from "components/gallery";
 import Collapse from "components/collapse";
+import Link from "next/link";
+import PATHS from "utils/paths";
+import { RightIcon } from "components/icons";
 
 const product = {
   id: "6e259065-7899-4667-bbd0-b9366443896d",
@@ -27,8 +30,15 @@ export default function Home() {
   return (
     <Layout>
       <div className="flex max-w-xl flex-col gap-4">
-        <Card>
-          <h1 className="text-lg font-bold">{product.name}</h1>
+        <Link
+          href={PATHS.store.path(product.id)}
+          className="group flex w-fit items-center text-slate-700"
+        >
+          <h2 className="transition-all group-hover:mr-1">H&M</h2>
+          <RightIcon />
+        </Link>
+        <Card className="mt-0">
+          <h1>{product.name}</h1>
           <span className="font-bold text-slate-700">{product.category}</span>
           <Collapse id={`desc`}>{product.description}</Collapse>
           <div className="flex flex-col items-center justify-between md:flex-row">

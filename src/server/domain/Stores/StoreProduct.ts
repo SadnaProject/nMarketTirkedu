@@ -161,4 +161,8 @@ export class StoreProduct extends HasRepos {
   public static getAll(repos: Repos) {
     return repos.Products.getAllProducts();
   }
+
+  public static getActive(repos: Repos) {
+    return repos.Products.getActiveProducts();
+  }
 }

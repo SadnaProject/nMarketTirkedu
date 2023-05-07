@@ -4,17 +4,19 @@ import { forwardRef } from "react";
 
 type Props = {
   children: React.ReactNode;
-} & React.DetailedHTMLProps<
-  React.ButtonHTMLAttributes<HTMLButtonElement>,
-  HTMLButtonElement
->;
+  glowContainerClassName?: string;
+  glowClassName?: string;
+} & React.ComponentProps<"button">;
 
 export default forwardRef(function Button(
-  { children, ...props }: Props,
+  { children, glowClassName, glowContainerClassName, ...props }: Props,
   ref: React.ForwardedRef<HTMLButtonElement>
 ) {
   return (
-    <GlowOnHover>
+    <GlowOnHover
+      className={glowClassName}
+      containerClassName={glowContainerClassName}
+    >
       <button
         ref={ref}
         type="button"

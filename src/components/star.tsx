@@ -1,6 +1,8 @@
+import { twMerge } from "tailwind-merge";
+
 type Props = {
   fillAmount: number;
-};
+} & React.ComponentProps<"svg">;
 
 const starFillColor = "yellow";
 
@@ -8,7 +10,7 @@ function roundNearestHalf(num: number) {
   return Math.round(num * 2) / 2;
 }
 
-export default function Star({ fillAmount }: Props) {
+export default function Star({ fillAmount, className, ...props }: Props) {
   const roundedFillAmount = roundNearestHalf(fillAmount);
 
   const fill =
@@ -20,12 +22,13 @@ export default function Star({ fillAmount }: Props) {
 
   return (
     <svg
+      {...props}
       xmlns="http://www.w3.org/2000/svg"
       fill={fill}
       viewBox="0 0 24 24"
       strokeWidth={1}
       stroke="black "
-      className="mx-[-2px] h-6 w-6"
+      className={twMerge("mx-[-2px] h-6 w-6", className)}
     >
       <defs>
         <linearGradient id="halfStar">
@@ -46,14 +49,20 @@ export default function Star({ fillAmount }: Props) {
 type RatingProps = {
   rating: number;
   votes?: number;
+  onClick?: (rating: number) => void;
 };
 
-export function Rating({ rating, votes }: RatingProps) {
+export function Rating({ rating, votes, onClick }: RatingProps) {
   return (
     <div className="flex justify-end">
       {votes && <span className="me-1">({votes})</span>}
       {Array.from({ length: 5 }, (_, i) => (
-        <Star key={i} fillAmount={rating - i} />
+        <Star
+          key={i}
+          fillAmount={rating - i}
+          onClick={() => onClick && onClick(i + 1)}
+          className={onClick && "cursor-pointer"}
+        />
       ))}
     </div>
   );

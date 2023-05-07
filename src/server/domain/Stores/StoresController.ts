@@ -240,9 +240,9 @@ export class StoresController
     this.initRepos(createRepos());
   }
   searchProducts(userId: string, args: SearchArgs): StoreProductDTO[] {
-    return StoreProduct.getAll(this.Repos)
+    return StoreProduct.getActive(this.Repos)
       .filter((p) =>
-        this.Controllers.Jobs.canReceivePrivateDataFromStore(userId, p.Store.Id)
+        this.Controllers.Jobs.canReceivePublicDataFromStore(userId, p.Store.Id)
       )
       .filter((p) => {
         const productRating =
@@ -296,13 +296,42 @@ export class StoresController
       : true;
   }
 
+  private enforcePublicDataAccess(userId: string, storeId: string) {
+    if (!this.Controllers.Jobs.canReceivePublicDataFromStore(userId, storeId)) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User does not have permission to receive data from store",
+      });
+    }
+  }
+
+  private enforcePrivateDataAccess(userId: string, storeId: string) {
+    if (
+      !this.Controllers.Jobs.canReceivePrivateDataFromStore(userId, storeId)
+    ) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User does not have permission to receive data from store",
+      });
+    }
+  }
+
+  private enforceProductEdit(userId: string, storeId: string) {
+    if (!this.Controllers.Jobs.canEditProductInStore(userId, storeId)) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User does not have permission to edit product",
+      });
+    }
+  }
+
   isProductQuantityInStock(
     userId: string,
     productId: string,
     quantity: number
   ): boolean {
     const product = StoreProduct.fromProductId(productId, this.Repos);
-    // this.checkDataRetrievalPermission(userId, product.Store.Id);
+    this.enforcePublicDataAccess(userId, product.Store.Id);
     return product.isQuantityInStock(quantity);
   }
 
@@ -322,24 +351,12 @@ export class StoresController
   }
 
   isStoreActive(userId: string, storeId: string): boolean {
-    // this.checkDataRetrievalPermission(userId, storeId);
     return Store.fromStoreId(storeId, this.Repos).IsActive;
   }
 
   getStoreProducts(userId: string, storeId: string): StoreProductDTO[] {
-    this.checkDataRetrievalPermission(userId, storeId);
+    this.enforcePublicDataAccess(userId, storeId);
     return Store.fromStoreId(storeId, this.Repos).Products;
-  }
-
-  private checkDataRetrievalPermission(userId: string, storeId: string) {
-    if (
-      !this.Controllers.Jobs.canReceivePrivateDataFromStore(userId, storeId)
-    ) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "User does not have permission to receive data from store",
-      });
-    }
   }
 
   setProductQuantity(
@@ -348,14 +365,7 @@ export class StoresController
     quantity: number
   ): void {
     const product = StoreProduct.fromProductId(productId, this.Repos);
-    if (
-      !this.Controllers.Jobs.canEditProductInStore(userId, product.Store.Id)
-    ) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "User does not have permission to set product quantity",
-      });
-    }
+    this.enforceProductEdit(userId, product.Store.Id);
     product.Quantity = quantity;
   }
 
@@ -380,14 +390,7 @@ export class StoresController
 
   setProductPrice(userId: string, productId: string, price: number): void {
     const product = StoreProduct.fromProductId(productId, this.Repos);
-    if (
-      !this.Controllers.Jobs.canEditProductInStore(userId, product.Store.Id)
-    ) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "User does not have permission to set product price",
-      });
-    }
+    this.enforceProductEdit(userId, product.Store.Id);
     product.Price = price;
   }
 
@@ -484,14 +487,17 @@ export class StoresController
   }
 
   getProductPrice(userId: string, productId: string): number {
+    this.enforcePublicDataAccess(
+      userId,
+      this.getStoreIdByProductId(userId, productId)
+    );
     const product = StoreProduct.fromProductId(productId, this.Repos);
-    this.checkDataRetrievalPermission(userId, product.Store.Id);
     return product.Price;
   }
 
   getStoreIdByProductId(userId: string, productId: string): string {
     const product = StoreProduct.fromProductId(productId, this.Repos);
-    // this.checkDataRetrievalPermission(userId, product.Store.Id);
+    this.enforcePublicDataAccess(userId, product.Store.Id);
     return product.Store.Id;
   }
 
@@ -504,7 +510,7 @@ export class StoresController
   }
 
   getBasketPrice(userId: string, basketDTO: BasketDTO): number {
-    this.checkDataRetrievalPermission(userId, basketDTO.storeId);
+    this.enforcePublicDataAccess(userId, basketDTO.storeId);
     const store = Store.fromStoreId(basketDTO.storeId, this.Repos);
     return store.getBasketPrice(basketDTO);
   }

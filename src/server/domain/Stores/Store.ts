@@ -6,6 +6,7 @@ import { Mixin } from "ts-mixer";
 import { type Controllers, HasControllers } from "../_HasController";
 import { randomUUID } from "crypto";
 import { TRPCError } from "@trpc/server";
+import { Discount } from "./Discount";
 
 export const nameSchema = z.string().nonempty();
 
@@ -19,13 +20,14 @@ export class Store extends Mixin(HasRepos, HasControllers) {
   private id: string;
   private name: string;
   private isActive: boolean;
-
+  private discounts: Discount[];
   constructor(name: string) {
     super();
     nameSchema.parse(name);
     this.id = randomUUID();
     this.name = name;
     this.isActive = true;
+    this.discounts = [];
   }
 
   static fromDTO(dto: StoreDTO, repos: Repos, controllers: Controllers) {

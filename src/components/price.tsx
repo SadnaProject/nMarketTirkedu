@@ -1,15 +1,33 @@
+import { twMerge } from "tailwind-merge";
+
 type Props = {
   price: number;
+  className?: string;
+  dollarClassName?: string;
+  integerClassName?: string;
+  decimalClassName?: string;
 };
 
-export default function Price({ price }: Props) {
+export default function Price({
+  price,
+  className,
+  dollarClassName,
+  integerClassName,
+  decimalClassName,
+}: Props) {
   const priceDecimal = afterDecimal(price);
 
   return (
-    <div className="text-slate-800">
-      <span className="align-text-bottom text-xl">$</span>{" "}
-      <span className="text-2xl font-bold">{Math.floor(price)}</span>{" "}
-      <span className="align-super text-sm font-bold">
+    <div className={twMerge("text-slate-800", className)}>
+      <span className={twMerge("align-text-bottom text-xl", dollarClassName)}>
+        $
+      </span>{" "}
+      <span className={twMerge("text-2xl font-bold", integerClassName)}>
+        {Math.floor(price)}
+      </span>{" "}
+      <span
+        className={twMerge("align-super text-sm font-bold", decimalClassName)}
+      >
         {priceDecimal === "00" ? "" : priceDecimal}
       </span>
     </div>

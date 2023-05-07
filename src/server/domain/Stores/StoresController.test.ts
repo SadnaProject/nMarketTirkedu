@@ -22,7 +22,7 @@ describe("search products", () => {
       createProduct(generateProductArgs(), repos)
     );
 
-    vi.spyOn(repos.Products, "getAllProducts").mockReturnValue(products);
+    vi.spyOn(repos.Products, "getActiveProducts").mockReturnValue(products);
     const store = createStore(generateStoreName(), repos);
     vi.spyOn(repos.Products, "getStoreIdByProductId").mockReturnValue(store.Id);
     vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);

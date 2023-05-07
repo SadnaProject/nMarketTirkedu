@@ -8,6 +8,7 @@ import { type StoreProductDTO } from "server/domain/Stores/StoreProduct";
 import Card from "components/card";
 import Price from "components/price";
 import { Rating } from "components/star";
+import { ProductCard } from "components/productCard";
 
 const products = [
   {
@@ -117,6 +118,7 @@ export default function Home() {
 
   return (
     <Layout>
+      <h1>Search Products</h1>
       <div className="rounded-md shadow-sm sm:flex">
         <CategoryDropdown />
         <Input placeholder="Product name" className="rounded-none" />
@@ -140,7 +142,7 @@ export default function Home() {
         list={products}
         getId={(product) => product.id}
         getItem={(product) => (
-          <Link href={`${PATHS.product.path}/${product.id}`}>
+          <Link href={PATHS.product.path(product.id)}>
             <ProductCard product={product} />
           </Link>
         )}
@@ -222,33 +224,5 @@ function DropdownSvg() {
         strokeLinecap="round"
       />
     </svg>
-  );
-}
-
-type ProductCardProps = {
-  product: StoreProductDTO;
-  nameClassName?: string;
-};
-
-function ProductCard({ product }: ProductCardProps) {
-  return (
-    <Card>
-      <h3 className="text-lg font-bold">{product.name}</h3>
-      <span className="font-bold text-slate-700">{product.category}</span>
-      <p
-        className="mt-2 h-[4.9rem] overflow-hidden"
-        style={{
-          WebkitLineClamp: 3,
-          WebkitBoxOrient: "vertical",
-          display: "-webkit-box",
-        }}
-      >
-        {product.description}
-      </p>
-      <div className="flex flex-col items-center justify-between md:flex-row">
-        <Price price={product.price} />
-        <Rating rating={3.24} votes={5} />
-      </div>
-    </Card>
   );
 }

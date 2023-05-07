@@ -9,7 +9,7 @@ export default function Home() {
   console.log(uid);
 
   return (
-    <div className="flex h-full flex-col items-center justify-between overflow-auto">
+    <div className="bg-pattern flex h-full flex-col items-center justify-between overflow-auto">
       <div className="flex h-full w-full justify-center overflow-auto scrollbar-track-gray-100 scrollbar-thumb-blue-300 sm:scrollbar-thin">
         <div className="flex h-full w-full max-w-xl flex-col gap-3 p-4">
           <div className="tooltip-left me-8 w-fit max-w-lg rounded-md bg-white p-3">

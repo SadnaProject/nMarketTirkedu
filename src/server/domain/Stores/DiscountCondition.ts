@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FullBasketDTO } from "./StoresController";
+import { type FullBasketDTO } from "./StoresController";
 import { discountLiteralConditionSchema } from "./DiscountLiteralCondition";
 import { discountAndSchema } from "./DiscountANDCondition";
 

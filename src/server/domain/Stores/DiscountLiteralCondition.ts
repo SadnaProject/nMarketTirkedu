@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { IDiscountCondition } from "./DiscountCondition";
-import { FullBasketDTO } from "./StoresController";
+import { type IDiscountCondition } from "./DiscountCondition";
+import { type FullBasketDTO } from "./StoresController";
 const discountOnSchema = z.enum(["Product", "Category", "Basket"]);
 type Discount_on = z.infer<typeof discountOnSchema>;
 const discountTypeSchema = z.enum(["AtLeast", "AtMost", "Exactly"]);

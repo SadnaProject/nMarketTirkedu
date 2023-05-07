@@ -1,9 +1,9 @@
 import { z } from "zod";
 import {
-  IDiscountCondition,
+  type IDiscountCondition,
   discountConditionSchema,
 } from "./DiscountCondition";
-import { FullBasketDTO } from "./StoresController";
+import { type FullBasketDTO } from "./StoresController";
 
 export const discountAndSchema = z.object({
   first: z.lazy(() => discountConditionSchema),

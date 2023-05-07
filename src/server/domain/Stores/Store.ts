@@ -6,7 +6,7 @@ import { Mixin } from "ts-mixer";
 import { type Controllers, HasControllers } from "../_HasController";
 import { randomUUID } from "crypto";
 import { TRPCError } from "@trpc/server";
-import { Discount } from "./Discount";
+import { type Discount } from "./Discount";
 
 export const nameSchema = z.string().nonempty();
 

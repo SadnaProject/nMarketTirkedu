@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   createTRPCRouter,
   publicProcedure,
-  authedProcedure,
+  validSessionProcedure,
 } from "server/service/trpc";
 
 import { MarketFacade } from "server/domain/MarketFacade";
@@ -11,7 +11,7 @@ import { censored } from "server/domain/_Loggable";
 const facade = new MarketFacade();
 
 export const UsersRouter = createTRPCRouter({
-  addProductToCart: authedProcedure
+  addProductToCart: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -23,7 +23,7 @@ export const UsersRouter = createTRPCRouter({
       const { userId, productId, amount } = input;
       return facade.addProductToCart(userId, productId, amount);
     }),
-  removeProductFromCart: authedProcedure
+  removeProductFromCart: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -34,7 +34,7 @@ export const UsersRouter = createTRPCRouter({
       const { userId, productId } = input;
       return facade.removeProductFromCart(userId, productId);
     }),
-  editProductQuantityInCart: authedProcedure
+  editProductQuantityInCart: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -46,7 +46,7 @@ export const UsersRouter = createTRPCRouter({
       const { userId, productId, amount } = input;
       return facade.editProductQuantityInCart(userId, productId, amount);
     }),
-  getCart: authedProcedure
+  getCart: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -56,7 +56,7 @@ export const UsersRouter = createTRPCRouter({
       const { userId } = input;
       return facade.getCart(userId);
     }),
-  getNotifications: authedProcedure
+  getNotifications: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -66,7 +66,7 @@ export const UsersRouter = createTRPCRouter({
       const { userId } = input;
       return facade.getNotifications(userId);
     }),
-  purchaseCart: authedProcedure
+  purchaseCart: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -78,7 +78,7 @@ export const UsersRouter = createTRPCRouter({
       return facade.purchaseCart(userId, { number });
     }),
 
-  removeUser: authedProcedure
+  removeUser: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -88,7 +88,7 @@ export const UsersRouter = createTRPCRouter({
       const { userId } = input;
       return facade.removeUser(userId);
     }),
-  readNotification: authedProcedure
+  readNotification: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -99,7 +99,7 @@ export const UsersRouter = createTRPCRouter({
       const { userId, notificationId } = input;
       return facade.readNotification(userId, notificationId);
     }),
-  addNotification: authedProcedure
+  addNotification: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -111,7 +111,7 @@ export const UsersRouter = createTRPCRouter({
       const { userId, notificationType, notification } = input;
       return facade.addNotification(userId, notificationType, notification);
     }),
-  getUnreadNotifications: authedProcedure
+  getUnreadNotifications: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -121,31 +121,29 @@ export const UsersRouter = createTRPCRouter({
       const { userId } = input;
       return facade.getUnreadNotifications(userId);
     }),
-  registerMember: publicProcedure
+  registerMember: validSessionProcedure
     .input(
       z.object({
-        name: z.string(),
         email: z.string(),
         password: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { name, email, password } = input;
-      return facade.registerMember(name, email, password);
+    .mutation(({ input, ctx }) => {
+      const { email, password } = input;
+      return facade.registerMember(ctx.session.user.id, email, password);
     }),
-  loginMember: publicProcedure
+  loginMember: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         email: z.string(),
         password: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, email, password } = input;
-      return facade.loginMember(userId, email, password);
+    .mutation(({ input, ctx }) => {
+      const { email, password } = input;
+      return facade.loginMember(ctx.session.user.id, email, password);
     }),
-  logoutMember: authedProcedure
+  logoutMember: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -155,7 +153,7 @@ export const UsersRouter = createTRPCRouter({
       const { userId } = input;
       return facade.logoutMember(userId);
     }),
-  disconnectUser: authedProcedure
+  disconnectUser: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -165,7 +163,7 @@ export const UsersRouter = createTRPCRouter({
       const { userId } = input;
       return facade.disconnectUser(userId);
     }),
-  removeMember: authedProcedure
+  removeMember: validSessionProcedure
     .input(
       z.object({ userIdOfActor: z.string(), memberIdToRemove: z.string() })
     )

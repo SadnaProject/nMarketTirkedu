@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
   createTRPCRouter,
-  authedProcedure,
+  validSessionProcedure,
   publicProcedure,
 } from "server/service/trpc";
 
@@ -12,7 +12,7 @@ import { EventEmitter } from "events";
 const facade = new MarketFacade();
 const eventEmitter = new EventEmitter();
 export const StoresRouter = createTRPCRouter({
-  makeStoreOwner: authedProcedure
+  makeStoreOwner: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -24,7 +24,7 @@ export const StoresRouter = createTRPCRouter({
       const { userId, storeId, targetUserId } = input;
       return facade.makeStoreOwner(userId, storeId, targetUserId);
     }),
-  makeStoreManager: authedProcedure
+  makeStoreManager: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -36,7 +36,7 @@ export const StoresRouter = createTRPCRouter({
       const { userId, storeId, targetUserId } = input;
       return facade.makeStoreManager(userId, storeId, targetUserId);
     }),
-  removeStoreOwner: authedProcedure
+  removeStoreOwner: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -48,7 +48,7 @@ export const StoresRouter = createTRPCRouter({
       const { userId, storeId, targetUserId } = input;
       return facade.removeStoreOwner(userId, storeId, targetUserId);
     }),
-  removeStoreManager: authedProcedure
+  removeStoreManager: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -60,7 +60,7 @@ export const StoresRouter = createTRPCRouter({
       const { userId, storeId, targetUserId } = input;
       return facade.removeStoreManager(userId, storeId, targetUserId);
     }),
-  setAddingProductPermission: authedProcedure
+  setAddingProductPermission: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -78,49 +78,49 @@ export const StoresRouter = createTRPCRouter({
         permission
       );
     }),
-  canCreateProductInStore: authedProcedure
+  canCreateProductInStore: validSessionProcedure
     .input(z.object({ userId: z.string(), storeId: z.string() }))
     .query(({ input }) => {
       const { userId, storeId } = input;
       return facade.canCreateProductInStore(userId, storeId);
     }),
-  isStoreOwner: authedProcedure
+  isStoreOwner: validSessionProcedure
     .input(z.object({ userId: z.string(), storeId: z.string() }))
     .query(({ input }) => {
       const { userId, storeId } = input;
       return facade.isStoreOwner(userId, storeId);
     }),
-  isStoreManager: authedProcedure
+  isStoreManager: validSessionProcedure
     .input(z.object({ userId: z.string(), storeId: z.string() }))
     .query(({ input }) => {
       const { userId, storeId } = input;
       return facade.isStoreManager(userId, storeId);
     }),
-  isStoreFounder: authedProcedure
+  isStoreFounder: validSessionProcedure
     .input(z.object({ userId: z.string(), storeId: z.string() }))
     .query(({ input }) => {
       const { userId, storeId } = input;
       return facade.isStoreFounder(userId, storeId);
     }),
-  getStoreFounder: authedProcedure
+  getStoreFounder: validSessionProcedure
     .input(z.object({ storeId: z.string() }))
     .query(({ input }) => {
       const { storeId } = input;
       return facade.getStoreFounder(storeId);
     }),
-  getStoreOwners: authedProcedure
+  getStoreOwners: validSessionProcedure
     .input(z.object({ storeId: z.string() }))
     .query(({ input }) => {
       const { storeId } = input;
       return facade.getStoreOwners(storeId);
     }),
-  getStoreManagers: authedProcedure
+  getStoreManagers: validSessionProcedure
     .input(z.object({ storeId: z.string() }))
     .query(({ input }) => {
       const { storeId } = input;
       return facade.getStoreManagers(storeId);
     }),
-  createProduct: authedProcedure
+  createProduct: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -143,19 +143,19 @@ export const StoresRouter = createTRPCRouter({
         description,
       });
     }),
-  isStoreActive: authedProcedure
+  isStoreActive: validSessionProcedure
     .input(z.object({ userId: z.string(), storeId: z.string() }))
     .query(({ input }) => {
       const { userId, storeId } = input;
       return facade.isStoreActive(userId, storeId);
     }),
-  getStoreProducts: authedProcedure
+  getStoreProducts: validSessionProcedure
     .input(z.object({ userId: z.string(), storeId: z.string() }))
     .query(({ input }) => {
       const { userId, storeId } = input;
       return facade.getStoreProducts(userId, storeId);
     }),
-  setProductQuantity: authedProcedure
+  setProductQuantity: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -167,7 +167,7 @@ export const StoresRouter = createTRPCRouter({
       const { userId, productId, quantity } = input;
       return facade.setProductQuantity(userId, productId, quantity);
     }),
-  decreaseProductQuantity: authedProcedure
+  decreaseProductQuantity: validSessionProcedure
     .input(
       z.object({
         productId: z.string(),
@@ -178,7 +178,7 @@ export const StoresRouter = createTRPCRouter({
       const { productId, quantity } = input;
       return facade.decreaseProductQuantity(productId, quantity);
     }),
-  deleteProduct: authedProcedure
+  deleteProduct: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -189,7 +189,7 @@ export const StoresRouter = createTRPCRouter({
       const { userId, productId } = input;
       return facade.deleteProduct(userId, productId);
     }),
-  setProductPrice: authedProcedure
+  setProductPrice: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -201,7 +201,7 @@ export const StoresRouter = createTRPCRouter({
       const { userId, productId, price } = input;
       return facade.setProductPrice(userId, productId, price);
     }),
-  createStore: authedProcedure
+  createStore: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -212,7 +212,7 @@ export const StoresRouter = createTRPCRouter({
       const { userId, name } = input;
       return facade.createStore(userId, name);
     }),
-  activateStore: authedProcedure
+  activateStore: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -223,7 +223,7 @@ export const StoresRouter = createTRPCRouter({
       const { userId, storeId } = input;
       return facade.activateStore(userId, storeId);
     }),
-  deactivateStore: authedProcedure
+  deactivateStore: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -234,7 +234,7 @@ export const StoresRouter = createTRPCRouter({
       const { userId, storeId } = input;
       return facade.deactivateStore(userId, storeId);
     }),
-  closeStorePermanently: authedProcedure
+  closeStorePermanently: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -245,7 +245,7 @@ export const StoresRouter = createTRPCRouter({
       const { userId, storeId } = input;
       return facade.closeStorePermanently(userId, storeId);
     }),
-  getProductPrice: authedProcedure
+  getProductPrice: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -256,7 +256,7 @@ export const StoresRouter = createTRPCRouter({
       const { userId, productId } = input;
       return facade.getProductPrice(userId, productId);
     }),
-  isProductQuantityInStock: authedProcedure
+  isProductQuantityInStock: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -268,7 +268,7 @@ export const StoresRouter = createTRPCRouter({
       const { userId, productId, quantity } = input;
       return facade.isProductQuantityInStock(userId, productId, quantity);
     }),
-  getStoreIdByProductId: authedProcedure
+  getStoreIdByProductId: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -280,7 +280,7 @@ export const StoresRouter = createTRPCRouter({
       return facade.getStoreIdByProductId(userId, productId);
     }),
   // TODO: getCartPrice, getBasketPrice
-  searchProducts: authedProcedure
+  searchProducts: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -320,7 +320,7 @@ export const StoresRouter = createTRPCRouter({
         maxStoreRating,
       });
     }),
-  getPurchaseByStore: authedProcedure
+  getPurchaseByStore: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),

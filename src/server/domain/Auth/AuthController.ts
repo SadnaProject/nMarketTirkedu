@@ -221,6 +221,7 @@ export class AuthController
     if (!this.Repos.Users.doesMemberExistById(userId)) return false;
     const member: MemberUserAuth = this.Repos.Users.getMemberById(userId);
     return member.isUserLoggedInAsMember();
+    return true;
   }
   public removeMember(userIdOfActor: string, memberIdToRemove: string): void {
     if (!this.isMember(memberIdToRemove)) {

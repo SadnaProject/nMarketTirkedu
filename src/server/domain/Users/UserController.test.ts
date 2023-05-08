@@ -395,7 +395,6 @@ describe("remove member", () => {
     // const MemberId = randomUUID();
     const AdminId = controllers.Auth.register("admin", "admin");
     controllers.Jobs.setInitialAdmin(AdminId);
-    expect(true).toBe(true);
     const guestId = controllers.Users.startSession();
     controllers.Users.register(email, password);
     //log the user in then check if the user exists, then remove the user and check if the user exists

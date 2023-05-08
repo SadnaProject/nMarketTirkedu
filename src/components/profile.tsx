@@ -7,10 +7,7 @@ import { twMerge } from "tailwind-merge";
 
 type Props = {
   id: string;
-} & React.DetailedHTMLProps<
-  React.ButtonHTMLAttributes<HTMLButtonElement>,
-  HTMLButtonElement
->;
+} & React.ComponentProps<"button">;
 
 export default forwardRef(function Profile(
   { id, ...props }: Props,

@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <Layout>
       <div className="flex h-full flex-col items-center justify-center gap-4">
-        <h1 className="text-center text-4xl font-bold text-primary">
+        <h1 className="text-center text-4xl text-primary">
           N Market. Tirkedu.
         </h1>
         <p className="text-center text-2xl text-slate-900">

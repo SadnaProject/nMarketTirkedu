@@ -563,7 +563,6 @@ describe("PurchaseCart", () => {
         number: "316586",
       })
     ).toThrow();
-    
   });
   it("❎purchase cart with no cart", () => {
     const purchasesHistoryController = new PurchasesHistoryController();

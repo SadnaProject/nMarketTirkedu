@@ -1,4 +1,4 @@
-import { Discount } from "./Discount";
+import { type Discount } from "./Discount";
 class DiscountPolicy {
   private storeId: string;
   private discounts: Discount[];

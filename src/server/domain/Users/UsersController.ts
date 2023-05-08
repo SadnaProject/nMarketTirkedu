@@ -117,11 +117,11 @@ export interface IUsersController {
    */
   logout(userId: string): string;
   /**
-   * @param userIdOfActor The user id of the user that asks to remove the member
-   * @param memberIdToRemove The user id of the member to remove
-   * @throws Error if the asking user doesnt have the permission to remove the member(i.e the asking user is not the system admin)
-   * @throws Error if the member to remove is not a member
-   * @throws Error if the member has any position(he cant be removed if he has any position)
+   * @param userIdOfActor The user id of the user that asks to remove the member.
+   * @param memberIdToRemove The user id of the member to remove.
+   * @throws Error if the asking user doesnt have the permission to remove the member(i.e the asking user is not the system admin).
+   * @throws Error if the member to remove is not a member.
+   * @throws Error if the member has any position(he cant be removed if he has any position).
    */
   removeMember(userIdOfActor: string, memberIdToRemove: string): void;
 }

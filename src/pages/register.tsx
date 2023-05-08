@@ -55,7 +55,7 @@ export default function Home() {
     <Layout>
       <Card>
         <div className="text-center">
-          <h1 className="block text-2xl font-bold text-slate-800">Sign Up</h1>
+          <h1>Sign Up</h1>
           <p className="mt-2 flex flex-wrap justify-center gap-x-1 text-sm text-slate-600">
             <span>Already have an account? </span>
             <Href className="font-medium" href={PATHS.login.path}>

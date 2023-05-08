@@ -1,22 +1,29 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import PATHS from "utils/paths";
-import classnames from "classnames";
 import { signOut, useSession } from "next-auth/react";
 import { GlowOnHover } from "./glow";
 import Button from "./button";
 import ButtonLight from "./buttonLight";
 import { twMerge } from "tailwind-merge";
 import Profile from "./profile";
+import Price from "./price";
 
-const links = [
+const publicLinks = [
   { name: "Products", path: PATHS.products.path },
   { name: "Stores", path: PATHS.stores.path },
 ] as const;
 
+const privateLinks = [
+  { name: "My Stores", path: PATHS.myStores.path },
+  { name: "My Receipts", path: PATHS.myReceipts.path },
+] as const;
+
 export default function Navbar() {
   const router = useRouter();
-  const activeLink = links.find((link) => link.path === router.pathname);
+  const activeLink = [...publicLinks, ...privateLinks].find(
+    (link) => link.path === router.pathname
+  );
   const { data: session } = useSession();
 
   return (
@@ -36,10 +43,24 @@ export default function Navbar() {
           className="hs-collapse hidden grow basis-full transition-all duration-300 sm:block"
         >
           <div className="mt-5 flex flex-col gap-5 sm:mt-0 sm:flex-row sm:items-center sm:justify-end sm:pl-5">
-            {links.map((link) => (
+            {publicLinks.map((link) => (
               <Link
                 key={link.name}
-                className={classnames(
+                className={twMerge(
+                  "font-medium hover:text-primary",
+                  link.path === activeLink?.path
+                    ? "text-primary"
+                    : "text-slate-600"
+                )}
+                href={link.path}
+              >
+                {link.name}
+              </Link>
+            ))}
+            {privateLinks.map((link) => (
+              <Link
+                key={link.name}
+                className={twMerge(
                   "font-medium hover:text-primary",
                   link.path === activeLink?.path
                     ? "text-primary"
@@ -53,6 +74,13 @@ export default function Navbar() {
             <Link href={PATHS.cart.path} passHref legacyBehavior>
               <ButtonLight>
                 <CartIcon className="h-4 w-4" />
+                <Price
+                  price={139.99}
+                  className="-my-10"
+                  dollarClassName="text-sm"
+                  integerClassName="text-lg"
+                  decimalClassName="text-xs"
+                />
               </ButtonLight>
             </Link>
             {session ? (
@@ -72,18 +100,18 @@ export default function Navbar() {
                       <Link
                         passHref
                         legacyBehavior
-                        href={`${PATHS.receipt.path}/todo`}
+                        href={PATHS.receipt.path("todo")}
                       >
                         <div className="flex cursor-pointer items-center gap-x-1.5 rounded-md px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 hover:bg-slate-100">
                           <CashIcon />
                           <div className="flex items-center gap-x-1">
-                            <Link href={`${PATHS.chat.path}/todo`}>
+                            <Link href={PATHS.chat.path("todo")}>
                               <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-900 hover:bg-blue-200">
                                 Omer
                               </span>
                             </Link>
                             bought from
-                            <Link href={`${PATHS.store.path}/todo`}>
+                            <Link href={PATHS.store.path("todo")}>
                               <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-900 hover:bg-blue-200">
                                 H&M
                               </span>

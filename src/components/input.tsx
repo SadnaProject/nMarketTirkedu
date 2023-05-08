@@ -1,10 +1,7 @@
 import { type ForwardedRef, forwardRef } from "react";
 import { twMerge } from "tailwind-merge";
 
-type Props = React.DetailedHTMLProps<
-  React.InputHTMLAttributes<HTMLInputElement>,
-  HTMLInputElement
->;
+type Props = React.ComponentProps<"input">;
 
 export default forwardRef(function Input(
   { ...props }: Props,

@@ -15,92 +15,99 @@ export const StoresRouter = createTRPCRouter({
   makeStoreOwner: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         storeId: z.string(),
         targetUserId: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, storeId, targetUserId } = input;
-      return facade.makeStoreOwner(userId, storeId, targetUserId);
+    .mutation(({ input, ctx }) => {
+      const { storeId, targetUserId } = input;
+      return facade.makeStoreOwner(ctx.session.user.id, storeId, targetUserId);
     }),
   makeStoreManager: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         storeId: z.string(),
         targetUserId: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, storeId, targetUserId } = input;
-      return facade.makeStoreManager(userId, storeId, targetUserId);
+    .mutation(({ input, ctx }) => {
+      const { storeId, targetUserId } = input;
+      return facade.makeStoreManager(
+        ctx.session.user.id,
+        storeId,
+        targetUserId
+      );
     }),
   removeStoreOwner: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         storeId: z.string(),
         targetUserId: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, storeId, targetUserId } = input;
-      return facade.removeStoreOwner(userId, storeId, targetUserId);
+    .mutation(({ input, ctx }) => {
+      const { storeId, targetUserId } = input;
+      return facade.removeStoreOwner(
+        ctx.session.user.id,
+        storeId,
+        targetUserId
+      );
     }),
   removeStoreManager: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         storeId: z.string(),
         targetUserId: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, storeId, targetUserId } = input;
-      return facade.removeStoreManager(userId, storeId, targetUserId);
+    .mutation(({ input, ctx }) => {
+      const { storeId, targetUserId } = input;
+      return facade.removeStoreManager(
+        ctx.session.user.id,
+        storeId,
+        targetUserId
+      );
     }),
   setAddingProductPermission: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         storeId: z.string(),
         targetUserId: z.string(),
         permission: z.boolean(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, storeId, targetUserId, permission } = input;
+    .mutation(({ input, ctx }) => {
+      const { storeId, targetUserId, permission } = input;
       return facade.setAddingProductToStorePermission(
-        userId,
+        ctx.session.user.id,
         storeId,
         targetUserId,
         permission
       );
     }),
   canCreateProductInStore: validSessionProcedure
-    .input(z.object({ userId: z.string(), storeId: z.string() }))
-    .query(({ input }) => {
-      const { userId, storeId } = input;
-      return facade.canCreateProductInStore(userId, storeId);
+    .input(z.object({ storeId: z.string() }))
+    .query(({ input, ctx }) => {
+      const { storeId } = input;
+      return facade.canCreateProductInStore(ctx.session.user.id, storeId);
     }),
   isStoreOwner: validSessionProcedure
-    .input(z.object({ userId: z.string(), storeId: z.string() }))
-    .query(({ input }) => {
-      const { userId, storeId } = input;
-      return facade.isStoreOwner(userId, storeId);
+    .input(z.object({ storeId: z.string() }))
+    .query(({ input, ctx }) => {
+      const { storeId } = input;
+      return facade.isStoreOwner(ctx.session.user.id, storeId);
     }),
   isStoreManager: validSessionProcedure
-    .input(z.object({ userId: z.string(), storeId: z.string() }))
-    .query(({ input }) => {
-      const { userId, storeId } = input;
-      return facade.isStoreManager(userId, storeId);
+    .input(z.object({ storeId: z.string() }))
+    .query(({ input, ctx }) => {
+      const { storeId } = input;
+      return facade.isStoreManager(ctx.session.user.id, storeId);
     }),
   isStoreFounder: validSessionProcedure
-    .input(z.object({ userId: z.string(), storeId: z.string() }))
-    .query(({ input }) => {
-      const { userId, storeId } = input;
-      return facade.isStoreFounder(userId, storeId);
+    .input(z.object({ storeId: z.string() }))
+    .query(({ input, ctx }) => {
+      const { storeId } = input;
+      return facade.isStoreFounder(ctx.session.user.id, storeId);
     }),
   getStoreFounder: validSessionProcedure
     .input(z.object({ storeId: z.string() }))
@@ -123,7 +130,6 @@ export const StoresRouter = createTRPCRouter({
   createProduct: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         storeId: z.string(),
         name: z.string(),
         category: z.string(),
@@ -132,10 +138,9 @@ export const StoresRouter = createTRPCRouter({
         description: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, storeId, name, category, quantity, price, description } =
-        input;
-      return facade.createProduct(userId, storeId, {
+    .mutation(({ input, ctx }) => {
+      const { storeId, name, category, quantity, price, description } = input;
+      return facade.createProduct(ctx.session.user.id, storeId, {
         name,
         category,
         price,
@@ -144,28 +149,31 @@ export const StoresRouter = createTRPCRouter({
       });
     }),
   isStoreActive: validSessionProcedure
-    .input(z.object({ userId: z.string(), storeId: z.string() }))
-    .query(({ input }) => {
-      const { userId, storeId } = input;
-      return facade.isStoreActive(userId, storeId);
+    .input(z.object({ storeId: z.string() }))
+    .query(({ input, ctx }) => {
+      const { storeId } = input;
+      return facade.isStoreActive(ctx.session.user.id, storeId);
     }),
   getStoreProducts: validSessionProcedure
-    .input(z.object({ userId: z.string(), storeId: z.string() }))
-    .query(({ input }) => {
-      const { userId, storeId } = input;
-      return facade.getStoreProducts(userId, storeId);
+    .input(z.object({ storeId: z.string() }))
+    .query(({ input, ctx }) => {
+      const { storeId } = input;
+      return facade.getStoreProducts(ctx.session.user.id, storeId);
     }),
   setProductQuantity: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         productId: z.string(),
         quantity: z.number(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, productId, quantity } = input;
-      return facade.setProductQuantity(userId, productId, quantity);
+    .mutation(({ input, ctx }) => {
+      const { productId, quantity } = input;
+      return facade.setProductQuantity(
+        ctx.session.user.id,
+        productId,
+        quantity
+      );
     }),
   decreaseProductQuantity: validSessionProcedure
     .input(
@@ -181,109 +189,103 @@ export const StoresRouter = createTRPCRouter({
   deleteProduct: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         productId: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, productId } = input;
-      return facade.deleteProduct(userId, productId);
+    .mutation(({ input, ctx }) => {
+      const { productId } = input;
+      return facade.deleteProduct(ctx.session.user.id, productId);
     }),
   setProductPrice: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         productId: z.string(),
         price: z.number(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, productId, price } = input;
-      return facade.setProductPrice(userId, productId, price);
+    .mutation(({ input, ctx }) => {
+      const { productId, price } = input;
+      return facade.setProductPrice(ctx.session.user.id, productId, price);
     }),
   createStore: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         name: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, name } = input;
-      return facade.createStore(userId, name);
+    .mutation(({ input, ctx }) => {
+      const { name } = input;
+      return facade.createStore(ctx.session.user.id, name);
     }),
   activateStore: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         storeId: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, storeId } = input;
-      return facade.activateStore(userId, storeId);
+    .mutation(({ input, ctx }) => {
+      const { storeId } = input;
+      return facade.activateStore(ctx.session.user.id, storeId);
     }),
   deactivateStore: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         storeId: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, storeId } = input;
-      return facade.deactivateStore(userId, storeId);
+    .mutation(({ input, ctx }) => {
+      const { storeId } = input;
+      return facade.deactivateStore(ctx.session.user.id, storeId);
     }),
   closeStorePermanently: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         storeId: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, storeId } = input;
-      return facade.closeStorePermanently(userId, storeId);
+    .mutation(({ input, ctx }) => {
+      const { storeId } = input;
+      return facade.closeStorePermanently(ctx.session.user.id, storeId);
     }),
   getProductPrice: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         productId: z.string(),
       })
     )
-    .query(({ input }) => {
-      const { userId, productId } = input;
-      return facade.getProductPrice(userId, productId);
+    .query(({ input, ctx }) => {
+      const { productId } = input;
+      return facade.getProductPrice(ctx.session.user.id, productId);
     }),
   isProductQuantityInStock: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         productId: z.string(),
         quantity: z.number(),
       })
     )
-    .query(({ input }) => {
-      const { userId, productId, quantity } = input;
-      return facade.isProductQuantityInStock(userId, productId, quantity);
+    .query(({ input, ctx }) => {
+      const { productId, quantity } = input;
+      return facade.isProductQuantityInStock(
+        ctx.session.user.id,
+        productId,
+        quantity
+      );
     }),
   getStoreIdByProductId: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         productId: z.string(),
       })
     )
-    .query(({ input }) => {
-      const { userId, productId } = input;
-      return facade.getStoreIdByProductId(userId, productId);
+    .query(({ input, ctx }) => {
+      const { productId } = input;
+      return facade.getStoreIdByProductId(ctx.session.user.id, productId);
     }),
   // TODO: getCartPrice, getBasketPrice
   searchProducts: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         name: z.string().optional(),
         category: z.string().optional(),
         keywords: z.array(z.string()).optional(),
@@ -295,9 +297,8 @@ export const StoresRouter = createTRPCRouter({
         maxStoreRating: z.number().optional(),
       })
     )
-    .query(({ input }) => {
+    .query(({ input, ctx }) => {
       const {
-        userId,
         name,
         category,
         keywords,
@@ -308,7 +309,7 @@ export const StoresRouter = createTRPCRouter({
         minStoreRating,
         maxStoreRating,
       } = input;
-      return facade.searchProducts(userId, {
+      return facade.searchProducts(ctx.session.user.id, {
         name,
         category,
         keywords,
@@ -323,13 +324,12 @@ export const StoresRouter = createTRPCRouter({
   getPurchaseByStore: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         storeId: z.string(),
       })
     )
-    .query(({ input }) => {
-      const { userId, storeId } = input;
-      return facade.getPurchasesByStore(userId, storeId);
+    .query(({ input, ctx }) => {
+      const { storeId } = input;
+      return facade.getPurchasesByStore(ctx.session.user.id, storeId);
     }),
 
   changeStoreState: publicProcedure

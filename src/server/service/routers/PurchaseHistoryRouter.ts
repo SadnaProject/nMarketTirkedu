@@ -8,20 +8,23 @@ export const PurchasesHistoryRouter = createTRPCRouter({
   reviewStore: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         purchaseId: z.string(),
         storeId: z.string(),
         review: z.number(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, purchaseId, storeId, review } = input;
-      return facade.reviewStore(userId, purchaseId, storeId, review);
+    .mutation(({ input, ctx }) => {
+      const { purchaseId, storeId, review } = input;
+      return facade.reviewStore(
+        ctx.session.user.id,
+        purchaseId,
+        storeId,
+        review
+      );
     }),
   reviewProduct: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         purchaseId: z.string(),
         productId: z.string(),
         review: z.number(),
@@ -29,11 +32,10 @@ export const PurchasesHistoryRouter = createTRPCRouter({
         reviewBody: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, purchaseId, productId, review, reviewTitle, reviewBody } =
-        input;
+    .mutation(({ input, ctx }) => {
+      const { purchaseId, productId, review, reviewTitle, reviewBody } = input;
       return facade.reviewProduct(
-        userId,
+        ctx.session.user.id,
         purchaseId,
         productId,
         review,

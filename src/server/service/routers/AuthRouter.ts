@@ -13,51 +13,40 @@ export const AuthRouter = createTRPCRouter({
     return facade.startSession();
   }),
   changeEmail: validSessionProcedure
-    .input(z.object({ userId: z.string(), newEmail: z.string() }))
-    .mutation(({ input }) => {
-      const { userId, newEmail } = input;
-      return facade.changeEmail(userId, newEmail);
+    .input(z.object({newEmail: z.string() }))
+    .mutation(({ input, ctx }) => {
+      const { newEmail } = input;
+      return facade.changeEmail(ctx.session.user.id, newEmail);
     }),
   changePassword: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         oldPassword: z.string(),
         newPassword: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, oldPassword, newPassword } = input;
-      return facade.changePassword(userId, oldPassword, newPassword);
+    .mutation(({ input, ctx }) => {
+      const {oldPassword, newPassword } = input;
+      return facade.changePassword(ctx.session.user.id, oldPassword, newPassword);
     }),
   isGuest: validSessionProcedure
-    .input(z.object({ userId: z.string() }))
-    .query(({ input }) => {
-      const { userId } = input;
-      return facade.isGuest(userId);
+    .query(({ ctx }) => {
+      return facade.isGuest(ctx.session.user.id);
     }),
   isMember: validSessionProcedure
-    .input(z.object({ userId: z.string() }))
-    .query(({ input }) => {
-      const { userId } = input;
-      return facade.isMember(userId);
+    .query(({ ctx }) => {
+      return facade.isMember(ctx.session.user.id);
     }),
   isConnected: validSessionProcedure
-    .input(z.object({ userId: z.string() }))
-    .query(({ input }) => {
-      const { userId } = input;
-      return facade.isConnected(userId);
+    .query(({ ctx }) => {
+      return facade.isConnected(ctx.session.user.id);
     }),
   getAllLoggedInMembersIds: validSessionProcedure
-    .input(z.object({ userId: z.string() }))
-    .query(({ input }) => {
-      const { userId } = input;
-      return facade.getAllLoggedInMembersIds(userId);
+    .query(({ ctx }) => {
+      return facade.getAllLoggedInMembersIds(ctx.session.user.id);
     }),
   getAllLoggedOutMembersIds: validSessionProcedure
-    .input(z.object({ userId: z.string() }))
-    .query(({ input }) => {
-      const { userId } = input;
-      return facade.getAllLoggedOutMembersIds(userId);
+    .query(({ ctx }) => {
+      return facade.getAllLoggedOutMembersIds(ctx.session.user.id);
     }),
 });

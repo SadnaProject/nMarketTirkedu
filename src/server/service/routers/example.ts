@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   createTRPCRouter,
   publicProcedure,
-  authedProcedure,
+  validSessionProcedure,
 } from "server/service/trpc";
 import { observable } from "@trpc/server/observable";
 import EventEmitter from "events";
@@ -36,14 +36,14 @@ export const exampleRouter = createTRPCRouter({
   //   return ctx.prisma.example.findMany();
   // }),
 
-  getSecretMessage: authedProcedure.query(() => {
-    return "you can now see this secret message!";
-  }),
+  // getSecretMessage: validSessionProcedure.query(() => {
+  //   return "you can now see this secret message!";
+  // }),
 
-  createStore: authedProcedure.mutation(() => {
-    // create on db
-    return "created store";
-  }),
+  // createStore: validSessionProcedure.mutation(() => {
+  //   // create on db
+  //   return "created store";
+  // }),
 
   randomNumber: publicProcedure.subscription(() => {
     return observable<number>((emit) => {

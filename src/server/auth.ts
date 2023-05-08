@@ -4,6 +4,7 @@ import {
   type NextAuthOptions,
   type DefaultSession,
   type DefaultUser,
+  User,
 } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "server/db";
@@ -11,6 +12,7 @@ import { env } from "env.mjs";
 import Credentials from "next-auth/providers/credentials";
 import { appRouter } from "./service/root";
 import zConvert from "./helpers/zConvert";
+import { TRPCError } from "@trpc/server";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -22,23 +24,26 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      name: string;
-      email: string;
+      type: "guest" | "member";
+      name?: string;
+      email?: string;
     } & DefaultSession["user"];
   }
 
   interface User extends DefaultUser {
     // ...other properties
-    name: string;
-    email: string;
+    type: "guest" | "member";
+    name?: string;
+    email?: string;
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
     userId: string;
-    name: string;
-    email: string;
+    type: "guest" | "member";
+    name?: string;
+    email?: string;
   }
 }
 
@@ -49,14 +54,17 @@ declare module "next-auth/jwt" {
  */
 export const authOptions: NextAuthOptions = {
   providers: [
-    // Credentials({
-    //   name: "anon",
-    //   credentials: {},
-    //   async authorize(credentials, req) {
-    //     //no need to check anything here, just create a new CT anonymous session and return the token
-    //     return {  };
-    //   },
-    // }),
+    Credentials({
+      name: "anon",
+      credentials: {},
+      async authorize() {
+        const caller = appRouter.createCaller({ session: null });
+        const userId = await zConvert(() => caller.auth.startSession());
+        return { id: userId, type: "guest" };
+        //no need to check anything here, just create a new CT anonymous session and return the token
+        // return {};
+      },
+    }),
     Credentials({
       name: "credentials",
       credentials: {
@@ -65,10 +73,19 @@ export const authOptions: NextAuthOptions = {
           type: "email",
         },
         password: { label: "Password", type: "password" },
+        session: { label: "Session", type: "text" },
       },
       authorize: async (credentials) => {
         const caller = appRouter.createCaller({ session: null });
-        return await zConvert(() => caller.example.authorize(credentials));
+        if (!credentials)
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Credentials are required",
+          });
+        const userId = await zConvert(() =>
+          caller.users.loginMember(credentials)
+        );
+        return { id: userId, email: credentials.email, type: "member" };
 
         // const result = await prisma.user.findFirst({
         //   where: { email },

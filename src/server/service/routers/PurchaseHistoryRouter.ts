@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { createTRPCRouter, authedProcedure } from "server/service/trpc";
+import { createTRPCRouter, validSessionProcedure } from "server/service/trpc";
 
 import { MarketFacade } from "server/domain/MarketFacade";
 
 const facade = new MarketFacade();
 export const PurchasesHistoryRouter = createTRPCRouter({
-  reviewStore: authedProcedure
+  reviewStore: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -18,7 +18,7 @@ export const PurchasesHistoryRouter = createTRPCRouter({
       const { userId, purchaseId, storeId, review } = input;
       return facade.reviewStore(userId, purchaseId, storeId, review);
     }),
-  reviewProduct: authedProcedure
+  reviewProduct: validSessionProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -41,7 +41,7 @@ export const PurchasesHistoryRouter = createTRPCRouter({
         reviewBody
       );
     }),
-  getStoreRating: authedProcedure
+  getStoreRating: validSessionProcedure
     .input(z.object({ storeId: z.string() }))
     .query(({ input }) => {
       const { storeId } = input;

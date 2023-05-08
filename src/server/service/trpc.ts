@@ -159,6 +159,5 @@ const enforceLoggedIn = t.middleware(({ ctx, next }) => {
       session: { ...ctx.session, user: ctx.session.user },
     },
   });
-}
-);
+});
 export const loggedInProcedure = t.procedure.use(enforceLoggedIn);

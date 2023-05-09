@@ -11,7 +11,12 @@ import { BasketProduct } from "../Users/BasketProduct";
 import { StoresController } from "../Stores/StoresController";
 import { itUnitIntegration } from "../_mock";
 import { PurchasesHistoryController } from "./PurchasesHistoryController";
+import {
+  createMockControllers,
+  createTestControllers,
+} from "../_createControllers";
 
+let controllers: ReturnType<typeof createTestControllers>;
 const productPurchaseData = {
   id: "id",
   createdAt: new Date(),
@@ -89,6 +94,8 @@ describe("FromDTO", () => {
 
 describe("BasketPurchaseDTOFromBasketDTO", () => {
   it("should return a BasketPurchaseDTO", () => {
+    controllers = createMockControllers("PurchasesHistory");
+
     const basketProductDTO = {
       storeProductId: "productId",
       quantity: 1,
@@ -98,7 +105,7 @@ describe("BasketPurchaseDTOFromBasketDTO", () => {
       products: [basketProductDTO],
     };
     vi.spyOn(
-      ProductPurchase,
+      controllers.PurchasesHistory,
       "ProductPurchaseDTOFromBasketProductDTO"
     ).mockReturnValueOnce({
       purchaseId: "purchaseId",
@@ -110,7 +117,7 @@ describe("BasketPurchaseDTOFromBasketDTO", () => {
       1
     );
     const basketPurchaseDTO =
-      PurchasesHistoryController.BasketPurchaseDTOFromBasketDTO(
+      controllers.PurchasesHistory.BasketPurchaseDTOFromBasketDTO(
         basketDTO,
         "purchaseId",
         "userId"

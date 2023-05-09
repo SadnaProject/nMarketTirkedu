@@ -523,9 +523,10 @@ describe("PurchaseCart", () => {
     };
     // spy on storeproductrepo getProductById
     const purchasesHistoryController = new PurchasesHistoryController();
-    vi.spyOn(CartPurchase, "CartPurchaseDTOfromCartDTO").mockReturnValue(
-      cartPurchase.ToDTO()
-    );
+    vi.spyOn(
+      PurchasesHistoryController.prototype,
+      "CartPurchaseDTOfromCartDTO"
+    ).mockReturnValue(cartPurchase.ToDTO());
     vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
     purchasesHistoryController.purchaseCart("admin", cartDTO, 1, {
       number: "316586",
@@ -554,9 +555,10 @@ describe("PurchaseCart", () => {
     // spy on storeproductrepo getProductById
     vi.spyOn(PaymentAdapter, "pay").mockReturnValue(false);
     const purchasesHistoryController = new PurchasesHistoryController();
-    vi.spyOn(CartPurchase, "CartPurchaseDTOfromCartDTO").mockReturnValue(
-      cartPurchase.ToDTO()
-    );
+    vi.spyOn(
+      PurchasesHistoryController.prototype,
+      "CartPurchaseDTOfromCartDTO"
+    ).mockReturnValue(cartPurchase.ToDTO());
     vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
     expect(() =>
       purchasesHistoryController.purchaseCart("admin", cartDTO, 1, {
@@ -581,9 +583,10 @@ describe("PurchaseCart", () => {
     const cartDTO = {
       storeIdToBasket: StoreIDToBasketMap,
     };
-    vi.spyOn(CartPurchase, "CartPurchaseDTOfromCartDTO").mockReturnValue(
-      cartPurchase.ToDTO()
-    );
+    vi.spyOn(
+      PurchasesHistoryController.prototype,
+      "CartPurchaseDTOfromCartDTO"
+    ).mockReturnValue(cartPurchase.ToDTO());
     vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
     purchasesHistoryController.purchaseCart("admin", cartDTO, 1, {
       number: "316586",

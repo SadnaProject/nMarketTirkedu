@@ -133,11 +133,7 @@ export class PurchasesHistoryController
     //   });
     // });
     // for every storeId in cart, EventEmmiter.emit("purchase", storeId, cart.storeIdToBasket.get(storeId))
-    const cartPurchase = CartPurchase.CartPurchaseDTOfromCartDTO(
-      cart,
-      userId,
-      price
-    );
+    const cartPurchase = this.CartPurchaseDTOfromCartDTO(cart, userId, price);
     this.addPurchase(CartPurchase.fromDTO(cartPurchase));
     for (const [storeId, basket] of cart.storeIdToBasket) {
       emitter.emit(`purchase store ${storeId}`, {

@@ -4,12 +4,10 @@ import {
   validSessionProcedure,
   publicProcedure,
 } from "server/service/trpc";
-
-import { MarketFacade } from "server/domain/MarketFacade";
 import { observable } from "@trpc/server/observable";
 import { EventEmitter } from "events";
+import { facade } from "../_facade";
 
-const facade = new MarketFacade();
 const eventEmitter = new EventEmitter();
 export const StoresRouter = createTRPCRouter({
   makeStoreOwner: validSessionProcedure
@@ -279,8 +277,7 @@ export const StoresRouter = createTRPCRouter({
       })
     )
     .query(({ input, ctx }) => {
-      const { productId } = input;
-      return facade.getStoreIdByProductId(ctx.session.user.id, productId);
+      return facade.getStoreIdByProductId(ctx.session.user.id, input.productId);
     }),
   // TODO: getCartPrice, getBasketPrice
   searchProducts: validSessionProcedure
@@ -298,28 +295,7 @@ export const StoresRouter = createTRPCRouter({
       })
     )
     .query(({ input, ctx }) => {
-      const {
-        name,
-        category,
-        keywords,
-        minPrice,
-        maxPrice,
-        minProductRating,
-        maxProductRating,
-        minStoreRating,
-        maxStoreRating,
-      } = input;
-      return facade.searchProducts(ctx.session.user.id, {
-        name,
-        category,
-        keywords,
-        minPrice,
-        maxPrice,
-        minProductRating,
-        maxProductRating,
-        minStoreRating,
-        maxStoreRating,
-      });
+      return facade.searchProducts(ctx.session.user.id, input);
     }),
   getPurchaseByStore: validSessionProcedure
     .input(

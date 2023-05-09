@@ -1,7 +1,7 @@
 import PATHS from "utils/paths";
 import Layout from "./_layout";
 import Card from "components/card";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { toast } from "react-hot-toast";
 import Spinner from "components/spinner";
@@ -11,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Button from "components/button";
 import Href from "components/href";
 import { FormInput } from "components/form";
+import { api } from "utils/api";
 
 const formSchema = z.object({
   email: z
@@ -27,20 +28,34 @@ export default function Home() {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    getValues,
   } = useForm<FormValues>({ resolver: zodResolver(formSchema) });
   const router = useRouter();
+  const { data: session } = useSession();
+  const { mutate: loginMember } = api.users.loginMember.useMutation({
+    onError: (err) => toast.error(err.message),
+    onSuccess: async (userId) => {
+      const values = getValues();
+      const res = await signIn("credentials", {
+        id: userId,
+        email: values.email,
+        password: values.password,
+        session: JSON.stringify(session),
+        redirect: false,
+      });
+      if (res?.ok) {
+        await router.push(PATHS.home.path);
+      } else {
+        toast.error(res?.error || "Something went wrong");
+      }
+    },
+  });
 
-  const handleSignUp = handleSubmit(async (data) => {
-    const res = await signIn("credentials", {
+  const handleSignUp = handleSubmit((data) => {
+    loginMember({
       email: data.email,
       password: data.password,
-      redirect: false,
     });
-    if (res?.ok) {
-      await router.push(PATHS.home.path);
-    } else {
-      toast.error(res?.error || "Something went wrong");
-    }
   });
 
   return (

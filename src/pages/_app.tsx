@@ -9,6 +9,7 @@ import Navbar from "components/navbar";
 import Script from "next/script";
 import { Provider } from "react-wrap-balancer";
 import { Toaster } from "react-hot-toast";
+import { EnforceSession } from "./_enforceSession";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -25,6 +26,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
           />
           <link rel="icon" href="/favicon.svg" />
         </Head>
+        <EnforceSession />
         <main className="flex h-screen flex-col">
           <Toaster position="bottom-right" reverseOrder={false} />
           <div className="shadow-middle relative z-10">

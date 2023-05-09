@@ -10,8 +10,9 @@ import { itUnitIntegration } from "../_mock";
 import {
   createControllers,
   createMockControllers,
+  createTestControllers,
 } from "../_createControllers";
-
+let controllers: ReturnType<typeof createTestControllers>;
 const productPurchaseData = {
   id: "id",
   createdAt: new Date(),
@@ -35,11 +36,14 @@ describe("constructor", () => {
 });
 
 describe("ProductPurchaseDTOFromBasketProductDTO", () => {
-  it("should create a product purchase DTO from a basket product DTO", (testType) => {
+
+  it("should create a product purchase DTO from a basket product DTO", () => {
     // add product to store
-    vi.spyOn(StoresController.prototype, "getProductPrice").mockReturnValue(1);
+    controllers = createMockControllers("PurchasesHistory");
+    vi.spyOn(controllers.Stores, "getProductPrice").mockReturnValue(1);
+
     const productPurchaseDTO =
-      ProductPurchase.ProductPurchaseDTOFromBasketProductDTO(
+      controllers.PurchasesHistory.ProductPurchaseDTOFromBasketProductDTO(
         {
           storeProductId: "productId",
           quantity: 1,

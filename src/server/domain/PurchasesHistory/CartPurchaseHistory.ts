@@ -20,31 +20,6 @@ export class CartPurchase extends HasRepos {
   private totalPrice: number;
   private userId: string;
 
-  static CartPurchaseDTOfromCartDTO(
-    cartDTO: CartDTO,
-    userId: string,
-    totalPrice: number
-  ): CartPurchaseDTO {
-    const purchaseId = randomUUID();
-    const storeIdToBasketPurchases = new Map<string, BasketPurchaseDTO>();
-    cartDTO.storeIdToBasket.forEach((basketPurchase, storeId) => {
-      storeIdToBasketPurchases.set(
-        storeId,
-        BasketPurchase.BasketPurchaseDTOFromBasketDTO(
-          basketPurchase,
-          purchaseId,
-          userId
-        )
-      );
-    });
-    return {
-      purchaseId: purchaseId,
-      userId: userId,
-      storeIdToBasketPurchases: storeIdToBasketPurchases,
-      totalPrice: totalPrice,
-    };
-  }
-
   constructor(
     userId: string,
     purchaseId: string,

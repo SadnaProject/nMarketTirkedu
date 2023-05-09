@@ -4,12 +4,10 @@ import {
   validSessionProcedure,
   publicProcedure,
 } from "server/service/trpc";
-
-import { MarketFacade } from "server/domain/MarketFacade";
 import { observable } from "@trpc/server/observable";
 import { EventEmitter } from "events";
+import { facade } from "../_facade";
 
-const facade = new MarketFacade();
 const eventEmitter = new EventEmitter();
 export const StoresRouter = createTRPCRouter({
   makeStoreOwner: validSessionProcedure
@@ -279,10 +277,30 @@ export const StoresRouter = createTRPCRouter({
       })
     )
     .query(({ input, ctx }) => {
-      const { productId } = input;
-      return facade.getStoreIdByProductId(ctx.session.user.id, productId);
+      return facade.getStoreIdByProductId(ctx.session.user.id, input.productId);
     }),
-  // TODO: getCartPrice, getBasketPrice
+  searchStores: validSessionProcedure
+    .input(
+      z.object({
+        name: z.string(),
+      })
+    )
+    .query(({ input, ctx }) => {
+      return facade.searchStores(ctx.session.user.id, input.name);
+    }),
+  getCartPrice: validSessionProcedure.input(z.object({})).query(({ ctx }) => {
+    return facade.getCartPrice(ctx.session.user.id);
+  }),
+  getBasketPrice: validSessionProcedure
+    .input(
+      z.object({
+        storeId: z.string(),
+      })
+    )
+    .query(({ input, ctx }) => {
+      return facade.getBasketPrice(ctx.session.user.id, input.storeId);
+    }),
+
   searchProducts: validSessionProcedure
     .input(
       z.object({
@@ -298,28 +316,7 @@ export const StoresRouter = createTRPCRouter({
       })
     )
     .query(({ input, ctx }) => {
-      const {
-        name,
-        category,
-        keywords,
-        minPrice,
-        maxPrice,
-        minProductRating,
-        maxProductRating,
-        minStoreRating,
-        maxStoreRating,
-      } = input;
-      return facade.searchProducts(ctx.session.user.id, {
-        name,
-        category,
-        keywords,
-        minPrice,
-        maxPrice,
-        minProductRating,
-        maxProductRating,
-        minStoreRating,
-        maxStoreRating,
-      });
+      return facade.searchProducts(ctx.session.user.id, input);
     }),
   getPurchaseByStore: validSessionProcedure
     .input(

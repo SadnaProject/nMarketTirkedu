@@ -4,11 +4,7 @@ import {
   publicProcedure,
   validSessionProcedure,
 } from "server/service/trpc";
-
-import { MarketFacade } from "server/domain/MarketFacade";
-import { censored } from "server/domain/_Loggable";
-
-const facade = new MarketFacade();
+import { facade } from "../_facade";
 
 export const UsersRouter = createTRPCRouter({
   addProductToCart: validSessionProcedure

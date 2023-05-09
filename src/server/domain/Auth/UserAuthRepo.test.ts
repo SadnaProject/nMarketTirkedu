@@ -87,7 +87,9 @@ describe("remove member", () => {
     expect(repos.Users.getAllMembers()).toEqual([]);
   });
   it("❎doesn't find member", () => {
+    const members = repos.Users.getAllMembers();
     expect(() => repos.Users.removeMember(getMemberI(1).UserId)).toThrow();
+    expect(repos.Users.getAllMembers()).toEqual(members);
   });
 });
 describe("remove guest", () => {
@@ -98,6 +100,8 @@ describe("remove guest", () => {
     expect(repos.Users.getAllGuests()).toEqual([]);
   });
   it("❎doesn't find guest", () => {
+    const guests = repos.Users.getAllGuests();
     expect(() => repos.Users.removeGuest(getGuestI(1).UserId)).toThrow();
+    expect(repos.Users.getAllGuests()).toEqual(guests);
   });
 });

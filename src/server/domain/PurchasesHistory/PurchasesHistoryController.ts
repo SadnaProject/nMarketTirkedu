@@ -17,7 +17,7 @@ import { error } from "console";
 import { createControllers } from "../_createControllers";
 import { JobsController } from "../Jobs/JobsController";
 import { TRPCError } from "@trpc/server";
-import { emitter } from "server/Emitter";
+import { emitter } from "server/EventEmitter";
 import { censored } from "../_Loggable";
 
 export interface IPurchasesHistoryController extends HasRepos {

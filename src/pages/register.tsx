@@ -12,6 +12,7 @@ import Button from "components/button";
 import Href from "components/href";
 import { FormInput } from "components/form";
 import { api } from "utils/api";
+import { onError } from "utils/onError";
 
 const formSchema = z
   .object({
@@ -45,9 +46,7 @@ export default function Home() {
       //   redirect: false,
       // });
     },
-    onError: (err) => {
-      toast.error(err.message);
-    },
+    onError,
   });
   const {
     register,

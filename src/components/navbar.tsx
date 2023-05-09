@@ -8,6 +8,10 @@ import ButtonLight from "./buttonLight";
 import { twMerge } from "tailwind-merge";
 import Profile from "./profile";
 import Price from "./price";
+import { api } from "utils/api";
+import { onError } from "utils/onError";
+import { CartDTO } from "server/domain/Users/Cart";
+import { on } from "events";
 
 const publicLinks = [
   { name: "Products", path: PATHS.products.path },
@@ -16,7 +20,7 @@ const publicLinks = [
 
 const privateLinks = [
   { name: "My Stores", path: PATHS.myStores.path },
-  { name: "My Receipts", path: PATHS.myReceipts.path },
+  // { name: "My Receipts", path: PATHS.myReceipts.path },
 ] as const;
 
 export default function Navbar() {
@@ -24,7 +28,18 @@ export default function Navbar() {
   const activeLink = [...publicLinks, ...privateLinks].find(
     (link) => link.path === router.pathname
   );
+  const { mutate: serverSignOut } = api.users.logoutMember.useMutation({
+    onSuccess: async () => {
+      await signOut();
+    },
+    onError,
+  });
   const { data: session } = useSession();
+  const { data: notifications, refetch: refetchNotifications } =
+    api.users.getNotifications.useQuery();
+  api.example.onAddNotificationEvent.useSubscription(undefined, {
+    onData: () => void refetchNotifications(),
+  });
 
   return (
     <header className="flex w-full flex-wrap bg-white text-sm drop-shadow-xl sm:flex-nowrap sm:justify-start">
@@ -88,41 +103,49 @@ export default function Navbar() {
                 <div className="hs-dropdown relative inline-flex w-fit">
                   <ButtonLight id="hs-dropdown-with-dividers">
                     <BellIcon />
-                    <span className="absolute right-0 top-0 inline-flex -translate-y-1/2 translate-x-1/2 transform items-center rounded-full bg-rose-800 px-1.5 py-0.5 text-xs font-medium text-white">
-                      99+
-                    </span>
+                    {notifications?.length && notifications?.length > 0 && (
+                      <span className="absolute right-0 top-0 inline-flex -translate-y-1/2 translate-x-1/2 transform items-center rounded-full bg-rose-800 px-1.5 py-0.5 text-xs font-medium text-white">
+                        {notifications?.length}
+                      </span>
+                    )}
                   </ButtonLight>
                   <div
-                    className="hs-dropdown-menu duration shadow-middle z-10 mt-2 hidden min-w-[15rem] divide-y divide-gray-200 rounded-lg bg-white p-2 opacity-0 shadow-md transition-[opacity,margin] hs-dropdown-open:opacity-100"
+                    className="hs-dropdown-menu duration shadow-middle z-10 mt-2 hidden max-h-80 min-w-[15rem] divide-y divide-gray-200 overflow-auto rounded-lg bg-white p-2 opacity-0 shadow-md transition-[opacity,margin] hs-dropdown-open:opacity-100"
                     aria-labelledby="hs-dropdown-with-dividers"
                   >
                     <div className="py-2 first:pt-0 last:pb-0">
-                      <Link
-                        passHref
-                        legacyBehavior
-                        href={PATHS.receipt.path("todo")}
-                      >
-                        <div className="flex cursor-pointer items-center gap-x-1.5 rounded-md px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 hover:bg-slate-100">
-                          <CashIcon />
-                          <div className="flex items-center gap-x-1">
-                            <Link href={PATHS.chat.path("todo")}>
-                              <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-900 hover:bg-blue-200">
-                                Omer
-                              </span>
-                            </Link>
-                            bought from
-                            <Link href={PATHS.store.path("todo")}>
-                              <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-900 hover:bg-blue-200">
-                                H&M
-                              </span>
-                            </Link>
+                      {notifications?.map((notification) => (
+                        <Link
+                          key={notification.Id}
+                          passHref
+                          legacyBehavior
+                          href={PATHS.receipt.path("todo")}
+                        >
+                          <div className="flex cursor-pointer items-center gap-x-1.5 rounded-md px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 hover:bg-slate-100">
+                            <CashIcon />
+                            <div className="flex items-center gap-x-1">
+                              <Link href={PATHS.chat.path("todo")}>
+                                <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-900 hover:bg-blue-200">
+                                  Omer
+                                </span>
+                              </Link>
+                              bought from
+                              <Link href={PATHS.store.path("todo")}>
+                                <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-900 hover:bg-blue-200">
+                                  H&M
+                                </span>
+                              </Link>
+                            </div>
                           </div>
-                        </div>
-                      </Link>
+                        </Link>
+                      ))}
                     </div>
                   </div>
                 </div>
-                <Profile id={session.user.id} onClick={() => void signOut()} />
+                <Profile
+                  id={session.user.id}
+                  onClick={() => void serverSignOut()}
+                />
               </>
             ) : (
               <Link href={PATHS.login.path} passHref legacyBehavior>

@@ -5,10 +5,9 @@ import {
   publicProcedure,
 } from "server/service/trpc";
 import { observable } from "@trpc/server/observable";
-import { EventEmitter } from "events";
 import { facade } from "../_facade";
+import { eventEmitter } from "server/EventEmitter";
 
-const eventEmitter = new EventEmitter();
 export const StoresRouter = createTRPCRouter({
   makeStoreOwner: validSessionProcedure
     .input(

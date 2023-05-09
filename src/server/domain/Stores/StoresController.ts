@@ -13,7 +13,7 @@ import { Testable, testable } from "server/domain/_Testable";
 import fuzzysearch from "fuzzysearch-ts";
 import { type BasketPurchaseDTO } from "../PurchasesHistory/BasketPurchaseHistory";
 import { TRPCError } from "@trpc/server";
-import { emitter } from "server/Emitter";
+import { emitter } from "server/EventEmitter";
 
 export type SearchArgs = {
   name?: string;

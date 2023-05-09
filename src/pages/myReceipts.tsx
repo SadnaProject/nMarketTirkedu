@@ -7,6 +7,7 @@ import { Rating } from "components/star";
 import PATHS from "utils/paths";
 import Price from "components/price";
 import { TimeIcon } from "components/icons";
+import { api } from "utils/api";
 
 const receipts = [
   {
@@ -34,6 +35,7 @@ export default function Home() {
   // useEffect(() => {
   //   setProducts(Array.from({ length: 11 }, generateProductDTO));
   // }, []);
+  // api.purchaseHistory.useQuery({
 
   return (
     <Layout>

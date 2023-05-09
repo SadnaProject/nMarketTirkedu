@@ -323,11 +323,11 @@ export class MarketFacade extends Loggable {
   getStoreIdByProductId(userId: string, productId: string): string {
     return this.controllers.Stores.getStoreIdByProductId(userId, productId);
   }
-  getCartPrice(userId: string, cartDTO: CartDTO): number {
-    return this.controllers.Stores.getCartPrice(userId, cartDTO);
+  getCartPrice(userId: string): number {
+    return this.controllers.Stores.getCartPrice(userId);
   }
-  getBasketPrice(userId: string, basketDTO: BasketDTO): number {
-    return this.controllers.Stores.getBasketPrice(userId, basketDTO);
+  getBasketPrice(userId: string, storeId: string): number {
+    return this.controllers.Stores.getBasketPrice(userId, storeId);
   }
   searchProducts(userId: string, searchArgs: SearchArgs): StoreProductDTO[] {
     return this.controllers.Stores.searchProducts(userId, searchArgs);

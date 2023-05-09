@@ -56,7 +56,7 @@ export class BasketPurchase extends HasRepos {
       purchaseId: purchaseId,
       storeId: basketDTO.storeId,
       products: products,
-      price: new StoresController().getBasketPrice(userId, basketDTO),
+      price: new StoresController().getBasketPrice(userId, basketDTO.storeId),
     };
   }
 

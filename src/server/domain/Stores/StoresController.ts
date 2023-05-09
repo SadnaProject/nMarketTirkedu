@@ -14,6 +14,7 @@ import fuzzysearch from "fuzzysearch-ts";
 import { type BasketPurchaseDTO } from "../PurchasesHistory/BasketPurchaseHistory";
 import { TRPCError } from "@trpc/server";
 import { emitter } from "server/Emitter";
+import { m } from "framer-motion";
 
 export type SearchArgs = {
   name?: string;
@@ -174,12 +175,11 @@ export interface IStoresController extends HasRepos {
   /**
    * This function returns the total price of a cart.
    * @param userId The id of the user that is currently logged in.
-   * @param cartDTO The cart.
    * @returns The total price of the cart.
    * @throws Error if a product does not exist.
    * @throws Error if a product does not belong to the store of its basket.
    */
-  getCartPrice(userId: string, cartDTO: CartDTO): number;
+  getCartPrice(userId: string): number;
   /**
    * This function returns the total price of a basket.
    * @param userId The id of the user that is currently logged in.
@@ -188,7 +188,7 @@ export interface IStoresController extends HasRepos {
    * @throws Error if a product does not exist.
    * @throws Error if a product does not belong to the store of its basket.
    */
-  getBasketPrice(userId: string, basketDTO: BasketDTO): number;
+  getBasketPrice(userId: string, storeId: string): number;
   /**
    * This function returns the products that match the search arguments.
    * @param userId The id of the user that is currently logged in.
@@ -514,17 +514,25 @@ export class StoresController
     return product.Store.Id;
   }
 
-  getCartPrice(userId: string, cartDTO: CartDTO): number {
+  getCartPrice(userId: string): number {
+    const cartDTO = this.Controllers.Users.getCart(userId);
     let price = 0;
-    cartDTO.storeIdToBasket.forEach((basket, storeId) => {
-      price += this.getBasketPrice(userId, basket);
+    cartDTO.storeIdToBasket.forEach((basket) => {
+      price += this.getBasketPrice(userId, basket.storeId);
     });
     return price;
   }
 
-  getBasketPrice(userId: string, basketDTO: BasketDTO): number {
-    this.enforcePublicDataAccess(userId, basketDTO.storeId);
-    const store = Store.fromStoreId(basketDTO.storeId, this.Repos);
+  getBasketPrice(userId: string, storeId: string): number {
+    this.enforcePublicDataAccess(userId, storeId);
+    const store = Store.fromStoreId(storeId, this.Repos);
+    const cartDTO = this.Controllers.Users.getCart(userId);
+    const basketDTO = cartDTO.storeIdToBasket.get(storeId);
+    if (!basketDTO)
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Basket does not exist",
+      });
     return store.getBasketPrice(basketDTO);
   }
 

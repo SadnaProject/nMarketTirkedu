@@ -26,7 +26,7 @@ export default function Home() {
   const router = useRouter();
   const { receiptId } = router.query;
   const session = useSession();
-  const receipt = { id: "todo", date: new Date("2021-09-01") };
+  const receipt = { id: "todo", date: new Date("2021-09-01"), userId: "123" };
   // todo - if buyer show all, if seller show only his
 
   return (
@@ -72,7 +72,7 @@ export default function Home() {
                 <Price price={product.price} />
                 <Rating rating={3.24} votes={5} />
               </div>
-              {session.data?.user.id === receipt.id && (
+              {session.data?.user.id === receipt.userId && (
                 <>
                   <br />
                   <div className="flex justify-between">

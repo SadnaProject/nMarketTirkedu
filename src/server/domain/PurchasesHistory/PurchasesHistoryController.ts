@@ -12,13 +12,18 @@ import { Mixin } from "ts-mixer";
 import { Testable, testable } from "server/domain/_Testable";
 import { HasRepos, type Repos, createRepos } from "./_HasRepos";
 import { type CreditCard, PaymentAdapter } from "./PaymentAdaptor";
-import { type ProductPurchase } from "./ProductPurchaseHistory";
+import {
+  ProductPurchaseDTO,
+  type ProductPurchase,
+} from "./ProductPurchaseHistory";
 import { error } from "console";
 import { createControllers } from "../_createControllers";
 import { JobsController } from "../Jobs/JobsController";
 import { TRPCError } from "@trpc/server";
 import { emitter } from "server/Emitter";
 import { censored } from "../_Loggable";
+import { BasketDTO } from "../Users/Basket";
+import { BasketProductDTO } from "../Users/BasketProduct";
 
 export interface IPurchasesHistoryController extends HasRepos {
   getPurchase(purchaseId: string): CartPurchaseDTO;
@@ -50,6 +55,21 @@ export interface IPurchasesHistoryController extends HasRepos {
   };
   getPurchasesByUser(admingId: string, userId: string): CartPurchaseDTO[];
   getPurchasesByStore(storeId: string): BasketPurchaseDTO[];
+  ProductPurchaseDTOFromBasketProductDTO(
+    basketProductDTO: BasketProductDTO,
+    purchaseId: string,
+    userId: string
+  ): ProductPurchaseDTO;
+  BasketPurchaseDTOFromBasketDTO(
+    basket: BasketDTO,
+    purchaseId: string,
+    userId: string
+  ): BasketPurchaseDTO;
+  CartPurchaseDTOfromCartDTO(
+    cartDTO: CartDTO,
+    userId: string,
+    totalPrice: number
+  ): CartPurchaseDTO;
 }
 
 @testable
@@ -62,7 +82,7 @@ export class PurchasesHistoryController
     this.initRepos(repos);
   }
   getPurchasesByUser(admingId: string, userId: string): CartPurchaseDTO[] {
-    if (new JobsController().isSystemAdmin(admingId) === false) {
+    if (this.Controllers.Jobs.isSystemAdmin(admingId) === false) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
@@ -113,11 +133,7 @@ export class PurchasesHistoryController
     //   });
     // });
     // for every storeId in cart, EventEmmiter.emit("purchase", storeId, cart.storeIdToBasket.get(storeId))
-    const cartPurchase = CartPurchase.CartPurchaseDTOfromCartDTO(
-      cart,
-      userId,
-      price
-    );
+    const cartPurchase = this.CartPurchaseDTOfromCartDTO(cart, userId, price);
     this.addPurchase(CartPurchase.fromDTO(cartPurchase));
     for (const [storeId, basket] of cart.storeIdToBasket) {
       emitter.emit(`purchase store ${storeId}`, {
@@ -269,5 +285,59 @@ export class PurchasesHistoryController
       });
     }
     return this.Repos.CartPurchases.getPurchaseById(purchaseId)!.ToDTO();
+  }
+  BasketPurchaseDTOFromBasketDTO(
+    basketDTO: BasketDTO,
+    purchaseId: string,
+    userId: string
+  ): BasketPurchaseDTO {
+    const products = new Map<string, ProductPurchaseDTO>();
+    basketDTO.products.forEach((product) => {
+      products.set(
+        product.storeProductId,
+        this.ProductPurchaseDTOFromBasketProductDTO(product, purchaseId, userId)
+      );
+    });
+    return {
+      purchaseId: purchaseId,
+      storeId: basketDTO.storeId,
+      products: products,
+      price: this.Controllers.Stores.getBasketPrice(userId, basketDTO.storeId),
+    };
+  }
+  ProductPurchaseDTOFromBasketProductDTO(
+    basketProductDTO: BasketProductDTO,
+    purchaseId: string,
+    userId: string
+  ): ProductPurchaseDTO {
+    return {
+      productId: basketProductDTO.storeProductId,
+      quantity: basketProductDTO.quantity,
+      price: this.Controllers.Stores.getProductPrice(
+        userId,
+        basketProductDTO.storeProductId
+      ),
+      purchaseId: purchaseId,
+    };
+  }
+  CartPurchaseDTOfromCartDTO(
+    cartDTO: CartDTO,
+    userId: string,
+    totalPrice: number
+  ): CartPurchaseDTO {
+    const purchaseId = randomUUID();
+    const storeIdToBasketPurchases = new Map<string, BasketPurchaseDTO>();
+    cartDTO.storeIdToBasket.forEach((basketPurchase, storeId) => {
+      storeIdToBasketPurchases.set(
+        storeId,
+        this.BasketPurchaseDTOFromBasketDTO(basketPurchase, purchaseId, userId)
+      );
+    });
+    return {
+      purchaseId: purchaseId,
+      userId: userId,
+      storeIdToBasketPurchases: storeIdToBasketPurchases,
+      totalPrice: totalPrice,
+    };
   }
 }

@@ -4,9 +4,7 @@ import {
   publicProcedure,
   validSessionProcedure,
 } from "server/service/trpc";
-import { MarketFacade } from "server/domain/MarketFacade";
-
-const facade = new MarketFacade();
+import { facade } from "../_facade";
 
 export const AuthRouter = createTRPCRouter({
   startSession: publicProcedure.mutation(() => {

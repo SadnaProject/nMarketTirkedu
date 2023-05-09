@@ -196,10 +196,7 @@ export class UsersController
   purchaseCart(userId: string, @censored creditCard: CreditCard): void {
     const user = this.Repos.Users.getUser(userId);
     const cart = user.Cart;
-    const price = this.Controllers.Stores.getCartPrice(
-      userId,
-      this.getCart(userId)
-    );
+    const price = this.Controllers.Stores.getCartPrice(userId);
     this.Controllers.PurchasesHistory.purchaseCart(
       userId,
       cart,
@@ -272,12 +269,6 @@ export class UsersController
         message: "User doesn't have permission to remove member",
       });
     }
-    // if (!this.Controllers.Auth.isMember(memberIdToRemove)) {
-    //   throw new TRPCError({
-    //     code: "NOT_FOUND",
-    //     message: "Given user id doesn't belong to a member",
-    //   });
-    // }
     if (!this.isUserExist(memberIdToRemove)) {
       throw new TRPCError({
         code: "NOT_FOUND",

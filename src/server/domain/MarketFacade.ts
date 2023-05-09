@@ -12,6 +12,7 @@ import { type CartPurchaseDTO } from "./PurchasesHistory/CartPurchaseHistory";
 import { type BasketPurchaseDTO } from "./PurchasesHistory/BasketPurchaseHistory";
 import { TRPCError } from "@trpc/server";
 import { type CreditCard } from "./PurchasesHistory/PaymentAdaptor";
+import { StoreDTO } from "./Stores/Store";
 
 @loggable
 export class MarketFacade extends Loggable {
@@ -410,5 +411,9 @@ export class MarketFacade extends Loggable {
   getAllLoggedOutMembersIds(userId: string): string[] {
     this.validateConnection(userId);
     return this.controllers.Auth.getAllLoggedOutMembersIds();
+  }
+  searchStores(userId: string, storeName: string): StoreDTO[] {
+    this.validateConnection(userId);
+    return this.controllers.Stores.searchStores(userId, storeName);
   }
 }

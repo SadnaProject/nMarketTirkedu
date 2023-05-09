@@ -1,6 +1,6 @@
 import { HasControllers } from "../_HasController";
 import { Mixin } from "ts-mixer";
-import { Store } from "./Store";
+import { Store, StoreDTO } from "./Store";
 import {
   StoreProduct,
   type StoreProductDTO,
@@ -229,6 +229,7 @@ export interface IStoresController extends HasRepos {
   getStoreOwnersIds(storeId: string): string[];
   getStoreManagersIds(storeId: string): string[];
   getPurchasesByStoreId(userId: string, storeId: string): BasketPurchaseDTO[];
+  searchStores(userId: string, name: string): StoreDTO[];
 }
 
 @testable
@@ -243,7 +244,7 @@ export class StoresController
   searchProducts(userId: string, args: SearchArgs): StoreProductDTO[] {
     return StoreProduct.getActive(this.Repos)
       .filter((p) =>
-        this.Controllers.Jobs.canReceivePrivateDataFromStore(userId, p.Store.Id)
+        this.Controllers.Jobs.canReceivePublicDataFromStore(userId, p.Store.Id)
       )
       .filter((p) => {
         const productRating =
@@ -595,5 +596,23 @@ export class StoresController
   getPurchasesByStoreId(userId: string, storeId: string) {
     this.Controllers.Jobs.canReceivePurchaseHistoryFromStore(userId, storeId);
     return Store.fromStoreId(storeId, this.Repos).Purchases;
+  }
+  searchStores(userId: string, name: string): StoreDTO[] {
+    if (name == "")
+      return this.Repos.Stores.getAllStores()
+        .filter((store) =>
+          this.Controllers.Jobs.canReceivePublicDataFromStore(userId, store.Id)
+        )
+        .map((store) => store.DTO);
+
+    return this.Repos.Stores.getAllStores()
+      .filter(
+        (store) =>
+          this.Controllers.Jobs.canReceivePublicDataFromStore(
+            userId,
+            store.Id
+          ) && store.Name === name
+      )
+      .map((store) => store.DTO);
   }
 }

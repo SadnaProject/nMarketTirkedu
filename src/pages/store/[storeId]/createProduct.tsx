@@ -52,8 +52,7 @@ export default function Home() {
   });
 
   const handleCreateProduct = handleSubmit((data) => {
-    const userId = z.string().parse(session?.user.id);
-    createProduct({ ...data, storeId: storeId as string, userId });
+    createProduct({ ...data, storeId: storeId as string });
   });
 
   return (

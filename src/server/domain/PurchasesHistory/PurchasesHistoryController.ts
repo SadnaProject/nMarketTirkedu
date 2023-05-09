@@ -13,17 +13,17 @@ import { Testable, testable } from "server/domain/_Testable";
 import { HasRepos, type Repos, createRepos } from "./_HasRepos";
 import { type CreditCard, PaymentAdapter } from "./PaymentAdaptor";
 import {
-  ProductPurchaseDTO,
+  type ProductPurchaseDTO,
   type ProductPurchase,
 } from "./ProductPurchaseHistory";
 import { error } from "console";
 import { createControllers } from "../_createControllers";
 import { JobsController } from "../Jobs/JobsController";
 import { TRPCError } from "@trpc/server";
-import { emitter } from "server/EventEmitter";
+import { eventEmitter } from "server/EventEmitter";
 import { censored } from "../_Loggable";
-import { BasketDTO } from "../Users/Basket";
-import { BasketProductDTO } from "../Users/BasketProduct";
+import { type BasketDTO } from "../Users/Basket";
+import { type BasketProductDTO } from "../Users/BasketProduct";
 
 export interface IPurchasesHistoryController extends HasRepos {
   getPurchase(purchaseId: string): CartPurchaseDTO;
@@ -136,7 +136,7 @@ export class PurchasesHistoryController
     const cartPurchase = this.CartPurchaseDTOfromCartDTO(cart, userId, price);
     this.addPurchase(CartPurchase.fromDTO(cartPurchase));
     for (const [storeId, basket] of cart.storeIdToBasket) {
-      emitter.emit(`purchase store ${storeId}`, {
+      eventEmitter.emit(`purchase store ${storeId}`, {
         purchaseId: cartPurchase.purchaseId,
         userId: userId,
         storeId: storeId,

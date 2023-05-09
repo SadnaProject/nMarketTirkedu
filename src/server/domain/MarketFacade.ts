@@ -12,7 +12,7 @@ import { type CartPurchaseDTO } from "./PurchasesHistory/CartPurchaseHistory";
 import { type BasketPurchaseDTO } from "./PurchasesHistory/BasketPurchaseHistory";
 import { TRPCError } from "@trpc/server";
 import { type CreditCard } from "./PurchasesHistory/PaymentAdaptor";
-import { StoreDTO } from "./Stores/Store";
+import { type StoreDTO } from "./Stores/Store";
 
 @loggable
 export class MarketFacade extends Loggable {

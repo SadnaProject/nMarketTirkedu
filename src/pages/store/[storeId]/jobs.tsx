@@ -55,13 +55,13 @@ export default function Home() {
   const storeId = z.undefined().or(z.string()).parse(router.query.storeId);
   const { mutate: makeStoreOwner } = api.stores.makeStoreOwner.useMutation({
     onError,
-    onSuccess: async () => {
+    onSuccess: () => {
       toast.success("Job added successfully");
     },
   });
   const { mutate: makeStoreManager } = api.stores.makeStoreManager.useMutation({
     onError,
-    onSuccess: async () => {
+    onSuccess: () => {
       toast.success("Job added successfully");
     },
   });

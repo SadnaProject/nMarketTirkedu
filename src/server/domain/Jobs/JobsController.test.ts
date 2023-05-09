@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import { beforeEach, describe, expect, vi } from "vitest";
 import { type Repos, createMockRepos, createTestRepos } from "./_HasRepos";
 

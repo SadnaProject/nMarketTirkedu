@@ -83,7 +83,7 @@ export default function Navbar() {
                 />
               </ButtonLight>
             </Link>
-            {session ? (
+            {session?.user.type === "member" ? (
               <>
                 <div className="hs-dropdown relative inline-flex w-fit">
                   <ButtonLight id="hs-dropdown-with-dividers">

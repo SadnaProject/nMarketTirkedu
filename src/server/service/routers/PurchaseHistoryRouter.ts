@@ -1,27 +1,28 @@
 import { z } from "zod";
-import { createTRPCRouter, authedProcedure } from "server/service/trpc";
+import { createTRPCRouter, validSessionProcedure } from "server/service/trpc";
+import { facade } from "../_facade";
 
-import { MarketFacade } from "server/domain/MarketFacade";
-
-const facade = new MarketFacade();
 export const PurchasesHistoryRouter = createTRPCRouter({
-  reviewStore: authedProcedure
+  reviewStore: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         purchaseId: z.string(),
         storeId: z.string(),
         review: z.number(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, purchaseId, storeId, review } = input;
-      return facade.reviewStore(userId, purchaseId, storeId, review);
+    .mutation(({ input, ctx }) => {
+      const { purchaseId, storeId, review } = input;
+      return facade.reviewStore(
+        ctx.session.user.id,
+        purchaseId,
+        storeId,
+        review
+      );
     }),
-  reviewProduct: authedProcedure
+  reviewProduct: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         purchaseId: z.string(),
         productId: z.string(),
         review: z.number(),
@@ -29,11 +30,10 @@ export const PurchasesHistoryRouter = createTRPCRouter({
         reviewBody: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, purchaseId, productId, review, reviewTitle, reviewBody } =
-        input;
+    .mutation(({ input, ctx }) => {
+      const { purchaseId, productId, review, reviewTitle, reviewBody } = input;
       return facade.reviewProduct(
-        userId,
+        ctx.session.user.id,
         purchaseId,
         productId,
         review,
@@ -41,7 +41,7 @@ export const PurchasesHistoryRouter = createTRPCRouter({
         reviewBody
       );
     }),
-  getStoreRating: authedProcedure
+  getStoreRating: validSessionProcedure
     .input(z.object({ storeId: z.string() }))
     .query(({ input }) => {
       const { storeId } = input;

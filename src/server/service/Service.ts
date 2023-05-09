@@ -256,11 +256,11 @@ export class Service {
   getStoreIdByProductId(userId: string, productId: string): string {
     return this.facade.getStoreIdByProductId(userId, productId);
   }
-  getCartPrice(userId: string, cartDTO: CartDTO): number {
-    return this.facade.getCartPrice(userId, cartDTO);
+  getCartPrice(userId: string): number {
+    return this.facade.getCartPrice(userId);
   }
-  getBasketPrice(userId: string, basketDTO: BasketDTO): number {
-    return this.facade.getBasketPrice(userId, basketDTO);
+  getBasketPrice(userId: string, storeId: string): number {
+    return this.facade.getBasketPrice(userId, storeId);
   }
   searchProducts(userId: string, searchArgs: SearchArgs): StoreProductDTO[] {
     return this.facade.searchProducts(userId, searchArgs);

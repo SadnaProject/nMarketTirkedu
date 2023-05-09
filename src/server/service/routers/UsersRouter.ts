@@ -2,175 +2,127 @@ import { z } from "zod";
 import {
   createTRPCRouter,
   publicProcedure,
-  authedProcedure,
+  validSessionProcedure,
 } from "server/service/trpc";
-
-import { MarketFacade } from "server/domain/MarketFacade";
-import { censored } from "server/domain/_Loggable";
-
-const facade = new MarketFacade();
+import { facade } from "../_facade";
 
 export const UsersRouter = createTRPCRouter({
-  addProductToCart: authedProcedure
+  addProductToCart: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         productId: z.string(),
         amount: z.number(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, productId, amount } = input;
-      return facade.addProductToCart(userId, productId, amount);
+    .mutation(({ input, ctx }) => {
+      const { productId, amount } = input;
+      return facade.addProductToCart(ctx.session.user.id, productId, amount);
     }),
-  removeProductFromCart: authedProcedure
+  removeProductFromCart: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         productId: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, productId } = input;
-      return facade.removeProductFromCart(userId, productId);
+    .mutation(({ input, ctx }) => {
+      const { productId } = input;
+      return facade.removeProductFromCart(ctx.session.user.id, productId);
     }),
-  editProductQuantityInCart: authedProcedure
+  editProductQuantityInCart: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         productId: z.string(),
         amount: z.number(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, productId, amount } = input;
-      return facade.editProductQuantityInCart(userId, productId, amount);
+    .mutation(({ input, ctx }) => {
+      const { productId, amount } = input;
+      return facade.editProductQuantityInCart(
+        ctx.session.user.id,
+        productId,
+        amount
+      );
     }),
-  getCart: authedProcedure
+  getCart: validSessionProcedure.query(({ ctx }) => {
+    return facade.getCart(ctx.session.user.id);
+  }),
+  getNotifications: validSessionProcedure.query(({ ctx }) => {
+    return facade.getNotifications(ctx.session.user.id);
+  }),
+  purchaseCart: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
-      })
-    )
-    .query(({ input }) => {
-      const { userId } = input;
-      return facade.getCart(userId);
-    }),
-  getNotifications: authedProcedure
-    .input(
-      z.object({
-        userId: z.string(),
-      })
-    )
-    .query(({ input }) => {
-      const { userId } = input;
-      return facade.getNotifications(userId);
-    }),
-  purchaseCart: authedProcedure
-    .input(
-      z.object({
-        userId: z.string(),
         number: z.string(), // refers to credit card number ATM
       })
     )
-    .mutation(({ input }) => {
-      const { userId, number } = input;
-      return facade.purchaseCart(userId, { number });
+    .mutation(({ input, ctx }) => {
+      const { number } = input;
+      return facade.purchaseCart(ctx.session.user.id, { number });
     }),
 
-  removeUser: authedProcedure
+  removeUser: validSessionProcedure.mutation(({ ctx }) => {
+    return facade.removeUser(ctx.session.user.id);
+  }),
+  readNotification: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
-      })
-    )
-    .mutation(({ input }) => {
-      const { userId } = input;
-      return facade.removeUser(userId);
-    }),
-  readNotification: authedProcedure
-    .input(
-      z.object({
-        userId: z.string(),
         notificationId: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, notificationId } = input;
-      return facade.readNotification(userId, notificationId);
+    .mutation(({ input, ctx }) => {
+      const { notificationId } = input;
+      return facade.readNotification(ctx.session.user.id, notificationId);
     }),
-  addNotification: authedProcedure
+  addNotification: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         notificationType: z.string(),
         notification: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, notificationType, notification } = input;
-      return facade.addNotification(userId, notificationType, notification);
+    .mutation(({ input, ctx }) => {
+      const { notificationType, notification } = input;
+      return facade.addNotification(
+        ctx.session.user.id,
+        notificationType,
+        notification
+      );
     }),
-  getUnreadNotifications: authedProcedure
+  getUnreadNotifications: validSessionProcedure.query(({ ctx }) => {
+    return facade.getUnreadNotifications(ctx.session.user.id);
+  }),
+  registerMember: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
-      })
-    )
-    .query(({ input }) => {
-      const { userId } = input;
-      return facade.getUnreadNotifications(userId);
-    }),
-  registerMember: publicProcedure
-    .input(
-      z.object({
-        name: z.string(),
         email: z.string(),
         password: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { name, email, password } = input;
-      return facade.registerMember(name, email, password);
+    .mutation(({ input, ctx }) => {
+      const { email, password } = input;
+      return facade.registerMember(ctx.session.user.id, email, password);
     }),
-  loginMember: publicProcedure
+  loginMember: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         email: z.string(),
         password: z.string(),
       })
     )
-    .mutation(({ input }) => {
-      const { userId, email, password } = input;
-      return facade.loginMember(userId, email, password);
+    .mutation(({ input, ctx }) => {
+      const { email, password } = input;
+      return facade.loginMember(ctx.session.user.id, email, password);
     }),
-  logoutMember: authedProcedure
-    .input(
-      z.object({
-        userId: z.string(),
-      })
-    )
-    .mutation(({ input }) => {
-      const { userId } = input;
-      return facade.logoutMember(userId);
-    }),
-  disconnectUser: authedProcedure
-    .input(
-      z.object({
-        userId: z.string(),
-      })
-    )
-    .mutation(({ input }) => {
-      const { userId } = input;
-      return facade.disconnectUser(userId);
-    }),
-  removeMember: authedProcedure
-    .input(
-      z.object({ userIdOfActor: z.string(), memberIdToRemove: z.string() })
-    )
-    .mutation(({ input }) => {
-      const { userIdOfActor, memberIdToRemove } = input;
-      return facade.removeMember(userIdOfActor, memberIdToRemove);
+  logoutMember: validSessionProcedure.mutation(({ ctx }) => {
+    return facade.logoutMember(ctx.session.user.id);
+  }),
+  disconnectUser: validSessionProcedure.mutation(({ ctx }) => {
+    return facade.disconnectUser(ctx.session.user.id);
+  }),
+  removeMember: validSessionProcedure
+    .input(z.object({ memberIdToRemove: z.string() }))
+    .mutation(({ input, ctx }) => {
+      const { memberIdToRemove } = input;
+      return facade.removeMember(ctx.session.user.id, memberIdToRemove);
     }),
 });

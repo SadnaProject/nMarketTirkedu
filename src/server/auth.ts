@@ -4,6 +4,7 @@ import {
   type NextAuthOptions,
   type DefaultSession,
   type DefaultUser,
+  User,
 } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "server/db";
@@ -11,6 +12,9 @@ import { env } from "env.mjs";
 import Credentials from "next-auth/providers/credentials";
 import { appRouter } from "./service/root";
 import zConvert from "./helpers/zConvert";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { facade } from "./service/_facade";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -22,23 +26,26 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      name: string;
-      email: string;
+      type: "guest" | "member";
+      name?: string;
+      email?: string;
     } & DefaultSession["user"];
   }
 
   interface User extends DefaultUser {
     // ...other properties
-    name: string;
-    email: string;
+    type: "guest" | "member";
+    name?: string;
+    email?: string;
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
     userId: string;
-    name: string;
-    email: string;
+    type: "guest" | "member";
+    name?: string;
+    email?: string;
   }
 }
 
@@ -49,36 +56,68 @@ declare module "next-auth/jwt" {
  */
 export const authOptions: NextAuthOptions = {
   providers: [
-    // Credentials({
-    //   name: "anon",
-    //   credentials: {},
-    //   async authorize(credentials, req) {
-    //     //no need to check anything here, just create a new CT anonymous session and return the token
-    //     return {  };
-    //   },
-    // }),
+    Credentials({
+      name: "anonymous",
+      id: "anonymous",
+      credentials: { id: { label: "Id", type: "id" } },
+      authorize(credentials) {
+        // const caller = appRouter.createCaller({ session: null });
+        // const userId = await zConvert(
+        //   () => new Promise<string>((resolve) => resolve(facade.startSession()))
+        // );
+        // return { id: userId, type: "guest" };
+        if (!credentials)
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Credentials are required",
+          });
+        return { id: credentials.id, type: "guest" };
+      },
+    }),
     Credentials({
       name: "credentials",
+      id: "credentials",
       credentials: {
-        email: {
-          label: "Email",
-          type: "email",
-        },
+        id: { label: "Id", type: "id" },
+        email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        session: { label: "Session", type: "json" },
       },
       authorize: async (credentials) => {
-        const caller = appRouter.createCaller({ session: null });
-        return await zConvert(() => caller.example.authorize(credentials));
+        if (!credentials)
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Credentials are required",
+          });
 
-        // const result = await prisma.user.findFirst({
-        //   where: { email },
-        // });
-        // if (!result) throw new Error("User not found");
+        const session = await zConvert(() =>
+          z
+            .object({
+              expires: z.string(),
+              user: z.object({ id: z.string(), type: z.enum(["guest"]) }),
+            })
+            .parseAsync(JSON.parse(credentials.session))
+        );
 
-        // const isValidPassword = result.password === password;
-        // if (!isValidPassword) throw new Error("Invalid password");
+        return {
+          id: credentials.id,
+          email: credentials.email,
+          type: "member",
+        };
 
-        // return { id: result.id, email, username: result.username };
+        // const userId = await zConvert(
+        //   () =>
+        //     new Promise<string>((resolve) =>
+        //       resolve(
+        //         facade.loginMember(
+        //           session.user.id,
+        //           credentials.email,
+        //           credentials.password
+        //         )
+        //       )
+        //     )
+        // );
+        // return { id: userId, email: credentials.email, type: "member" };
       },
     }),
   ],
@@ -89,6 +128,7 @@ export const authOptions: NextAuthOptions = {
     jwt: ({ token, user }) => {
       if (user) {
         token.userId = user.id;
+        token.type = user.type;
         token.email = user.email;
         token.name = user.name;
       }
@@ -97,6 +137,7 @@ export const authOptions: NextAuthOptions = {
     session: ({ session, token }) => {
       if (token) {
         session.user.id = token.userId;
+        session.user.type = token.type;
         session.user.email = token.email;
         session.user.name = token.name;
       }

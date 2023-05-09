@@ -18,6 +18,7 @@ const config = {
     locales: ["en"],
     defaultLocale: "en",
   },
+  transpilePackages: ["fuzzysearch-ts"],
   publicRuntimeConfig: {
     // Will be available on both server and client
     APP_URL: process.env.APP_URL,

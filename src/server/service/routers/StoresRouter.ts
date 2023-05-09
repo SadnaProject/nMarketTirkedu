@@ -4,12 +4,10 @@ import {
   validSessionProcedure,
   publicProcedure,
 } from "server/service/trpc";
-
-import { MarketFacade } from "server/domain/MarketFacade";
 import { observable } from "@trpc/server/observable";
 import { EventEmitter } from "events";
+import { facade } from "../_facade";
 
-const facade = new MarketFacade();
 const eventEmitter = new EventEmitter();
 export const StoresRouter = createTRPCRouter({
   makeStoreOwner: validSessionProcedure
@@ -271,19 +269,16 @@ export const StoresRouter = createTRPCRouter({
   getStoreIdByProductId: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         productId: z.string(),
       })
     )
-    .query(({ input }) => {
-      const { userId, productId } = input;
-      return facade.getStoreIdByProductId(userId, productId);
+    .query(({ input, ctx }) => {
+      return facade.getStoreIdByProductId(ctx.session.user.id, input.productId);
     }),
   // TODO: getCartPrice, getBasketPrice
   searchProducts: validSessionProcedure
     .input(
       z.object({
-        userId: z.string(),
         name: z.string().optional(),
         category: z.string().optional(),
         keywords: z.array(z.string()).optional(),
@@ -295,30 +290,8 @@ export const StoresRouter = createTRPCRouter({
         maxStoreRating: z.number().optional(),
       })
     )
-    .query(({ input }) => {
-      const {
-        userId,
-        name,
-        category,
-        keywords,
-        minPrice,
-        maxPrice,
-        minProductRating,
-        maxProductRating,
-        minStoreRating,
-        maxStoreRating,
-      } = input;
-      return facade.searchProducts(userId, {
-        name,
-        category,
-        keywords,
-        minPrice,
-        maxPrice,
-        minProductRating,
-        maxProductRating,
-        minStoreRating,
-        maxStoreRating,
-      });
+    .query(({ input, ctx }) => {
+      return facade.searchProducts(ctx.session.user.id, input);
     }),
   getPurchaseByStore: validSessionProcedure
     .input(

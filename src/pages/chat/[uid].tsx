@@ -6,7 +6,6 @@ import Balancer from "react-wrap-balancer";
 export default function Home() {
   const router = useRouter();
   const { uid } = router.query;
-  console.log(uid);
 
   return (
     <div className="bg-pattern flex h-full flex-col items-center justify-between overflow-auto">

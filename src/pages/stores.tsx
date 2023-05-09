@@ -7,6 +7,7 @@ import Link from "next/link";
 import Card from "components/card";
 import { Rating } from "components/star";
 import PATHS from "utils/paths";
+import { api } from "utils/api";
 
 const stores: StoreDTO[] = [
   {

@@ -1,4 +1,4 @@
-import { type ReactNode, forwardRef, type ForwardedRef } from "react";
+import { forwardRef, type ForwardedRef } from "react";
 
 type Props = {
   children: React.ReactNode;

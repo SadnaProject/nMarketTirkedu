@@ -6,11 +6,13 @@ import {
 } from "server/domain/Stores/_data";
 import { Service } from "server/service/Service";
 import { describe, expect, it, beforeEach } from "vitest";
+import { type CreditCard } from "server/domain/PurchasesHistory/PaymentAdaptor";
 
 let service: Service;
 beforeEach(() => {
   service = new Service();
 });
+//Use Case 2.1
 describe("Get information about stores and products", () => {
   it("✅ Get information about stores and products", () => {
     const email = faker.internet.email();
@@ -62,7 +64,7 @@ describe("Get information about stores and products", () => {
     expect(() => service.getStoreFounder("ashaleee")).toThrow();
   });
 });
-
+//Use Case 2.2
 describe("Search Products", () => {
   let pargs1: StoreProductArgs,
     pargs2: StoreProductArgs,
@@ -111,23 +113,23 @@ describe("Search Products", () => {
       },
     ];
   });
-  // it("✅should return all products", () => {
-  //   const res = service.searchProducts(umid, {});
-  //   expect(res.length).toEqual(3);
-  // });
-  // it("✅should return some products because of name filter", () => {
-  //   const res = service.searchProducts(umid, {
-  //     name: pargs1.name.toUpperCase().split(" ")[0],
-  //   });
-  //   expect(res.keys.length > 0).toBe(true);
-  // });
+  it("✅should return all products", () => {
+    const res = service.searchProducts(umid, {});
+    expect(res.length).toEqual(3);
+  });
+  it("✅should return some products because of name filter", () => {
+    const res = service.searchProducts(umid, {
+      name: pargs1.name.toUpperCase().split(" ")[0],
+    });
+    expect(res.keys.length > 0).toBe(true);
+  });
 
-  // it("✅should return some products because of keywords", () => {
-  //   const res = service.searchProducts(umid, {
-  //     keywords: [pargs1.description.toUpperCase().split(" ")[1] ?? ""],
-  //   });
-  //   expect(res.keys.length > 0).toBe(true);
-  // });
+  it("✅should return some products because of keywords", () => {
+    const res = service.searchProducts(umid, {
+      keywords: [pargs1.description.toUpperCase().split(" ")[1] ?? ""],
+    });
+    expect(res.keys.length > 0).toBe(true);
+  });
 
   it("✅shouldn't return products because of made up name", () => {
     const res = service.searchProducts(umid, {
@@ -164,7 +166,7 @@ describe("Search Products", () => {
     expect(res).toEqual([]);
   });
 });
-
+//Use Case 2.3
 describe("Keep an Item in the cart", () => {
   it("✅ Add item to cart and keep it after disconnecting", () => {
     const email = faker.internet.email();
@@ -201,33 +203,57 @@ describe("Keep an Item in the cart", () => {
     ).toBe(true);
   });
 });
-
+//Use Case 2.4
 describe("Edit cart contents", () => {
-  it("✅ Add item to cart", () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const id = service.startSession();
+  let email: string,
+    password: string,
+    id: string,
+    uid: string,
+    storeName: string,
+    storeId: string,
+    ownermail: string,
+    ownerpass: string,
+    oid: string,
+    oid2: string,
+    pid: string,
+    pargs: {
+      name: string;
+      quantity: number;
+      price: number;
+      category: string;
+      description: string;
+    },
+    memail: string,
+    mpassword: string,
+    mid: string,
+    umid: string;
+  beforeEach(() => {
+    email = faker.internet.email();
+    password = faker.internet.password();
+    id = service.startSession();
     service.registerMember(id, email, password);
-    const uid = service.loginMember(id, email, password);
-    const storeName = generateStoreName();
-    const storeId = service.createStore(uid, storeName);
-    const ownermail = "owner@gmail.com";
-    const ownerpass = "owner123";
-    const oid2 = service.startSession();
+    uid = service.loginMember(id, email, password);
+    storeName = generateStoreName();
+    storeId = service.createStore(uid, storeName);
+    ownermail = "owner@gmail.com";
+    ownerpass = "owner123";
+    oid2 = service.startSession();
     service.registerMember(oid2, ownermail, ownerpass);
-    const oid = service.loginMember(oid2, ownermail, ownerpass);
+    oid = service.loginMember(oid2, ownermail, ownerpass);
     service.makeStoreOwner(uid, storeId, oid);
-    const pargs = generateProductArgs();
+    pargs = generateProductArgs();
     pargs.quantity = 7;
-    const pid = service.createProduct(oid, storeId, pargs);
+    pid = service.createProduct(oid, storeId, pargs);
+    memail = "member@gmail.com";
+    mpassword = faker.internet.password();
+    mid = service.startSession();
+    service.registerMember(mid, memail, mpassword);
+    umid = service.loginMember(mid, memail, mpassword);
+  });
+  it("✅ Add item to cart", () => {
     const pargs2 = generateProductArgs();
     pargs2.quantity = 5;
     const pid2 = service.createProduct(oid, storeId, pargs2);
-    const memail = "member@gmail.com";
-    const mpassword = faker.internet.password();
-    const mid = service.startSession();
-    service.registerMember(mid, memail, mpassword);
-    const umid = service.loginMember(mid, memail, mpassword);
     service.addProductToCart(umid, pid, 1);
     const cart = service.getCart(umid);
     service.addProductToCart(umid, pid2, 3);
@@ -242,27 +268,6 @@ describe("Edit cart contents", () => {
     ).toBe(true);
   });
   it("✅ Edit quantity", () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const id = service.startSession();
-    service.registerMember(id, email, password);
-    const uid = service.loginMember(id, email, password);
-    const storeName = generateStoreName();
-    const storeId = service.createStore(uid, storeName);
-    const ownermail = "owner@gmail.com";
-    const ownerpass = "owner123";
-    const oid2 = service.startSession();
-    service.registerMember(oid2, ownermail, ownerpass);
-    const oid = service.loginMember(oid2, ownermail, ownerpass);
-    service.makeStoreOwner(uid, storeId, oid);
-    const pargs = generateProductArgs();
-    pargs.quantity = 7;
-    const pid = service.createProduct(oid, storeId, pargs);
-    const memail = "member@gmail.com";
-    const mpassword = faker.internet.password();
-    const mid = service.startSession();
-    service.registerMember(mid, memail, mpassword);
-    const umid = service.loginMember(mid, memail, mpassword);
     service.addProductToCart(umid, pid, 7);
     const q1 = service.getCart(umid).storeIdToBasket.get(storeId)
       ?.products[0]?.quantity;
@@ -272,27 +277,6 @@ describe("Edit cart contents", () => {
     expect(q1 == 7 && q2 == 4).toBe(true);
   });
   it("✅ Remove existing item", () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const id = service.startSession();
-    service.registerMember(id, email, password);
-    const uid = service.loginMember(id, email, password);
-    const storeName = generateStoreName();
-    const storeId = service.createStore(uid, storeName);
-    const ownermail = "owner@gmail.com";
-    const ownerpass = "owner123";
-    const oid2 = service.startSession();
-    service.registerMember(oid2, ownermail, ownerpass);
-    const oid = service.loginMember(oid2, ownermail, ownerpass);
-    service.makeStoreOwner(uid, storeId, oid);
-    const pargs = generateProductArgs();
-    pargs.quantity = 7;
-    const pid = service.createProduct(oid, storeId, pargs);
-    const memail = "member@gmail.com";
-    const mpassword = faker.internet.password();
-    const mid = service.startSession();
-    service.registerMember(mid, memail, mpassword);
-    const umid = service.loginMember(mid, memail, mpassword);
     service.addProductToCart(umid, pid, 7);
     const q1 = service.getCart(umid).storeIdToBasket.get(storeId)
       ?.products[0]?.quantity;
@@ -302,85 +286,70 @@ describe("Edit cart contents", () => {
     ).toBe(true);
   });
   it("❎ Remove non-existing item", () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const id = service.startSession();
+    expect(() => service.removeProductFromCart(umid, pid)).toThrow();
+  });
+});
+//Use Case 2.5
+describe("Purchase Cart", () => {
+  let email: string,
+    password: string,
+    id: string,
+    uid: string,
+    storeName: string,
+    storeId: string,
+    ownermail: string,
+    ownerpass: string,
+    oid: string,
+    oid2: string,
+    pargs: {
+      name: string;
+      quantity: number;
+      price: number;
+      category: string;
+      description: string;
+    };
+  beforeEach(() => {
+    email = faker.internet.email();
+    password = faker.internet.password();
+    id = service.startSession();
     service.registerMember(id, email, password);
-    const uid = service.loginMember(id, email, password);
-    const storeName = generateStoreName();
-    const storeId = service.createStore(uid, storeName);
-    const ownermail = "owner@gmail.com";
-    const ownerpass = "owner123";
-    const oid2 = service.startSession();
+    uid = service.loginMember(id, email, password);
+    storeName = generateStoreName();
+    storeId = service.createStore(uid, storeName);
+    ownermail = "owner@gmail.com";
+    ownerpass = "owner123";
+    oid2 = service.startSession();
     service.registerMember(oid2, ownermail, ownerpass);
-    const oid = service.loginMember(oid2, ownermail, ownerpass);
+    oid = service.loginMember(oid2, ownermail, ownerpass);
     service.makeStoreOwner(uid, storeId, oid);
-    const pargs = generateProductArgs();
+    pargs = generateProductArgs();
     pargs.quantity = 7;
+  });
+  it("✅ Simple Purchase", () => {
     const pid = service.createProduct(oid, storeId, pargs);
+    const pargs2 = generateProductArgs();
+    pargs2.quantity = 5;
+    const pid2 = service.createProduct(oid, storeId, pargs2);
     const memail = "member@gmail.com";
     const mpassword = faker.internet.password();
     const mid = service.startSession();
     service.registerMember(mid, memail, mpassword);
     const umid = service.loginMember(mid, memail, mpassword);
-    expect(() => service.removeProductFromCart(umid, pid)).toThrow();
+    service.addProductToCart(umid, pid, 1);
+    service.addProductToCart(umid, pid2, 3);
+    const card = faker.finance.creditCardNumber();
+    const cCard = { number: card };
+    service.purchaseCart(umid, cCard);
+    const cart = service.getCart(umid).storeIdToBasket;
+    expect(
+      cart.get(storeId)?.products.length == 0 &&
+        !service.isProductQuantityInStock(umid, pid, 7) &&
+        service.isProductQuantityInStock(umid, pid, 6) &&
+        !service.isProductQuantityInStock(umid, pid2, 3) &&
+        service.isProductQuantityInStock(umid, pid2, 2)
+    ).toBe(true);
   });
-});
-describe("Purchase Cart", () => {
-  // it("✅ Simple Purchase", () => {
-  //   const email = faker.internet.email();
-  //   const password = faker.internet.password();
-  //   const id = service.startSession();
-  //   service.registerMember(id, email, password);
-  //   const uid = service.loginMember(id, email, password);
-  //   const storeName = generateStoreName();
-  //   const storeId = service.createStore(uid, storeName);
-  //   const ownermail = "owner@gmail.com";
-  //   const ownerpass = "owner123";
-  //   const oid2 = service.startSession();
-  //   service.registerMember(oid2, ownermail, ownerpass);
-  //   const oid = service.loginMember(oid2, ownermail, ownerpass);
-  //   service.makeStoreOwner(uid, storeId, oid);
-  //   const pargs = generateProductArgs();
-  //   pargs.quantity = 7;
-  //   const pid = service.createProduct(oid, storeId, pargs);
-  //   const pargs2 = generateProductArgs();
-  //   pargs2.quantity = 5;
-  //   const pid2 = service.createProduct(oid, storeId, pargs2);
-  //   const memail = "member@gmail.com";
-  //   const mpassword = faker.internet.password();
-  //   const mid = service.startSession();
-  //   service.registerMember(mid, memail, mpassword);
-  //   const umid = service.loginMember(mid, memail, mpassword);
-  //   service.addProductToCart(umid, pid, 1);
-  //   service.addProductToCart(umid, pid2, 3);
-  //   const card = faker.finance.creditCardNumber();
-  //   service.purchaseCart(umid, card);
-  //   const cart = service.getCart(umid).storeIdToBasket;
-  //   expect(
-  //     cart.get(storeId)?.products.length == 0 &&
-  //       !service.isProductQuantityInStock(umid, pid, 7) &&
-  //       service.isProductQuantityInStock(umid, pid, 6) &&
-  //       !service.isProductQuantityInStock(umid, pid2, 3) &&
-  //       service.isProductQuantityInStock(umid, pid2, 2)
-  //   ).toBe(true);
-  // });
   it("❎ Purchase cart with out of stock product", () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const id = service.startSession();
-    service.registerMember(id, email, password);
-    const uid = service.loginMember(id, email, password);
-    const storeName = generateStoreName();
-    const storeId = service.createStore(uid, storeName);
-    const ownermail = "owner@gmail.com";
-    const ownerpass = "owner123";
-    const oid2 = service.startSession();
-    service.registerMember(oid2, ownermail, ownerpass);
-    const oid = service.loginMember(oid2, ownermail, ownerpass);
-    service.makeStoreOwner(uid, storeId, oid);
-    const pargs = generateProductArgs();
-    pargs.quantity = 7;
     const pid = service.createProduct(oid, storeId, pargs);
     const pargs2 = generateProductArgs();
     pargs2.quantity = 1;
@@ -393,59 +362,32 @@ describe("Purchase Cart", () => {
     service.addProductToCart(umid, pid, 1);
     expect(() => service.addProductToCart(umid, pid2, 3)).toThrow();
     const card = faker.finance.creditCardNumber();
-    // expect(() => service.purchaseCart(umid, card)).toThrow();
+    const cCard = { number: card };
+    expect(() => service.purchaseCart(umid, cCard)).toThrow();
   });
-  // it("❎ Purchasing items which were on stock when added to cart but another user bought them", () => {
-  //   const email = faker.internet.email();
-  //   const password = faker.internet.password();
-  //   const id = service.startSession();
-  //   service.registerMember(id, email, password);
-  //   const uid = service.loginMember(id, email, password);
-  //   const storeName = generateStoreName();
-  //   const storeId = service.createStore(uid, storeName);
-  //   const ownermail = "owner@gmail.com";
-  //   const ownerpass = "owner123";
-  //   const oid2 = service.startSession();
-  //   service.registerMember(oid2, ownermail, ownerpass);
-  //   const oid = service.loginMember(oid2, ownermail, ownerpass);
-  //   service.makeStoreOwner(uid, storeId, oid);
-  //   const pargs = generateProductArgs();
-  //   pargs.quantity = 7;
-  //   const pid = service.createProduct(oid, storeId, pargs);
-  //   const pargs2 = generateProductArgs();
-  //   pargs2.quantity = 5;
-  //   const pid2 = service.createProduct(oid, storeId, pargs2);
-  //   const memail = "member@gmail.com";
-  //   const mpassword = faker.internet.password();
-  //   const mid = service.startSession();
-  //   service.registerMember(mid, memail, mpassword);
-  //   const umid = service.loginMember(mid, memail, mpassword);
-  //   service.addProductToCart(umid, pid, 1);
-  //   service.addProductToCart(umid, pid2, 3);
-  //   const card = faker.finance.creditCardNumber();
-  //   const card2 = faker.finance.creditCardNumber();
-  //   const mid2 = service.startSession();
-  //   service.addProductToCart(mid2, pid, 7);
-  //   service.addProductToCart(mid2, pid2, 5);
-  //   service.purchaseCart(mid2, card2);
-  //   expect(() => service.purchaseCart(umid, card)).toThrow();
-  // });
+  it("❎ Purchasing items that were on stock when added to cart but another user bought them", () => {
+    const pid = service.createProduct(oid, storeId, pargs);
+    const pargs2 = generateProductArgs();
+    pargs2.quantity = 5;
+    const pid2 = service.createProduct(oid, storeId, pargs2);
+    const memail = "member@gmail.com";
+    const mpassword = faker.internet.password();
+    const mid = service.startSession();
+    service.registerMember(mid, memail, mpassword);
+    const umid = service.loginMember(mid, memail, mpassword);
+    service.addProductToCart(umid, pid, 1);
+    service.addProductToCart(umid, pid2, 3);
+    const card = faker.finance.creditCardNumber();
+    const card2 = faker.finance.creditCardNumber();
+    const mid2 = service.startSession();
+    service.addProductToCart(mid2, pid, 7);
+    service.addProductToCart(mid2, pid2, 5);
+    const cCard = { number: card };
+    const cCard2 = { number: card2 };
+    service.purchaseCart(mid2, cCard2);
+    expect(() => service.purchaseCart(umid, cCard)).toThrow();
+  });
   it("❎ Empty Cart Purchase", () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const id = service.startSession();
-    service.registerMember(id, email, password);
-    const uid = service.loginMember(id, email, password);
-    const storeName = generateStoreName();
-    const storeId = service.createStore(uid, storeName);
-    const ownermail = "owner@gmail.com";
-    const ownerpass = "owner123";
-    const oid2 = service.startSession();
-    service.registerMember(oid2, ownermail, ownerpass);
-    const oid = service.loginMember(oid2, ownermail, ownerpass);
-    service.makeStoreOwner(uid, storeId, oid);
-    const pargs = generateProductArgs();
-    pargs.quantity = 7;
     const pid = service.createProduct(oid, storeId, pargs);
     const pargs2 = generateProductArgs();
     pargs2.quantity = 5;
@@ -456,7 +398,8 @@ describe("Purchase Cart", () => {
     service.registerMember(mid, memail, mpassword);
     const umid = service.loginMember(mid, memail, mpassword);
     const card = faker.finance.creditCardNumber();
-    // expect(() => service.purchaseCart(umid, card)).toThrow();
+    const cCard = { number: card };
+    expect(() => service.purchaseCart(umid, cCard)).toThrow();
     expect(() => service.removeProductFromCart(umid, pid)).toThrow();
   });
 });

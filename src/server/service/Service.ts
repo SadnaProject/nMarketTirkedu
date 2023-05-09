@@ -163,7 +163,7 @@ export class Service {
     storeId: string,
     targetUserId: string
   ): void {
-    this.facade.removeStoreManager(currentId, storeId, targetUserId);
+    this.facade.removeStoreOwner(currentId, storeId, targetUserId);
   }
 
   removeStoreManager(
@@ -288,5 +288,24 @@ export class Service {
     storeId: string
   ): BasketPurchaseDTO[] {
     return this.facade.getPurchasesByStore(userId, storeId);
+  }
+  // eslint-disable-next-line jsdoc/require-param
+  /**
+   * Returns all the logged in members ids.
+   * @returns Array of strings.
+   */
+  getAllLoggedInMembersIds(userId: string): string[] {
+    return this.facade.getAllLoggedInMembersIds(userId);
+  }
+  // eslint-disable-next-line jsdoc/require-param
+  /**
+   * Returns all the logged out members ids.
+   * @returns Array of strings.
+   */
+  getAllLoggedOutMembersIds(userId: string): string[] {
+    return this.facade.getAllLoggedOutMembersIds(userId);
+  }
+  removeMember(userIdOfActor: string, memberIdToRemove: string) {
+    this.facade.removeMember(userIdOfActor, memberIdToRemove);
   }
 }

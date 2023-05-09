@@ -1,20 +1,17 @@
 import { HasControllers } from "../_HasController";
 import { Mixin } from "ts-mixer";
-import { Store, StoreDTO } from "./Store";
+import { Store, type StoreDTO } from "./Store";
 import {
   StoreProduct,
   type StoreProductDTO,
   type StoreProductArgs,
 } from "./StoreProduct";
 import { HasRepos, createRepos } from "./_HasRepos";
-import { type CartDTO } from "../Users/Cart";
-import { type BasketDTO } from "../Users/Basket";
 import { Testable, testable } from "server/domain/_Testable";
 import fuzzysearch from "fuzzysearch-ts";
 import { type BasketPurchaseDTO } from "../PurchasesHistory/BasketPurchaseHistory";
 import { TRPCError } from "@trpc/server";
-import { emitter } from "server/Emitter";
-import { m } from "framer-motion";
+import { eventEmitter } from "server/EventEmitter";
 
 export type SearchArgs = {
   name?: string;
@@ -450,7 +447,7 @@ export class StoresController
         `Store ${storeId} has been activated`
       );
     });
-    emitter.emit(`store is changed ${storeId}`, {
+    eventEmitter.emit(`store is changed ${storeId}`, {
       storeId: storeId,
       userId: userId,
       state: "activated",
@@ -478,7 +475,7 @@ export class StoresController
         `Store ${storeId} has been deactivated`
       );
     });
-    emitter.emit(`store is changed ${storeId}`, {
+    eventEmitter.emit(`store is changed ${storeId}`, {
       storeId: storeId,
       userId: userId,
       state: "decativated",
@@ -493,7 +490,7 @@ export class StoresController
       });
     }
     Store.fromStoreId(storeId, this.Repos).delete();
-    emitter.emit(`store is changed ${storeId}`, {
+    eventEmitter.emit(`store is changed ${storeId}`, {
       storeId: storeId,
       userId: userId,
       state: "closed",
@@ -545,7 +542,7 @@ export class StoresController
   }
   removeStoreOwner(currentId: string, storeId: string, targetUserId: string) {
     this.Controllers.Jobs.removeStoreOwner(currentId, storeId, targetUserId);
-    emitter.emit(`member is changed ${targetUserId}`, {
+    eventEmitter.emit(`member is changed ${targetUserId}`, {
       changerId: currentId,
       changeeId: targetUserId,
       state: "removed as owner",
@@ -553,7 +550,7 @@ export class StoresController
   }
   removeStoreManager(currentId: string, storeId: string, targetUserId: string) {
     this.Controllers.Jobs.removeStoreManager(currentId, storeId, targetUserId);
-    emitter.emit(`member is changed ${targetUserId}`, {
+    eventEmitter.emit(`member is changed ${targetUserId}`, {
       changerId: currentId,
       changeeId: targetUserId,
       state: "removed as manager",

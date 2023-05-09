@@ -11,6 +11,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Button from "components/button";
 import { FormInput } from "components/form";
 import { api } from "utils/api";
+import { onError } from "utils/onError";
+import StoreNavbar from "components/storeNavbar";
 
 const formSchema = z.object({
   name: z
@@ -44,7 +46,7 @@ export default function Home() {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(formSchema) });
   const { mutate: createProduct } = api.stores.createProduct.useMutation({
-    onError: (err) => toast.error(err.message),
+    onError,
     onSuccess: async () => {
       toast.success("Product created successfully");
       await router.push(PATHS.store.path(storeId as string));
@@ -57,7 +59,9 @@ export default function Home() {
 
   return (
     <Layout>
-      <Card className="w-80">
+      <h1>The Happy Place</h1>
+      {storeId && <StoreNavbar storeId={storeId as string} />}
+      <Card className="sm:w-80">
         <div className="text-center">
           <h1>New Product</h1>
         </div>

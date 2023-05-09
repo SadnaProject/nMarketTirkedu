@@ -10,7 +10,7 @@ type ProductCardProps = {
 
 export function ProductCard({ product }: ProductCardProps) {
   return (
-    <Card>
+    <Card className="mt-0">
       <h3 className="text-lg font-bold">{product.name}</h3>
       <span className="font-bold text-slate-700">{product.category}</span>
       <p

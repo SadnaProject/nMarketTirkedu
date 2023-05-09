@@ -6,6 +6,7 @@ const PATHS = {
   product: { path: (productId: string) => `/product/${productId}` },
   stores: { path: "/stores" },
   store: { path: (storeId: string) => `/store/${storeId}` },
+  createStore: { path: "/createStore" },
   storeJobs: { path: (storeId: string) => `/store/${storeId}/jobs` },
   storeRevenue: { path: (storeId: string) => `/store/${storeId}/revenue` },
   createProduct: {

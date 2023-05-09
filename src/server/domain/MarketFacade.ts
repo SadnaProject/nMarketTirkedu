@@ -12,7 +12,7 @@ import { type CartPurchaseDTO } from "./PurchasesHistory/CartPurchaseHistory";
 import { type BasketPurchaseDTO } from "./PurchasesHistory/BasketPurchaseHistory";
 import { TRPCError } from "@trpc/server";
 import { type CreditCard } from "./PurchasesHistory/PaymentAdaptor";
-import { StoreDTO } from "./Stores/Store";
+import { type StoreDTO } from "./Stores/Store";
 
 @loggable
 export class MarketFacade extends Loggable {
@@ -24,7 +24,7 @@ export class MarketFacade extends Loggable {
     this.initializeSystemAdmin();
   }
   private initializeSystemAdmin() {
-    const userId = this.controllers.Auth.register("admin", "admin");
+    const userId = this.controllers.Auth.register("admin@gmail.com", "admin");
     this.controllers.Jobs.setInitialAdmin(userId);
   }
 
@@ -199,11 +199,7 @@ export class MarketFacade extends Loggable {
     targetUserId: string
   ): void {
     this.validateConnection(currentId);
-    this.controllers.Stores.removeStoreManager(
-      currentId,
-      storeId,
-      targetUserId
-    );
+    this.controllers.Stores.removeStoreOwner(currentId, storeId, targetUserId);
   }
 
   removeStoreManager(

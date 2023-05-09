@@ -1,6 +1,7 @@
 import { api } from "utils/api";
-import Link from "next/link";
 import { useState } from "react";
+import Button from "components/button";
+import { toast } from "react-hot-toast";
 
 export default function AboutPage() {
   const [num, setNumber] = useState<number>();
@@ -9,11 +10,40 @@ export default function AboutPage() {
       setNumber(n);
     },
   });
+  api.example.onNotifyAll.useSubscription(undefined, {
+    onData(msg) {
+      toast.success(msg);
+    },
+  });
+  const { mutate: notifyAll } = api.example.notifyAll.useMutation();
+  const { mutate: addNotification } = api.users.addNotification.useMutation();
+  const { mutate: addNotificationEvent } =
+    api.example.addNotificationEvent.useMutation();
 
   return (
     <div>
       Here&apos;s a random number from a sub: {num} <br />
-      <Link href="/">Index</Link>
+      <br />
+      <Button
+        onClick={() =>
+          void notifyAll({
+            message: `The time is ${new Date().toLocaleTimeString()}`,
+          })
+        }
+      >
+        Notify All
+      </Button>
+      <Button
+        onClick={() => {
+          addNotification({
+            notification: "This is a notification",
+            notificationType: "test",
+          });
+          addNotificationEvent();
+        }}
+      >
+        Add Notification
+      </Button>
     </div>
   );
 }

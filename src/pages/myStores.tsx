@@ -5,6 +5,7 @@ import Link from "next/link";
 import Card from "components/card";
 import { Rating } from "components/star";
 import PATHS from "utils/paths";
+import { CreateIcon } from "components/icons";
 
 const stores: StoreDTO[] = [
   {
@@ -79,9 +80,19 @@ export default function Home() {
     <Layout>
       <h1>My Stores</h1>
       <Gallery
-        list={stores}
+        list={stores ? [{ id: "first" }, ...stores] : [{ id: "first" }]}
         getId={(store) => store.id}
-        getItem={(store) => <StoreCard store={store} role="Founder" />}
+        getItem={(store, index) =>
+          index === 0 ? (
+            <Link href={PATHS.createStore.path}>
+              <Card className="mt-0 flex h-full items-center justify-center">
+                <CreateIcon className="h-9 w-9" />
+              </Card>
+            </Link>
+          ) : (
+            <StoreCard store={store as StoreDTO} role="Founder" />
+          )
+        }
         className="grid-cols-1 lg:grid-cols-4"
       />
     </Layout>
@@ -96,7 +107,7 @@ type StoreCardProps = {
 function StoreCard({ store, role }: StoreCardProps) {
   return (
     <Link href={PATHS.store.path(store.id)}>
-      <Card>
+      <Card className="mt-0 h-full">
         <h3 className="text-lg font-bold text-slate-800">{store.name}</h3>
         <span className="mb-2 font-bold text-slate-700">{role}</span>
         <Rating rating={3.25} votes={5} />

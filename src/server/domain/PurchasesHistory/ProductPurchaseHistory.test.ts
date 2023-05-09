@@ -10,7 +10,7 @@ import { itUnitIntegration } from "../_mock";
 import {
   createControllers,
   createMockControllers,
-  createTestControllers,
+  type createTestControllers,
 } from "../_createControllers";
 let controllers: ReturnType<typeof createTestControllers>;
 const productPurchaseData = {

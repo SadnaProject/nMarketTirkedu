@@ -6,7 +6,7 @@ let service: Service;
 beforeEach(() => {
   service = new Service();
 });
-
+//Use Case 1.1
 describe("Guest Entrance", () => {
   it("✅ Guest enters the system", () => {
     const id = service.startSession();
@@ -15,7 +15,7 @@ describe("Guest Entrance", () => {
     expect(service.getCart(id).storeIdToBasket.size).toBe(0);
   });
 });
-
+//Use Case 1.2
 describe("Disconnection", () => {
   it("✅ Guest disconnects the system", () => {
     const id = service.startSession();
@@ -32,7 +32,7 @@ describe("Disconnection", () => {
     expect(!service.isConnected(uid)).toBe(true);
   });
 });
-
+//Use Case 1.3
 describe("Guest Registration", () => {
   it("✅ Registration of new member", () => {
     const email = faker.internet.email();
@@ -50,7 +50,7 @@ describe("Guest Registration", () => {
     expect(() => service.registerMember(id, email, password)).toThrow();
   });
 });
-
+//Use Case 1.4
 describe("Guest Login", () => {
   it("✅ Login of a registered member", () => {
     const email = faker.internet.email();

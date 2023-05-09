@@ -12,7 +12,7 @@ import Link from "next/link";
 import PATHS from "utils/paths";
 import { RightIcon } from "components/icons";
 import { api } from "utils/api";
-import { toast } from "react-hot-toast";
+import { onError } from "utils/onError";
 
 const product = {
   id: "6e259065-7899-4667-bbd0-b9366443896d",
@@ -33,7 +33,7 @@ export default function Home() {
     {
       enabled: !!productId,
       retry: false,
-      onError: (err) => toast.error(err.message),
+      onError,
     }
   );
 

@@ -24,7 +24,7 @@ const motionItem = {
 type Props<T> = {
   list: T[];
   getId: (item: T) => string;
-  getItem: (item: T) => React.ReactNode;
+  getItem: (item: T, index: number) => React.ReactNode;
   className?: string;
 };
 
@@ -44,9 +44,9 @@ export default function Gallery<T>({
       initial="hidden"
       animate="visible"
     >
-      {list.map((item) => (
+      {list.map((item, index) => (
         <motion.li key={getId(item)} variants={motionItem}>
-          {getItem(item)}
+          {getItem(item, index)}
         </motion.li>
       ))}
     </motion.ul>

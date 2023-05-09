@@ -5,9 +5,9 @@ import {
   validSessionProcedure,
 } from "server/service/trpc";
 import { observable } from "@trpc/server/observable";
-import EventEmitter from "events";
 import { randomUUID } from "crypto";
 import { TRPCError } from "@trpc/server";
+import { eventEmitter } from "server/EventEmitter";
 
 // export const createStoreSchema = z.object({ text: z.string(), price:z.number() });
 
@@ -16,8 +16,6 @@ import { TRPCError } from "@trpc/server";
 // function createStore(input:CreateStore){
 
 // }
-
-const eventEmitter = new EventEmitter();
 
 export const exampleRouter = createTRPCRouter({
   // {
@@ -96,4 +94,39 @@ export const exampleRouter = createTRPCRouter({
       const id = randomUUID();
       return { id, email: input.email, name: input.email };
     }),
+
+  notifyAll: publicProcedure
+    .input(z.object({ message: z.string() }))
+    .mutation(({ input }) => {
+      eventEmitter.emit("notifyAll", input.message);
+      return "ok";
+    }),
+
+  onNotifyAll: publicProcedure.input(z.undefined()).subscription(() => {
+    return observable<string>((emit) => {
+      const onNotifyAll = (message: string) => {
+        emit.next(message);
+      };
+      eventEmitter.on(`notifyAll`, onNotifyAll);
+      return () => {
+        eventEmitter.off(`notifyAll`, onNotifyAll);
+      };
+    });
+  }),
+
+  addNotificationEvent: publicProcedure.mutation(() => {
+    eventEmitter.emit(`addNotificationEvent`);
+  }),
+
+  onAddNotificationEvent: publicProcedure.subscription(() => {
+    return observable<string>((emit) => {
+      const onAddNotificationEvent = (message: string) => {
+        emit.next(message);
+      };
+      eventEmitter.on(`addNotificationEvent`, onAddNotificationEvent);
+      return () => {
+        eventEmitter.off(`addNotificationEvent`, onAddNotificationEvent);
+      };
+    });
+  }),
 });

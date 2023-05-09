@@ -12,6 +12,7 @@ import Button from "components/button";
 import Href from "components/href";
 import { FormInput } from "components/form";
 import { api } from "utils/api";
+import { onError } from "utils/onError";
 
 const formSchema = z.object({
   email: z
@@ -33,7 +34,7 @@ export default function Home() {
   const router = useRouter();
   const { data: session } = useSession();
   const { mutate: loginMember } = api.users.loginMember.useMutation({
-    onError: (err) => toast.error(err.message),
+    onError,
     onSuccess: async (userId) => {
       const values = getValues();
       const res = await signIn("credentials", {

@@ -7,6 +7,8 @@ import Button from "components/button";
 import { CategoryDropdown } from "components/dropdown";
 import { toast } from "react-hot-toast";
 import { Modal } from "components/modal";
+import { api } from "utils/api";
+import { onError } from "utils/onError";
 
 interface Job {
   id: string;
@@ -51,6 +53,18 @@ const jobs: Job = {
 export default function Home() {
   const router = useRouter();
   const storeId = z.undefined().or(z.string()).parse(router.query.storeId);
+  const { mutate: makeStoreOwner } = api.stores.makeStoreOwner.useMutation({
+    onError,
+    onSuccess: () => {
+      toast.success("Job added successfully");
+    },
+  });
+  const { mutate: makeStoreManager } = api.stores.makeStoreManager.useMutation({
+    onError,
+    onSuccess: () => {
+      toast.success("Job added successfully");
+    },
+  });
 
   return (
     <Layout>
@@ -64,8 +78,9 @@ export default function Home() {
           glowClassName="w-full"
           glowContainerClassName="w-full sm:w-auto"
           className="h-full w-full rounded-t-lg sm:rounded-lg sm:rounded-l-none"
+          // onClick={()=>}
         >
-          Apply
+          Add
         </Button>
       </div>
       <div className="hs-accordion-group w-full" data-hs-accordion-always-open>

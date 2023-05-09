@@ -6,22 +6,72 @@ import PATHS from "utils/paths";
 import Link from "next/link";
 import { ProductCard } from "components/productCard";
 import { api } from "utils/api";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { type UseFormRegister, useForm } from "react-hook-form";
+import Button from "components/button";
+import { onError } from "utils/onError";
+import { toast } from "react-hot-toast";
+import Spinner from "components/spinner";
+
+const formSchema = z.object({
+  name: z.string().optional(),
+  keywords: z.string().array().optional(),
+  category: z.string().optional(),
+  minPrice: z.number().optional(),
+  maxPrice: z.number().optional(),
+  minProductRating: z.number().optional(),
+  maxProductRating: z.number().optional(),
+  minStoreRating: z.number().optional(),
+  maxStoreRating: z.number().optional(),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function Home() {
-  const { data: products } = api.stores.searchProducts.useQuery({});
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors, isSubmitting },
+    getValues,
+  } = useForm<FormValues>({ resolver: zodResolver(formSchema) });
+  const { data: products, refetch } = api.stores.searchProducts.useQuery(
+    getValues(),
+    {
+      retry: false,
+      onError,
+    }
+  );
 
-  // const [products, setProducts] = useState<StoreProductDTO[]>([]);
-  // useEffect(() => {
-  //   setProducts(Array.from({ length: 11 }, generateProductDTO));
-  // }, []);
+  const handleSearch = handleSubmit(
+    async (data) => {
+      await refetch();
+    },
+    (e) => {
+      toast.error(Object.values(e)[0]?.message || "Something went wrong");
+    }
+  );
 
   return (
     <Layout>
       <h1>Search Products</h1>
       <div className="rounded-md shadow-sm sm:flex">
-        <CategoryDropdown />
-        <Input placeholder="Product name" className="rounded-none" />
+        {/* <CategoryDropdown /> */}
         <Input
+          {...register("category")}
+          placeholder="Category"
+          className="rounded-b-none sm:rounded-r-none sm:rounded-bl-lg"
+        />
+        <Input
+          {...register("name")}
+          placeholder="Product name"
+          className="rounded-none"
+        />
+        <Input
+          {...register("keywords", {
+            setValueAs: (v: string) => (v ? v.split(" ") : undefined),
+          })}
           placeholder="Keywords"
           className="rounded-t-none sm:rounded-l-none sm:rounded-tr-lg"
         />
@@ -29,14 +79,27 @@ export default function Home() {
       <div className="mb-6 flex flex-wrap justify-center gap-x-6 gap-y-6">
         <div className="flex items-center gap-4">
           <span className="text-slate-800">Product Rating</span>
-          <RateSlider />
+          <RateSlider
+            onChange={(values) => {
+              setValue("minProductRating", values[0]);
+              setValue("maxProductRating", values[1]);
+            }}
+          />
         </div>
         <div className="flex items-center justify-end gap-4">
           <span className="text-slate-800">Store Rating</span>
-          <RateSlider />
+          <RateSlider
+            onChange={(values) => {
+              setValue("minStoreRating", values[0]);
+              setValue("maxStoreRating", values[1]);
+            }}
+          />
         </div>
       </div>
-      <MinMaxPrice />
+      <MinMaxPrice register={register} />
+      <Button onClick={() => void handleSearch()}>
+        {isSubmitting && <Spinner />} Search
+      </Button>
       {products && (
         <Gallery
           list={products}
@@ -93,17 +156,33 @@ function CategoryDropdown() {
   );
 }
 
-function MinMaxPrice() {
+type MinMaxPriceProps = {
+  register: UseFormRegister<FormValues>;
+};
+
+function MinMaxPrice({ register }: MinMaxPriceProps) {
   return (
     <div className="flex shadow-sm">
       <div className="inline-flex min-w-fit items-center rounded-l-md border border-r-0 border-gray-300 bg-slate-50 px-2">
         <span className="text-sm text-slate-600">$</span>
       </div>
-      <Input placeholder="0.00" className="w-24 rounded-none" />
+      <Input
+        placeholder="0.00"
+        className="w-24 rounded-none"
+        {...register("minPrice", {
+          setValueAs: (v: string) => (v ? parseInt(v) : undefined),
+        })}
+      />
       <div className="inline-flex min-w-fit items-center border-y border-gray-300 bg-slate-50 px-2">
         <span className="text-sm font-bold text-slate-600">-</span>
       </div>
-      <Input placeholder="∞" className="w-24 rounded-l-none" />
+      <Input
+        placeholder="∞"
+        className="w-24 rounded-l-none"
+        {...register("maxPrice", {
+          setValueAs: (v: string) => (v ? parseInt(v) : undefined),
+        })}
+      />
     </div>
   );
 }

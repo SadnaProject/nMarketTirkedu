@@ -13,7 +13,7 @@ import { itUnitIntegration } from "../_mock";
 import { PurchasesHistoryController } from "./PurchasesHistoryController";
 import {
   createMockControllers,
-  createTestControllers,
+  type createTestControllers,
 } from "../_createControllers";
 
 let controllers: ReturnType<typeof createTestControllers>;

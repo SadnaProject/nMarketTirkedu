@@ -107,6 +107,7 @@ describe("register member", () => {
       expect(() =>
         controllers.Auth.register("user1@gmail.com", "password2")
       ).toThrow();
+      expect(repos.Users.doesMemberExistByEmail("user1@gmail.com")).toEqual(false);
     }
   );
 });

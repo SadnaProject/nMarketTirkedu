@@ -36,30 +36,6 @@ export class BasketPurchase extends HasRepos {
     this.price = price;
   }
 
-  static BasketPurchaseDTOFromBasketDTO(
-    basketDTO: BasketDTO,
-    purchaseId: string,
-    userId: string
-  ): BasketPurchaseDTO {
-    const products = new Map<string, ProductPurchaseDTO>();
-    basketDTO.products.forEach((product) => {
-      products.set(
-        product.storeProductId,
-        ProductPurchase.ProductPurchaseDTOFromBasketProductDTO(
-          product,
-          purchaseId,
-          userId
-        )
-      );
-    });
-    return {
-      purchaseId: purchaseId,
-      storeId: basketDTO.storeId,
-      products: products,
-      price: new StoresController().getBasketPrice(userId, basketDTO.storeId),
-    };
-  }
-
   public get Products(): Map<string, ProductPurchase> {
     return this.products;
   }

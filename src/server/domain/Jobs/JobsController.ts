@@ -10,7 +10,7 @@ import { FounderRole } from "./FounderRole";
 import { type EditablePermission } from "./Role";
 import { TRPCError } from "@trpc/server";
 
-export interface IJobsController {
+export interface IJobsController extends HasRepos {
   /**
    * This function initializes the store's position holders, and setting the founder.
    * @param founderId The id of the user that will be the founder of the store.
@@ -36,7 +36,7 @@ export interface IJobsController {
    * @param userId The id of the user that is currently logged in.
    * @returns The stores that the user is an owner of.
    */
-  getStoresByOwner(userId: string): StoreDTO[];
+  // getStoresByOwner(userId: string): StoreDTO[];
   makeStoreManager(
     currentId: string,
     storeId: string,
@@ -68,7 +68,7 @@ export interface IJobsController {
    * @param userId The id of the user that is currently logged in.
    * @returns The stores that the user is a manager of.
    */
-  getStoresByManager(userId: string): StoreDTO[];
+  // getStoresByManager(userId: string): StoreDTO[];
   /**
    * This function removes a user from being a store owner.
    * @param currentId The id of the user that is currently logged in.
@@ -403,12 +403,12 @@ export class JobsController
     }
   }
 
-  getStoresByOwner(userId: string): StoreDTO[] {
-    throw new Error("Method Deprecated.");
-  }
-  getStoresByManager(userId: string): StoreDTO[] {
-    throw new Error("Method Deprecated");
-  }
+  // getStoresByOwner(userId: string): StoreDTO[] {
+  //   throw new Error("Method Deprecated.");
+  // }
+  // getStoresByManager(userId: string): StoreDTO[] {
+  //   throw new Error("Method Deprecated");
+  // }
   makeStoreManager(
     currentId: string,
     storeId: string,

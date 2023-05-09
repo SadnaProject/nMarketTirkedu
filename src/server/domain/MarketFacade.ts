@@ -23,7 +23,7 @@ export class MarketFacade extends Loggable {
     this.initializeSystemAdmin();
   }
   private initializeSystemAdmin() {
-    const userId = this.controllers.Auth.register("admin", "admin");
+    const userId = this.controllers.Auth.register("admin@gmail.com", "admin");
     this.controllers.Jobs.setInitialAdmin(userId);
   }
 
@@ -198,11 +198,7 @@ export class MarketFacade extends Loggable {
     targetUserId: string
   ): void {
     this.validateConnection(currentId);
-    this.controllers.Stores.removeStoreManager(
-      currentId,
-      storeId,
-      targetUserId
-    );
+    this.controllers.Stores.removeStoreOwner(currentId, storeId, targetUserId);
   }
 
   removeStoreManager(

@@ -10,6 +10,7 @@ import {
 import { BasketProduct } from "../Users/BasketProduct";
 import { StoresController } from "../Stores/StoresController";
 import { itUnitIntegration } from "../_mock";
+import { PurchasesHistoryController } from "./PurchasesHistoryController";
 
 const productPurchaseData = {
   id: "id",
@@ -108,11 +109,12 @@ describe("BasketPurchaseDTOFromBasketDTO", () => {
     vi.spyOn(StoresController.prototype, "getBasketPrice").mockReturnValueOnce(
       1
     );
-    const basketPurchaseDTO = BasketPurchase.BasketPurchaseDTOFromBasketDTO(
-      basketDTO,
-      "purchaseId",
-      "userId"
-    );
+    const basketPurchaseDTO =
+      PurchasesHistoryController.BasketPurchaseDTOFromBasketDTO(
+        basketDTO,
+        "purchaseId",
+        "userId"
+      );
     expect(basketPurchaseDTO).toEqual({
       purchaseId: "purchaseId",
       storeId: "storeId",

@@ -31,21 +31,6 @@ export class ProductPurchase extends HasRepos {
     this.quantity = quantity;
     this.price = price;
   }
-  static ProductPurchaseDTOFromBasketProductDTO(
-    basketProductDTO: BasketProductDTO,
-    purchaseId: string,
-    userId: string
-  ): ProductPurchaseDTO {
-    return {
-      productId: basketProductDTO.storeProductId,
-      quantity: basketProductDTO.quantity,
-      price: new StoresController().getProductPrice(
-        userId,
-        basketProductDTO.storeProductId
-      ),
-      purchaseId: purchaseId,
-    };
-  }
 
   public setReview(review: ProductReview) {
     this.review = review;

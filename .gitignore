@@ -5,7 +5,7 @@
 /.pnp
 .pnp.js
 package-lock.json
-pnpm-lock.yaml
+# pnpm-lock.yaml
 
 # testing
 /coverage
@@ -21,6 +21,7 @@ next-env.d.ts
 
 # production
 /build
+/dist
 
 # misc
 .DS_Store
@@ -42,3 +43,7 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+/test-results/
+/playwright-report/
+/playwright/.cache/
+package.json

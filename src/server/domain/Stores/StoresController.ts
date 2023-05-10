@@ -198,16 +198,42 @@ export interface IStoresController extends HasRepos {
     storeId: string,
     targetUserId: string
   ): void;
+  /**
+   * this function makes a user a store manager
+   * @param currentId the id of the user that is currently logged in
+   * @param storeId the id of the store that the user is being made a manager of
+   * @param targetUserId the id of the user that is being made a manager
+   * @throws Error if the user is already a manager of the store
+   */
   makeStoreManager(
     currentId: string,
     storeId: string,
     targetUserId: string
   ): void;
+  /**
+   * this function removes a user from being a store owner
+   * @param currentId the id of the user that is currently logged in
+   * @param storeId the id of the store that the user is being removed from
+   * @param targetUserId the id of the user that is being removed
+   * @throws Error if the user is not an owner of the store
+   * @throws Error if the user is the only owner of the store
+   * @throws Error if the user is the founder of the store
+   */
   removeStoreOwner(
     currentId: string,
     storeId: string,
     targetUserId: string
   ): void;
+  /**
+   * this function removes a user from being a store manager
+   * @param currentId the id of the user that is currently logged in
+   * @param storeId the id of the store that the user is being removed from
+   * @param targetUserId the id of the user that is being removed
+   * @throws Error if the user is not a manager of the store
+   * @throws Error if the user is the only manager of the store
+   * @throws Error if the user is the founder of the store
+   * @throws Error if the current user is can't remove the target user
+   */
   removeStoreManager(
     currentId: string,
     storeId: string,

@@ -1,6 +1,7 @@
+import { BasketDTO } from "../Users/Basket";
 import { type Discount } from "./Discount";
 import { FullBasketDTO } from "./StoresController";
-class DiscountPolicy {
+export class DiscountPolicy {
   private storeId: string;
   private discounts: Discount[];
   constructor(storeId: string) {
@@ -11,9 +12,13 @@ class DiscountPolicy {
     this.discounts = discounts;
   }
   public applyDiscounts(basket: FullBasketDTO) {
+    if (this.discounts.length === 0) return basket;
     this.discounts.forEach((discount) => {
       basket = discount.calculateDiscount(basket);
     });
+    return basket;
+  }
+  public applyDiscounts1(basket: BasketDTO) {
     return basket;
   }
 }

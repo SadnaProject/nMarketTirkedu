@@ -1,7 +1,7 @@
 import { Constraint } from "./Constraint";
 import { FullBasketDTO } from "./StoresController";
 
-class ContraintPolicy {
+export class ContraintPolicy {
   private storeId: string;
   private constraints: Constraint[];
   constructor(storeId: string) {
@@ -17,5 +17,8 @@ class ContraintPolicy {
       : this.constraints.every((constraint) =>
           constraint.isSatisfiedBy(basket)
         );
+  }
+  public isSatisfiedBy1(basket: BasketDTO) {
+    return true;
   }
 }

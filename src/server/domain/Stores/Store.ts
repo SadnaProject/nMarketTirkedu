@@ -6,8 +6,9 @@ import { Mixin } from "ts-mixer";
 import { type Controllers, HasControllers } from "../_HasController";
 import { randomUUID } from "crypto";
 import { TRPCError } from "@trpc/server";
-import { type Discount } from "./Discount";
-
+import { DiscountPolicy } from "./DiscountPolicy";
+import { FullBasketDTO, ProductWithQuantityDTO } from "./StoresController";
+import { ContraintPolicy } from "./ConstraintPolicy";
 export const nameSchema = z.string().nonempty();
 
 export type StoreDTO = {
@@ -20,14 +21,16 @@ export class Store extends Mixin(HasRepos, HasControllers) {
   private id: string;
   private name: string;
   private isActive: boolean;
-  private discounts: Discount[];
+  private discount: DiscountPolicy;
+  private constraint: ContraintPolicy;
   constructor(name: string) {
     super();
     nameSchema.parse(name);
     this.id = randomUUID();
     this.name = name;
     this.isActive = true;
-    this.discounts = [];
+    this.discount = new DiscountPolicy(this.id);
+    this.constraint = new ContraintPolicy(this.Id);
   }
 
   static fromDTO(dto: StoreDTO, repos: Repos, controllers: Controllers) {
@@ -78,7 +81,15 @@ export class Store extends Mixin(HasRepos, HasControllers) {
   }
 
   public getBasketPrice(basketDTO: BasketDTO): number {
+    if (!this.constraint.isSatisfiedBy1(basketDTO))
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "the basket doesn't fulfilled the terms",
+      });
     const productsIds = this.Products.map((p) => p.id);
+
+    basketDTO = this.discount.applyDiscounts1(basketDTO);
+
     return basketDTO.products.reduce((acc, curr) => {
       const product = this.Repos.Products.getProductById(curr.storeProductId);
       if (!productsIds.includes(curr.storeProductId))

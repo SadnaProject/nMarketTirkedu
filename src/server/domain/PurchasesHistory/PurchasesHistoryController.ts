@@ -16,7 +16,7 @@ import {
   type ProductPurchaseDTO,
   type ProductPurchase,
 } from "./ProductPurchaseHistory";
-import { error } from "console";
+import { Console, error } from "console";
 import { createControllers } from "../_createControllers";
 import { JobsController } from "../Jobs/JobsController";
 import { TRPCError } from "@trpc/server";
@@ -70,6 +70,7 @@ export interface IPurchasesHistoryController extends HasRepos {
     userId: string,
     totalPrice: number
   ): CartPurchaseDTO;
+  addPurchase(cartPurchase: CartPurchase): void;
 }
 
 @testable
@@ -105,6 +106,28 @@ export class PurchasesHistoryController
     price: number,
     @censored creditCard: CreditCard
   ): void {
+    cart.storeIdToBasket.forEach((basket) => {
+      basket.products.forEach((product) => {
+        if (
+          !this.Controllers.Stores.isProductQuantityInStock(
+            userId,
+            product.storeProductId,
+            product.quantity
+          )
+        ) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Product quantity is not available",
+          });
+        }
+      });
+    });
+    if (cart.storeIdToBasket.size === 0) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Cart is empty, please add products to cart before purchasing",
+      });
+    }
     if (PaymentAdapter.pay(creditCard, price) === false) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -112,26 +135,14 @@ export class PurchasesHistoryController
           "Payment failed, please check your credit card details and try again",
       });
     }
-    if (cart.storeIdToBasket.size === 0) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Cart is empty, please add products to cart before purchasing",
+    cart.storeIdToBasket.forEach((basket) => {
+      basket.products.forEach((product) => {
+        this.Controllers.Stores.decreaseProductQuantity(
+          product.storeProductId,
+          product.quantity
+        );
       });
-    }
-    //TODO fix
-    // cart.storeIdToBasket.forEach((basket) => {
-    //   basket.products.forEach((product) => {
-    //     if (
-    //       this.Controllers.Stores.isProductQuantityInStock(
-    //         userId,
-    //         product.storeProductId,
-    //         product.quantity
-    //       )
-    //     ) {
-    //       throw new Error("Product quantity is not available");
-    //     }
-    //   });
-    // });
+    });
     // for every storeId in cart, EventEmmiter.emit("purchase", storeId, cart.storeIdToBasket.get(storeId))
     const cartPurchase = this.CartPurchaseDTOfromCartDTO(cart, userId, price);
     this.addPurchase(CartPurchase.fromDTO(cartPurchase));

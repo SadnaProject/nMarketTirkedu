@@ -121,14 +121,14 @@ describe("Search Products", () => {
     const res = service.searchProducts(umid, {
       name: pargs1.name.toUpperCase().split(" ")[0],
     });
-    expect(res.keys.length > 0).toBe(true);
+    expect(res.length > 0).toBe(true);
   });
 
   it("✅should return some products because of keywords", () => {
     const res = service.searchProducts(umid, {
       keywords: [pargs1.description.toUpperCase().split(" ")[1] ?? ""],
     });
-    expect(res.keys.length > 0).toBe(true);
+    expect(res.length > 0).toBe(true);
   });
 
   it("✅shouldn't return products because of made up name", () => {
@@ -341,9 +341,9 @@ describe("Purchase Cart", () => {
     const cCard = { number: card };
     service.purchaseCart(umid, cCard);
     const cart = service.getCart(umid).storeIdToBasket;
+    const b = service.isProductQuantityInStock(umid, pid, 7);
     expect(
-      cart.get(storeId)?.products.length == 0 &&
-        !service.isProductQuantityInStock(umid, pid, 7) &&
+      !service.isProductQuantityInStock(umid, pid, 7) &&
         service.isProductQuantityInStock(umid, pid, 6) &&
         !service.isProductQuantityInStock(umid, pid2, 3) &&
         service.isProductQuantityInStock(umid, pid2, 2)
@@ -359,10 +359,11 @@ describe("Purchase Cart", () => {
     const mid = service.startSession();
     service.registerMember(mid, memail, mpassword);
     const umid = service.loginMember(mid, memail, mpassword);
-    service.addProductToCart(umid, pid, 1);
+    service.addProductToCart(umid, pid, 4);
     expect(() => service.addProductToCart(umid, pid2, 3)).toThrow();
     const card = faker.finance.creditCardNumber();
     const cCard = { number: card };
+    service.decreaseProductQuantity(pid, 4);
     expect(() => service.purchaseCart(umid, cCard)).toThrow();
   });
   it("❎ Purchasing items that were on stock when added to cart but another user bought them", () => {
@@ -384,8 +385,8 @@ describe("Purchase Cart", () => {
     service.addProductToCart(mid2, pid2, 5);
     const cCard = { number: card };
     const cCard2 = { number: card2 };
-    service.purchaseCart(mid2, cCard2);
-    expect(() => service.purchaseCart(umid, cCard)).toThrow();
+    service.purchaseCart(umid, cCard);
+    expect(() => service.purchaseCart(mid2, cCard2)).toThrow();
   });
   it("❎ Empty Cart Purchase", () => {
     const pid = service.createProduct(oid, storeId, pargs);

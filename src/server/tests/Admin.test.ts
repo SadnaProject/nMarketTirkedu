@@ -164,7 +164,7 @@ describe("Remove Member", () => {
     const id = service.startSession();
     const uid = service.loginMember(id, "admin@gmail.com", "admin");
     const oid2 = service.startSession();
-    expect(service.removeMember(uid, oid2)).toThrow();
+    expect(() => service.removeMember(uid, oid2)).toThrow();
   });
 });
 //Use Case 6.6
@@ -177,6 +177,11 @@ describe("Get information about members", () => {
     const oid2 = service.startSession();
     service.registerMember(oid2, ownermail, ownerpass);
     const oid = service.loginMember(oid2, ownermail, ownerpass);
+    expect(
+      service.getAllLoggedInMembersIds(uid).length == 2 &&
+        service.getAllLoggedInMembersIds(uid).includes(uid) &&
+        service.getAllLoggedInMembersIds(uid).includes(oid)
+    ).toBe(true);
     const memail = "member@gmail.com";
     const mpassword = faker.internet.password();
     const mid = service.startSession();
@@ -188,15 +193,11 @@ describe("Get information about members", () => {
     const mid2 = service.startSession();
     service.registerMember(mid2, memail2, mpassword2);
     const umid2 = service.loginMember(mid2, memail2, mpassword2);
-    expect(
-      service.getAllLoggedInMembersIds(uid).length == 2 &&
-        service.getAllLoggedInMembersIds(uid).includes(uid) &&
-        service.getAllLoggedInMembersIds(uid).includes(oid)
-    ).toBe(true);
+    service.logoutMember(umid2);
     expect(
       service.getAllLoggedOutMembersIds(uid).length == 2 &&
         service.getAllLoggedOutMembersIds(uid).includes(umid) &&
-        service.getAllLoggedInMembersIds(umid).includes(umid2)
+        service.getAllLoggedOutMembersIds(uid).includes(umid2)
     ).toBe(true);
   });
 });

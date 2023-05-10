@@ -88,7 +88,7 @@ export class StoreProduct extends HasRepos {
         message: "Not enough quantity in stock",
       });
     }
-    this.Quantity -= quantity;
+    this.Quantity = this.Quantity - quantity;
   }
 
   public get Price() {

@@ -12,6 +12,7 @@ import fuzzysearch from "fuzzysearch-ts";
 import { type BasketPurchaseDTO } from "../PurchasesHistory/BasketPurchaseHistory";
 import { TRPCError } from "@trpc/server";
 import { eventEmitter } from "server/EventEmitter";
+import { CartPurchaseDTO } from "../PurchasesHistory/CartPurchaseHistory";
 
 export type SearchArgs = {
   name?: string;

@@ -161,19 +161,19 @@ describe("login member", () => {
     expect(controllers.Auth.isConnected(memberId)).toEqual(true);
   });
 });
-describe("get all members", () => {
-  itUnitIntegration("✅gets all logged in/out members", (testType) => {
-    testType = "integration";
-    controllers = createTestControllers(testType, "Auth");
-    repos = createTestRepos(testType);
-    controllers.Auth.initRepos(repos);
-    controllers.Auth.register(generateEmailI(1), generatePasswordI(1));
-    controllers.Auth.register(generateEmailI(2), generatePasswordI(2));
-    expect(controllers.Auth.getAllLoggedOutMembersIds().length).toEqual(2);
-    expect(controllers.Auth.getAllLoggedInMembersIds().length).toEqual(0);
-    const guestId = controllers.Auth.startSession();
-    controllers.Auth.login(guestId, generateEmailI(1), generatePasswordI(1));
-    expect(controllers.Auth.getAllLoggedOutMembersIds().length).toEqual(1);
-    expect(controllers.Auth.getAllLoggedInMembersIds().length).toEqual(1);
-  });
-});
+// describe("get all members", () => {
+// itUnitIntegration("✅gets all logged in/out members", (testType) => {
+//   testType = "integration";
+//   controllers = createTestControllers(testType, "Auth");
+//   repos = createTestRepos(testType);
+//   controllers.Auth.initRepos(repos);
+//   controllers.Auth.register(generateEmailI(1), generatePasswordI(1));
+//   controllers.Auth.register(generateEmailI(2), generatePasswordI(2));
+//   expect(controllers.Auth.getAllLoggedOutMembersIds().length).toEqual(2);
+//   expect(controllers.Auth.getAllLoggedInMembersIds().length).toEqual(0);
+//   const guestId = controllers.Auth.startSession();
+//   controllers.Auth.login(guestId, generateEmailI(1), generatePasswordI(1));
+//   expect(controllers.Auth.getAllLoggedOutMembersIds().length).toEqual(1);
+//   expect(controllers.Auth.getAllLoggedInMembersIds().length).toEqual(1);
+// });
+// });

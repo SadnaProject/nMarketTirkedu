@@ -55,6 +55,7 @@ describe("set name", () => {
     expect(() => {
       store.Name = "";
     }).toThrow(ZodError);
+    expect(store.Name).toBe(productData.name);
   });
 });
 
@@ -73,6 +74,7 @@ describe("set quantity", () => {
     expect(() => {
       store.Quantity = -1;
     }).toThrow(ZodError);
+    expect(store.Quantity).toBe(productData.quantity);
   });
 });
 
@@ -91,6 +93,7 @@ describe("set price", () => {
     expect(() => {
       store.Price = -1;
     }).toThrow(ZodError);
+    expect(store.Price).toBe(productData.price);
   });
 });
 
@@ -109,6 +112,7 @@ describe("set category", () => {
     expect(() => {
       store.Category = "";
     }).toThrow(ZodError);
+    expect(store.Category).toBe(productData.category);
   });
 });
 
@@ -127,6 +131,7 @@ describe("set description", () => {
     expect(() => {
       store.Description = "";
     }).toThrow(ZodError);
+    expect(store.Description).toBe(productData.description);
   });
 });
 
@@ -177,6 +182,7 @@ describe("decrease quantity", () => {
     expect(() => product.decreaseQuantity(-1)).toThrow(
       "Quantity must be positive"
     );
+    expect(product.Quantity).toBe(productData.quantity);
   });
 
   it("❎gets inactive store", () => {
@@ -185,5 +191,6 @@ describe("decrease quantity", () => {
     const { product, store } = createStoreWithProduct(productData, repos);
     store.IsActive = false;
     expect(() => product.decreaseQuantity(1)).toThrow("Store is not active");
+    expect(product.Quantity).toBe(productData.quantity);
   });
 });

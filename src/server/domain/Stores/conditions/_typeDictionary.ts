@@ -10,7 +10,7 @@ export const typeToClass = {
   Xor: XORCondition,
   Implies: ImpliesCondition,
 };
-export function build(args: ConditionArgs): ICondition {
+export function buildCondition(args: ConditionArgs): ICondition {
   const type = args.type;
   if (type === "Literal") return new LiteralCondition(args);
   const conditionClass = typeToClass[type];

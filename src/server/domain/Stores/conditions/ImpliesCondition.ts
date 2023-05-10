@@ -1,14 +1,14 @@
 import { CompositeArgs, type ICondition } from "./Condition";
 import { type FullBasketDTO } from "../StoresController";
-import { build } from "./_typeDictionary";
+import { buildCondition } from "./_typeDictionary";
 
 export class ImpliesCondition implements ICondition {
   private implies: ICondition;
   private condition: ICondition;
 
   constructor(composite: CompositeArgs) {
-    this.implies = build(composite.left);
-    this.condition = build(composite.right);
+    this.implies = buildCondition(composite.left);
+    this.condition = buildCondition(composite.right);
   }
 
   public isSatisfiedBy(basket: FullBasketDTO): boolean {

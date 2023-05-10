@@ -1,4 +1,5 @@
-import { type ICondition } from "./conditions/Condition";
+import { buildCondition } from "./conditions/_typeDictionary";
+import { ConditionArgs, type ICondition } from "./conditions/Condition";
 import { type FullBasketDTO } from "./StoresController";
 type Discount_on = "product" | "category" | "store";
 type DiscountArgs = {
@@ -16,12 +17,12 @@ export class Discount implements IDiscount {
   discount_on: Discount_on;
   search_For?: string;
   constructor(
-    condition: ICondition,
+    condition: ConditionArgs,
     discount: number,
     discount_on: Discount_on,
     name?: string
   ) {
-    this.condition = condition;
+    this.condition = buildCondition(condition);
     this.discount = discount;
     this.discount_on = discount_on;
     this.search_For = name;
@@ -37,7 +38,7 @@ export class Discount implements IDiscount {
             product.product.category === this.search_For) ||
           this.discount_on === "store"
         ) {
-          product.Discount = this.discount;
+          product.Discount += this.discount;
         }
       });
     }

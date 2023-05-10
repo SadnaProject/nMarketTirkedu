@@ -9,7 +9,6 @@ import {
   createTestControllers,
 } from "../_createControllers";
 import { type Controllers } from "../_HasController";
-import { get } from "http";
 
 export function createMember(name: string, password: string) {
   return MemberUserAuth.create(name, password);

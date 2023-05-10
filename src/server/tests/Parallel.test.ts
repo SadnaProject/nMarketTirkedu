@@ -1,14 +1,11 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import { benchmark } from "./_benchmark";
 import { faker } from "@faker-js/faker/locale/en";
-import { type StoreProductArgs } from "server/domain/Stores/StoreProduct";
 import {
   generateProductArgs,
   generateStoreName,
 } from "server/domain/Stores/_data";
 import { Service } from "server/service/Service";
-import { type CreditCard } from "server/domain/PurchasesHistory/PaymentAdaptor";
-import { promise } from "zod";
 
 let service: Service;
 beforeEach(() => {

@@ -1,3 +1,4 @@
+import { BasketDTO } from "../Users/Basket";
 import { Constraint } from "./Constraint";
 import { FullBasketDTO } from "./StoresController";
 

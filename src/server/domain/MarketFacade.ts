@@ -24,7 +24,7 @@ export class MarketFacade extends Loggable {
     this.initializeSystemAdmin();
   }
   private initializeSystemAdmin() {
-    const userId = this.controllers.Auth.register("admin@gmail.com", "admin");
+    const userId = this.controllers.Users.register("admin@gmail.com", "admin");
     this.controllers.Jobs.setInitialAdmin(userId);
   }
 
@@ -379,10 +379,10 @@ export class MarketFacade extends Loggable {
     adminId: string,
     userId: string
   ): CartPurchaseDTO[] {
-    throw new TRPCError({
-      code: "METHOD_NOT_SUPPORTED",
-      message: "Please link it when implemented in the appropriate component",
-    });
+    return this.controllers.PurchasesHistory.getPurchasesByUser(
+      adminId,
+      userId
+    );
   }
   public getPurchasesByStore(
     userId: string,

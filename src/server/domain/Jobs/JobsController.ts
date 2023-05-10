@@ -443,6 +443,12 @@ export class JobsController
     storeId: string,
     targetUserId: string
   ): void {
+    if (!this.isStoreOwner(targetUserId, storeId)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "The user requested to be removed is not a store owner",
+      });
+    }
     this.removeAppointee(currentId, storeId, targetUserId);
   }
 
@@ -451,6 +457,12 @@ export class JobsController
     storeId: string,
     targetUserId: string
   ): void {
+    if (!this.isStoreManager(targetUserId, storeId)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "The user requested to be removed is not a store manager",
+      });
+    }
     this.removeAppointee(currentId, storeId, targetUserId);
   }
   private removeAppointee(

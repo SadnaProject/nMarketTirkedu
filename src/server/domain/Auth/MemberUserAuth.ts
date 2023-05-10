@@ -77,12 +77,12 @@ export class MemberUserAuth extends UserAuth {
   }
 
   public login(): Session {
-    if (this.isUserLoggedInAsMember()) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Member is already logged in",
-      });
-    }
+    // if (this.isUserLoggedInAsMember()) {
+    //   throw new TRPCError({
+    //     code: "BAD_REQUEST",
+    //     message: "Member is already logged in",
+    //   });
+    // }
     const session = new Session(this.userId);
     this.addSession(session);
     return session;

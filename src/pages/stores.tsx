@@ -34,18 +34,18 @@ export default function Home() {
     formState: { errors, isSubmitting },
     getValues,
   } = useForm<FormValues>({ resolver: zodResolver(formSchema) });
-  const { data: products, refetch } = api.stores.searchProducts.useQuery(
-    // todo update
-    getValues(),
-    {
-      retry: false,
-      onError,
-    }
-  );
+  // const { data: products, refetch } = api.stores.searchProducts.useQuery(
+  //   // todo update
+  //   getValues(),
+  //   {
+  //     retry: false,
+  //     onError,
+  //   }
+  // );
 
   const handleSearch = handleSubmit(
     async (data) => {
-      await refetch();
+      // await refetch();
     },
     (e) => {
       toast.error(Object.values(e)[0]?.message || "Something went wrong");
@@ -63,12 +63,20 @@ export default function Home() {
       <Button onClick={() => void handleSearch()}>
         {isSubmitting && <Spinner />} Search
       </Button>
-      <Gallery
-        list={stores}
-        getId={(store) => store.id}
-        getItem={(store) => <StoreCard store={store} />}
-        className="grid-cols-1 lg:grid-cols-4"
-      />
+
+      {stores &&
+        (stores.length > 0 ? (
+          <Gallery
+            list={stores}
+            getId={(store) => store.id}
+            getItem={(store) => <StoreCard store={store} />}
+            className="grid-cols-1 lg:grid-cols-4"
+          />
+        ) : (
+          <Card className="mt-0 flex h-full w-full max-w-md items-center justify-center">
+            No stores found
+          </Card>
+        ))}
     </Layout>
   );
 }

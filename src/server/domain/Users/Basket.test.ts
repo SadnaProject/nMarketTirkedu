@@ -23,6 +23,7 @@ describe("addProduct", () => {
     const basket = new Basket(randomUUID());
     const productId = randomUUID();
     expect(() => basket.addProduct(productId, -1)).toThrow();
+    expect(basket.DTO.products.length).toBe(0);
   });
 });
 describe("removeProduct", () => {
@@ -42,6 +43,7 @@ describe("removeProduct", () => {
     const quantity = 1;
     basket.addProduct(productId, quantity);
     expect(() => basket.removeProduct(randomUUID())).toThrow();
+    expect(basket.DTO.products.length).toBe(1);
   });
 });
 describe("editProductQuantity", () => {
@@ -71,6 +73,10 @@ describe("editProductQuantity", () => {
     const quantity = 1;
     basket.addProduct(productId, quantity);
     expect(() => basket.editProductQuantity(productId, -1)).toThrow();
+    expect(
+      basket.DTO.products.filter((p) => p.storeProductId === productId)[0]
+        ?.quantity
+    ).toBe(quantity);
   });
   it("should throw an error if the product is not in the basket", () => {
     const basket = new Basket(randomUUID());

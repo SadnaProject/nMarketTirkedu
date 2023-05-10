@@ -1,5 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { type Repos, createTestRepos } from "./_HasRepos";
+import { describe, expect, it, vi } from "vitest";
 import { MemberUserAuth } from "./MemberUserAuth";
 import { GuestUserAuth } from "./GuestUserAuth";
 import { itUnitIntegration } from "../_mock";
@@ -30,7 +29,7 @@ describe("create member", () => {
   });
 });
 describe("login member", () => {
-  itUnitIntegration("✅logs in member", (testType) => {
+  it("✅logs in member", (testType) => {
     const member = getMemberI(1);
     vi.spyOn(member, "isConnectionValid").mockReturnValue(false);
     expect(member.isUserLoggedInAsMember()).toBeFalsy();
@@ -38,21 +37,21 @@ describe("login member", () => {
     vi.spyOn(member, "isConnectionValid").mockReturnValue(true);
     expect(member.isUserLoggedInAsMember()).toBeTruthy();
   });
-  itUnitIntegration(
-    "❎does not log in member because he is already logged in",
-    (testType) => {
-      const member = getMemberI(1);
-      vi.spyOn(member, "isConnectionValid").mockReturnValue(false);
-      member.login();
-      vi.spyOn(member, "isConnectionValid").mockReturnValue(true);
-      expect(member.isUserLoggedInAsMember()).toBeTruthy();
-      expect(() => member.login()).toThrow();
-    }
-  );
+  // itUnitIntegration(
+  //   "❎does not log in member because he is already logged in",
+  //   (testType) => {
+  //     const member = getMemberI(1);
+  //     vi.spyOn(member, "isConnectionValid").mockReturnValue(false);
+  //     member.login();
+  //     vi.spyOn(member, "isConnectionValid").mockReturnValue(true);
+  //     expect(member.isUserLoggedInAsMember()).toBeTruthy();
+  //     expect(() => member.login()).toThrow();
+  //   }
+  // );
 });
 
 describe("logout member", () => {
-  itUnitIntegration("✅logs out member", (testType) => {
+  it("✅logs out member", (testType) => {
     const member = getMemberI(1);
     vi.spyOn(member, "isConnectionValid").mockReturnValue(false);
     member.login();

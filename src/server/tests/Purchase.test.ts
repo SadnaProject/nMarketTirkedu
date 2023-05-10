@@ -6,7 +6,6 @@ import {
 } from "server/domain/Stores/_data";
 import { Service } from "server/service/Service";
 import { describe, expect, it, beforeEach } from "vitest";
-import { type CreditCard } from "server/domain/PurchasesHistory/PaymentAdaptor";
 
 let service: Service;
 beforeEach(() => {

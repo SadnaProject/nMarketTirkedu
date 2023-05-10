@@ -1,4 +1,4 @@
-import PATHS from "utils/paths";
+import PATHS, { useMemberRedirect } from "utils/paths";
 import Layout from "./_layout";
 import Card from "components/card";
 import { signIn, useSession } from "next-auth/react";
@@ -25,6 +25,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function Home() {
+  useMemberRedirect();
   const {
     register,
     handleSubmit,
@@ -36,16 +37,15 @@ export default function Home() {
   const { mutate: loginMember } = api.users.loginMember.useMutation({
     onError,
     onSuccess: async (userId) => {
-      const values = getValues();
       const res = await signIn("credentials", {
         id: userId,
-        email: values.email,
-        password: values.password,
+        email: getValues().email,
+        password: getValues().password,
         session: JSON.stringify(session),
         redirect: false,
       });
       if (res?.ok) {
-        await router.push(PATHS.home.path);
+        router.reload();
       } else {
         toast.error(res?.error || "Something went wrong");
       }

@@ -23,7 +23,7 @@ export function ProductCard({ product }: ProductCardProps) {
       >
         {product.description}
       </p>
-      <div className="flex flex-col items-center justify-between md:flex-row">
+      <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
         <Price price={product.price} />
         <Rating rating={3.24} votes={5} />
       </div>

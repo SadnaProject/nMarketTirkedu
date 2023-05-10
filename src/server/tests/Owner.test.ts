@@ -4,7 +4,7 @@ import {
   generateStoreName,
 } from "server/domain/Stores/_data";
 import { Service } from "server/service/Service";
-import { describe, expect, it, beforeEach, beforeAll } from "vitest";
+import { describe, expect, it, beforeEach } from "vitest";
 
 let service: Service;
 beforeEach(() => {

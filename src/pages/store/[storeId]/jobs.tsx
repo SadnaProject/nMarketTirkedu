@@ -9,6 +9,7 @@ import { toast } from "react-hot-toast";
 import { Modal } from "components/modal";
 import { api } from "utils/api";
 import { onError } from "utils/onError";
+import { useGuestRedirect } from "utils/paths";
 
 interface Job {
   id: string;
@@ -51,6 +52,7 @@ const jobs: Job = {
 };
 
 export default function Home() {
+  useGuestRedirect();
   const router = useRouter();
   const storeId = z.undefined().or(z.string()).parse(router.query.storeId);
   const { mutate: makeStoreOwner } = api.stores.makeStoreOwner.useMutation({

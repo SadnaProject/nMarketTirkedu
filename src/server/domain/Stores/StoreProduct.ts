@@ -4,7 +4,7 @@ import { HasRepos, type Repos } from "./_HasRepos";
 import { TRPCError } from "@trpc/server";
 
 const nameSchema = z.string().nonempty("Name must be nonempty");
-const quantitySchema = z.number().positive("Quantity must be positive");
+const quantitySchema = z.number().nonnegative("Quantity must be non negative");
 const priceSchema = z.number().positive("Price must be positive");
 const categorySchema = z.string().nonempty("Category must be nonempty");
 const descriptionSchema = z.string().nonempty("Description must be nonempty");

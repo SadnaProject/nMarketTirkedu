@@ -230,19 +230,8 @@ export class AuthController
         message: "Given user id doesn't belong to a member",
       });
     }
-    if (this.Controllers.Jobs.isMemberInAnyPosition(memberIdToRemove)) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message:
-          "Member is in a position, please remove him from the position first",
-      });
-    }
-    if (!this.Controllers.Jobs.canRemoveMember(userIdOfActor)) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "User doesn't have permission to remove member",
-      });
-    }
+
+    this.Repos.Users.removeMember(memberIdToRemove);
   }
   public getAllLoggedInMembersIds(): string[] {
     // throw new Error("Method not implemented.");

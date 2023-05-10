@@ -1,4 +1,4 @@
-import { type IDiscountCondition } from "./DiscountCondition";
+import { type ICondition } from "./conditions/Condition";
 import { type FullBasketDTO } from "./StoresController";
 type Discount_on = "product" | "category" | "store";
 type DiscountArgs = {
@@ -11,12 +11,12 @@ export interface IDiscount {
 }
 
 export class Discount implements IDiscount {
-  condition: IDiscountCondition;
+  condition: ICondition;
   discount: number;
   discount_on: Discount_on;
   search_For?: string;
   constructor(
-    condition: IDiscountCondition,
+    condition: ICondition,
     discount: number,
     discount_on: Discount_on,
     name?: string

@@ -1,35 +1,35 @@
 import { z } from "zod";
-import { type IDiscountCondition } from "./DiscountCondition";
-import { type FullBasketDTO } from "./StoresController";
-const discountOnSchema = z.enum(["Product", "Category", "Basket"]);
-type Discount_on = z.infer<typeof discountOnSchema>;
-const discountTypeSchema = z.enum(["AtLeast", "AtMost", "Exactly"]);
-type Discount_Type = z.infer<typeof discountTypeSchema>;
-export const discountLiteralConditionSchema = z.object({
-  discountOn: discountOnSchema,
-  discountType: discountTypeSchema,
+import { type ICondition } from "./Condition";
+import { type FullBasketDTO } from "../StoresController";
+const ConditionOnSchema = z.enum(["Product", "Category", "Basket"]);
+type Condition_on = z.infer<typeof ConditionOnSchema>;
+const ConditionTypeSchema = z.enum(["AtLeast", "AtMost", "Exactly"]);
+type Condition_Type = z.infer<typeof ConditionTypeSchema>;
+export const LiteralConditionSchema = z.object({
+  ConditionOn: ConditionOnSchema,
+  ConditionType: ConditionTypeSchema,
   amount: z.number(),
   searchFor: z.string(),
 });
-class DiscountLiteralCondition implements IDiscountCondition {
-  private discount_on: Discount_on;
-  private discount_type: Discount_Type;
+class LiteralCondition implements ICondition {
+  private condition_on: Condition_on;
+  private condition_type: Condition_Type;
   private amount: number;
   private search_For: string;
   constructor(
-    discount_on: Discount_on,
-    discount_type: Discount_Type,
+    Condition_on: Condition_on,
+    Condition_type: Condition_Type,
     amount: number,
     search_For: string
   ) {
-    this.discount_on = discount_on;
-    this.discount_type = discount_type;
+    this.condition_on = Condition_on;
+    this.condition_type = Condition_type;
     this.amount = amount;
     this.search_For = search_For;
   }
   public isSatisfiedBy(basket: FullBasketDTO): boolean {
     let count = 0;
-    switch (this.discount_on) {
+    switch (this.condition_on) {
       case "Product":
         basket.products.forEach((product) => {
           if (product.product.name === this.search_For) {
@@ -50,7 +50,7 @@ class DiscountLiteralCondition implements IDiscountCondition {
         });
         break;
     }
-    switch (this.discount_type) {
+    switch (this.condition_type) {
       case "AtLeast":
         return count >= this.amount;
       case "AtMost":

@@ -456,13 +456,19 @@ export class StoresController
   }
 
   deactivateStore(userId: string, storeId: string): void {
+    const store = Store.fromStoreId(storeId, this.Repos);
+    if (store.IsActive === false) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Store is already deactivated",
+      });
+    }
     if (!this.Controllers.Jobs.canDeactivateStore(userId, storeId)) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to deactivate store",
       });
     }
-    const store = Store.fromStoreId(storeId, this.Repos);
     store.IsActive = false;
     const notifiedUserIds = [
       store.FounderId,
@@ -592,7 +598,15 @@ export class StoresController
     return Store.fromStoreId(storeId, this.Repos).ManagersIds;
   }
   getPurchasesByStoreId(userId: string, storeId: string) {
-    this.Controllers.Jobs.canReceivePurchaseHistoryFromStore(userId, storeId);
+    if (
+      !this.Controllers.Jobs.canReceivePurchaseHistoryFromStore(userId, storeId)
+    )
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message:
+          "User does not have permission to receive purchase history from store",
+      });
+
     return Store.fromStoreId(storeId, this.Repos).Purchases;
   }
   searchStores(userId: string, name: string): StoreDTO[] {

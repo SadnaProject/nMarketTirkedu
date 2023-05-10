@@ -363,7 +363,7 @@ describe("Store Inactivating", () => {
     const storeId = service.createStore(uid, storeName);
     service.deactivateStore(uid, storeId);
     expect(() => service.deactivateStore(uid, storeId)).toThrow();
-    expect(() => service.isStoreActive(uid, storeId)).toBe(false);
+    expect(service.isStoreActive(uid, storeId)).toBe(false);
   });
 });
 //Use Case 4.7

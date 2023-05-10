@@ -1,7 +1,7 @@
 import Layout from "../../_layout";
 import Gallery from "components/gallery";
 import Link from "next/link";
-import PATHS from "utils/paths";
+import PATHS, { useGuestRedirect } from "utils/paths";
 import { ProductCard } from "components/productCard";
 import { useRouter } from "next/router";
 import { z } from "zod";
@@ -112,6 +112,7 @@ import { CreateIcon } from "components/icons";
 // ];
 
 export default function Home() {
+  useGuestRedirect();
   const router = useRouter();
   const storeId = z.undefined().or(z.string()).parse(router.query.storeId);
   const { data: products } = api.stores.getStoreProducts.useQuery({

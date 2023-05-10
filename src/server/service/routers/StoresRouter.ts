@@ -287,7 +287,7 @@ export const StoresRouter = createTRPCRouter({
     .query(({ input, ctx }) => {
       return facade.searchStores(ctx.session.user.id, input.name);
     }),
-  getCartPrice: validSessionProcedure.input(z.object({})).query(({ ctx }) => {
+  getCartPrice: validSessionProcedure.query(({ ctx }) => {
     return facade.getCartPrice(ctx.session.user.id);
   }),
   getBasketPrice: validSessionProcedure

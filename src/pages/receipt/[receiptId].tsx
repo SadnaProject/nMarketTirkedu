@@ -5,7 +5,7 @@ import Price from "components/price";
 import Collapse from "components/collapse";
 import Link from "next/link";
 import PATHS from "utils/paths";
-import { RightIcon, TimeIcon } from "components/icons";
+import { ItemsIcon, RightIcon, TimeIcon } from "components/icons";
 import Button from "components/button";
 import Spinner from "components/spinner";
 import { toast } from "react-hot-toast";
@@ -64,8 +64,9 @@ export default function Home() {
                 </h3>
                 <RightIcon className="h-5 w-5" />
               </Link>
-              <span className="font-bold text-slate-700">
-                {product.category}
+              <span className="flex items-center gap-2 font-bold text-slate-700">
+                <ItemsIcon />
+                {product.quantity} items
               </span>
               <Collapse id={`desc-${item}`}>{product.description}</Collapse>
               <div className="flex flex-col items-center justify-between md:flex-row">

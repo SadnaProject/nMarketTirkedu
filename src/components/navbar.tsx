@@ -10,8 +10,6 @@ import Profile from "./profile";
 import Price from "./price";
 import { api } from "utils/api";
 import { onError } from "utils/onError";
-import { CartDTO } from "server/domain/Users/Cart";
-import { on } from "events";
 
 const publicLinks = [
   { name: "Products", path: PATHS.products.path },
@@ -40,6 +38,7 @@ export default function Navbar() {
   api.example.onAddNotificationEvent.useSubscription(undefined, {
     onData: () => void refetchNotifications(),
   });
+  const { data: cartPrice } = api.stores.getCartPrice.useQuery();
 
   return (
     <header className="flex w-full flex-wrap bg-white text-sm drop-shadow-xl sm:flex-nowrap sm:justify-start">
@@ -89,13 +88,15 @@ export default function Navbar() {
             <Link href={PATHS.cart.path} passHref legacyBehavior>
               <ButtonLight>
                 <CartIcon className="h-4 w-4" />
-                <Price
-                  price={139.99}
-                  className="-my-10"
-                  dollarClassName="text-sm"
-                  integerClassName="text-lg"
-                  decimalClassName="text-xs"
-                />
+                {cartPrice !== undefined && (
+                  <Price
+                    price={cartPrice}
+                    className="-my-10"
+                    dollarClassName="text-sm"
+                    integerClassName="text-lg"
+                    decimalClassName="text-xs"
+                  />
+                )}
               </ButtonLight>
             </Link>
             {session?.user.type === "member" ? (
@@ -103,11 +104,12 @@ export default function Navbar() {
                 <div className="hs-dropdown relative inline-flex w-fit">
                   <ButtonLight id="hs-dropdown-with-dividers">
                     <BellIcon />
-                    {notifications?.length && notifications?.length > 0 && (
-                      <span className="absolute right-0 top-0 inline-flex -translate-y-1/2 translate-x-1/2 transform items-center rounded-full bg-rose-800 px-1.5 py-0.5 text-xs font-medium text-white">
-                        {notifications?.length}
-                      </span>
-                    )}
+                    {notifications?.length !== undefined &&
+                      notifications?.length > 0 && (
+                        <span className="absolute right-0 top-0 inline-flex -translate-y-1/2 translate-x-1/2 transform items-center rounded-full bg-rose-800 px-1.5 py-0.5 text-xs font-medium text-white">
+                          {notifications?.length}
+                        </span>
+                      )}
                   </ButtonLight>
                   <div
                     className="hs-dropdown-menu duration shadow-middle z-10 mt-2 hidden max-h-80 min-w-[15rem] divide-y divide-gray-200 overflow-auto rounded-lg bg-white p-2 opacity-0 shadow-md transition-[opacity,margin] hs-dropdown-open:opacity-100"

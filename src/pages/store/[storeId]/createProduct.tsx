@@ -1,4 +1,4 @@
-import PATHS from "utils/paths";
+import PATHS, { useGuestRedirect } from "utils/paths";
 import Layout from "../../_layout";
 import Card from "components/card";
 import { useSession } from "next-auth/react";
@@ -37,6 +37,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function Home() {
+  useGuestRedirect();
   const router = useRouter();
   const { storeId } = router.query;
   const { data: session } = useSession();

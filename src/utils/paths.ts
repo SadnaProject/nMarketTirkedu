@@ -1,3 +1,7 @@
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
+
 const PATHS = {
   home: { path: "/" },
   register: { path: "/register" },
@@ -23,3 +27,25 @@ const PATHS = {
   cart: { path: "/cart" },
 } as const;
 export default PATHS;
+
+export function useMemberRedirect() {
+  const router = useRouter();
+  const { status, data: session } = useSession();
+
+  useEffect(() => {
+    if (status === "authenticated" && session.user.type === "member") {
+      void router.push(PATHS.home.path);
+    }
+  }, [status, session, router]);
+}
+
+export function useGuestRedirect() {
+  const router = useRouter();
+  const { status, data: session } = useSession();
+
+  useEffect(() => {
+    if (status === "authenticated" && session.user.type === "guest") {
+      void router.push(PATHS.home.path);
+    }
+  }, [status, session, router]);
+}

@@ -5,7 +5,7 @@ import StoreNavbar from "components/storeNavbar";
 import Gallery from "components/gallery";
 import Link from "next/link";
 import Card from "components/card";
-import PATHS from "utils/paths";
+import PATHS, { useGuestRedirect } from "utils/paths";
 import Price from "components/price";
 import { TimeIcon } from "components/icons";
 
@@ -31,6 +31,7 @@ const receipts = [
 ];
 
 export default function Home() {
+  useGuestRedirect();
   const router = useRouter();
   const storeId = z.undefined().or(z.string()).parse(router.query.storeId);
 

@@ -4,7 +4,7 @@ import Layout from "./_layout";
 import Link from "next/link";
 import Card from "components/card";
 import { Rating } from "components/star";
-import PATHS from "utils/paths";
+import PATHS, { useGuestRedirect } from "utils/paths";
 import Price from "components/price";
 import { TimeIcon } from "components/icons";
 import { api } from "utils/api";
@@ -31,12 +31,6 @@ const receipts = [
 ];
 
 export default function Home() {
-  // const [products, setProducts] = useState<StoreProductDTO[]>([]);
-  // useEffect(() => {
-  //   setProducts(Array.from({ length: 11 }, generateProductDTO));
-  // }, []);
-  // api.purchaseHistory.useQuery({
-
   return (
     <Layout>
       <h1>My Receipts</h1>

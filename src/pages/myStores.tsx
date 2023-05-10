@@ -4,8 +4,9 @@ import Layout from "./_layout";
 import Link from "next/link";
 import Card from "components/card";
 import { Rating } from "components/star";
-import PATHS from "utils/paths";
+import PATHS, { useGuestRedirect } from "utils/paths";
 import { CreateIcon } from "components/icons";
+import { api } from "utils/api";
 
 const stores: StoreDTO[] = [
   {
@@ -71,10 +72,7 @@ const stores: StoreDTO[] = [
 ];
 
 export default function Home() {
-  // const [products, setProducts] = useState<StoreProductDTO[]>([]);
-  // useEffect(() => {
-  //   setProducts(Array.from({ length: 11 }, generateProductDTO));
-  // }, []);
+  useGuestRedirect();
 
   return (
     <Layout>

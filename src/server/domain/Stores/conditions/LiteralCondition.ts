@@ -1,31 +1,21 @@
-import { z } from "zod";
-import { type ICondition } from "./Condition";
+import {
+  Condition_Type,
+  Condition_on,
+  LiteralArgs,
+  type ICondition,
+} from "./Condition";
 import { type FullBasketDTO } from "../StoresController";
-const ConditionOnSchema = z.enum(["Product", "Category", "Basket"]);
-type Condition_on = z.infer<typeof ConditionOnSchema>;
-const ConditionTypeSchema = z.enum(["AtLeast", "AtMost", "Exactly"]);
-type Condition_Type = z.infer<typeof ConditionTypeSchema>;
-export const LiteralConditionSchema = z.object({
-  ConditionOn: ConditionOnSchema,
-  ConditionType: ConditionTypeSchema,
-  amount: z.number(),
-  searchFor: z.string(),
-});
-class LiteralCondition implements ICondition {
+
+export class LiteralCondition implements ICondition {
   private condition_on: Condition_on;
   private condition_type: Condition_Type;
   private amount: number;
   private search_For: string;
-  constructor(
-    Condition_on: Condition_on,
-    Condition_type: Condition_Type,
-    amount: number,
-    search_For: string
-  ) {
-    this.condition_on = Condition_on;
-    this.condition_type = Condition_type;
-    this.amount = amount;
-    this.search_For = search_For;
+  constructor(args: LiteralArgs) {
+    this.condition_on = args.condition_on;
+    this.condition_type = args.condition_type;
+    this.amount = args.amount;
+    this.search_For = args.search_For;
   }
   public isSatisfiedBy(basket: FullBasketDTO): boolean {
     let count = 0;

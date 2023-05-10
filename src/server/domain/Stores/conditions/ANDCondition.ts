@@ -1,13 +1,12 @@
-import { z } from "zod";
-import { type ICondition } from "./Condition";
+import { CompositeArgs, type ICondition } from "./Condition";
 import { type FullBasketDTO } from "../StoresController";
-
-class ANDCondition implements ICondition {
+import { build } from "./_typeDictionary";
+export class ANDCondition implements ICondition {
   private first: ICondition;
   private second: ICondition;
-  constructor(first: ICondition, second: ICondition) {
-    this.first = first;
-    this.second = second;
+  constructor(composite: CompositeArgs) {
+    this.first = build(composite.left);
+    this.second = build(composite.right);
   }
   public isSatisfiedBy(basket: FullBasketDTO): boolean {
     return (

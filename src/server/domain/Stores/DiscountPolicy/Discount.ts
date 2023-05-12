@@ -1,8 +1,12 @@
 import { z } from "zod";
-import { buildCondition } from "../conditions/_typeDictionary";
-import { ConditionArgs, type ICondition } from "../conditions/Condition";
-import { type FullBasketDTO } from "../StoresController";
-import { conditionSchema } from "./CompositeLogicalDiscounts/Condition";
+import {
+  ConditionArgs,
+  ICondition,
+  conditionSchema,
+} from "../Conditions/CompositeLogicalCondition/Condition";
+import { FullBasketDTO } from "../StoresController";
+import { buildCondition } from "../Conditions/CompositeLogicalCondition/_typeDictionary";
+
 type Discount_on = "product" | "category" | "store";
 
 const SimpleDiscountSchema = z.object({
@@ -122,8 +126,10 @@ export class addBetweenDiscount implements IDiscount {
 const typeToClassDiscount = {
   Max: MaxBetweenDiscount,
   Add: addBetweenDiscount,
-  Simple: Discount,
 };
 export function buildDiscount(args: DiscountArgs): IDiscount {
+  if (args.type === "Simple") {
+    return new Discount(args);
+  }
   return new typeToClassDiscount[args.type](args);
 }

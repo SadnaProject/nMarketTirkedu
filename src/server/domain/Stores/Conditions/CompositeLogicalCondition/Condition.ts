@@ -12,35 +12,40 @@ export const literalSchema = z.object({
   condition_type: ConditionTypeSchema,
   amount: z.number(),
   search_For: z.string(),
-  type: z.enum(["Product", "Category", "Store", "Price"]),
+  subType: z.enum(["Product", "Category", "Store", "Price"]),
+  type: z.literal("Literal"),
 });
 export interface LiteralArgs {
   condition_on: Condition_on;
   condition_type: Condition_Type;
   amount: number;
   search_For: string;
-  type: "Product" | "Category" | "Store" | "Price";
+  subType: "Product" | "Category" | "Store" | "Price";
+  type: "Literal";
 }
 export const compositeSchema = z.object({
   left: z.lazy(() => conditionSchema),
   right: z.lazy(() => conditionSchema),
-  type: z.enum(["And", "Or", "Xor", "Implies"]),
+  subType: z.enum(["And", "Or", "Xor", "Implies"]),
+  type: z.literal("Composite"),
 });
 export interface CompositeArgs {
   left: ConditionArgs;
   right: ConditionArgs;
-  type: "And" | "Or" | "Xor" | "Implies";
+  subType: "And" | "Or" | "Xor" | "Implies";
+  type: "Composite";
 }
 export const timeConditionTypeSchema = z.object({
   year: z.number().optional(),
   month: z.number().optional(),
   day: z.number().optional(),
   hour: z.number().optional(),
-  type: z.enum(["Time", "TimeOnProduct", "TimeOnCategory"]),
+  subType: z.enum(["TimeOnStore", "TimeOnProduct", "TimeOnCategory"]),
   search_For: z.string().optional(),
   amount: z.number().optional(),
   condition_type: ConditionTypeSchema,
   timeCondition: TimeConditionTypeSchema,
+  type: z.literal("Time"),
 });
 
 export interface TimeArgs {
@@ -50,9 +55,10 @@ export interface TimeArgs {
   hour?: number;
   search_For?: string;
   amount?: number;
-  type: "Time" | "TimeOnProduct" | "TimeOnCategory";
+  subType: "TimeOnStore" | "TimeOnProduct" | "TimeOnCategory";
   condition_type: Condition_Type;
   timeCondition: TimeCondition_Type;
+  type: "Time";
 }
 export type ConditionArgs = LiteralArgs | CompositeArgs | TimeArgs;
 export const conditionSchema: z.ZodType<ConditionArgs> = z.union([

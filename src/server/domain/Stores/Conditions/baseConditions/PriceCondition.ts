@@ -1,11 +1,11 @@
 import { FullBasketDTO } from "../../StoresController";
-import { LiteralCondition } from "../../conditions/LiteralCondition";
 import {
   Condition_Type,
   LiteralArgs,
-} from "../CompositeLogicalDiscounts/Condition";
+} from "../CompositeLogicalCondition/Condition";
+import { ILiteralCondition } from "./LiteralCondition";
 
-export class StoreCondition implements LiteralCondition {
+export class PriceCondition implements ILiteralCondition {
   private condition_type: Condition_Type;
   private amount: number;
   constructor(args: LiteralArgs) {
@@ -13,17 +13,20 @@ export class StoreCondition implements LiteralCondition {
     this.amount = args.amount;
   }
   public isSatisfiedBy(basket: FullBasketDTO): boolean {
-    let count = 0;
+    let price = 0;
     basket.products.forEach((product) => {
-      count += product.BasketQuantity;
+      price +=
+        product.BasketQuantity *
+        product.product.price *
+        (1 - product.Discount / 100);
     });
     switch (this.condition_type) {
       case "AtLeast":
-        return count >= this.amount;
+        return price >= this.amount;
       case "AtMost":
-        return count <= this.amount;
+        return price <= this.amount;
       case "Exactly":
-        return count === this.amount;
+        return price === this.amount;
     }
   }
 }

@@ -1,11 +1,12 @@
-import { type FullBasketDTO } from "../../StoresController";
-import { type Condition_Type } from "../../conditions/Condition";
-import { type LiteralCondition } from "../../conditions/LiteralCondition";
+import { FullBasketDTO } from "../../StoresController";
 import {
-  type TimeArgs,
-  type TimeCondition_Type,
-} from "../CompositeLogicalDiscounts/Condition";
-export class DateCondition implements LiteralCondition {
+  Condition_Type,
+  TimeArgs,
+  TimeCondition_Type,
+} from "../CompositeLogicalCondition/Condition";
+import { ILiteralCondition } from "./LiteralCondition";
+
+export class DateCondition implements ILiteralCondition {
   protected condition_type: Condition_Type;
   protected year?: number;
   protected month?: number;

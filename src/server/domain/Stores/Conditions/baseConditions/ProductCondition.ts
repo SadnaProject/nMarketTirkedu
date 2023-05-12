@@ -1,11 +1,11 @@
 import { FullBasketDTO } from "../../StoresController";
-import { LiteralCondition } from "../../conditions/LiteralCondition";
 import {
   Condition_Type,
   LiteralArgs,
-} from "../CompositeLogicalDiscounts/Condition";
+} from "../CompositeLogicalCondition/Condition";
+import { ILiteralCondition } from "./LiteralCondition";
 
-export class ProductCondition implements LiteralCondition {
+export class ProductCondition implements ILiteralCondition {
   private condition_type: Condition_Type;
   private amount: number;
   private search_For: string;

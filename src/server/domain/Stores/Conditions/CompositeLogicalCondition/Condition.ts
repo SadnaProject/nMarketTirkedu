@@ -16,7 +16,6 @@ export const literalSchema = z.object({
   type: z.literal("Literal"),
 });
 export interface LiteralArgs {
-  condition_on: Condition_on;
   condition_type: Condition_Type;
   amount: number;
   search_For: string;

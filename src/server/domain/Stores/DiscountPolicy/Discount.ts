@@ -1,4 +1,6 @@
 import { z } from "zod";
+import * as R from "ramda";
+
 import {
   ConditionArgs,
   ICondition,
@@ -19,7 +21,6 @@ const SimpleDiscountSchema = z.object({
 });
 export interface SimpleDiscountArgs {
   discount_on: Discount_on;
-  amount: number;
   search_For?: string;
   condition: ConditionArgs;
   discount: number;
@@ -84,8 +85,10 @@ export class MaxBetweenDiscount implements IDiscount {
     this.second = buildDiscount(compositeDiscount.right);
   }
   public calculateDiscount(basket: FullBasketDTO) {
-    const firstBasket = this.first.calculateDiscount(basket);
-    const secondBasket = this.second.calculateDiscount(basket);
+    const first = R.clone(basket);
+    const second = R.clone(basket);
+    const firstBasket = this.first.calculateDiscount(first);
+    const secondBasket = this.second.calculateDiscount(second);
     let firstPrice = 0;
     let secondPrice = 0;
     firstBasket.products.forEach((product) => {
@@ -100,7 +103,7 @@ export class MaxBetweenDiscount implements IDiscount {
         product.BasketQuantity *
         (1 - product.Discount / 100);
     });
-    return firstPrice > secondPrice ? firstBasket : secondBasket;
+    return firstPrice < secondPrice ? firstBasket : secondBasket;
   }
 }
 export class addBetweenDiscount implements IDiscount {
@@ -111,18 +114,10 @@ export class addBetweenDiscount implements IDiscount {
     this.second = buildDiscount(compositeDiscount.right);
   }
   public calculateDiscount(basket: FullBasketDTO) {
-    const firstBasket = this.first.calculateDiscount(basket);
-    const secondBasket = this.second.calculateDiscount(basket);
-    firstBasket.products.forEach((product) => {
-      secondBasket.products.forEach((product2) => {
-        if (product.product.id === product2.product.id) {
-          product.Discount += product2.Discount;
-        }
-      });
-    });
-    return firstBasket;
+    return this.second.calculateDiscount(this.first.calculateDiscount(basket));
   }
 }
+
 const typeToClassDiscount = {
   Max: MaxBetweenDiscount,
   Add: addBetweenDiscount,

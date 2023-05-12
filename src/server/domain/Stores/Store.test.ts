@@ -11,6 +11,7 @@ import {
   generateStoreName,
 } from "./_data";
 import { itUnitIntegration } from "../_mock";
+import { s } from "vitest/dist/env-afee91f0";
 
 describe("constructor", () => {
   itUnitIntegration("✅creates a store", () => {
@@ -73,4 +74,295 @@ describe("get basket price", () => {
       product.Price * productData.quantity
     );
   });
+});
+describe("Discounts", () => {
+  itUnitIntegration("add simple discount", (testType) => {
+    const productData = generateProductArgs();
+    const repos = createTestRepos(testType);
+    const { store, product } = createStoreWithProduct(productData, repos);
+    productData.quantity = 5;
+    const basket: BasketDTO = {
+      storeId: store.Id,
+      products: [
+        { quantity: productData.quantity, storeProductId: product.Id },
+      ],
+    };
+    vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValueOnce([
+      product,
+    ]);
+    vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);
+    vi.spyOn(repos.Products, "getProductById").mockReturnValue(product);
+    const price = store.getBasketPrice(basket);
+    expect(price).toBe(product.Price * productData.quantity);
+    const discountId = store.addDiscount({
+      type: "Simple",
+      search_For: productData.name,
+      discount: 15,
+      discount_on: "product",
+      condition: {
+        type: "Literal",
+        subType: "Product",
+        amount: 1,
+        search_For: productData.name,
+        condition_type: "AtLeast",
+      },
+    });
+    const priceWithDiscount = store.getBasketPrice(basket);
+    expect(priceWithDiscount).toBe(
+      product.Price * productData.quantity * (85 / 100)
+    );
+    store.removeDiscount(discountId);
+    expect(store.getBasketPrice(basket)).toBe(price);
+  });
+  itUnitIntegration(
+    "add compose max discount with simple condition",
+    (testType) => {
+      const productData = generateProductArgs();
+      const repos = createTestRepos(testType);
+      const { store, product } = createStoreWithProduct(productData, repos);
+      productData.quantity = 5;
+      const basket: BasketDTO = {
+        storeId: store.Id,
+        products: [
+          { quantity: productData.quantity, storeProductId: product.Id },
+        ],
+      };
+      vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValueOnce([
+        product,
+      ]);
+      vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);
+      vi.spyOn(repos.Products, "getProductById").mockReturnValue(product);
+      const price = store.getBasketPrice(basket);
+      expect(price).toBe(product.Price * productData.quantity);
+      const discountId = store.addDiscount({
+        type: "Max",
+        left: {
+          condition: {
+            type: "Literal",
+            subType: "Product",
+            amount: 1,
+            search_For: productData.name,
+            condition_type: "AtLeast",
+          },
+          discount: 15,
+          discount_on: "product",
+          search_For: productData.name,
+          type: "Simple",
+        },
+        right: {
+          condition: {
+            type: "Literal",
+            subType: "Product",
+            amount: 1,
+            search_For: productData.name,
+            condition_type: "AtLeast",
+          },
+          discount: 50,
+          discount_on: "product",
+          search_For: productData.name,
+          type: "Simple",
+        },
+      });
+      const priceWithDiscount = store.getBasketPrice(basket);
+      expect(priceWithDiscount).toBe(
+        product.Price * productData.quantity * (50 / 100)
+      );
+      store.removeDiscount(discountId);
+      expect(store.getBasketPrice(basket)).toBe(price);
+    }
+  );
+  itUnitIntegration(
+    "add compose ADD discount with simple condition",
+    (testType) => {
+      const productData = generateProductArgs();
+      const repos = createTestRepos(testType);
+      const { store, product } = createStoreWithProduct(productData, repos);
+      productData.quantity = 5;
+      const basket: BasketDTO = {
+        storeId: store.Id,
+        products: [
+          { quantity: productData.quantity, storeProductId: product.Id },
+        ],
+      };
+      vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValueOnce([
+        product,
+      ]);
+      vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);
+      vi.spyOn(repos.Products, "getProductById").mockReturnValue(product);
+      const price = store.getBasketPrice(basket);
+      expect(price).toBe(product.Price * productData.quantity);
+      const discountId = store.addDiscount({
+        type: "Add",
+        left: {
+          condition: {
+            type: "Literal",
+            subType: "Product",
+            amount: 1,
+            search_For: productData.name,
+            condition_type: "AtLeast",
+          },
+          discount: 15,
+          discount_on: "product",
+          search_For: productData.name,
+          type: "Simple",
+        },
+        right: {
+          condition: {
+            type: "Literal",
+            subType: "Product",
+            amount: 1,
+            search_For: productData.name,
+            condition_type: "AtLeast",
+          },
+          discount: 50,
+          discount_on: "product",
+          search_For: productData.name,
+          type: "Simple",
+        },
+      });
+      const priceWithDiscount = store.getBasketPrice(basket);
+      expect(priceWithDiscount).toBe(
+        product.Price * productData.quantity * (35 / 100)
+      );
+      store.removeDiscount(discountId);
+      expect(store.getBasketPrice(basket)).toBe(price);
+    }
+  );
+  itUnitIntegration(
+    "add compose MAX discount with compose logic implies condition",
+    (testType) => {
+      const productData = generateProductArgs();
+      const repos = createTestRepos(testType);
+      const { store, product } = createStoreWithProduct(productData, repos);
+      productData.quantity = 5;
+      const basket: BasketDTO = {
+        storeId: store.Id,
+        products: [
+          { quantity: productData.quantity, storeProductId: product.Id },
+        ],
+      };
+      vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValueOnce([
+        product,
+      ]);
+      vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);
+      vi.spyOn(repos.Products, "getProductById").mockReturnValue(product);
+      const price = store.getBasketPrice(basket);
+      expect(price).toBe(product.Price * productData.quantity);
+
+      const discountId = store.addDiscount({
+        type: "Add",
+        left: {
+          condition: {
+            type: "Composite",
+            subType: "And",
+            left: {
+              type: "Literal",
+              subType: "Product",
+              amount: 1,
+              condition_type: "AtLeast",
+              search_For: productData.name,
+            },
+            right: {
+              type: "Literal",
+              subType: "Product",
+              amount: 20,
+              condition_type: "AtMost",
+              search_For: productData.name,
+            },
+          },
+          discount: 15,
+          discount_on: "product",
+          search_For: productData.name,
+          type: "Simple",
+        },
+        right: {
+          condition: {
+            type: "Composite",
+            subType: "And",
+            left: {
+              type: "Literal",
+              subType: "Product",
+              amount: 1,
+              condition_type: "AtLeast",
+              search_For: productData.name,
+            },
+            right: {
+              type: "Literal",
+              subType: "Product",
+              amount: 20,
+              condition_type: "AtMost",
+              search_For: productData.name,
+            },
+          },
+          discount: 25,
+          discount_on: "product",
+          search_For: productData.name,
+          type: "Simple",
+        },
+      });
+      const priceWithDiscount = store.getBasketPrice(basket);
+      expect(priceWithDiscount).toBe(
+        product.Price * productData.quantity * (60 / 100)
+      );
+      store.removeDiscount(discountId);
+      expect(store.getBasketPrice(basket)).toBe(price);
+      const discountId1 = store.addDiscount({
+        type: "Add",
+        left: {
+          condition: {
+            type: "Composite",
+            subType: "And",
+            left: {
+              type: "Literal",
+              subType: "Product",
+              amount: 1,
+              condition_type: "AtLeast",
+              search_For: productData.name,
+            },
+            right: {
+              type: "Literal",
+              subType: "Product",
+              amount: 20,
+              condition_type: "AtMost",
+              search_For: productData.name,
+            },
+          },
+          discount: 15,
+          discount_on: "product",
+          search_For: productData.name,
+          type: "Simple",
+        },
+        right: {
+          condition: {
+            type: "Composite",
+            subType: "And",
+            left: {
+              type: "Literal",
+              subType: "Product",
+              amount: 1,
+              condition_type: "AtLeast",
+              search_For: productData.name,
+            },
+            right: {
+              type: "Literal",
+              subType: "Product",
+              amount: 2,
+              condition_type: "AtMost",
+              search_For: productData.name,
+            },
+          },
+          discount: 25,
+          discount_on: "product",
+          search_For: productData.name,
+          type: "Simple",
+        },
+      });
+      const priceWithDiscount1 = store.getBasketPrice(basket);
+      expect(priceWithDiscount1).toBe(
+        product.Price * productData.quantity * (85 / 100)
+      );
+      store.removeDiscount(discountId1);
+      expect(store.getBasketPrice(basket)).toBe(price);
+    }
+  );
 });

@@ -1,21 +1,31 @@
+import { randomUUID } from "crypto";
 import { type FullBasketDTO } from "../StoresController";
 import { type DiscountArgs, type IDiscount, buildDiscount } from "./Discount";
+import { TRPCError } from "@trpc/server";
 export class DiscountPolicy {
   private storeId: string;
-  private discounts: IDiscount[];
+  private discounts: Map<string, IDiscount>;
   constructor(storeId: string) {
     this.storeId = storeId;
-    this.discounts = [];
-  }
-  public set Discounts(discounts: IDiscount[]) {
-    this.discounts = discounts;
-  }
-  public addDiscount(args: DiscountArgs) {
-    this.discounts.push(buildDiscount(args));
+    this.discounts = new Map<string, IDiscount>();
   }
 
+  public addDiscount(args: DiscountArgs) {
+    const discountID = randomUUID();
+    this.discounts.set(discountID, buildDiscount(args));
+    return discountID;
+  }
+  public removeDiscount(discountID: string) {
+    const discount = this.discounts.get(discountID);
+    if (discount === undefined)
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "The requested discount not found",
+      });
+    this.discounts.delete(discountID);
+  }
   public applyDiscounts(basket: FullBasketDTO) {
-    if (this.discounts.length === 0) return basket;
+    if (this.discounts.size === 0) return basket;
     this.discounts.forEach((discount) => {
       basket = discount.calculateDiscount(basket);
     });

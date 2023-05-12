@@ -6,9 +6,12 @@ import { Mixin } from "ts-mixer";
 import { type Controllers, HasControllers } from "../_HasController";
 import { randomUUID } from "crypto";
 import { TRPCError } from "@trpc/server";
-import { DiscountPolicy } from "./DiscountPolicy";
-import { FullBasketDTO, ProductWithQuantityDTO } from "./StoresController";
-import { ContraintPolicy } from "./ConstraintPolicy";
+import { ProductWithQuantityDTO, FullBasketDTO } from "./StoresController";
+import { ConstraintPolicy } from "./PurchasePolicy/ConstraintPolicy";
+import { BasketProductDTO } from "../Users/BasketProduct";
+import { DiscountArgs } from "./DiscountPolicy/Discount";
+import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
+import { ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condition";
 export const nameSchema = z.string().nonempty();
 
 export type StoreDTO = {
@@ -21,16 +24,16 @@ export class Store extends Mixin(HasRepos, HasControllers) {
   private id: string;
   private name: string;
   private isActive: boolean;
-  private discount: DiscountPolicy;
-  private constraint: ContraintPolicy;
+  private discountPolicy: DiscountPolicy;
+  private constraintPolicy: ConstraintPolicy;
   constructor(name: string) {
     super();
     nameSchema.parse(name);
     this.id = randomUUID();
     this.name = name;
     this.isActive = true;
-    this.discount = new DiscountPolicy(this.id);
-    this.constraint = new ContraintPolicy(this.Id);
+    this.discountPolicy = new DiscountPolicy(this.id);
+    this.constraintPolicy = new ConstraintPolicy(this.Id);
   }
 
   static fromDTO(dto: StoreDTO, repos: Repos, controllers: Controllers) {
@@ -79,26 +82,22 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     this.Repos.Products.addProduct(this.Id, newProduct);
     return newProduct.Id;
   }
-
   public getBasketPrice(basketDTO: BasketDTO): number {
-    if (!this.constraint.isSatisfiedBy1(basketDTO))
+    let fullBasket = this.BasketDTOToFullBasketDTO(basketDTO);
+    if (!this.constraintPolicy.isSatisfiedBy(fullBasket))
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "the basket doesn't fulfilled the terms",
+        message: "the basket doesn't fulfilled the constraint policy",
       });
-    const productsIds = this.Products.map((p) => p.id);
-
-    basketDTO = this.discount.applyDiscounts1(basketDTO);
-
-    return basketDTO.products.reduce((acc, curr) => {
-      const product = this.Repos.Products.getProductById(curr.storeProductId);
-      if (!productsIds.includes(curr.storeProductId))
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: `Product ${curr.storeProductId} is not in store ${this.Id}`,
-        });
-      return acc + product.getPriceByQuantity(curr.quantity);
-    }, 0);
+    fullBasket = this.discountPolicy.applyDiscounts(fullBasket);
+    let price = 0;
+    fullBasket.products.forEach((product) => {
+      price =
+        product.BasketQuantity *
+        product.product.price *
+        (1 - product.Discount / 100);
+    });
+    return price;
   }
 
   public delete() {
@@ -152,5 +151,35 @@ export class Store extends Mixin(HasRepos, HasControllers) {
   }
   get Purchases() {
     return this.Controllers.PurchasesHistory.getPurchasesByStore(this.Id);
+  }
+  BasketDTOToFullBasketDTO(basket: BasketDTO): FullBasketDTO {
+    return {
+      storeId: this.Id,
+      products: basket.products.map((p) =>
+        this.BasketProductDTOToProductWithQuantityDTO(p)
+      ),
+    };
+  }
+  BasketProductDTOToProductWithQuantityDTO(
+    basketProduct: BasketProductDTO
+  ): ProductWithQuantityDTO {
+    const p = this.Repos.Products.getProductById(basketProduct.storeProductId);
+    return {
+      product: p.DTO,
+      Discount: 0,
+      BasketQuantity: basketProduct.quantity,
+    };
+  }
+  public addDiscount(discount: DiscountArgs) {
+    return this.discountPolicy.addDiscount(discount);
+  }
+  public removeDiscount(discountId: string) {
+    this.discountPolicy.removeDiscount(discountId);
+  }
+  public addConstraint(args: ConditionArgs) {
+    return this.constraintPolicy.addConstraint(args);
+  }
+  public removeConstraint(constraintId: string) {
+    this.constraintPolicy.removeConstraint(constraintId);
   }
 }

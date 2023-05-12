@@ -13,6 +13,8 @@ import { type BasketPurchaseDTO } from "./PurchasesHistory/BasketPurchaseHistory
 import { TRPCError } from "@trpc/server";
 import { type CreditCard } from "./PurchasesHistory/PaymentAdaptor";
 import { type StoreDTO } from "./Stores/Store";
+import { DiscountArgs } from "./Stores/DiscountPolicy/Discount";
+import { ConditionArgs } from "./Stores/Conditions/CompositeLogicalCondition/Condition";
 
 @loggable
 export class MarketFacade extends Loggable {
@@ -411,5 +413,53 @@ export class MarketFacade extends Loggable {
   searchStores(userId: string, storeName: string): StoreDTO[] {
     this.validateConnection(userId);
     return this.controllers.Stores.searchStores(userId, storeName);
+  }
+  addDiscountToStore(
+    userId: string,
+    storeId: string,
+    discount: DiscountArgs
+  ): string {
+    this.validateConnection(userId);
+    return this.controllers.Stores.addDiscountToStore(
+      userId,
+      storeId,
+      discount
+    );
+  }
+  removeDiscountFromStore(
+    userId: string,
+    storeId: string,
+    discountId: string
+  ): void {
+    this.validateConnection(userId);
+    this.controllers.Stores.removeDiscountFromStore(
+      userId,
+      storeId,
+      discountId
+    );
+  }
+  addConstraintToStore(
+    userId: string,
+    storeId: string,
+    constraint: ConditionArgs
+  ): string {
+    this.validateConnection(userId);
+    return this.controllers.Stores.addConstraintToStore(
+      userId,
+      storeId,
+      constraint
+    );
+  }
+  removeConstraintFromStore(
+    userId: string,
+    storeId: string,
+    constraintId: string
+  ): void {
+    this.validateConnection(userId);
+    this.controllers.Stores.removeConstraintFromStore(
+      userId,
+      storeId,
+      constraintId
+    );
   }
 }

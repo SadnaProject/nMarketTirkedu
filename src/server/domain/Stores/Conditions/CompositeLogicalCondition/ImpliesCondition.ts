@@ -1,5 +1,5 @@
-import { CompositeArgs, type ICondition } from "./Condition";
-import { type FullBasketDTO } from "../StoresController";
+import { type FullBasketDTO } from "../../StoresController";
+import { type CompositeArgs, type ICondition } from "./Condition";
 import { buildCondition } from "./_typeDictionary";
 
 export class ImpliesCondition implements ICondition {

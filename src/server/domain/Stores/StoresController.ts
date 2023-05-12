@@ -13,6 +13,8 @@ import { type BasketPurchaseDTO } from "../PurchasesHistory/BasketPurchaseHistor
 import { TRPCError } from "@trpc/server";
 import { eventEmitter } from "server/EventEmitter";
 import { CartPurchaseDTO } from "../PurchasesHistory/CartPurchaseHistory";
+import { ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condition";
+import { DiscountArgs } from "./DiscountPolicy/Discount";
 
 export type SearchArgs = {
   name?: string;
@@ -254,6 +256,26 @@ export interface IStoresController extends HasRepos {
   getStoreManagersIds(storeId: string): string[];
   getPurchasesByStoreId(userId: string, storeId: string): BasketPurchaseDTO[];
   searchStores(userId: string, name: string): StoreDTO[];
+  addConstraintToStore(
+    userId: string,
+    storeId: string,
+    constraintArgs: ConditionArgs
+  ): string;
+  removeConstraintFromStore(
+    userId: string,
+    storeId: string,
+    constraintId: string
+  ): void;
+  addDiscountToStore(
+    userId: string,
+    storeId: string,
+    discountArgs: DiscountArgs
+  ): string;
+  removeDiscountFromStore(
+    userId: string,
+    storeId: string,
+    discountId: string
+  ): void;
 }
 
 @testable
@@ -652,5 +674,54 @@ export class StoresController
           ) && store.Name === name
       )
       .map((store) => store.DTO);
+  }
+  addConstraintToStore(
+    userId: string,
+    storeId: string,
+    constraintArgs: ConditionArgs
+  ): string {
+    if (!this.isStoreOwner(userId, storeId))
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User does not have permission to add constraint to store",
+      });
+    return Store.fromStoreId(storeId, this.Repos).addConstraint(constraintArgs);
+  }
+  removeConstraintFromStore(
+    userId: string,
+    storeId: string,
+    constraintId: string
+  ): void {
+    if (!this.isStoreOwner(userId, storeId))
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message:
+          "User does not have permission to remove constraint from store",
+      });
+    Store.fromStoreId(storeId, this.Repos).removeConstraint(constraintId);
+  }
+  addDiscountToStore(
+    userId: string,
+    storeId: string,
+    discountArgs: DiscountArgs
+  ): string {
+    if (!this.isStoreOwner(userId, storeId))
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User does not have permission to add discount to store",
+      });
+    return Store.fromStoreId(storeId, this.Repos).addDiscount(discountArgs);
+  }
+  removeDiscountFromStore(
+    userId: string,
+    storeId: string,
+    discountId: string
+  ): void {
+    if (!this.isStoreOwner(userId, storeId))
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User does not have permission to remove discount from store",
+      });
+    Store.fromStoreId(storeId, this.Repos).removeDiscount(discountId);
   }
 }

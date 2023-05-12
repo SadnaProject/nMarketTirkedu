@@ -1,12 +1,47 @@
-import { buildCondition } from "./conditions/_typeDictionary";
-import { ConditionArgs, type ICondition } from "./conditions/Condition";
-import { type FullBasketDTO } from "./StoresController";
+import { z } from "zod";
+import {
+  ConditionArgs,
+  ICondition,
+  conditionSchema,
+} from "../Conditions/CompositeLogicalCondition/Condition";
+import { FullBasketDTO } from "../StoresController";
+import { buildCondition } from "../Conditions/CompositeLogicalCondition/_typeDictionary";
+
 type Discount_on = "product" | "category" | "store";
-type DiscountArgs = {
+
+const SimpleDiscountSchema = z.object({
+  discount_on: z.enum(["product", "category", "store"]),
+  amount: z.number(),
+  search_For: z.string().optional(),
+  condition: z.lazy(() => conditionSchema),
+  discount: z.number(),
+  type: z.literal("Simple"),
+});
+export interface SimpleDiscountArgs {
   discount_on: Discount_on;
   amount: number;
-  search_For: string;
-};
+  search_For?: string;
+  condition: ConditionArgs;
+  discount: number;
+  type: "Simple";
+}
+
+const compositeDiscountSchema = z.object({
+  left: z.lazy(() => DiscountSchema),
+  right: z.lazy(() => DiscountSchema),
+  type: z.enum(["Max", "Add"]),
+});
+interface CompositeDiscountArgs {
+  left: DiscountArgs;
+  right: DiscountArgs;
+  type: "Max" | "Add";
+}
+
+export type DiscountArgs = SimpleDiscountArgs | CompositeDiscountArgs;
+export const DiscountSchema: z.ZodType<DiscountArgs> = z.union([
+  SimpleDiscountSchema,
+  compositeDiscountSchema,
+]);
 export interface IDiscount {
   calculateDiscount(basket: FullBasketDTO): FullBasketDTO;
 }
@@ -16,16 +51,11 @@ export class Discount implements IDiscount {
   discount: number;
   discount_on: Discount_on;
   search_For?: string;
-  constructor(
-    condition: ConditionArgs,
-    discount: number,
-    discount_on: Discount_on,
-    name?: string
-  ) {
-    this.condition = buildCondition(condition);
-    this.discount = discount;
-    this.discount_on = discount_on;
-    this.search_For = name;
+  constructor(args: SimpleDiscountArgs) {
+    this.condition = buildCondition(args.condition);
+    this.discount = args.discount;
+    this.discount_on = args.discount_on;
+    this.search_For = args.search_For;
   }
 
   public calculateDiscount(basket: FullBasketDTO) {
@@ -49,9 +79,9 @@ export class Discount implements IDiscount {
 export class MaxBetweenDiscount implements IDiscount {
   first: IDiscount;
   second: IDiscount;
-  constructor(first: Discount, second: Discount) {
-    this.first = first;
-    this.second = second;
+  constructor(compositeDiscount: CompositeDiscountArgs) {
+    this.first = buildDiscount(compositeDiscount.left);
+    this.second = buildDiscount(compositeDiscount.right);
   }
   public calculateDiscount(basket: FullBasketDTO) {
     const firstBasket = this.first.calculateDiscount(basket);
@@ -76,9 +106,9 @@ export class MaxBetweenDiscount implements IDiscount {
 export class addBetweenDiscount implements IDiscount {
   first: IDiscount;
   second: IDiscount;
-  constructor(first: Discount, second: Discount) {
-    this.first = first;
-    this.second = second;
+  constructor(compositeDiscount: CompositeDiscountArgs) {
+    this.first = buildDiscount(compositeDiscount.left);
+    this.second = buildDiscount(compositeDiscount.right);
   }
   public calculateDiscount(basket: FullBasketDTO) {
     const firstBasket = this.first.calculateDiscount(basket);
@@ -92,4 +122,14 @@ export class addBetweenDiscount implements IDiscount {
     });
     return firstBasket;
   }
+}
+const typeToClassDiscount = {
+  Max: MaxBetweenDiscount,
+  Add: addBetweenDiscount,
+};
+export function buildDiscount(args: DiscountArgs): IDiscount {
+  if (args.type === "Simple") {
+    return new Discount(args);
+  }
+  return new typeToClassDiscount[args.type](args);
 }

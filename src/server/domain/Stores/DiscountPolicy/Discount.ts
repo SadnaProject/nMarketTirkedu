@@ -2,34 +2,34 @@ import { z } from "zod";
 import * as R from "ramda";
 
 import {
-  ConditionArgs,
-  ICondition,
+  type ConditionArgs,
+  type ICondition,
   conditionSchema,
 } from "../Conditions/CompositeLogicalCondition/Condition";
-import { FullBasketDTO } from "../StoresController";
+import { type FullBasketDTO } from "../StoresController";
 import { buildCondition } from "../Conditions/CompositeLogicalCondition/_typeDictionary";
 
-type Discount_on = "product" | "category" | "store";
+type DiscountOn = "product" | "category" | "store";
 
-const SimpleDiscountSchema = z.object({
-  discount_on: z.enum(["product", "category", "store"]),
+const simpleDiscountSchema = z.object({
+  discountOn: z.enum(["product", "category", "store"]),
   amount: z.number(),
-  search_For: z.string().optional(),
+  searchFor: z.string().optional(),
   condition: z.lazy(() => conditionSchema),
   discount: z.number(),
   type: z.literal("Simple"),
 });
 export interface SimpleDiscountArgs {
-  discount_on: Discount_on;
-  search_For?: string;
+  discountOn: DiscountOn;
+  searchFor?: string;
   condition: ConditionArgs;
   discount: number;
   type: "Simple";
 }
 
 const compositeDiscountSchema = z.object({
-  left: z.lazy(() => DiscountSchema),
-  right: z.lazy(() => DiscountSchema),
+  left: z.lazy(() => discountArgsSchema),
+  right: z.lazy(() => discountArgsSchema),
   type: z.enum(["Max", "Add"]),
 });
 interface CompositeDiscountArgs {
@@ -39,8 +39,8 @@ interface CompositeDiscountArgs {
 }
 
 export type DiscountArgs = SimpleDiscountArgs | CompositeDiscountArgs;
-export const DiscountSchema: z.ZodType<DiscountArgs> = z.union([
-  SimpleDiscountSchema,
+export const discountArgsSchema: z.ZodType<DiscountArgs> = z.union([
+  simpleDiscountSchema,
   compositeDiscountSchema,
 ]);
 export interface IDiscount {
@@ -50,24 +50,24 @@ export interface IDiscount {
 export class Discount implements IDiscount {
   condition: ICondition;
   discount: number;
-  discount_on: Discount_on;
-  search_For?: string;
+  discountOn: DiscountOn;
+  searchFor?: string;
   constructor(args: SimpleDiscountArgs) {
     this.condition = buildCondition(args.condition);
     this.discount = args.discount;
-    this.discount_on = args.discount_on;
-    this.search_For = args.search_For;
+    this.discountOn = args.discountOn;
+    this.searchFor = args.searchFor;
   }
 
   public calculateDiscount(basket: FullBasketDTO) {
     if (this.condition.isSatisfiedBy(basket)) {
       basket.products.forEach((product) => {
         if (
-          (this.discount_on === "product" &&
-            product.product.name === this.search_For) ||
-          (this.discount_on === "category" &&
-            product.product.category === this.search_For) ||
-          this.discount_on === "store"
+          (this.discountOn === "product" &&
+            product.product.name === this.searchFor) ||
+          (this.discountOn === "category" &&
+            product.product.category === this.searchFor) ||
+          this.discountOn === "store"
         ) {
           product.Discount += this.discount;
         }

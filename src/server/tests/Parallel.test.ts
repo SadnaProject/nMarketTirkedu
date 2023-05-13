@@ -203,9 +203,9 @@ describe("Concurrent store open", () => {
       const res = await Promise.allSettled(promises);
       expect(res[0]?.status !== res[1]?.status).toBe(true);
       expect(
-        (res[0]?.status == "fulfilled" &&
+        (res[0]?.status === "fulfilled" &&
           service.isStoreFounder(uid, res[0]?.value)) ||
-          (res[1]?.status == "fulfilled" &&
+          (res[1]?.status === "fulfilled" &&
             service.isStoreFounder(oid, res[1]?.value))
       ).toBe(true);
     }

@@ -1,24 +1,24 @@
 import { z } from "zod";
 import { type FullBasketDTO } from "../../StoresController";
 export const ConditionOnSchema = z.enum(["Product", "Category", "Basket"]);
-export type Condition_on = z.infer<typeof ConditionOnSchema>;
+export type ConditionOn = z.infer<typeof ConditionOnSchema>;
 export const ConditionTypeSchema = z.enum(["AtLeast", "AtMost", "Exactly"]);
-export type Condition_Type = z.infer<typeof ConditionTypeSchema>;
+export type conditionType = z.infer<typeof ConditionTypeSchema>;
 export const TimeConditionTypeSchema = z.enum(["Before", "At", "After"]);
-export type TimeCondition_Type = z.infer<typeof TimeConditionTypeSchema>;
+export type TimeConditionType = z.infer<typeof TimeConditionTypeSchema>;
 
 export const literalSchema = z.object({
-  condition_on: ConditionOnSchema,
-  condition_type: ConditionTypeSchema,
+  conditionOn: ConditionOnSchema,
+  conditionType: ConditionTypeSchema,
   amount: z.number(),
-  search_For: z.string(),
+  searchFor: z.string(),
   subType: z.enum(["Product", "Category", "Store", "Price"]),
   type: z.literal("Literal"),
 });
 export interface LiteralArgs {
-  condition_type: Condition_Type;
+  conditionType: conditionType;
   amount: number;
-  search_For: string;
+  searchFor: string;
   subType: "Product" | "Category" | "Store" | "Price";
   type: "Literal";
 }
@@ -40,9 +40,9 @@ export const timeConditionTypeSchema = z.object({
   day: z.number().optional(),
   hour: z.number().optional(),
   subType: z.enum(["TimeOnStore", "TimeOnProduct", "TimeOnCategory"]),
-  search_For: z.string().optional(),
+  searchFor: z.string().optional(),
   amount: z.number().optional(),
-  condition_type: ConditionTypeSchema,
+  conditionType: ConditionTypeSchema,
   timeCondition: TimeConditionTypeSchema,
   type: z.literal("Time"),
 });
@@ -52,11 +52,11 @@ export interface TimeArgs {
   month?: number;
   day?: number;
   hour?: number;
-  search_For?: string;
+  searchFor?: string;
   amount?: number;
   subType: "TimeOnStore" | "TimeOnProduct" | "TimeOnCategory";
-  condition_type: Condition_Type;
-  timeCondition: TimeCondition_Type;
+  conditionType: conditionType;
+  timeCondition: TimeConditionType;
   type: "Time";
 }
 export type ConditionArgs = LiteralArgs | CompositeArgs | TimeArgs;

@@ -10,7 +10,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Button from "components/button";
 import { FormInput } from "components/form";
 import { api } from "utils/api";
-import { onError } from "utils/onError";
+import { onError } from "utils/query";
+import { useCallback } from "react";
 
 const formSchema = z.object({
   name: z

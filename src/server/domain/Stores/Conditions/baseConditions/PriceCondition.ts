@@ -1,15 +1,15 @@
-import { FullBasketDTO } from "../../StoresController";
+import { type FullBasketDTO } from "../../StoresController";
 import {
-  Condition_Type,
-  LiteralArgs,
+  type conditionType,
+  type LiteralArgs,
 } from "../CompositeLogicalCondition/Condition";
-import { ILiteralCondition } from "./LiteralCondition";
+import { type ILiteralCondition } from "./LiteralCondition";
 
 export class PriceCondition implements ILiteralCondition {
-  private condition_type: Condition_Type;
+  private conditionType: conditionType;
   private amount: number;
   constructor(args: LiteralArgs) {
-    this.condition_type = args.condition_type;
+    this.conditionType = args.conditionType;
     this.amount = args.amount;
   }
   public isSatisfiedBy(basket: FullBasketDTO): boolean {
@@ -20,7 +20,7 @@ export class PriceCondition implements ILiteralCondition {
         product.product.price *
         (1 - product.Discount / 100);
     });
-    switch (this.condition_type) {
+    switch (this.conditionType) {
       case "AtLeast":
         return price >= this.amount;
       case "AtMost":

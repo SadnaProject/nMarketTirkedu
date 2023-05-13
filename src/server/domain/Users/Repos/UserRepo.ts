@@ -22,7 +22,7 @@ export class UserRepo extends Testable {
 
   public getUser(id: string): User {
     const user = this.users.get(id);
-    if (user == undefined) {
+    if (user === undefined) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "User not found",

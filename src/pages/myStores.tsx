@@ -74,6 +74,14 @@ const stores: StoreDTO[] = [
 export default function Home() {
   useGuestRedirect();
 
+  // const { data: stores, refetch } = api.stores.getstoreby.useQuery(
+  //   getValues(),
+  //   {
+  //     retry: false,
+  //     onError,
+  //   }
+  // );
+
   return (
     <Layout>
       <h1>My Stores</h1>

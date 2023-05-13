@@ -49,8 +49,8 @@ describe("Stock Management", () => {
   it("✅ Add product to a store", () => {
     const pid = service.createProduct(oid, storeId, pargs);
     expect(
-      service.getProductPrice(uid, pid) == pargs.price &&
-        service.getStoreIdByProductId(uid, pid) == storeId
+      service.getProductPrice(uid, pid) === pargs.price &&
+        service.getStoreIdByProductId(uid, pid) === storeId
     ).toBe(true);
   });
   it("❎ product creation - empty name", () => {
@@ -59,7 +59,7 @@ describe("Stock Management", () => {
     const res = service.searchProducts(uid, {
       name: pargs.name.toUpperCase().split(" ")[0],
     });
-    expect(res.keys.length == 0).toBe(true);
+    expect(res.keys.length === 0).toBe(true);
   });
 
   it("❎ product creation - gets negative quantity", () => {
@@ -68,7 +68,7 @@ describe("Stock Management", () => {
     const res = service.searchProducts(uid, {
       name: pargs.name.toUpperCase().split(" ")[0],
     });
-    expect(res.keys.length == 0).toBe(true);
+    expect(res.keys.length === 0).toBe(true);
   });
 
   it("❎ product creation -gets negative price", () => {
@@ -77,13 +77,13 @@ describe("Stock Management", () => {
     const res = service.searchProducts(uid, {
       name: pargs.name.toUpperCase().split(" ")[0],
     });
-    expect(res.keys.length == 0).toBe(true);
+    expect(res.keys.length === 0).toBe(true);
   });
   it("✅ Update Product Details", () => {
     pargs.price = 16;
     const pid = service.createProduct(oid, storeId, pargs);
     service.setProductPrice(oid, pid, 17);
-    expect(service.getProductPrice(oid, pid) == 17).toBe(true);
+    expect(service.getProductPrice(oid, pid) === 17).toBe(true);
   });
   it("✅ Decrease product quantity within range", () => {
     pargs.quantity = 5;
@@ -348,9 +348,9 @@ describe("Store Inactivating", () => {
     service.deactivateStore(uid, storeId);
     expect(
       !service.isStoreActive(uid, storeId) &&
-        service.getNotifications(oid).length != 0 &&
-        service.getNotifications(mid).length != 0 &&
-        service.getNotifications(mmid).length == 0
+        service.getNotifications(oid).length !== 0 &&
+        service.getNotifications(mid).length !== 0 &&
+        service.getNotifications(mmid).length === 0
     ).toBe(true);
   });
   it("❎ Double Inactivating", () => {
@@ -447,11 +447,11 @@ describe("Get Purchase History by a store", () => {
     service.purchaseCart(umid, cCard);
     const hist = service.getPurchasesByStore(oid, storeId);
     expect(
-      hist.length == 2 &&
-        hist.at(0)?.price == pargs.price &&
-        hist.at(1)?.price == 2 * pargs2.price &&
-        hist.at(0)?.storeId == storeId &&
-        hist.at(1)?.storeId == storeId
+      hist.length === 2 &&
+        hist.at(0)?.price === pargs.price &&
+        hist.at(1)?.price === 2 * pargs2.price &&
+        hist.at(0)?.storeId === storeId &&
+        hist.at(1)?.storeId === storeId
     ).toBe(true);
   });
   it("❎ Applied by a regular member", () => {
@@ -536,11 +536,11 @@ it("✅ Applied by a founder", () => {
   service.purchaseCart(umid, cCard);
   const hist = service.getPurchasesByStore(uid, storeId);
   expect(
-    hist.length == 2 &&
-      hist.at(0)?.price == pargs.price &&
-      hist.at(1)?.price == 2 * pargs2.price &&
-      hist.at(0)?.storeId == storeId &&
-      hist.at(1)?.storeId == storeId
+    hist.length === 2 &&
+      hist.at(0)?.price === pargs.price &&
+      hist.at(1)?.price === 2 * pargs2.price &&
+      hist.at(0)?.storeId === storeId &&
+      hist.at(1)?.storeId === storeId
   ).toBe(true);
 });
 //Use Case 4.11

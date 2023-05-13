@@ -9,7 +9,8 @@ import { twMerge } from "tailwind-merge";
 import Profile from "./profile";
 import Price from "./price";
 import { api } from "utils/api";
-import { onError } from "utils/onError";
+import { onError } from "utils/query";
+import Badge from "./Badge";
 
 const publicLinks = [
   { name: "Products", path: PATHS.products.path },
@@ -127,15 +128,11 @@ export default function Navbar() {
                             <CashIcon />
                             <div className="flex items-center gap-x-1">
                               <Link href={PATHS.chat.path("todo")}>
-                                <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-900 hover:bg-blue-200">
-                                  Omer
-                                </span>
+                                <Badge>Omer</Badge>
                               </Link>
                               bought from
                               <Link href={PATHS.store.path("todo")}>
-                                <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-900 hover:bg-blue-200">
-                                  H&M
-                                </span>
+                                <Badge>H&M</Badge>
                               </Link>
                             </div>
                           </div>

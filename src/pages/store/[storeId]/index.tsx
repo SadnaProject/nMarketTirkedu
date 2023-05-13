@@ -10,6 +10,7 @@ import { api } from "utils/api";
 import { type StoreProductDTO } from "server/domain/Stores/StoreProduct";
 import Card from "components/card";
 import { CreateIcon } from "components/icons";
+import { cachedQueryOptions } from "utils/query";
 
 // const products = [
 // {
@@ -115,9 +116,12 @@ export default function Home() {
   useGuestRedirect();
   const router = useRouter();
   const storeId = z.undefined().or(z.string()).parse(router.query.storeId);
-  const { data: products } = api.stores.getStoreProducts.useQuery({
-    storeId: storeId as string,
-  });
+  const { data: products } = api.stores.getStoreProducts.useQuery(
+    {
+      storeId: storeId as string,
+    },
+    cachedQueryOptions
+  );
 
   return (
     <Layout>

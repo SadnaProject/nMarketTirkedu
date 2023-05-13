@@ -36,7 +36,7 @@ describe("Get information about stores and products", () => {
     const umid = service.loginMember(mid, memail, mpassword);
     const products = service.getStoreProducts(uid, storeId);
     const cond =
-      products[0]?.id == pid && service.getStoreFounder(storeId) == uid;
+      products[0]?.id === pid && service.getStoreFounder(storeId) === uid;
     expect(cond).toBe(true);
   });
   it("❎ Information of non existing store", () => {
@@ -192,13 +192,13 @@ describe("Keep an Item in the cart", () => {
     service.addProductToCart(umid, pid, 1);
     const cart = service.getCart(umid);
     expect(
-      cart.storeIdToBasket.get(storeId)?.products.at(0)?.storeProductId == pid
+      cart.storeIdToBasket.get(storeId)?.products.at(0)?.storeProductId === pid
     ).toBe(true);
     const mid2 = service.logoutMember(umid);
     const umid2 = service.loginMember(mid2, memail, mpassword);
     const cart2 = service.getCart(umid2);
     expect(
-      cart2.storeIdToBasket.get(storeId)?.products.at(0)?.storeProductId == pid
+      cart2.storeIdToBasket.get(storeId)?.products.at(0)?.storeProductId === pid
     ).toBe(true);
   });
 });
@@ -258,12 +258,12 @@ describe("Edit cart contents", () => {
     service.addProductToCart(umid, pid2, 3);
     const cart2 = service.getCart(umid);
     expect(
-      cart2.storeIdToBasket.get(storeId)?.products[0]?.storeProductId == pid &&
+      cart2.storeIdToBasket.get(storeId)?.products[0]?.storeProductId === pid &&
         cart2.storeIdToBasket.get(storeId)?.products[1]?.storeProductId ==
           pid2 &&
-        cart2.storeIdToBasket.get(storeId)?.products.length == 2 &&
-        cart.storeIdToBasket.get(storeId)?.products.length == 1 &&
-        cart.storeIdToBasket.get(storeId)?.products[0]?.storeProductId == pid
+        cart2.storeIdToBasket.get(storeId)?.products.length === 2 &&
+        cart.storeIdToBasket.get(storeId)?.products.length === 1 &&
+        cart.storeIdToBasket.get(storeId)?.products[0]?.storeProductId === pid
     ).toBe(true);
   });
   it("✅ Edit quantity", () => {
@@ -273,7 +273,7 @@ describe("Edit cart contents", () => {
     service.editProductQuantityInCart(umid, pid, 4);
     const q2 = service.getCart(umid).storeIdToBasket.get(storeId)
       ?.products[0]?.quantity;
-    expect(q1 == 7 && q2 == 4).toBe(true);
+    expect(q1 === 7 && q2 === 4).toBe(true);
   });
   it("✅ Remove existing item", () => {
     service.addProductToCart(umid, pid, 7);
@@ -281,7 +281,7 @@ describe("Edit cart contents", () => {
       ?.products[0]?.quantity;
     service.removeProductFromCart(umid, pid);
     expect(
-      service.getCart(umid).storeIdToBasket.get(storeId)?.products.length == 0
+      service.getCart(umid).storeIdToBasket.get(storeId)?.products.length === 0
     ).toBe(true);
   });
   it("❎ Remove non-existing item", () => {

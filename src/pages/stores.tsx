@@ -14,17 +14,15 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "utils/api";
 import { toast } from "react-hot-toast";
-import { onError } from "utils/onError";
+import { cachedQueryOptions, onError } from "utils/query";
 
 const formSchema = z.object({
-  name: z.string().optional(),
-  minStoreRating: z.number().optional(),
-  maxStoreRating: z.number().optional(),
+  name: z.string(),
+  // minStoreRating: z.number().optional(),
+  // maxStoreRating: z.number().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
-
-const stores: StoreDTO[] = [];
 
 export default function Home() {
   const {
@@ -33,15 +31,14 @@ export default function Home() {
     setValue,
     formState: { errors, isSubmitting },
     getValues,
-  } = useForm<FormValues>({ resolver: zodResolver(formSchema) });
-  // const { data: products, refetch } = api.stores.searchProducts.useQuery(
-  //   // todo update
-  //   getValues(),
-  //   {
-  //     retry: false,
-  //     onError,
-  //   }
-  // );
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { name: "" },
+  });
+  const { data: stores } = api.stores.searchStores.useQuery(
+    getValues(),
+    cachedQueryOptions
+  );
 
   const handleSearch = handleSubmit(
     async (data) => {
@@ -55,11 +52,15 @@ export default function Home() {
   return (
     <Layout>
       <h1>Search Stores</h1>
-      <Input placeholder="Store name" className="w-auto" />
-      <div className="mb-6 flex items-center gap-4">
+      <Input
+        placeholder="Store name"
+        className="w-auto"
+        {...register("name")}
+      />
+      {/* <div className="mb-6 flex items-center gap-4">
         <span>Store Rating</span>
         <RateSlider />
-      </div>
+      </div> */}
       <Button onClick={() => void handleSearch()}>
         {isSubmitting && <Spinner />} Search
       </Button>

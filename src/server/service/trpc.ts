@@ -150,7 +150,7 @@ const enforceValidSession = t.middleware(({ ctx, next }) => {
 export const validSessionProcedure = t.procedure.use(enforceValidSession);
 
 const enforceLoggedIn = t.middleware(({ ctx, next }) => {
-  if (!ctx.session || !ctx.session.user || ctx.session.user.type != "member") {
+  if (!ctx.session || !ctx.session.user || ctx.session.user.type !== "member") {
     throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({

@@ -658,7 +658,7 @@ export class StoresController
     return Store.fromStoreId(storeId, this.Repos).Purchases;
   }
   searchStores(userId: string, name: string): StoreDTO[] {
-    if (name == "")
+    if (name === "")
       return this.Repos.Stores.getAllStores()
         .filter((store) =>
           this.Controllers.Jobs.canReceivePublicDataFromStore(userId, store.Id)

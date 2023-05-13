@@ -42,9 +42,9 @@ describe("Get Purchase History by a buyer", () => {
     service.purchaseCart(umid, cCard);
     const hist = service.getPurchasesByUser(uid, umid);
     expect(
-      hist.length == 2 &&
-        hist.at(0)?.totalPrice == pargs.price &&
-        hist.at(1)?.totalPrice == 2 * pargs2.price
+      hist.length === 2 &&
+        hist.at(0)?.totalPrice === pargs.price &&
+        hist.at(1)?.totalPrice === 2 * pargs2.price
     ).toBe(true);
   });
   it("❎Applied by non-system admin", () => {
@@ -95,9 +95,9 @@ describe("Get Purchase History by a store", () => {
     service.purchaseCart(umid, cCard);
     const hist = service.getPurchasesByStore(uid, storeId);
     expect(
-      hist.length == 2 &&
-        hist.at(0)?.price == pargs.price &&
-        hist.at(1)?.price == 2 * pargs2.price
+      hist.length === 2 &&
+        hist.at(0)?.price === pargs.price &&
+        hist.at(1)?.price === 2 * pargs2.price
     ).toBe(true);
   });
 });
@@ -178,7 +178,7 @@ describe("Get information about members", () => {
     service.registerMember(oid2, ownermail, ownerpass);
     const oid = service.loginMember(oid2, ownermail, ownerpass);
     expect(
-      service.getAllLoggedInMembersIds(uid).length == 2 &&
+      service.getAllLoggedInMembersIds(uid).length === 2 &&
         service.getAllLoggedInMembersIds(uid).includes(uid) &&
         service.getAllLoggedInMembersIds(uid).includes(oid)
     ).toBe(true);
@@ -195,7 +195,7 @@ describe("Get information about members", () => {
     const umid2 = service.loginMember(mid2, memail2, mpassword2);
     service.logoutMember(umid2);
     // expect(
-    //   service.getAllLoggedOutMembersIds(uid).length == 2 &&
+    //   service.getAllLoggedOutMembersIds(uid).length === 2 &&
     //     service.getAllLoggedOutMembersIds(uid).includes(umid) &&
     //     service.getAllLoggedOutMembersIds(uid).includes(umid2)
     // ).toBe(true);

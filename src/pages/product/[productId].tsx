@@ -12,7 +12,7 @@ import Link from "next/link";
 import PATHS from "utils/paths";
 import { RightIcon } from "components/icons";
 import { api } from "utils/api";
-import { onError } from "utils/onError";
+import { cachedQueryOptions, onError } from "utils/query";
 
 const product = {
   id: "6e259065-7899-4667-bbd0-b9366443896d",
@@ -30,11 +30,7 @@ export default function Home() {
   const { productId } = router.query;
   const { data: storeId } = api.stores.getStoreIdByProductId.useQuery(
     { productId: productId as string },
-    {
-      enabled: !!productId,
-      retry: false,
-      onError,
-    }
+    { ...cachedQueryOptions, enabled: !!productId }
   );
 
   return (

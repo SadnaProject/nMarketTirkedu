@@ -1,20 +1,20 @@
-import { FullBasketDTO } from "../../StoresController";
+import { type FullBasketDTO } from "../../StoresController";
 import {
-  Condition_Type,
-  TimeArgs,
-  TimeCondition_Type,
+  type conditionType,
+  type TimeArgs,
+  type TimeConditionType,
 } from "../CompositeLogicalCondition/Condition";
-import { ILiteralCondition } from "./LiteralCondition";
+import { type ILiteralCondition } from "./LiteralCondition";
 
 export class DateCondition implements ILiteralCondition {
-  protected condition_type: Condition_Type;
+  protected conditionType: conditionType;
   protected year?: number;
   protected month?: number;
   protected day?: number;
   protected hour?: number;
-  protected timeCondition: TimeCondition_Type;
+  protected timeCondition: TimeConditionType;
   constructor(dateArgs: TimeArgs) {
-    this.condition_type = dateArgs.condition_type;
+    this.conditionType = dateArgs.conditionType;
     this.year = dateArgs.year;
     this.month = dateArgs.month;
     this.day = dateArgs.day;
@@ -24,7 +24,7 @@ export class DateCondition implements ILiteralCondition {
   public isSatisfiedBy(basket: FullBasketDTO): boolean {
     return this.checkIfDateSatisfied(this.timeCondition);
   }
-  protected checkIfDateSatisfied(timeCondition: TimeCondition_Type): boolean {
+  protected checkIfDateSatisfied(timeCondition: TimeConditionType): boolean {
     switch (timeCondition) {
       case "Before":
         return this.checkIfDateSmaller();
@@ -119,9 +119,9 @@ export class DateProductCondition extends DateCondition {
   private amount?: number;
   constructor(dateArgs: TimeArgs) {
     super(dateArgs);
-    this.searchProduct = dateArgs.search_For;
+    this.searchProduct = dateArgs.searchFor;
     this.amount = dateArgs.amount;
-    this.condition_type = dateArgs.condition_type;
+    this.conditionType = dateArgs.conditionType;
   }
   public isSatisfiedBy(basket: FullBasketDTO): boolean {
     if (this.searchProduct === undefined || this.amount === undefined) {
@@ -134,11 +134,8 @@ export class DateProductCondition extends DateCondition {
       }
     });
     return (
-      checkIfConditionTypeIsSatisfied(
-        this.condition_type,
-        count,
-        this.amount
-      ) && this.checkIfDateSatisfied(this.timeCondition)
+      checkIfConditionTypeIsSatisfied(this.conditionType, count, this.amount) &&
+      this.checkIfDateSatisfied(this.timeCondition)
     );
   }
 }
@@ -147,7 +144,7 @@ export class DateStoreCondition extends DateCondition {
   constructor(dateArgs: TimeArgs) {
     super(dateArgs);
     this.amount = dateArgs.amount;
-    this.condition_type = dateArgs.condition_type;
+    this.conditionType = dateArgs.conditionType;
   }
   public isSatisfiedBy(basket: FullBasketDTO): boolean {
     if (this.amount === undefined) {
@@ -158,11 +155,8 @@ export class DateStoreCondition extends DateCondition {
       count += product.BasketQuantity;
     });
     return (
-      checkIfConditionTypeIsSatisfied(
-        this.condition_type,
-        count,
-        this.amount
-      ) && this.checkIfDateSatisfied(this.timeCondition)
+      checkIfConditionTypeIsSatisfied(this.conditionType, count, this.amount) &&
+      this.checkIfDateSatisfied(this.timeCondition)
     );
   }
 }
@@ -171,9 +165,9 @@ export class DateCategoryCondition extends DateCondition {
   private amount?: number;
   constructor(dateArgs: TimeArgs) {
     super(dateArgs);
-    this.searchCategory = dateArgs.search_For;
+    this.searchCategory = dateArgs.searchFor;
     this.amount = dateArgs.amount;
-    this.condition_type = dateArgs.condition_type;
+    this.conditionType = dateArgs.conditionType;
   }
   public isSatisfiedBy(basket: FullBasketDTO): boolean {
     if (this.searchCategory === undefined || this.amount === undefined) {
@@ -186,20 +180,17 @@ export class DateCategoryCondition extends DateCondition {
       }
     });
     return (
-      checkIfConditionTypeIsSatisfied(
-        this.condition_type,
-        count,
-        this.amount
-      ) && this.checkIfDateSatisfied(this.timeCondition)
+      checkIfConditionTypeIsSatisfied(this.conditionType, count, this.amount) &&
+      this.checkIfDateSatisfied(this.timeCondition)
     );
   }
 }
 function checkIfConditionTypeIsSatisfied(
-  condition_type: Condition_Type,
+  conditionType: conditionType,
   count: number,
   amount: number
 ): boolean {
-  switch (condition_type) {
+  switch (conditionType) {
     case "AtLeast":
       return count >= amount;
     case "AtMost":

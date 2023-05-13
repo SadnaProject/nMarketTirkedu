@@ -1,27 +1,27 @@
-import { FullBasketDTO } from "../../StoresController";
+import { type FullBasketDTO } from "../../StoresController";
 import {
-  Condition_Type,
-  LiteralArgs,
+  type conditionType,
+  type LiteralArgs,
 } from "../CompositeLogicalCondition/Condition";
-import { ILiteralCondition } from "./LiteralCondition";
+import { type ILiteralCondition } from "./LiteralCondition";
 
 export class CategoryCondition implements ILiteralCondition {
-  private condition_type: Condition_Type;
+  private conditionType: conditionType;
   private amount: number;
-  private search_For: string;
+  private searchFor: string;
   constructor(args: LiteralArgs) {
-    this.condition_type = args.condition_type;
+    this.conditionType = args.conditionType;
     this.amount = args.amount;
-    this.search_For = args.search_For;
+    this.searchFor = args.searchFor;
   }
   public isSatisfiedBy(basket: FullBasketDTO): boolean {
     let count = 0;
     basket.products.forEach((product) => {
-      if (product.product.category === this.search_For) {
+      if (product.product.category === this.searchFor) {
         count += product.BasketQuantity;
       }
     });
-    switch (this.condition_type) {
+    switch (this.conditionType) {
       case "AtLeast":
         return count >= this.amount;
       case "AtMost":

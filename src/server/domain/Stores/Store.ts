@@ -92,6 +92,7 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     fullBasket = this.discountPolicy.applyDiscounts(fullBasket);
     let price = 0;
     fullBasket.products.forEach((product) => {
+      console.log(product);
       price =
         product.BasketQuantity *
         product.product.price *

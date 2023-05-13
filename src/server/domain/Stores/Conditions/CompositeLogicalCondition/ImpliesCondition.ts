@@ -3,17 +3,17 @@ import { type CompositeArgs, type ICondition } from "./Condition";
 import { buildCondition } from "./_typeDictionary";
 
 export class ImpliesCondition implements ICondition {
-  private implies: ICondition;
-  private condition: ICondition;
+  private first: ICondition;
+  private second: ICondition;
 
   constructor(composite: CompositeArgs) {
-    this.implies = buildCondition(composite.left);
-    this.condition = buildCondition(composite.right);
+    this.first = buildCondition(composite.left);
+    this.second = buildCondition(composite.right);
   }
 
   public isSatisfiedBy(basket: FullBasketDTO): boolean {
-    if (this.implies.isSatisfiedBy(basket)) {
-      return this.condition.isSatisfiedBy(basket);
+    if (this.first.isSatisfiedBy(basket)) {
+      return this.second.isSatisfiedBy(basket);
     }
     return true;
   }

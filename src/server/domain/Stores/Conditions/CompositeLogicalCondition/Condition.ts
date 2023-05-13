@@ -39,12 +39,9 @@ export const timeConditionTypeSchema = z.object({
   month: z.number().optional(),
   day: z.number().optional(),
   hour: z.number().optional(),
-  subType: z.enum(["TimeOnStore", "TimeOnProduct", "TimeOnCategory"]),
-  searchFor: z.string().optional(),
-  amount: z.number().optional(),
-  conditionType: ConditionTypeSchema,
   timeCondition: TimeConditionTypeSchema,
   type: z.literal("Time"),
+  subType: z.literal("Time"),
 });
 
 export interface TimeArgs {
@@ -52,12 +49,9 @@ export interface TimeArgs {
   month?: number;
   day?: number;
   hour?: number;
-  searchFor?: string;
-  amount?: number;
-  subType: "TimeOnStore" | "TimeOnProduct" | "TimeOnCategory";
-  conditionType: conditionType;
   timeCondition: TimeConditionType;
   type: "Time";
+  subType: "Time";
 }
 export type ConditionArgs = LiteralArgs | CompositeArgs | TimeArgs;
 export const conditionSchema: z.ZodType<ConditionArgs> = z.union([

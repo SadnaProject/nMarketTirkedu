@@ -7,14 +7,12 @@ import {
 import { type ILiteralCondition } from "./LiteralCondition";
 
 export class DateCondition implements ILiteralCondition {
-  protected conditionType: conditionType;
   protected year?: number;
   protected month?: number;
   protected day?: number;
   protected hour?: number;
   protected timeCondition: TimeConditionType;
   constructor(dateArgs: TimeArgs) {
-    this.conditionType = dateArgs.conditionType;
     this.year = dateArgs.year;
     this.month = dateArgs.month;
     this.day = dateArgs.day;
@@ -112,90 +110,5 @@ export class DateCondition implements ILiteralCondition {
   protected checkIfHourEqual(): boolean {
     const date = new Date();
     return this.hour === undefined || date.getHours() === this.hour;
-  }
-}
-export class DateProductCondition extends DateCondition {
-  private searchProduct?: string;
-  private amount?: number;
-  constructor(dateArgs: TimeArgs) {
-    super(dateArgs);
-    this.searchProduct = dateArgs.searchFor;
-    this.amount = dateArgs.amount;
-    this.conditionType = dateArgs.conditionType;
-  }
-  public isSatisfiedBy(basket: FullBasketDTO): boolean {
-    if (this.searchProduct === undefined || this.amount === undefined) {
-      return super.isSatisfiedBy(basket);
-    }
-    let count = 0;
-    basket.products.forEach((product) => {
-      if (product.product.name === this.searchProduct) {
-        count += product.BasketQuantity;
-      }
-    });
-    return (
-      checkIfConditionTypeIsSatisfied(this.conditionType, count, this.amount) &&
-      this.checkIfDateSatisfied(this.timeCondition)
-    );
-  }
-}
-export class DateStoreCondition extends DateCondition {
-  private amount?: number;
-  constructor(dateArgs: TimeArgs) {
-    super(dateArgs);
-    this.amount = dateArgs.amount;
-    this.conditionType = dateArgs.conditionType;
-  }
-  public isSatisfiedBy(basket: FullBasketDTO): boolean {
-    if (this.amount === undefined) {
-      return super.isSatisfiedBy(basket);
-    }
-    let count = 0;
-    basket.products.forEach((product) => {
-      count += product.BasketQuantity;
-    });
-    return (
-      checkIfConditionTypeIsSatisfied(this.conditionType, count, this.amount) &&
-      this.checkIfDateSatisfied(this.timeCondition)
-    );
-  }
-}
-export class DateCategoryCondition extends DateCondition {
-  private searchCategory?: string;
-  private amount?: number;
-  constructor(dateArgs: TimeArgs) {
-    super(dateArgs);
-    this.searchCategory = dateArgs.searchFor;
-    this.amount = dateArgs.amount;
-    this.conditionType = dateArgs.conditionType;
-  }
-  public isSatisfiedBy(basket: FullBasketDTO): boolean {
-    if (this.searchCategory === undefined || this.amount === undefined) {
-      return super.isSatisfiedBy(basket);
-    }
-    let count = 0;
-    basket.products.forEach((product) => {
-      if (product.product.category === this.searchCategory) {
-        count += product.BasketQuantity;
-      }
-    });
-    return (
-      checkIfConditionTypeIsSatisfied(this.conditionType, count, this.amount) &&
-      this.checkIfDateSatisfied(this.timeCondition)
-    );
-  }
-}
-function checkIfConditionTypeIsSatisfied(
-  conditionType: conditionType,
-  count: number,
-  amount: number
-): boolean {
-  switch (conditionType) {
-    case "AtLeast":
-      return count >= amount;
-    case "AtMost":
-      return count <= amount;
-    case "Exactly":
-      return count === amount;
   }
 }

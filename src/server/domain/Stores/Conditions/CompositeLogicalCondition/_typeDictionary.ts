@@ -3,11 +3,7 @@ import { ImpliesCondition } from "./ImpliesCondition";
 import { XORCondition } from "./XORCondition";
 import { ORCondition } from "./ORCondition";
 import { type ConditionArgs, type ICondition } from "./Condition";
-import {
-  DateCategoryCondition,
-  DateCondition,
-  DateProductCondition,
-} from "../baseConditions/DateCondition";
+import { DateCondition } from "../baseConditions/DateCondition";
 import { ProductCondition } from "../baseConditions/ProductCondition";
 import { CategoryCondition } from "../baseConditions/CategoryCondition";
 import { StoreCondition } from "../baseConditions/StoreCondition";
@@ -20,16 +16,15 @@ export const typeToConditionClass = {
     Xor: XORCondition,
     Implies: ImpliesCondition,
   },
-  Time: {
-    TimeOnStore: DateCondition,
-    TimeOnProduct: DateProductCondition,
-    TimeOnCategory: DateCategoryCondition,
-  },
   Literal: {
     Product: ProductCondition,
     Category: CategoryCondition,
     Store: StoreCondition,
     Price: PriceCondition,
+    Time: DateCondition,
+  },
+  Time: {
+    Time: DateCondition,
   },
 } as const;
 

@@ -7,7 +7,7 @@ import {
   User,
 } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { prisma } from "server/db";
+import { db } from "server/db";
 import { env } from "env.mjs";
 import Credentials from "next-auth/providers/credentials";
 import { appRouter } from "./service/root";
@@ -152,7 +152,7 @@ export const authOptions: NextAuthOptions = {
     newUser: "/register",
   },
   secret: env.NEXTAUTH_SECRET,
-  adapter: PrismaAdapter(prisma),
+  adapter: PrismaAdapter(db),
 };
 
 /**

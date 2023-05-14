@@ -12,23 +12,23 @@ import { Store } from "./Store";
 import { type Controllers } from "../_HasController";
 import { vi } from "vitest";
 import {
-  CompositeArgs,
-  ConditionArgs,
-  LiteralArgs,
-  SubTypeComposite,
-  SubTypeLiteral,
-  TimeArgs,
-  TimeConditionType,
-  conditionType,
+  type CompositeArgs,
+  type ConditionArgs,
+  type LiteralArgs,
+  type SubTypeComposite,
+  type SubTypeLiteral,
+  type TimeArgs,
+  type TimeConditionType,
+  type conditionType,
 } from "./Conditions/CompositeLogicalCondition/Condition";
 import { z } from "zod";
 import {
-  CompositeDiscountArgs,
+  type CompositeDiscountArgs,
   Discount,
-  DiscountArgs,
-  DiscountCompositeType,
-  DiscountOn,
-  SimpleDiscountArgs,
+  type DiscountArgs,
+  type DiscountCompositeType,
+  type DiscountOn,
+  type SimpleDiscountArgs,
 } from "./DiscountPolicy/Discount";
 
 const subTypeLiteralSchema = z.enum(["Product", "Category", "Store", "Price"]);
@@ -88,14 +88,14 @@ export function createStoreWithProduct(
 }
 export function createSimpleDiscountArgs(
   name: string,
-  discount: number,
+  amount: number,
   discountOn: DiscountOn,
   condition: ConditionArgs
 ): SimpleDiscountArgs {
   return {
     type: "Simple",
     searchFor: name,
-    discount: discount,
+    amount: amount,
     discountOn: discountOn,
     condition: condition,
   };
@@ -127,8 +127,7 @@ export function createTimeConditionArgs(
     month: month,
     day: day,
     hour: hour,
-    timeCondition: timeConditionType,
-    subType: "Time",
+    conditionType: timeConditionType,
   };
 }
 

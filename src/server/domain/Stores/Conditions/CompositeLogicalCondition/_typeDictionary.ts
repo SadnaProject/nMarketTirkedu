@@ -23,9 +23,7 @@ export const typeToConditionClass = {
     Price: PriceCondition,
     Time: DateCondition,
   },
-  Time: {
-    Time: DateCondition,
-  },
+  Time: DateCondition,
 } as const;
 
 export function buildCondition(args: ConditionArgs): ICondition {
@@ -33,7 +31,7 @@ export function buildCondition(args: ConditionArgs): ICondition {
     return new typeToConditionClass[args.type][args.subType](args);
   }
   if (args.type === "Time") {
-    return new typeToConditionClass[args.type][args.subType](args);
+    return new typeToConditionClass[args.type](args);
   }
   if (args.type === "Literal") {
     return new typeToConditionClass[args.type][args.subType](args);

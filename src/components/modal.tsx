@@ -17,7 +17,7 @@ export function Modal({ id, title, content, footer }: Props) {
             <h3 className="font-bold text-gray-800 dark:text-white">{title}</h3>
             <button
               type="button"
-              className="hs-dropdown-toggle inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-sm text-gray-500 transition-all focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white hover:text-gray-400 dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800"
+              className="hs-dropdown-toggle inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md text-sm text-gray-500 transition-all hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-gray-700 dark:focus:ring-offset-gray-800"
               data-hs-overlay={`#${id}`}
             >
               <span className="sr-only">Close</span>

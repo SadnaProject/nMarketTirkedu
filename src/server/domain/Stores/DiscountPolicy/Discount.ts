@@ -1,31 +1,23 @@
 import { z } from "zod";
 import * as R from "ramda";
-
 import {
-  type ConditionArgs,
   type ICondition,
   conditionSchema,
 } from "../Conditions/CompositeLogicalCondition/Condition";
 import { type FullBasketDTO } from "../StoresController";
 import { buildCondition } from "../Conditions/CompositeLogicalCondition/_typeDictionary";
 
-export type DiscountOn = "product" | "category" | "store";
+const discountOnSchema = z.enum(["product", "category", "store"]);
+export type DiscountOn = z.infer<typeof discountOnSchema>;
 
 const simpleDiscountSchema = z.object({
-  discountOn: z.enum(["product", "category", "store"]),
+  discountOn: discountOnSchema,
   amount: z.number(),
   searchFor: z.string().optional(),
   condition: z.lazy(() => conditionSchema),
-  discount: z.number(),
   type: z.literal("Simple"),
 });
-export interface SimpleDiscountArgs {
-  discountOn: DiscountOn;
-  searchFor?: string;
-  condition: ConditionArgs;
-  discount: number;
-  type: "Simple";
-}
+export type SimpleDiscountArgs = z.infer<typeof simpleDiscountSchema>;
 const compositeTypeSchema = z.enum(["Max", "Add"]);
 export type DiscountCompositeType = z.infer<typeof compositeTypeSchema>;
 const compositeDiscountSchema = z.object({
@@ -50,12 +42,12 @@ export interface IDiscount {
 
 export class Discount implements IDiscount {
   condition: ICondition;
-  discount: number;
+  amount: number;
   discountOn: DiscountOn;
   searchFor?: string;
   constructor(args: SimpleDiscountArgs) {
     this.condition = buildCondition(args.condition);
-    this.discount = args.discount;
+    this.amount = args.amount;
     this.discountOn = args.discountOn;
     this.searchFor = args.searchFor;
   }
@@ -70,7 +62,7 @@ export class Discount implements IDiscount {
             product.product.category === this.searchFor) ||
           this.discountOn === "store"
         ) {
-          product.Discount += this.discount;
+          product.Discount += this.amount;
         }
       });
     }

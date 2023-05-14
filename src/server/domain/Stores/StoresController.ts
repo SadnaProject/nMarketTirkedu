@@ -13,10 +13,10 @@ import { type BasketPurchaseDTO } from "../PurchasesHistory/BasketPurchaseHistor
 import { TRPCError } from "@trpc/server";
 import { eventEmitter } from "server/EventEmitter";
 import { CartPurchaseDTO } from "../PurchasesHistory/CartPurchaseHistory";
-import { ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condition";
-import { DiscountArgs } from "./DiscountPolicy/Discount";
-import { BasketDTO } from "../Users/Basket";
-import { RoleType } from "../Jobs/Role";
+import { type ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condition";
+import { type DiscountArgs } from "./DiscountPolicy/Discount";
+import { type BasketDTO } from "../Users/Basket";
+import { type RoleType } from "../Jobs/Role";
 
 export type SearchArgs = {
   name?: string;
@@ -203,11 +203,11 @@ export interface IStoresController extends HasRepos {
     targetUserId: string
   ): void;
   /**
-   * this function makes a user a store manager
-   * @param currentId the id of the user that is currently logged in
-   * @param storeId the id of the store that the user is being made a manager of
-   * @param targetUserId the id of the user that is being made a manager
-   * @throws Error if the user is already a manager of the store
+   * This function makes a user a store manager.
+   * @param currentId The id of the user that is currently logged in.
+   * @param storeId The id of the store that the user is being made a manager of.
+   * @param targetUserId The id of the user that is being made a manager.
+   * @throws Error if the user is already a manager of the store.
    */
   makeStoreManager(
     currentId: string,
@@ -215,13 +215,13 @@ export interface IStoresController extends HasRepos {
     targetUserId: string
   ): void;
   /**
-   * this function removes a user from being a store owner
-   * @param currentId the id of the user that is currently logged in
-   * @param storeId the id of the store that the user is being removed from
-   * @param targetUserId the id of the user that is being removed
-   * @throws Error if the user is not an owner of the store
-   * @throws Error if the user is the only owner of the store
-   * @throws Error if the user is the founder of the store
+   * This function removes a user from being a store owner.
+   * @param currentId The id of the user that is currently logged in.
+   * @param storeId The id of the store that the user is being removed from.
+   * @param targetUserId The id of the user that is being removed.
+   * @throws Error if the user is not an owner of the store.
+   * @throws Error if the user is the only owner of the store.
+   * @throws Error if the user is the founder of the store.
    */
   removeStoreOwner(
     currentId: string,
@@ -229,14 +229,14 @@ export interface IStoresController extends HasRepos {
     targetUserId: string
   ): void;
   /**
-   * this function removes a user from being a store manager
-   * @param currentId the id of the user that is currently logged in
-   * @param storeId the id of the store that the user is being removed from
-   * @param targetUserId the id of the user that is being removed
-   * @throws Error if the user is not a manager of the store
-   * @throws Error if the user is the only manager of the store
-   * @throws Error if the user is the founder of the store
-   * @throws Error if the current user is can't remove the target user
+   * This function removes a user from being a store manager.
+   * @param currentId The id of the user that is currently logged in.
+   * @param storeId The id of the store that the user is being removed from.
+   * @param targetUserId The id of the user that is being removed.
+   * @throws Error if the user is not a manager of the store.
+   * @throws Error if the user is the only manager of the store.
+   * @throws Error if the user is the founder of the store.
+   * @throws Error if the current user is can't remove the target user.
    */
   removeStoreManager(
     currentId: string,

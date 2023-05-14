@@ -1,6 +1,6 @@
-import { BasketDTO } from "../Users/Basket";
-import { Constraint } from "./Constraint";
-import { FullBasketDTO } from "./StoresController";
+import { type BasketDTO } from "../Users/Basket";
+import { type Constraint } from "./Constraint";
+import { type FullBasketDTO } from "./StoresController";
 
 export class ContraintPolicy {
   private storeId: string;

@@ -15,6 +15,7 @@ import { type CreditCard } from "./PurchasesHistory/PaymentAdaptor";
 import { type StoreDTO } from "./Stores/Store";
 import { DiscountArgs } from "./Stores/DiscountPolicy/Discount";
 import { ConditionArgs } from "./Stores/Conditions/CompositeLogicalCondition/Condition";
+import { RoleType } from "./Jobs/Role";
 
 @loggable
 export class MarketFacade extends Loggable {
@@ -461,5 +462,9 @@ export class MarketFacade extends Loggable {
       storeId,
       constraintId
     );
+  }
+  myStores(userId: string): { store: StoreDTO; role: RoleType }[] {
+    this.validateConnection(userId);
+    return this.controllers.Stores.myStores(userId);
   }
 }

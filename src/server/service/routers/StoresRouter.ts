@@ -157,6 +157,10 @@ export const StoresRouter = createTRPCRouter({
       const { storeId } = input;
       return facade.getStoreProducts(ctx.session.user.id, storeId);
     }),
+  myStores: validSessionProcedure.query(({ ctx }) => {
+    return facade.myStores(ctx.session.user.id);
+  }),
+
   setProductQuantity: validSessionProcedure
     .input(
       z.object({

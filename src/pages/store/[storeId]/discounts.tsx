@@ -22,69 +22,15 @@ import {
   discountArgsSchema,
   type DiscountArgs,
 } from "server/domain/Stores/DiscountPolicy/Discount";
-import { type ConditionArgs } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
-import Input from "components/input";
 import {
-  type FieldValues,
-  type UseFormRegister,
-  useForm,
-  FormProvider,
-} from "react-hook-form";
+  conditionSchema,
+  type ConditionArgs,
+} from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
+import Input from "components/input";
+import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import FriendsFormField from "components/rec/FriendsFormField";
-import { type FriendsFormValues } from "components/rec/useFriendsFormField";
-
-const discount = {
-  type: "Max",
-  left: {
-    type: "Simple",
-    discountOn: "product",
-    searchFor: "Banana",
-    discount: 15,
-    condition: {
-      type: "Composite",
-      subType: "And",
-      left: {
-        type: "Literal",
-        subType: "Product",
-        searchFor: "Banana",
-        conditionType: "AtLeast",
-        amount: 1,
-      },
-      right: {
-        type: "Literal",
-        subType: "Category",
-        searchFor: "Food",
-        conditionType: "AtLeast",
-        amount: 5,
-      },
-    },
-  },
-  right: {
-    type: "Simple",
-    discountOn: "product",
-    searchFor: "Banana",
-    discount: 15,
-    condition: {
-      type: "Composite",
-      subType: "And",
-      left: {
-        type: "Literal",
-        subType: "Product",
-        searchFor: "Banana",
-        conditionType: "AtLeast",
-        amount: 1,
-      },
-      right: {
-        type: "Literal",
-        subType: "Category",
-        searchFor: "Food",
-        conditionType: "AtLeast",
-        amount: 5,
-      },
-    },
-  },
-} as const satisfies DiscountArgs;
+import { useCallback, useEffect, useState } from "react";
+import { parse } from "path";
 
 export default function Home() {
   useGuestRedirect();
@@ -104,124 +50,165 @@ export default function Home() {
   });
   const formMethods = useForm<DiscountArgs>({
     resolver: zodResolver(discountArgsSchema),
-    defaultValues: discount,
+    defaultValues: undefined,
+    mode: "all",
+    criteriaMode: "all",
+    reValidateMode: "onChange",
   });
-  const methods = useForm<FriendsFormValues>({
-    defaultValues: { name: "hi", friends: [{ name: "bye" }] },
-  });
+
+  const handleCreateStore = formMethods.handleSubmit(
+    (data) => {
+      console.log(data);
+    },
+    () => toast.error("Discount is invalid")
+  );
 
   return (
-    <Layout>
+    <Layout className="max-w-none">
       <h1>The Happy Place</h1>
       {storeId && <StoreNavbar storeId={storeId} />}
-
-      {/* <div className="flex flex-wrap sm:flex-nowrap">
-        <CategoryDropdown options={["Manager", "Owner"]} />
-        <Input placeholder="Email" className="rounded-none" />
-        <Button
-          glowClassName="w-full"
-          glowContainerClassName="w-full sm:w-auto"
-          className="h-full w-full rounded-t-lg sm:rounded-lg sm:rounded-l-none"
-          // onClick={()=>}
-        >
-          Add
-        </Button>
-      </div> */}
-      <FormProvider {...methods}>
-        <form className="grid gap-y-4">
-          <FriendsFormField />
-        </form>
-      </FormProvider>
-      <Button onClick={() => console.log(methods.getValues())}>Log</Button>
-
-      <div className="hs-accordion-group w-full" data-hs-accordion-always-open>
-        <Discount discount={discount} id={0} />
+      <div
+        className="hs-accordion-group flex w-full overflow-auto"
+        data-hs-accordion-always-open
+      >
+        <FormProvider {...formMethods}>
+          <Discount discount={formMethods.getValues()} />
+        </FormProvider>
       </div>
+
+      <Button onClick={handleCreateStore}>Save</Button>
     </Layout>
   );
 }
 
 type DiscountProps = {
-  id: number;
+  prefix?: string;
   discount: DiscountArgs;
 };
 
-function Discount({ id, discount }: DiscountProps) {
+export function Discount({
+  discount = {
+    type: "Simple",
+    amount: 0,
+    discountOn: "product",
+    condition: {
+      type: "Literal",
+      amount: 0,
+      conditionType: "Exactly",
+      subType: "Product",
+      searchFor: "",
+    },
+  },
+  prefix = "",
+}: DiscountProps) {
+  const {
+    register,
+    formState: { errors }, //! DON'T DELETE THIS LINE. IT MAKES THE UI UPDATE
+  } = useFormContext<DiscountArgs>();
+
+  const getPath = useCallback(
+    <T extends string>(field: T) => `${prefix}${field}` as T,
+    [prefix]
+  );
+
   return (
     <div
       className="hs-accordion active"
-      id={`hs-basic-always-open-heading-${id}`}
+      id={`hs-basic-always-open-heading-${prefix}`}
     >
       <button
         className="hs-accordion-toggle peer inline-flex items-center gap-x-3 py-3 text-left font-semibold text-gray-800 transition hs-accordion-active:text-blue-600 hover:text-gray-500"
-        aria-controls={`hs-basic-always-open-collapse-${id}`}
+        aria-controls={`hs-basic-always-open-collapse-${prefix}`}
       >
         {discount.type === "Simple" && <TextDocumentIcon />}
-        {discount.type === "Add" && (
-          <>
-            <PlusDocumentIcon />
-            Add discount out of:
-          </>
-        )}
-        {discount.type === "Max" && (
-          <>
-            <ChartDocumentIcon /> Max discount out of:
-          </>
-        )}
+        {discount.type === "Add" && <PlusDocumentIcon />}
+        {discount.type === "Max" && <ChartDocumentIcon />}
       </button>
       <div className="ml-2 inline-flex flex-wrap gap-2 align-super">
+        <div className="w-20">
+          <SmallDropdown
+            options={
+              [
+                { label: "Simple", value: "Simple" },
+                { label: "Add", value: "Add" },
+                { label: "Max", value: "Max" },
+              ] satisfies {
+                label: string;
+                value: typeof discount.type;
+              }[]
+            }
+            {...register(getPath("type"))}
+          />
+        </div>
+        discount:
         {discount.type === "Simple" && (
           <>
             <Input
               className="w-12 px-1 py-1 text-center"
               placeholder="0"
-              defaultValue={discount.discount}
-              onClick={(e) => {
-                discount.discount = z.number().parse(e.currentTarget.value);
-              }}
+              {...register(getPath("amount"), { valueAsNumber: true })}
             />
-            % discount on
-            <div className="w-20">
-              <SmallDropdown options={["Product", "Category", "Store"]} />
+            % on
+            <div className="w-24">
+              <SmallDropdown
+                options={
+                  [
+                    { label: "Product", value: "product" },
+                    { label: "Category", value: "category" },
+                    { label: "Store", value: "store" },
+                  ] satisfies {
+                    label: string;
+                    value: typeof discount.discountOn;
+                  }[]
+                }
+                {...register(getPath("discountOn"))}
+              />
             </div>
-            <Input className="w-40 px-1 py-1" />
+            <Input
+              className="w-40 px-1 py-1 text-center"
+              {...register(getPath("searchFor"))}
+            />
             if:
           </>
         )}
       </div>
-      <button
+      {/* <button
         className="ml-2 inline peer-hover:opacity-100 hover:opacity-100 sm:opacity-0"
-        data-hs-overlay={`#hs-modal-${id}`}
+        data-hs-overlay={`#hs-modal-${prefix}`}
       >
         <RemoveIcon />
-      </button>
+      </button> */}
       <Modal
-        id={`hs-modal-${id}`}
+        id={`hs-modal-${prefix}`}
         title="Confirm deletion"
         content={`Are you sure you want to remove this discount?`}
         footer={
           <Button
             onClick={() => toast.success("")}
-            data-hs-overlay={`#hs-modal-${id}`}
+            data-hs-overlay={`#hs-modal-${prefix}`}
           >
             Apply changes
           </Button>
         }
       />
       <div
-        id={`hs-basic-always-open-collapse-${id}`}
+        id={`hs-basic-always-open-collapse-${prefix}`}
         className="hs-accordion-content w-full overflow-hidden pl-6 transition-[height] duration-300"
-        aria-labelledby={`hs-basic-always-open-heading-${id}`}
+        aria-labelledby={`hs-basic-always-open-heading-${prefix}`}
       >
         {discount.type === "Simple" && (
-          <>
-            <Condition condition={discount.condition} id={id + 1} />
-          </>
+          <Condition
+            condition={discount.condition}
+            prefix={`${getPath("condition")}.`}
+          />
         )}
         {(discount.type === "Add" || discount.type === "Max") && (
           <>
-            <Discount discount={discount.left} id={id + 1} />
-            <Discount discount={discount.right} id={id + 2} />
+            <Discount prefix={`${getPath("left")}.`} discount={discount.left} />
+            <Discount
+              prefix={`${getPath("right")}.`}
+              discount={discount.right}
+            />
           </>
         )}
       </div>
@@ -230,73 +217,205 @@ function Discount({ id, discount }: DiscountProps) {
 }
 
 type ConditionProps = {
-  id: number;
+  prefix?: string;
   condition: ConditionArgs;
 };
 
-function Condition({ id, condition }: ConditionProps) {
+function Condition({
+  condition = {
+    type: "Literal",
+    amount: 0,
+    conditionType: "Exactly",
+    subType: "Product",
+    searchFor: "",
+  },
+  prefix = "",
+}: ConditionProps) {
+  const {
+    register,
+    formState: { errors }, //! DON'T DELETE THIS LINE. IT MAKES THE UI UPDATE
+  } = useFormContext<ConditionArgs>();
+
+  const getPath = useCallback(
+    <T extends string>(field: T) => `${prefix}${field}` as T,
+    [prefix]
+  );
+
   return (
     <div
       className="hs-accordion active"
-      id={`hs-basic-always-open-heading-${id}`}
+      id={`hs-basic-always-open-heading-${prefix}`}
     >
       <button
         className="hs-accordion-toggle peer inline-flex items-center gap-x-3 py-3 text-left font-semibold text-gray-800 transition hs-accordion-active:text-blue-600 hover:text-gray-500"
-        aria-controls={`hs-basic-always-open-collapse-${id}`}
+        aria-controls={`hs-basic-always-open-collapse-${prefix}`}
       >
         {condition.type === "Literal" && <DocumentIcon />}
         {condition.type === "Time" && <TimeIcon />}
         {condition.type === "Composite" && <FolderIcon />}
       </button>
       <div className="ml-2 inline-flex flex-wrap gap-2 align-super">
+        <div className="w-24">
+          <SmallDropdown
+            options={
+              [
+                { label: "Regular", value: "Literal" },
+                { label: "Time", value: "Time" },
+                { label: "Composite", value: "Composite" },
+              ] satisfies {
+                label: string;
+                value: typeof condition.type;
+              }[]
+            }
+            {...register(getPath("type"))}
+          />
+        </div>
+        condition:
         {condition.type === "Literal" && (
           <>
             <div className="w-10">
-              <SmallDropdown options={["≥", "≤", "="]} />
-            </div>
-            <Input className="w-12 px-1 py-1 text-center" placeholder="0" /> of
-            <div className="w-20">
               <SmallDropdown
-                options={["Product", "Category", "Store", "Price"]}
+                options={
+                  [
+                    { label: "≥", value: "AtLeast" },
+                    { label: "≤", value: "AtMost" },
+                    { label: "=", value: "Exactly" },
+                  ] satisfies {
+                    label: string;
+                    value: typeof condition.conditionType;
+                  }[]
+                }
+                {...register(getPath("conditionType"))}
               />
             </div>
-            <Input className="w-40 px-1 py-1" />
+            <Input
+              className="w-12 px-1 py-1 text-center"
+              placeholder="0"
+              {...register(getPath("amount"), {
+                setValueAs: (v) => (v ? parseInt(v) : undefined),
+              })}
+            />{" "}
+            of
+            <div className="w-24">
+              <SmallDropdown
+                options={
+                  [
+                    { label: "Product", value: "Product" },
+                    { label: "Category", value: "Category" },
+                    { label: "Store", value: "Store" },
+                    { label: "Price", value: "Price" },
+                  ] satisfies {
+                    label: string;
+                    value: typeof condition.subType;
+                  }[]
+                }
+                {...register(getPath("subType"))}
+              />
+            </div>
+            <Input
+              className="w-40 px-1 py-1 text-center"
+              {...register(getPath("searchFor"))}
+            />
           </>
         )}
         {condition.type === "Composite" && (
           <div className="w-24">
-            <SmallDropdown options={["AND &", "OR |", "XOR ⊕", "IMPLIES ⇒"]} />
+            <SmallDropdown
+              options={
+                [
+                  { label: "AND &", value: "And" },
+                  { label: "OR |", value: "Or" },
+                  { label: "XOR ⊕", value: "Xor" },
+                  { label: "IMPLIES ⇒", value: "Implies" },
+                ] satisfies { label: string; value: typeof condition.subType }[]
+              }
+              {...register(getPath("subType"))}
+            />
           </div>
         )}
+        {condition.type === "Time" && (
+          <>
+            <div className="w-24">
+              <SmallDropdown
+                options={
+                  [
+                    { label: "Before", value: "Before" },
+                    { label: "At", value: "At" },
+                    { label: "After", value: "After" },
+                  ] satisfies {
+                    label: string;
+                    value: typeof condition.conditionType;
+                  }[]
+                }
+                {...register(getPath("conditionType"))}
+              />
+            </div>
+            day
+            <Input
+              className="w-8 px-1 py-1 text-center"
+              {...register(getPath("day"), {
+                setValueAs: (v) => (v ? parseInt(v) : undefined),
+              })}
+            />
+            month
+            <Input
+              className="w-8 px-1 py-1 text-center"
+              {...register(getPath("month"), {
+                setValueAs: (v) => (v ? parseInt(v) : undefined),
+              })}
+            />
+            year
+            <Input
+              className="w-12 px-1 py-1 text-center"
+              {...register(getPath("year"), {
+                setValueAs: (v) => (v ? parseInt(v) : undefined),
+              })}
+            />
+            hour
+            <Input
+              className="w-8 px-1 py-1 text-center"
+              {...register(getPath("hour"), {
+                setValueAs: (v) => (v ? parseInt(v) : undefined),
+              })}
+            />
+            (optionals)
+          </>
+        )}
       </div>
-      <button
+      {/* <button
         className="ml-2 inline peer-hover:opacity-100 hover:opacity-100 sm:opacity-0"
-        data-hs-overlay={`#hs-modal-${id}`}
+        data-hs-overlay={`#hs-modal-${prefix}`}
       >
         <RemoveIcon />
-      </button>
+      </button> */}
       <Modal
-        id={`hs-modal-${id}`}
+        id={`hs-modal-${prefix}`}
         title="Confirm deletion"
         content={`Are you sure you want to remove this condition?`}
         footer={
           <Button
             onClick={() => toast.success("")}
-            data-hs-overlay={`#hs-modal-${id}`}
+            data-hs-overlay={`#hs-modal-${prefix}`}
           >
             Apply changes
           </Button>
         }
       />
       <div
-        id={`hs-basic-always-open-collapse-${id}`}
+        id={`hs-basic-always-open-collapse-${prefix}`}
         className="hs-accordion-content w-full overflow-hidden pl-6 transition-[height] duration-300"
-        aria-labelledby={`hs-basic-always-open-heading-${id}`}
+        aria-labelledby={`hs-basic-always-open-heading-${prefix}`}
       >
         {condition.type === "Composite" && (
           <>
-            <Condition condition={condition.left} id={id + 1} />
-            <Condition condition={condition.right} id={id + 2} />
+            <Condition
+              prefix={`${getPath("left")}.`}
+              condition={condition.left}
+            />
+            <Condition
+              prefix={`${getPath("right")}.`}
+              condition={condition.right}
+            />
           </>
         )}
       </div>

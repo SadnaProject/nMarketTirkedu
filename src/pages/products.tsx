@@ -133,7 +133,7 @@ function MinMaxPrice({ register }: MinMaxPriceProps) {
         placeholder="0.00"
         className="w-24 rounded-none"
         {...register("minPrice", {
-          setValueAs: (v: string) => (v ? parseInt(v) : undefined),
+          setValueAs: (v) => (v ? parseInt(v) : undefined),
         })}
       />
       <div className="inline-flex min-w-fit items-center border-y border-gray-300 bg-slate-50 px-2">
@@ -143,7 +143,7 @@ function MinMaxPrice({ register }: MinMaxPriceProps) {
         placeholder="∞"
         className="w-24 rounded-l-none"
         {...register("maxPrice", {
-          setValueAs: (v: string) => (v ? parseInt(v) : undefined),
+          setValueAs: (v) => (v ? parseInt(v) : undefined),
         })}
       />
     </div>

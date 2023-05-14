@@ -1,4 +1,10 @@
-import { useState } from "react";
+import { forwardRef, useState } from "react";
+import {
+  type FieldValues,
+  type FieldErrors,
+  type FieldError,
+  type Path,
+} from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 
 type Props = {
@@ -25,7 +31,7 @@ export function Dropdown({
       <button
         id="hs-dropdown-with-dividers"
         type="button"
-        className="hs-dropdown-toggle relative inline-flex w-full items-center justify-center gap-2 rounded-t-lg border border-gray-300 bg-white px-4 py-3 align-middle text-sm font-medium text-slate-700 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white hover:bg-slate-50 sm:rounded-l-lg sm:rounded-tr-none"
+        className="hs-dropdown-toggle relative inline-flex w-full items-center justify-center gap-2 rounded-t-lg border border-gray-300 bg-white px-4 py-3 align-middle text-sm font-medium text-slate-700 shadow-sm transition-all hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white sm:rounded-l-lg sm:rounded-tr-none"
       >
         {value || label}
         {showDropdownIcon && <DropdownSvg />}
@@ -37,7 +43,7 @@ export function Dropdown({
         {options.map((option) => (
           <div
             key={option}
-            className="flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 hover:bg-slate-100"
+            className="flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm text-slate-800 hover:bg-slate-100 focus:ring-2 focus:ring-blue-500"
             onClick={() => setValue(option)}
           >
             {option}
@@ -49,39 +55,30 @@ export function Dropdown({
 }
 
 type SmallDropdownProps = {
-  label?: string;
-  options: string[];
-};
+  options: { label: string; value: string }[];
+} & React.ComponentProps<"select">;
 
-export function SmallDropdown({ label, options }: Props) {
-  const [value, setValue] = useState<string | undefined>(label || options[0]);
-
+export const SmallDropdown = forwardRef(function SmallDropdown(
+  { options, className, ...props }: SmallDropdownProps,
+  ref: React.ForwardedRef<HTMLSelectElement>
+) {
   return (
-    <div className="hs-dropdown relative -ml-px -mt-px block w-full rounded-lg border-gray-200 bg-white text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:mt-0 sm:first:ml-0">
-      <button
-        id="hs-dropdown-with-dividers"
-        type="button"
-        className="hs-dropdown-toggle relative inline-flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white py-1 align-middle text-sm font-medium text-slate-700 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white hover:bg-slate-50"
-      >
-        {value || label}
-      </button>
-      <div
-        className="hs-dropdown-menu duration z-50 mt-2 hidden max-h-80 min-w-fit divide-y divide-gray-200 overflow-auto rounded-lg bg-white p-2 py-2 opacity-0 shadow-md transition-[opacity,margin] scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-blue-300 first:pt-0 hs-dropdown-open:opacity-100"
-        aria-labelledby="hs-dropdown-with-dividers"
-      >
-        {options.map((option) => (
-          <label
-            key={option}
-            className="flex items-center gap-x-3.5 rounded-md px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 hover:bg-slate-100"
-            onClick={() => setValue(option)}
-          >
-            {option}
-          </label>
-        ))}
-      </div>
-    </div>
+    <select
+      className={twMerge(
+        "w-full rounded-lg border border-gray-300 bg-white py-1 text-center align-middle text-sm font-medium text-slate-700 shadow-sm transition-all hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white",
+        className
+      )}
+      {...props}
+      ref={ref}
+    >
+      {options.map((option) => (
+        <option value={option.value} key={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
   );
-}
+});
 
 function DropdownSvg() {
   return (

@@ -17,7 +17,7 @@ export class DateCondition implements ILiteralCondition {
     this.month = dateArgs.month;
     this.day = dateArgs.day;
     this.hour = dateArgs.hour;
-    this.timeCondition = dateArgs.timeCondition;
+    this.timeCondition = dateArgs.conditionType;
   }
   public isSatisfiedBy(basket: FullBasketDTO): boolean {
     return this.checkIfDateSatisfied(this.timeCondition);

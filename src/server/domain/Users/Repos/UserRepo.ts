@@ -1,6 +1,7 @@
 import { Testable, testable } from "server/domain/_Testable";
 import { User } from "../User";
 import { TRPCError } from "@trpc/server";
+
 @testable
 export class UserRepo extends Testable {
   private users: Map<string, User>;

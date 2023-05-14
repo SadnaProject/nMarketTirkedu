@@ -14,7 +14,6 @@ import {
   DocumentIcon,
   FolderIcon,
   PlusDocumentIcon,
-  RemoveIcon,
   TextDocumentIcon,
   TimeIcon,
 } from "components/icons";
@@ -22,35 +21,40 @@ import {
   discountArgsSchema,
   type DiscountArgs,
 } from "server/domain/Stores/DiscountPolicy/Discount";
-import {
-  conditionSchema,
-  type ConditionArgs,
-} from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
+import { type ConditionArgs } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
 import Input from "components/input";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useEffect, useState } from "react";
-import { parse } from "path";
+import { useCallback } from "react";
+
+const defaultDiscount: DiscountArgs = {
+  type: "Simple",
+  amount: 0,
+  discountOn: "product",
+  condition: {
+    type: "Literal",
+    amount: 0,
+    conditionType: "Exactly",
+    subType: "Product",
+    searchFor: "",
+  },
+};
+
+const defaultCondition: ConditionArgs = {
+  type: "Literal",
+  amount: 0,
+  conditionType: "Exactly",
+  subType: "Product",
+  searchFor: "",
+};
 
 export default function Home() {
   useGuestRedirect();
   const router = useRouter();
   const storeId = z.undefined().or(z.string()).parse(router.query.storeId);
-  const { mutate: makeStoreOwner } = api.stores.makeStoreOwner.useMutation({
-    onError,
-    onSuccess: () => {
-      toast.success("Job added successfully");
-    },
-  });
-  const { mutate: makeStoreManager } = api.stores.makeStoreManager.useMutation({
-    onError,
-    onSuccess: () => {
-      toast.success("Job added successfully");
-    },
-  });
   const formMethods = useForm<DiscountArgs>({
     resolver: zodResolver(discountArgsSchema),
-    defaultValues: undefined,
+    defaultValues: defaultDiscount,
     mode: "all",
     criteriaMode: "all",
     reValidateMode: "onChange",
@@ -87,18 +91,7 @@ type DiscountProps = {
 };
 
 export function Discount({
-  discount = {
-    type: "Simple",
-    amount: 0,
-    discountOn: "product",
-    condition: {
-      type: "Literal",
-      amount: 0,
-      conditionType: "Exactly",
-      subType: "Product",
-      searchFor: "",
-    },
-  },
+  discount = defaultDiscount,
   prefix = "",
 }: DiscountProps) {
   const {
@@ -222,13 +215,7 @@ type ConditionProps = {
 };
 
 function Condition({
-  condition = {
-    type: "Literal",
-    amount: 0,
-    conditionType: "Exactly",
-    subType: "Product",
-    searchFor: "",
-  },
+  condition = defaultCondition,
   prefix = "",
 }: ConditionProps) {
   const {

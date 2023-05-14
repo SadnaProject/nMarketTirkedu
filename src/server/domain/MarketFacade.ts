@@ -13,9 +13,9 @@ import { type BasketPurchaseDTO } from "./PurchasesHistory/BasketPurchaseHistory
 import { TRPCError } from "@trpc/server";
 import { type CreditCard } from "./PurchasesHistory/PaymentAdaptor";
 import { type StoreDTO } from "./Stores/Store";
-import { DiscountArgs } from "./Stores/DiscountPolicy/Discount";
-import { ConditionArgs } from "./Stores/Conditions/CompositeLogicalCondition/Condition";
-import { RoleType } from "./Jobs/Role";
+import { type DiscountArgs } from "./Stores/DiscountPolicy/Discount";
+import { type ConditionArgs } from "./Stores/Conditions/CompositeLogicalCondition/Condition";
+import { type RoleType } from "./Jobs/Role";
 
 @loggable
 export class MarketFacade extends Loggable {

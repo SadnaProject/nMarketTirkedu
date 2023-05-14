@@ -6,21 +6,21 @@ const config = {
   overrides: [
     {
       extends: [
-        // "plugin:@typescript-eslint/recommended-requiring-type-checking",
+        "plugin:@typescript-eslint/recommended-requiring-type-checking",
       ],
       files: ["*.ts", "*.tsx"],
       parserOptions: {
-        // project: path.join(__dirname, "tsconfig.json"),
+        project: path.join(__dirname, "tsconfig.json"),
       },
     },
   ],
   parser: "@typescript-eslint/parser",
   plugins: ["@typescript-eslint", "jsdoc"],
   extends: [
-    // "next/core-web-vitals",
-    // "plugin:@typescript-eslint/recommended",
-    // "plugin:react/recommended",
-    // "plugin:react-hooks/recommended",
+    "next/core-web-vitals",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
     // "plugin:prettier/recommended",
   ],
   rules: {
@@ -34,7 +34,7 @@ const config = {
     "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
     "react/react-in-jsx-scope": "off",
 
-    /* "jsdoc/check-access": 1, // Recommended
+    "jsdoc/check-access": 1, // Recommended
     "jsdoc/check-alignment": 1, // Recommended
     // "jsdoc/check-examples": 1,
     "jsdoc/check-indentation": 1,

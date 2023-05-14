@@ -6,12 +6,15 @@ import { Mixin } from "ts-mixer";
 import { type Controllers, HasControllers } from "../_HasController";
 import { randomUUID } from "crypto";
 import { TRPCError } from "@trpc/server";
-import { ProductWithQuantityDTO, FullBasketDTO } from "./StoresController";
+import {
+  type ProductWithQuantityDTO,
+  type FullBasketDTO,
+} from "./StoresController";
 import { ConstraintPolicy } from "./PurchasePolicy/ConstraintPolicy";
-import { BasketProductDTO } from "../Users/BasketProduct";
-import { DiscountArgs } from "./DiscountPolicy/Discount";
+import { type BasketProductDTO } from "../Users/BasketProduct";
+import { type DiscountArgs } from "./DiscountPolicy/Discount";
 import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
-import { ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condition";
+import { type ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condition";
 export const nameSchema = z.string().nonempty();
 
 export type StoreDTO = {

@@ -76,7 +76,7 @@ export default function Home() {
         </FormProvider>
       </div>
 
-      <Button onClick={handleCreateStore}>Save</Button>
+      <Button onClick={() => void handleCreateStore()}>Save</Button>
     </Layout>
   );
 }
@@ -292,7 +292,7 @@ function Condition({
               className="w-12 px-1 py-1 text-center"
               placeholder="0"
               {...register(getPath("amount"), {
-                setValueAs: (v) => (v ? parseInt(v) : undefined),
+                setValueAs: (v: string) => (v ? parseInt(v) : undefined),
               })}
             />{" "}
             of
@@ -354,28 +354,28 @@ function Condition({
             <Input
               className="w-8 px-1 py-1 text-center"
               {...register(getPath("day"), {
-                setValueAs: (v) => (v ? parseInt(v) : undefined),
+                setValueAs: (v: string) => (v ? parseInt(v) : undefined),
               })}
             />
             month
             <Input
               className="w-8 px-1 py-1 text-center"
               {...register(getPath("month"), {
-                setValueAs: (v) => (v ? parseInt(v) : undefined),
+                setValueAs: (v: string) => (v ? parseInt(v) : undefined),
               })}
             />
             year
             <Input
               className="w-12 px-1 py-1 text-center"
               {...register(getPath("year"), {
-                setValueAs: (v) => (v ? parseInt(v) : undefined),
+                setValueAs: (v: string) => (v ? parseInt(v) : undefined),
               })}
             />
             hour
             <Input
               className="w-8 px-1 py-1 text-center"
               {...register(getPath("hour"), {
-                setValueAs: (v) => (v ? parseInt(v) : undefined),
+                setValueAs: (v: string) => (v ? parseInt(v) : undefined),
               })}
             />
             (optionals)

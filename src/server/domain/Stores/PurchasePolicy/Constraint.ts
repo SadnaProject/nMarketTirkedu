@@ -1,9 +1,9 @@
 import {
-  ConditionArgs,
-  ICondition,
+  type ConditionArgs,
+  type ICondition,
 } from "../Conditions/CompositeLogicalCondition/Condition";
 import { buildCondition } from "../Conditions/CompositeLogicalCondition/_typeDictionary";
-import { FullBasketDTO } from "../StoresController";
+import { type FullBasketDTO } from "../StoresController";
 
 export class Constraint {
   condition: ICondition;

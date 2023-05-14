@@ -124,7 +124,7 @@ export default function Navbar() {
                           legacyBehavior
                           href={PATHS.receipt.path("todo")}
                         >
-                          <div className="flex cursor-pointer items-center gap-x-1.5 rounded-md px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 hover:bg-slate-100">
+                          <div className="flex cursor-pointer items-center gap-x-1.5 rounded-md px-3 py-2 text-sm text-slate-800 hover:bg-slate-100 focus:ring-2 focus:ring-blue-500">
                             <CashIcon />
                             <div className="flex items-center gap-x-1">
                               <Link href={PATHS.chat.path("todo")}>

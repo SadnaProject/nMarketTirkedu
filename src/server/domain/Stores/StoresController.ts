@@ -16,6 +16,7 @@ import { CartPurchaseDTO } from "../PurchasesHistory/CartPurchaseHistory";
 import { ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condition";
 import { DiscountArgs } from "./DiscountPolicy/Discount";
 import { BasketDTO } from "../Users/Basket";
+import { RoleType } from "../Jobs/Role";
 
 export type SearchArgs = {
   name?: string;
@@ -282,6 +283,7 @@ export interface IStoresController extends HasRepos {
     storeId: string,
     basket: BasketDTO
   ): boolean;
+  myStores(userId: string): { store: StoreDTO; role: RoleType }[];
 }
 
 @testable
@@ -738,5 +740,26 @@ export class StoresController
     return Store.fromStoreId(storeId, this.Repos).checkIfBasketFulfillsPolicy(
       basket
     );
+  }
+  myStores(userId: string): { store: StoreDTO; role: RoleType }[] {
+    const founders = this.Repos.Stores.getAllStores()
+      .filter((store) => store.isFounder(userId))
+      .map((store) => ({
+        store: store.DTO,
+        role: "Founder" as RoleType satisfies RoleType,
+      }));
+    const owners = this.Repos.Stores.getAllStores()
+      .filter((store) => store.isOwner(userId))
+      .map((store) => ({
+        store: store.DTO,
+        role: "Owner" as RoleType satisfies RoleType,
+      }));
+    const managers = this.Repos.Stores.getAllStores()
+      .filter((store) => store.isManager(userId))
+      .map((store) => ({
+        store: store.DTO,
+        role: "Manager" as RoleType satisfies RoleType,
+      }));
+    return founders.concat(owners).concat(managers);
   }
 }

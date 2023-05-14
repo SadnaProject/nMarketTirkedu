@@ -18,6 +18,7 @@ export type StoreDTO = {
   id: string;
   name: string;
   isActive: boolean;
+  rating: number;
 };
 
 export class Store extends Mixin(HasRepos, HasControllers) {
@@ -70,6 +71,7 @@ export class Store extends Mixin(HasRepos, HasControllers) {
       id: this.id,
       name: this.name,
       isActive: this.isActive,
+      rating: this.Controllers.PurchasesHistory.getStoreRating(this.id),
     };
   }
 

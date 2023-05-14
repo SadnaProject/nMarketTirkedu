@@ -11,7 +11,28 @@ import { createMockControllers } from "../_createControllers";
 import { Store } from "./Store";
 import { type Controllers } from "../_HasController";
 import { vi } from "vitest";
+import {
+  CompositeArgs,
+  ConditionArgs,
+  LiteralArgs,
+  SubTypeComposite,
+  SubTypeLiteral,
+  TimeArgs,
+  TimeConditionType,
+  conditionType,
+} from "./Conditions/CompositeLogicalCondition/Condition";
+import { z } from "zod";
+import {
+  CompositeDiscountArgs,
+  Discount,
+  DiscountArgs,
+  DiscountCompositeType,
+  DiscountOn,
+  SimpleDiscountArgs,
+} from "./DiscountPolicy/Discount";
 
+const subTypeLiteralSchema = z.enum(["Product", "Category", "Store", "Price"]);
+export type subTypeLiteral = z.infer<typeof subTypeLiteralSchema>;
 export function generateStoreName() {
   return faker.company.name();
 }
@@ -64,4 +85,73 @@ export function createStoreWithProduct(
   );
   vi.spyOn(product, "Store", "get").mockReturnValue(store);
   return { store, product };
+}
+export function createSimpleDiscountArgs(
+  name: string,
+  discount: number,
+  discountOn: DiscountOn,
+  condition: ConditionArgs
+): SimpleDiscountArgs {
+  return {
+    type: "Simple",
+    searchFor: name,
+    discount: discount,
+    discountOn: discountOn,
+    condition: condition,
+  };
+}
+export function createLiteralConditionArgs(
+  name: string,
+  amount: number,
+  subType: SubTypeLiteral,
+  conditionType: conditionType
+): LiteralArgs {
+  return {
+    type: "Literal",
+    subType: subType,
+    amount: amount,
+    searchFor: name,
+    conditionType: conditionType,
+  };
+}
+export function createTimeConditionArgs(
+  timeConditionType: TimeConditionType,
+  year?: number,
+  month?: number,
+  day?: number,
+  hour?: number
+): TimeArgs {
+  return {
+    type: "Time",
+    year: year,
+    month: month,
+    day: day,
+    hour: hour,
+    timeCondition: timeConditionType,
+    subType: "Time",
+  };
+}
+
+export function createCompositeConditionArgs(
+  subType: SubTypeComposite,
+  left: ConditionArgs,
+  right: ConditionArgs
+): CompositeArgs {
+  return {
+    type: "Composite",
+    subType: subType,
+    left: left,
+    right: right,
+  };
+}
+export function createCompositeDiscountArgs(
+  left: DiscountArgs,
+  right: DiscountArgs,
+  subType: DiscountCompositeType
+): CompositeDiscountArgs {
+  return {
+    type: subType,
+    left: left,
+    right: right,
+  };
 }

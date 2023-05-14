@@ -9,7 +9,7 @@ import {
 import { type FullBasketDTO } from "../StoresController";
 import { buildCondition } from "../Conditions/CompositeLogicalCondition/_typeDictionary";
 
-type DiscountOn = "product" | "category" | "store";
+export type DiscountOn = "product" | "category" | "store";
 
 const simpleDiscountSchema = z.object({
   discountOn: z.enum(["product", "category", "store"]),
@@ -26,16 +26,17 @@ export interface SimpleDiscountArgs {
   discount: number;
   type: "Simple";
 }
-
+const compositeTypeSchema = z.enum(["Max", "Add"]);
+export type DiscountCompositeType = z.infer<typeof compositeTypeSchema>;
 const compositeDiscountSchema = z.object({
   left: z.lazy(() => discountArgsSchema),
   right: z.lazy(() => discountArgsSchema),
-  type: z.enum(["Max", "Add"]),
+  type: compositeTypeSchema,
 });
-interface CompositeDiscountArgs {
+export interface CompositeDiscountArgs {
   left: DiscountArgs;
   right: DiscountArgs;
-  type: "Max" | "Add";
+  type: DiscountCompositeType;
 }
 
 export type DiscountArgs = SimpleDiscountArgs | CompositeDiscountArgs;

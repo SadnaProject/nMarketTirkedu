@@ -134,14 +134,14 @@ export function createTimeConditionArgs(
 
 export function createCompositeConditionArgs(
   subType: SubTypeComposite,
-  right: ConditionArgs,
-  left: ConditionArgs
+  left: ConditionArgs,
+  right: ConditionArgs
 ): CompositeArgs {
   return {
     type: "Composite",
     subType: subType,
-    right: right,
     left: left,
+    right: right,
   };
 }
 export function createCompositeDiscountArgs(

@@ -11,11 +11,12 @@ import {
   createSimpleDiscountArgs,
   createStore,
   createStoreWithProduct,
+  createTimeConditionArgs,
   generateProductArgs,
   generateStoreName,
 } from "./_data";
 import { itUnitIntegration } from "../_mock";
-function generateForDiscountTest(testType: string) {
+function generateForDiscountAndConstraintTests(testType: string) {
   const productData = generateProductArgs();
   productData.name = "Milk";
   productData.category = "Food";
@@ -28,9 +29,9 @@ function generateForDiscountTest(testType: string) {
   const product1BasketQuantity = 55;
   const product2BasketQuantity = 23;
   vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
-  const product2Id = store.createProduct(productData);
+  const product2Id = store.createProduct(product2Data);
   const product2 = StoreProduct.fromDTO(
-    { ...productData, id: product2Id },
+    { ...product2Data, id: product2Id },
     repos
   );
   const basket: BasketDTO = {
@@ -124,51 +125,32 @@ describe("get basket price", () => {
 });
 describe("Discounts", () => {
   itUnitIntegration("add simple product discount", (testType) => {
-    const productData = generateProductArgs();
-    productData.name = "Milk";
-    productData.category = "Food";
-    const repos = createTestRepos(testType);
-    const { store, product } = createStoreWithProduct(productData, repos);
-    const product2Data = generateProductArgs();
-    product2Data.name = "Meat";
-    product2Data.category = "Meat";
-    vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
-    const product2Id = store.createProduct(productData);
-    const product2 = StoreProduct.fromDTO(
-      { ...productData, id: product2Id },
-      repos
-    );
-    const product1Quantity = 55;
-    const product2Quantity = 23;
-    const basket: BasketDTO = {
-      storeId: store.Id,
-      products: [
-        { quantity: product1Quantity, storeProductId: product.Id },
-        { quantity: product2Quantity, storeProductId: product2Id },
-      ],
-    };
-    vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValueOnce([
+    const {
+      price,
       product,
       product2,
-    ]);
-    vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);
-    vi.spyOn(repos.Products, "getProductById").mockImplementation((id) => {
-      if (id === product.Id) return product;
-      else return product2;
-    });
-    const price = store.getBasketPrice(basket);
+      store,
+      basket,
+      product1BasketQuantity,
+      product2BasketQuantity,
+    } = generateForDiscountAndConstraintTests(testType);
+
+    expect(store.getBasketPrice(basket)).toBe(
+      product.Price * product1BasketQuantity +
+        product2.Price * product2BasketQuantity
+    );
     const discountId = store.addDiscount(
       createSimpleDiscountArgs(
-        productData.name,
+        product.Name,
         15,
         "product",
-        createLiteralConditionArgs(productData.name, 1, "Product", "AtLeast")
+        createLiteralConditionArgs(product.Name, 1, "Product", "AtLeast")
       )
     );
     const priceWithDiscount = store.getBasketPrice(basket);
     expect(priceWithDiscount).toBe(
-      product.Price * productData.quantity * (85 / 100) +
-        product2.Price * product2Data.quantity
+      product.Price * product1BasketQuantity * (85 / 100) +
+        product2.Price * product2BasketQuantity
     );
     store.removeDiscount(discountId);
     expect(store.getBasketPrice(basket)).toBe(price);
@@ -182,7 +164,7 @@ describe("Discounts", () => {
       basket,
       product1BasketQuantity,
       product2BasketQuantity,
-    } = generateForDiscountTest(testType);
+    } = generateForDiscountAndConstraintTests(testType);
 
     const discountId = store.addDiscount(
       createSimpleDiscountArgs(
@@ -201,45 +183,23 @@ describe("Discounts", () => {
     expect(store.getBasketPrice(basket)).toBe(price);
   });
   itUnitIntegration("add simple price discount", (testType) => {
-    const productData = generateProductArgs();
-    productData.name = "Milk";
-    productData.category = "Food";
-    const repos = createTestRepos(testType);
-    const { store, product } = createStoreWithProduct(productData, repos);
-    productData.quantity = 5;
-    const product2Data = generateProductArgs();
-    product2Data.name = "Meat";
-    product2Data.category = "Meat";
-    vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
-    const product2Id = store.createProduct(productData);
-    const product2 = StoreProduct.fromDTO(
-      { ...productData, id: product2Id },
-      repos
-    );
-    const basket: BasketDTO = {
-      storeId: store.Id,
-      products: [
-        { quantity: productData.quantity, storeProductId: product.Id },
-        { quantity: product2Data.quantity, storeProductId: product2Id },
-      ],
-    };
-    vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValueOnce([
+    const {
+      price,
       product,
       product2,
-    ]);
-    vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);
-    vi.spyOn(repos.Products, "getProductById").mockImplementation((id) => {
-      if (id === product.Id) return product;
-      else return product2;
-    });
-    const price = store.getBasketPrice(basket);
+      store,
+      basket,
+      product1BasketQuantity,
+      product2BasketQuantity,
+    } = generateForDiscountAndConstraintTests(testType);
+
     const discountId = store.addDiscount(
       createSimpleDiscountArgs(
-        productData.category,
+        product.Category,
         15,
         "category",
         createLiteralConditionArgs(
-          productData.category,
+          product.Category,
           price - 5,
           "Price",
           "AtLeast"
@@ -248,18 +208,18 @@ describe("Discounts", () => {
     );
     const priceWithDiscount = store.getBasketPrice(basket);
     expect(priceWithDiscount).toBe(
-      product.Price * productData.quantity * (85 / 100) +
-        product2.Price * product2Data.quantity
+      product.Price * product1BasketQuantity * (85 / 100) +
+        product2.Price * product2BasketQuantity
     );
     store.removeDiscount(discountId);
     expect(store.getBasketPrice(basket)).toBe(price);
     const discountId1 = store.addDiscount(
       createSimpleDiscountArgs(
-        productData.category,
+        product.Category,
         15,
         "category",
         createLiteralConditionArgs(
-          productData.category,
+          product.Category,
           price - 5,
           "Price",
           "AtMost"
@@ -272,118 +232,64 @@ describe("Discounts", () => {
     expect(store.getBasketPrice(basket)).toBe(price);
   });
   itUnitIntegration("add simple basket discount", (testType) => {
-    const productData = generateProductArgs();
-    productData.name = "Milk";
-    productData.category = "Food";
-    const repos = createTestRepos(testType);
-    const { store, product } = createStoreWithProduct(productData, repos);
-    productData.quantity = 5;
-    const product2Data = generateProductArgs();
-    product2Data.name = "Meat";
-    product2Data.category = "Meat";
-    vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
-    const product2Id = store.createProduct(productData);
-    const product2 = StoreProduct.fromDTO(
-      { ...productData, id: product2Id },
-      repos
-    );
-    const basket: BasketDTO = {
-      storeId: store.Id,
-      products: [
-        { quantity: productData.quantity, storeProductId: product.Id },
-        { quantity: product2Data.quantity, storeProductId: product2Id },
-      ],
-    };
-    vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValueOnce([
+    const {
+      price,
       product,
       product2,
-    ]);
-    vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);
-    vi.spyOn(repos.Products, "getProductById").mockImplementation((id) => {
-      if (id === product.Id) return product;
-      else return product2;
-    });
-    const price = store.getBasketPrice(basket);
+      store,
+      basket,
+      product1BasketQuantity,
+      product2BasketQuantity,
+    } = generateForDiscountAndConstraintTests(testType);
+
     const discountId = store.addDiscount(
       createSimpleDiscountArgs(
-        productData.category,
+        product.Category,
         15,
         "store",
-        createLiteralConditionArgs(productData.category, 1, "Store", "AtLeast")
+        createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
       )
     );
     const priceWithDiscount = store.getBasketPrice(basket);
     expect(priceWithDiscount).toBe(
-      product.Price * productData.quantity * (85 / 100) +
-        product2.Price * product2Data.quantity * (85 / 100)
+      product.Price * product1BasketQuantity * (85 / 100) +
+        product2.Price * product2BasketQuantity * (85 / 100)
     );
     store.removeDiscount(discountId);
     expect(store.getBasketPrice(basket)).toBe(price);
   });
   itUnitIntegration("add max discount with simple condition", (testType) => {
-    const productData = generateProductArgs();
-    productData.name = "Milk";
-    productData.category = "Food";
-    const repos = createTestRepos(testType);
-    const { store, product } = createStoreWithProduct(productData, repos);
-    productData.quantity = 5;
-    const product2Data = generateProductArgs();
-    product2Data.name = "Meat";
-    product2Data.category = "Meat";
-    vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
-    const product2Id = store.createProduct(productData);
-    const product2 = StoreProduct.fromDTO(
-      { ...productData, id: product2Id },
-      repos
-    );
-    const basket: BasketDTO = {
-      storeId: store.Id,
-      products: [
-        { quantity: productData.quantity, storeProductId: product.Id },
-        { quantity: product2Data.quantity, storeProductId: product2Id },
-      ],
-    };
-    vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValueOnce([
+    const {
+      price,
       product,
       product2,
-    ]);
-    vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);
-    vi.spyOn(repos.Products, "getProductById").mockImplementation((id) => {
-      if (id === product.Id) return product;
-      else return product2;
-    });
-    const price = store.getBasketPrice(basket);
+      store,
+      basket,
+      product1BasketQuantity,
+      product2BasketQuantity,
+    } = generateForDiscountAndConstraintTests(testType);
+
     const discountId = store.addDiscount(
       createCompositeDiscountArgs(
         createSimpleDiscountArgs(
-          productData.category,
+          product.Category,
           15,
           "category",
-          createLiteralConditionArgs(
-            productData.category,
-            1,
-            "Store",
-            "AtLeast"
-          )
+          createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
         ),
         createSimpleDiscountArgs(
-          productData.category,
+          product.Category,
           15,
           "store",
-          createLiteralConditionArgs(
-            productData.category,
-            1,
-            "Store",
-            "AtLeast"
-          )
+          createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
         ),
         "Max"
       )
     );
     const priceWithDiscount = store.getBasketPrice(basket);
     expect(priceWithDiscount).toBe(
-      product.Price * productData.quantity * (85 / 100) +
-        product2.Price * product2Data.quantity * (85 / 100)
+      product.Price * product1BasketQuantity * (85 / 100) +
+        product2.Price * product2BasketQuantity * (85 / 100)
     );
     store.removeDiscount(discountId);
     expect(store.getBasketPrice(basket)).toBe(price);
@@ -391,145 +297,77 @@ describe("Discounts", () => {
   itUnitIntegration(
     "add compose ADD discount with simple condition",
     (testType) => {
-      const productData = generateProductArgs();
-      productData.category = "Food";
-      const repos = createTestRepos(testType);
-      const { store, product } = createStoreWithProduct(productData, repos);
-      productData.quantity = 5;
-      const product2Data = generateProductArgs();
-      product2Data.category = "Meat";
-      vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
-      const product2Id = store.createProduct(productData);
-      const product2 = StoreProduct.fromDTO(
-        { ...productData, id: product2Id },
-        repos
-      );
-      const basket: BasketDTO = {
-        storeId: store.Id,
-        products: [
-          { quantity: productData.quantity, storeProductId: product.Id },
-          { quantity: product2Data.quantity, storeProductId: product2Id },
-        ],
-      };
-      vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValueOnce([
+      const {
+        price,
         product,
         product2,
-      ]);
-      vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);
-      vi.spyOn(repos.Products, "getProductById").mockImplementation((id) => {
-        if (id === product.Id) return product;
-        else return product2;
-      });
-      const price = store.getBasketPrice(basket);
+        store,
+        basket,
+        product1BasketQuantity,
+        product2BasketQuantity,
+      } = generateForDiscountAndConstraintTests(testType);
       const discountId = store.addDiscount(
         createCompositeDiscountArgs(
           createSimpleDiscountArgs(
-            productData.category,
+            product.Category,
             15,
             "category",
-            createLiteralConditionArgs(
-              productData.category,
-              1,
-              "Store",
-              "AtLeast"
-            )
+            createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
           ),
           createSimpleDiscountArgs(
-            productData.category,
+            product.Category,
             15,
             "store",
-            createLiteralConditionArgs(
-              productData.category,
-              1,
-              "Store",
-              "AtLeast"
-            )
+            createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
           ),
           "Add"
         )
       );
       const priceWithDiscount = store.getBasketPrice(basket);
       expect(priceWithDiscount).toBe(
-        product.Price * productData.quantity * (70 / 100) +
-          product2.Price * product2Data.quantity * (70 / 100)
+        product.Price * product1BasketQuantity * (70 / 100) +
+          product2.Price * product2BasketQuantity * (85 / 100)
       );
       store.removeDiscount(discountId);
       expect(store.getBasketPrice(basket)).toBe(price);
     }
   );
   itUnitIntegration("add compose discount with And condition", (testType) => {
-    const productData = generateProductArgs();
-    productData.name = "Milk";
-    productData.category = "Food";
-    const repos = createTestRepos(testType);
-    const { store, product } = createStoreWithProduct(productData, repos);
-    productData.quantity = 5;
-    const product2Data = generateProductArgs();
-    product2Data.name = "Meat";
-    product2Data.category = "Meat";
-    vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
-    const product2Id = store.createProduct(productData);
-    const product2 = StoreProduct.fromDTO(
-      { ...productData, id: product2Id },
-      repos
-    );
-    const basket: BasketDTO = {
-      storeId: store.Id,
-      products: [
-        { quantity: productData.quantity, storeProductId: product.Id },
-        { quantity: product2Data.quantity, storeProductId: product2Id },
-      ],
-    };
-    vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValueOnce([
+    const {
+      price,
       product,
       product2,
-    ]);
-    vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);
-    vi.spyOn(repos.Products, "getProductById").mockImplementation((id) => {
-      if (id === product.Id) return product;
-      else return product2;
-    });
-    const price = store.getBasketPrice(basket);
+      store,
+      basket,
+      product1BasketQuantity,
+      product2BasketQuantity,
+    } = generateForDiscountAndConstraintTests(testType);
+
     const discountId = store.addDiscount(
       createCompositeDiscountArgs(
         createSimpleDiscountArgs(
-          productData.category,
+          product.Category,
           15,
           "category",
           createCompositeConditionArgs(
             "And",
-            createLiteralConditionArgs(
-              productData.category,
-              1,
-              "Store",
-              "AtLeast"
-            ),
-            createLiteralConditionArgs(
-              productData.category,
-              1,
-              "Store",
-              "AtMost"
-            )
+            createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast"),
+            createLiteralConditionArgs(product.Category, 1, "Store", "AtMost")
           )
         ),
         createSimpleDiscountArgs(
-          productData.category,
+          product.Category,
           15,
           "store",
-          createLiteralConditionArgs(
-            productData.category,
-            1,
-            "Store",
-            "AtLeast"
-          )
+          createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
         ),
         "Add"
       )
     );
     const priceWithDiscount = store.getBasketPrice(basket);
     expect(priceWithDiscount).toBe(
-      product.Price * productData.quantity * (85 / 100) +
-        product2.Price * product2Data.quantity * (85 / 100)
+      product.Price * product1BasketQuantity * (85 / 100) +
+        product2.Price * product2BasketQuantity * (85 / 100)
     );
     store.removeDiscount(discountId);
     expect(store.getBasketPrice(basket)).toBe(price);
@@ -537,36 +375,15 @@ describe("Discounts", () => {
   itUnitIntegration(
     "add compose MAX discount with compose logic implies condition",
     (testType) => {
-      const productData = generateProductArgs();
-      productData.category = "Food";
-      const repos = createTestRepos(testType);
-      const { store, product } = createStoreWithProduct(productData, repos);
-      productData.quantity = 5;
-      const product2Data = generateProductArgs();
-      product2Data.category = "Meat";
-      vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
-      const product2Id = store.createProduct(productData);
-      const product2 = StoreProduct.fromDTO(
-        { ...productData, id: product2Id },
-        repos
-      );
-      const basket: BasketDTO = {
-        storeId: store.Id,
-        products: [
-          { quantity: productData.quantity, storeProductId: product.Id },
-          { quantity: product2Data.quantity, storeProductId: product2Id },
-        ],
-      };
-      vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValueOnce([
+      const {
+        price,
         product,
         product2,
-      ]);
-      vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);
-      vi.spyOn(repos.Products, "getProductById").mockImplementation((id) => {
-        if (id === product.Id) return product;
-        else return product2;
-      });
-      const price = store.getBasketPrice(basket);
+        store,
+        basket,
+        product1BasketQuantity,
+        product2BasketQuantity,
+      } = generateForDiscountAndConstraintTests(testType);
       const discountId = store.addDiscount({
         type: "Add",
         left: {
@@ -578,19 +395,19 @@ describe("Discounts", () => {
               subType: "Product",
               amount: 1,
               conditionType: "AtLeast",
-              searchFor: productData.name,
+              searchFor: product.Name,
             },
             right: {
               type: "Literal",
               subType: "Product",
-              amount: 20,
+              amount: 70,
               conditionType: "AtMost",
-              searchFor: productData.name,
+              searchFor: product.Name,
             },
           },
           discount: 15,
           discountOn: "product",
-          searchFor: productData.name,
+          searchFor: product.Name,
           type: "Simple",
         },
         right: {
@@ -602,26 +419,26 @@ describe("Discounts", () => {
               subType: "Product",
               amount: 1,
               conditionType: "AtLeast",
-              searchFor: productData.name,
+              searchFor: product.Name,
             },
             right: {
               type: "Literal",
               subType: "Product",
-              amount: 20,
+              amount: 70,
               conditionType: "AtMost",
-              searchFor: productData.name,
+              searchFor: product.Name,
             },
           },
           discount: 25,
           discountOn: "product",
-          searchFor: productData.name,
+          searchFor: product.Name,
           type: "Simple",
         },
       });
       const priceWithDiscount = store.getBasketPrice(basket);
       expect(priceWithDiscount).toBe(
-        product.Price * productData.quantity * (60 / 100) +
-          product2.Price * product2Data.quantity
+        product.Price * product1BasketQuantity * (60 / 100) +
+          product2.Price * product2BasketQuantity
       );
       store.removeDiscount(discountId);
       expect(store.getBasketPrice(basket)).toBe(price);
@@ -636,19 +453,19 @@ describe("Discounts", () => {
               subType: "Product",
               amount: 1,
               conditionType: "AtLeast",
-              searchFor: productData.name,
+              searchFor: product.Name,
             },
             right: {
               type: "Literal",
               subType: "Product",
-              amount: 20,
+              amount: 70,
               conditionType: "AtMost",
-              searchFor: productData.name,
+              searchFor: product.Name,
             },
           },
           discount: 15,
           discountOn: "product",
-          searchFor: productData.name,
+          searchFor: product.Name,
           type: "Simple",
         },
         right: {
@@ -660,29 +477,201 @@ describe("Discounts", () => {
               subType: "Product",
               amount: 1,
               conditionType: "AtLeast",
-              searchFor: productData.name,
+              searchFor: product.Name,
             },
             right: {
               type: "Literal",
               subType: "Product",
               amount: 2,
               conditionType: "AtMost",
-              searchFor: productData.name,
+              searchFor: product.Name,
             },
           },
           discount: 25,
           discountOn: "product",
-          searchFor: productData.name,
+          searchFor: product.Name,
           type: "Simple",
         },
       });
       const priceWithDiscount1 = store.getBasketPrice(basket);
       expect(priceWithDiscount1).toBe(
-        product.Price * productData.quantity * (85 / 100) +
-          product2.Price * product2Data.quantity
+        product.Price * product1BasketQuantity * (85 / 100) +
+          product2.Price * product2BasketQuantity
       );
       store.removeDiscount(discountId1);
       expect(store.getBasketPrice(basket)).toBe(price);
+    }
+  );
+});
+describe("Constraint tests", () => {
+  itUnitIntegration(
+    "add simple constraint to store and check if it works",
+    (testType) => {
+      const {
+        price,
+        product,
+        product2,
+        store,
+        basket,
+        product1BasketQuantity,
+        product2BasketQuantity,
+      } = generateForDiscountAndConstraintTests(testType);
+      const constraintId = store.addConstraint(
+        createLiteralConditionArgs("", 1, "Store", "AtMost")
+      );
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
+      store.removeConstraint(constraintId);
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+    }
+  );
+  itUnitIntegration(
+    "add composite AND constraint to store and check if it works",
+    (testType) => {
+      const {
+        price,
+        product,
+        product2,
+        store,
+        basket,
+        product1BasketQuantity,
+        product2BasketQuantity,
+      } = generateForDiscountAndConstraintTests(testType);
+      const constraintId = store.addConstraint(
+        createCompositeConditionArgs(
+          "And",
+          createLiteralConditionArgs("", 1, "Store", "AtLeast"),
+          createLiteralConditionArgs("", 1, "Store", "AtMost")
+        )
+      );
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
+      store.removeConstraint(constraintId);
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+    }
+  );
+  itUnitIntegration(
+    "add composite implies constraint to store and check if it works",
+    (testType) => {
+      const {
+        price,
+        product,
+        product2,
+        store,
+        basket,
+        product1BasketQuantity,
+        product2BasketQuantity,
+      } = generateForDiscountAndConstraintTests(testType);
+      const constraintId = store.addConstraint(
+        createCompositeConditionArgs(
+          "Implies",
+          createLiteralConditionArgs("", 1, "Store", "AtMost"),
+          createLiteralConditionArgs("", 1, "Store", "AtLeast")
+        )
+      );
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+      const constraintId2 = store.addConstraint(
+        createCompositeConditionArgs(
+          "Implies",
+          createLiteralConditionArgs("", 1, "Store", "AtLeast"),
+          createLiteralConditionArgs("", 1, "Store", "AtMost")
+        )
+      );
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
+      store.removeConstraint(constraintId2);
+      store.removeConstraint(constraintId);
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+    }
+  );
+  itUnitIntegration(
+    "add composite xor constraint to store and check if it works",
+    (testType) => {
+      const {
+        price,
+        product,
+        product2,
+        store,
+        basket,
+        product1BasketQuantity,
+        product2BasketQuantity,
+      } = generateForDiscountAndConstraintTests(testType);
+      const constraintId = store.addConstraint(
+        createCompositeConditionArgs(
+          "Xor",
+          createLiteralConditionArgs("", 1, "Store", "AtMost"),
+          createLiteralConditionArgs("", 1, "Store", "AtLeast")
+        )
+      );
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+      const constraintId2 = store.addConstraint(
+        createCompositeConditionArgs(
+          "Xor",
+          createLiteralConditionArgs("", 1, "Store", "AtLeast"),
+          createLiteralConditionArgs("", 5, "Store", "AtLeast")
+        )
+      );
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
+      store.removeConstraint(constraintId2);
+      store.removeConstraint(constraintId);
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+    }
+  );
+  itUnitIntegration(
+    "add composite or constraint to store and check if it works",
+    (testType) => {
+      const {
+        price,
+        product,
+        product2,
+        store,
+        basket,
+        product1BasketQuantity,
+        product2BasketQuantity,
+      } = generateForDiscountAndConstraintTests(testType);
+      const constraintId = store.addConstraint(
+        createCompositeConditionArgs(
+          "Or",
+          createLiteralConditionArgs("", 1, "Store", "AtMost"),
+          createLiteralConditionArgs("", 1, "Store", "AtLeast")
+        )
+      );
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+      const constraintId2 = store.addConstraint(
+        createCompositeConditionArgs(
+          "Or",
+          createLiteralConditionArgs("", 1, "Store", "AtMost"),
+          createLiteralConditionArgs("NO_SUCH_PRODUCT", 5, "Product", "AtLeast")
+        )
+      );
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
+      store.removeConstraint(constraintId2);
+      store.removeConstraint(constraintId);
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+    }
+  );
+  itUnitIntegration(
+    "add time constraint to store and check if it works",
+    (testType) => {
+      const {
+        price,
+        product,
+        product2,
+        store,
+        basket,
+        product1BasketQuantity,
+        product2BasketQuantity,
+      } = generateForDiscountAndConstraintTests(testType);
+      const date = new Date();
+      const constraintId = store.addConstraint(
+        createTimeConditionArgs(
+          "After",
+          date.getFullYear() + 1,
+          undefined,
+          undefined,
+          undefined
+        )
+      );
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
+      store.removeConstraint(constraintId);
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
     }
   );
 });

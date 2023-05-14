@@ -84,23 +84,21 @@ export class Store extends Mixin(HasRepos, HasControllers) {
   }
   public getBasketPrice(basketDTO: BasketDTO): number {
     let fullBasket = this.BasketDTOToFullBasketDTO(basketDTO);
-    if (!this.constraintPolicy.isSatisfiedBy(fullBasket))
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "the basket doesn't fulfilled the constraint policy",
-      });
+
     fullBasket = this.discountPolicy.applyDiscounts(fullBasket);
     let price = 0;
     fullBasket.products.forEach((product) => {
-      console.log(product);
-      price =
+      price +=
         product.BasketQuantity *
         product.product.price *
         (1 - product.Discount / 100);
     });
     return price;
   }
-
+  public checkIfBasketFulfillsPolicy(basketDTO: BasketDTO): boolean {
+    const fullBasket = this.BasketDTOToFullBasketDTO(basketDTO);
+    return this.constraintPolicy.isSatisfiedBy(fullBasket);
+  }
   public delete() {
     this.Repos.Stores.deleteStore(this.Id);
   }

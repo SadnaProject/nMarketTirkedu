@@ -15,6 +15,7 @@ import { eventEmitter } from "server/EventEmitter";
 import { CartPurchaseDTO } from "../PurchasesHistory/CartPurchaseHistory";
 import { ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condition";
 import { DiscountArgs } from "./DiscountPolicy/Discount";
+import { BasketDTO } from "../Users/Basket";
 
 export type SearchArgs = {
   name?: string;
@@ -276,6 +277,11 @@ export interface IStoresController extends HasRepos {
     storeId: string,
     discountId: string
   ): void;
+  checkIfBasketSatisfiesStoreConstraints(
+    userId: string,
+    storeId: string,
+    basket: BasketDTO
+  ): boolean;
 }
 
 @testable
@@ -723,5 +729,14 @@ export class StoresController
         message: "User does not have permission to remove discount from store",
       });
     Store.fromStoreId(storeId, this.Repos).removeDiscount(discountId);
+  }
+  checkIfBasketSatisfiesStoreConstraints(
+    userId: string,
+    storeId: string,
+    basket: BasketDTO
+  ): boolean {
+    return Store.fromStoreId(storeId, this.Repos).checkIfBasketFulfillsPolicy(
+      basket
+    );
   }
 }

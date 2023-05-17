@@ -1,3 +1,4 @@
+import { Bid } from "../Stores/Bid";
 import { Cart, type CartDTO } from "./Cart";
 import { type Notification } from "./Notification";
 import { TRPCError } from "@trpc/server";
@@ -5,7 +6,8 @@ export class User {
   private id: string;
   private notifications: Notification[];
   private cart: Cart;
-
+  private myBids: Bid[] = [];
+  private bidsToMe: Bid[] = [];
   constructor(id: string) {
     this.id = id;
     this.notifications = [];

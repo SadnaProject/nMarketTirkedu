@@ -17,6 +17,7 @@ import { type ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condi
 import { type DiscountArgs } from "./DiscountPolicy/Discount";
 import { type BasketDTO } from "../Users/Basket";
 import { type RoleType } from "../Jobs/Role";
+import { bidArgs } from "./Bid";
 
 export type SearchArgs = {
   name?: string;
@@ -284,6 +285,7 @@ export interface IStoresController extends HasRepos {
     basket: BasketDTO
   ): boolean;
   myStores(userId: string): { store: StoreDTO; role: RoleType }[];
+  addBid(bid: bidArgs): void;
 }
 
 @testable
@@ -761,5 +763,8 @@ export class StoresController
         role: "Manager" as RoleType satisfies RoleType,
       }));
     return founders.concat(owners).concat(managers);
+  }
+  addBid(bid: bidArgs): void {
+    this.Repos.Stores.getStoreById(bid.basket.storeId).addBid(bid);
   }
 }

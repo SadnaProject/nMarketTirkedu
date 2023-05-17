@@ -16,6 +16,7 @@ import { type StoreDTO } from "./Stores/Store";
 import { type DiscountArgs } from "./Stores/DiscountPolicy/Discount";
 import { type ConditionArgs } from "./Stores/Conditions/CompositeLogicalCondition/Condition";
 import { type RoleType } from "./Jobs/Role";
+import { bidArgs } from "./Stores/Bid";
 
 @loggable
 export class MarketFacade extends Loggable {
@@ -466,5 +467,9 @@ export class MarketFacade extends Loggable {
   myStores(userId: string): { store: StoreDTO; role: RoleType }[] {
     this.validateConnection(userId);
     return this.controllers.Stores.myStores(userId);
+  }
+  addBid(bid: bidArgs) {
+    this.validateConnection(bid.userId);
+    this.controllers.Stores.addBid(bid);
   }
 }

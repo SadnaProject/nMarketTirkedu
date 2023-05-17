@@ -3,7 +3,10 @@ import {
   type conditionType,
   type LiteralArgs,
 } from "../CompositeLogicalCondition/Condition";
-import { type ILiteralCondition } from "./LiteralCondition";
+import {
+  standInTheTypeCondition,
+  type ILiteralCondition,
+} from "./LiteralCondition";
 
 export class PriceCondition implements ILiteralCondition {
   private conditionType: conditionType;
@@ -20,13 +23,6 @@ export class PriceCondition implements ILiteralCondition {
         product.product.price *
         (1 - product.Discount / 100);
     });
-    switch (this.conditionType) {
-      case "AtLeast":
-        return price >= this.amount;
-      case "AtMost":
-        return price <= this.amount;
-      case "Exactly":
-        return price === this.amount;
-    }
+    return standInTheTypeCondition(this.conditionType, price, this.amount);
   }
 }

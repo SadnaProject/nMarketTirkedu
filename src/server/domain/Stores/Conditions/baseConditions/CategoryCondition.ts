@@ -3,7 +3,10 @@ import {
   type conditionType,
   type LiteralArgs,
 } from "../CompositeLogicalCondition/Condition";
-import { type ILiteralCondition } from "./LiteralCondition";
+import {
+  standInTheTypeCondition,
+  type ILiteralCondition,
+} from "./LiteralCondition";
 
 export class CategoryCondition implements ILiteralCondition {
   private conditionType: conditionType;
@@ -21,13 +24,6 @@ export class CategoryCondition implements ILiteralCondition {
         count += product.BasketQuantity;
       }
     });
-    switch (this.conditionType) {
-      case "AtLeast":
-        return count >= this.amount;
-      case "AtMost":
-        return count <= this.amount;
-      case "Exactly":
-        return count === this.amount;
-    }
+    return standInTheTypeCondition(this.conditionType, count, this.amount);
   }
 }

@@ -80,7 +80,7 @@ export function createStoreWithProduct(
   vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
   const productId = store.createProduct(productData);
   const product = StoreProduct.fromDTO(
-    { ...productData, id: productId },
+    { ...productData, specialPrices: new Map(), id: productId },
     repos
   );
   vi.spyOn(product, "Store", "get").mockReturnValue(store);

@@ -291,8 +291,13 @@ export class UsersController
     const bid = new Bid(bidArgs);
     this.Repos.Bids.addBid(bid);
     bidArgs.type === "Store"
-      ? this.Controllers.Jobs.getStoreOwnersIds(bidArgs.basket.storeId).forEach(
-          (ownerId) => this.Repos.Users.getUser(ownerId).addBidToMe(bid.Id)
+      ? this.Controllers.Jobs.getStoreOwnersIds(
+          this.Controllers.Stores.getStoreIdByProductId(
+            bid.UserId,
+            bid.ProductId
+          )
+        ).forEach((ownerId) =>
+          this.Repos.Users.getUser(ownerId).addBidToMe(bid.Id)
         )
       : this.Repos.Users.getUserByBidId(bidArgs.previousBidId).addBidToMe(
           bid.Id
@@ -301,7 +306,13 @@ export class UsersController
   }
   approveBid(userId: string, bidId: string): void {
     const bid = this.Repos.Bids.getBid(bidId);
-    if (!this.Controllers.Jobs.isStoreOwner(userId, bid.StoreId)) {
+    if (
+      bid.Type == "Store" &&
+      !this.Controllers.Jobs.isStoreOwner(
+        userId,
+        this.Controllers.Stores.getStoreIdByProductId(bid.UserId, bid.ProductId)
+      )
+    ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User doesn't have permission to approve bid",
@@ -314,13 +325,15 @@ export class UsersController
       });
     }
     bid.approve(userId);
-    if (bid.isApproved()) {
-      ///TODO needs to add real time notification
-    }
   }
   rejectBid(userId: string, bidId: string): void {
     const bid = this.Repos.Bids.getBid(bidId);
-    if (!this.Controllers.Jobs.isStoreOwner(userId, bid.StoreId)) {
+    if (
+      !this.Controllers.Jobs.isStoreOwner(
+        userId,
+        this.Controllers.Stores.getStoreIdByProductId(bid.UserId, bid.ProductId)
+      )
+    ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User doesn't have permission to reject bid",

@@ -2,12 +2,13 @@ import { randomUUID } from "crypto";
 import { z } from "zod";
 import { HasRepos, type Repos } from "./_HasRepos";
 import { TRPCError } from "@trpc/server";
-
+import * as R from "ramda";
 const nameSchema = z.string().nonempty("Name must be nonempty");
 const quantitySchema = z.number().nonnegative("Quantity must be non negative");
 const priceSchema = z.number().positive("Price must be positive");
 const categorySchema = z.string().nonempty("Category must be nonempty");
 const descriptionSchema = z.string().nonempty("Description must be nonempty");
+const userIdPriceMap = z.map(z.string(), z.number().nonnegative());
 
 export const storeProductArgsSchema = z.object({
   name: nameSchema,
@@ -26,6 +27,7 @@ export const StoreProductDTOSchema = z.object({
   price: priceSchema,
   category: categorySchema,
   description: descriptionSchema,
+  specialPrices: userIdPriceMap,
 });
 
 export type StoreProductDTO = z.infer<typeof StoreProductDTOSchema>;
@@ -37,7 +39,7 @@ export class StoreProduct extends HasRepos {
   private price: number;
   private category: string;
   private description: string;
-
+  private specialPrices: Map<string, number> = new Map();
   constructor(product: StoreProductArgs) {
     super();
     storeProductArgsSchema.parse(product);
@@ -52,6 +54,7 @@ export class StoreProduct extends HasRepos {
   static fromDTO(dto: StoreProductDTO, repos: Repos) {
     const product = new StoreProduct(dto).initRepos(repos);
     product.id = dto.id;
+    product.specialPrices = R.clone(dto.specialPrices);
     return product;
   }
 
@@ -122,6 +125,12 @@ export class StoreProduct extends HasRepos {
     const storeId = this.Repos.Products.getStoreIdByProductId(this.Id);
     return this.Repos.Stores.getStoreById(storeId);
   }
+  public get SpecialPrices() {
+    return this.specialPrices;
+  }
+  public set SpecialPrices(specialPrices: Map<string, number>) {
+    this.specialPrices = specialPrices;
+  }
 
   public get DTO(): StoreProductDTO {
     return {
@@ -131,6 +140,7 @@ export class StoreProduct extends HasRepos {
       price: this.Price,
       category: this.Category,
       description: this.Description,
+      specialPrices: this.SpecialPrices,
     };
   }
 
@@ -164,5 +174,17 @@ export class StoreProduct extends HasRepos {
 
   public static getActive(repos: Repos) {
     return repos.Products.getActiveProducts();
+  }
+  public getPriceForUser(userId: string): number {
+    if (this.specialPrices.has(userId)) {
+      const price = this.specialPrices.get(userId);
+      if (price !== undefined) {
+        return price;
+      }
+    }
+    return this.Price;
+  }
+  public addSpecialPrice(userId: string, price: number) {
+    this.specialPrices.set(userId, price);
   }
 }

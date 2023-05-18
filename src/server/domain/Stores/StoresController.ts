@@ -284,6 +284,8 @@ export interface IStoresController extends HasRepos {
     storeId: string,
     basket: BasketDTO
   ): boolean;
+  getProductById(userId: string, productId: string): StoreProductDTO;
+
   myStores(userId: string): { store: StoreDTO; role: RoleType }[];
 }
 
@@ -762,5 +764,8 @@ export class StoresController
         role: "Manager" as RoleType satisfies RoleType,
       }));
     return founders.concat(owners).concat(managers);
+  }
+  getProductById(userId: string, productId: string): StoreProductDTO {
+    return this.Repos.Products.getProductById(productId).DTO;
   }
 }

@@ -59,30 +59,36 @@ export function generateProductDTO() {
 
 export function createStore(
   storeName: string,
-  repos: Repos = createMockRepos(),
-  controllers: Controllers = createMockControllers("Stores")
+  repos: Repos,
+  controllers: Controllers
 ) {
   return new Store(storeName).initRepos(repos).initControllers(controllers);
 }
 
 export function createProduct(
   args: StoreProductArgs,
-  repos: Repos = createMockRepos(),
-  controllers: Controllers = createMockControllers("Stores")
+  repos: Repos,
+  controllers: Controllers
 ) {
+  vi.spyOn(controllers.PurchasesHistory, "getReviewsByProduct").mockReturnValue(
+    { avgRating: 0, reviews: [] }
+  );
   return new StoreProduct(args).initControllers(controllers).initRepos(repos);
 }
 
 export function createStoreWithProduct(
   productData: StoreProductArgs,
-  repos: Repos = createMockRepos(),
-  controllers: Controllers = createMockControllers("Stores")
+  repos: Repos,
+  controllers: Controllers
 ) {
-  const store = createStore(generateStoreName(), repos);
+  vi.spyOn(controllers.PurchasesHistory, "getReviewsByProduct").mockReturnValue(
+    { avgRating: 0, reviews: [] }
+  );
+  const store = createStore(generateStoreName(), repos, controllers);
   vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
   const productId = store.createProduct(productData);
   const product = StoreProduct.fromDTO(
-    { ...productData, id: productId },
+    { ...productData, id: productId, rating: 0 },
     controllers,
     repos
   );

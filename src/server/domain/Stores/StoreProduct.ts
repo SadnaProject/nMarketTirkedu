@@ -8,7 +8,6 @@ const quantitySchema = z.number().nonnegative("Quantity must be non negative");
 const priceSchema = z.number().positive("Price must be positive");
 const categorySchema = z.string().nonempty("Category must be nonempty");
 const descriptionSchema = z.string().nonempty("Description must be nonempty");
-const userIdPriceMap = z.map(z.string(), z.number().nonnegative());
 
 export const storeProductArgsSchema = z.object({
   name: nameSchema,
@@ -27,7 +26,6 @@ export const StoreProductDTOSchema = z.object({
   price: priceSchema,
   category: categorySchema,
   description: descriptionSchema,
-  specialPrices: userIdPriceMap,
 });
 
 export type StoreProductDTO = z.infer<typeof StoreProductDTOSchema>;
@@ -54,7 +52,6 @@ export class StoreProduct extends HasRepos {
   static fromDTO(dto: StoreProductDTO, repos: Repos) {
     const product = new StoreProduct(dto).initRepos(repos);
     product.id = dto.id;
-    product.specialPrices = R.clone(dto.specialPrices);
     return product;
   }
 
@@ -140,7 +137,6 @@ export class StoreProduct extends HasRepos {
       price: this.Price,
       category: this.Category,
       description: this.Description,
-      specialPrices: this.SpecialPrices,
     };
   }
 

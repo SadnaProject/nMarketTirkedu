@@ -16,7 +16,7 @@ import { type StoreDTO } from "./Stores/Store";
 import { type DiscountArgs } from "./Stores/DiscountPolicy/Discount";
 import { type ConditionArgs } from "./Stores/Conditions/CompositeLogicalCondition/Condition";
 import { type RoleType } from "./Jobs/Role";
-import { BidArgs } from "./Users/Bid";
+import { BidArgs, BidDTO } from "./Users/Bid";
 
 @loggable
 export class MarketFacade extends Loggable {
@@ -474,5 +474,25 @@ export class MarketFacade extends Loggable {
   addBid(bid: BidArgs) {
     this.validateConnection(bid.userId);
     this.controllers.Users.addBid(bid);
+  }
+  getBidsFromMe(userId: string): BidDTO[] {
+    this.validateConnection(userId);
+    return this.controllers.Users.getAllBidsSendFromUser(userId);
+  }
+  getBidsToMe(userId: string): BidDTO[] {
+    this.validateConnection(userId);
+    return this.controllers.Users.getAllBidsSendToUser(userId);
+  }
+  approveBid(userId: string, bidId: string): void {
+    this.validateConnection(userId);
+    this.controllers.Users.approveBid(userId, bidId);
+  }
+  rejectBid(userId: string, bidId: string): void {
+    this.validateConnection(userId);
+    this.controllers.Users.rejectBid(userId, bidId);
+  }
+  removeVoteFromBid(userId: string, bidId: string): void {
+    this.validateConnection(userId);
+    this.controllers.Users.removeVoteFromBid(userId, bidId);
   }
 }

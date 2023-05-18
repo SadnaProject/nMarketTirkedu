@@ -236,6 +236,10 @@ export class MarketFacade extends Loggable {
     this.validateConnection(currentId);
     return this.controllers.Stores.canCreateProductInStore(currentId, storeId);
   }
+  canEditProductInStore(currentId: string, storeId: string): boolean {
+    this.validateConnection(currentId);
+    return this.controllers.Jobs.canEditProductInStore(currentId, storeId);
+  }
   isStoreOwner(userId: string, storeId: string): boolean {
     return this.controllers.Stores.isStoreOwner(userId, storeId);
   }

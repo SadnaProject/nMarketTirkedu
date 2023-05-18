@@ -88,6 +88,12 @@ export const StoresRouter = createTRPCRouter({
       const { storeId } = input;
       return facade.canCreateProductInStore(ctx.session.user.id, storeId);
     }),
+  canEditProductInStore: validSessionProcedure
+    .input(z.object({ storeId: z.string() }))
+    .query(({ input, ctx }) => {
+      const { storeId } = input;
+      return facade.canEditProductInStore(ctx.session.user.id, storeId);
+    }),
   isStoreOwner: validSessionProcedure
     .input(z.object({ storeId: z.string() }))
     .query(({ input, ctx }) => {

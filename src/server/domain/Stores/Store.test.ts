@@ -31,7 +31,7 @@ function generateForDiscountAndConstraintTests(testType: string) {
   vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
   const product2Id = store.createProduct(product2Data);
   const product2 = StoreProduct.fromDTO(
-    { ...product2Data, id: product2Id },
+    { ...product2Data, specialPrices: new Map(), id: product2Id },
     repos
   );
   const basket: BasketDTO = {
@@ -50,7 +50,7 @@ function generateForDiscountAndConstraintTests(testType: string) {
     if (id === product.Id) return product;
     else return product2;
   });
-  const price = store.getBasketPrice(basket);
+  const price = store.getBasketPrice("", basket);
   return {
     price,
     product,
@@ -83,12 +83,16 @@ describe("createProduct", () => {
     const productData = generateProductArgs();
     const productId = store.createProduct(productData);
     const product = StoreProduct.fromDTO(
-      { ...productData, id: productId },
+      { ...productData, specialPrices: new Map(), id: productId },
       repos
     );
     vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValue([product]);
     expect(store.Products.length).toBe(1);
-    expect(store.Products[0]).toEqual({ ...productData, id: productId });
+    expect(store.Products[0]).toEqual({
+      ...productData,
+      specialPrices: new Map(),
+      id: productId,
+    });
   });
 
   it("❎fails in productRepo", () => {
@@ -118,7 +122,7 @@ describe("get basket price", () => {
     ]);
     vi.spyOn(repos.Stores, "getStoreById").mockReturnValueOnce(store);
     vi.spyOn(repos.Products, "getProductById").mockReturnValueOnce(product);
-    expect(store.getBasketPrice(basket)).toBe(
+    expect(store.getBasketPrice("", basket)).toBe(
       product.Price * productData.quantity
     );
   });
@@ -135,7 +139,7 @@ describe("Discounts", () => {
       product2BasketQuantity,
     } = generateForDiscountAndConstraintTests(testType);
 
-    expect(store.getBasketPrice(basket)).toBe(
+    expect(store.getBasketPrice("", basket)).toBe(
       product.Price * product1BasketQuantity +
         product2.Price * product2BasketQuantity
     );
@@ -147,13 +151,13 @@ describe("Discounts", () => {
         createLiteralConditionArgs(product.Name, 1, "Product", "AtLeast")
       )
     );
-    const priceWithDiscount = store.getBasketPrice(basket);
+    const priceWithDiscount = store.getBasketPrice("", basket);
     expect(priceWithDiscount).toBe(
       product.Price * product1BasketQuantity * (85 / 100) +
         product2.Price * product2BasketQuantity
     );
     store.removeDiscount(discountId);
-    expect(store.getBasketPrice(basket)).toBe(price);
+    expect(store.getBasketPrice("", basket)).toBe(price);
   });
   itUnitIntegration("add simple category discount", (testType) => {
     const {
@@ -174,13 +178,13 @@ describe("Discounts", () => {
         createLiteralConditionArgs(product.Category, 1, "Category", "AtLeast")
       )
     );
-    const priceWithDiscount = store.getBasketPrice(basket);
+    const priceWithDiscount = store.getBasketPrice("", basket);
     expect(priceWithDiscount).toBe(
       product.Price * product1BasketQuantity * (85 / 100) +
         product2.Price * product2BasketQuantity
     );
     store.removeDiscount(discountId);
-    expect(store.getBasketPrice(basket)).toBe(price);
+    expect(store.getBasketPrice("", basket)).toBe(price);
   });
   itUnitIntegration("add simple price discount", (testType) => {
     const {
@@ -206,13 +210,13 @@ describe("Discounts", () => {
         )
       )
     );
-    const priceWithDiscount = store.getBasketPrice(basket);
+    const priceWithDiscount = store.getBasketPrice("", basket);
     expect(priceWithDiscount).toBe(
       product.Price * product1BasketQuantity * (85 / 100) +
         product2.Price * product2BasketQuantity
     );
     store.removeDiscount(discountId);
-    expect(store.getBasketPrice(basket)).toBe(price);
+    expect(store.getBasketPrice("", basket)).toBe(price);
     const discountId1 = store.addDiscount(
       createSimpleDiscountArgs(
         product.Category,
@@ -226,10 +230,10 @@ describe("Discounts", () => {
         )
       )
     );
-    const priceWithDiscount1 = store.getBasketPrice(basket);
+    const priceWithDiscount1 = store.getBasketPrice("", basket);
     expect(priceWithDiscount1).toBe(price);
     store.removeDiscount(discountId1);
-    expect(store.getBasketPrice(basket)).toBe(price);
+    expect(store.getBasketPrice("", basket)).toBe(price);
   });
   itUnitIntegration("add simple basket discount", (testType) => {
     const {
@@ -250,13 +254,13 @@ describe("Discounts", () => {
         createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
       )
     );
-    const priceWithDiscount = store.getBasketPrice(basket);
+    const priceWithDiscount = store.getBasketPrice("", basket);
     expect(priceWithDiscount).toBe(
       product.Price * product1BasketQuantity * (85 / 100) +
         product2.Price * product2BasketQuantity * (85 / 100)
     );
     store.removeDiscount(discountId);
-    expect(store.getBasketPrice(basket)).toBe(price);
+    expect(store.getBasketPrice("", basket)).toBe(price);
   });
   itUnitIntegration("add max discount with simple condition", (testType) => {
     const {
@@ -286,13 +290,13 @@ describe("Discounts", () => {
         "Max"
       )
     );
-    const priceWithDiscount = store.getBasketPrice(basket);
+    const priceWithDiscount = store.getBasketPrice("", basket);
     expect(priceWithDiscount).toBe(
       product.Price * product1BasketQuantity * (85 / 100) +
         product2.Price * product2BasketQuantity * (85 / 100)
     );
     store.removeDiscount(discountId);
-    expect(store.getBasketPrice(basket)).toBe(price);
+    expect(store.getBasketPrice("", basket)).toBe(price);
   });
   itUnitIntegration(
     "add compose ADD discount with simple condition",
@@ -323,13 +327,13 @@ describe("Discounts", () => {
           "Add"
         )
       );
-      const priceWithDiscount = store.getBasketPrice(basket);
+      const priceWithDiscount = store.getBasketPrice("", basket);
       expect(priceWithDiscount).toBe(
         product.Price * product1BasketQuantity * (70 / 100) +
           product2.Price * product2BasketQuantity * (85 / 100)
       );
       store.removeDiscount(discountId);
-      expect(store.getBasketPrice(basket)).toBe(price);
+      expect(store.getBasketPrice("", basket)).toBe(price);
     }
   );
   itUnitIntegration("add compose discount with And condition", (testType) => {
@@ -364,13 +368,13 @@ describe("Discounts", () => {
         "Add"
       )
     );
-    const priceWithDiscount = store.getBasketPrice(basket);
+    const priceWithDiscount = store.getBasketPrice("", basket);
     expect(priceWithDiscount).toBe(
       product.Price * product1BasketQuantity * (85 / 100) +
         product2.Price * product2BasketQuantity * (85 / 100)
     );
     store.removeDiscount(discountId);
-    expect(store.getBasketPrice(basket)).toBe(price);
+    expect(store.getBasketPrice("", basket)).toBe(price);
   });
   itUnitIntegration(
     "add compose MAX discount with compose logic implies condition",
@@ -435,13 +439,13 @@ describe("Discounts", () => {
           type: "Simple",
         },
       });
-      const priceWithDiscount = store.getBasketPrice(basket);
+      const priceWithDiscount = store.getBasketPrice("", basket);
       expect(priceWithDiscount).toBe(
         product.Price * product1BasketQuantity * (60 / 100) +
           product2.Price * product2BasketQuantity
       );
       store.removeDiscount(discountId);
-      expect(store.getBasketPrice(basket)).toBe(price);
+      expect(store.getBasketPrice("", basket)).toBe(price);
       const discountId1 = store.addDiscount({
         type: "Add",
         left: {
@@ -493,13 +497,13 @@ describe("Discounts", () => {
           type: "Simple",
         },
       });
-      const priceWithDiscount1 = store.getBasketPrice(basket);
+      const priceWithDiscount1 = store.getBasketPrice("", basket);
       expect(priceWithDiscount1).toBe(
         product.Price * product1BasketQuantity * (85 / 100) +
           product2.Price * product2BasketQuantity
       );
       store.removeDiscount(discountId1);
-      expect(store.getBasketPrice(basket)).toBe(price);
+      expect(store.getBasketPrice("", basket)).toBe(price);
     }
   );
 });

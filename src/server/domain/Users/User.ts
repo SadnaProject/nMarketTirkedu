@@ -1,4 +1,3 @@
-import { Bid } from "./Bid";
 import { Cart, type CartDTO } from "./Cart";
 import { type Notification } from "./Notification";
 import { TRPCError } from "@trpc/server";

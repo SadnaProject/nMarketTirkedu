@@ -17,7 +17,7 @@ import { type ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condi
 import { type DiscountArgs } from "./DiscountPolicy/Discount";
 import { type BasketDTO } from "../Users/Basket";
 import { type RoleType } from "../Jobs/Role";
-import { storeBidArgs } from "../Users/Bid";
+import { Bid, storeBidArgs } from "../Users/Bid";
 
 export type SearchArgs = {
   name?: string;
@@ -287,6 +287,7 @@ export interface IStoresController extends HasRepos {
   getProductById(userId: string, productId: string): StoreProductDTO;
 
   myStores(userId: string): { store: StoreDTO; role: RoleType }[];
+  addSpecialPriceToProduct(bid: Bid): void;
 }
 
 @testable
@@ -569,7 +570,7 @@ export class StoresController
       this.getStoreIdByProductId(userId, productId)
     );
     const product = StoreProduct.fromProductId(productId, this.Repos);
-    return product.Price;
+    return product.getPriceForUser(userId);
   }
 
   getStoreIdByProductId(userId: string, productId: string): string {
@@ -597,7 +598,7 @@ export class StoresController
         code: "BAD_REQUEST",
         message: "Basket does not exist",
       });
-    return store.getBasketPrice(basketDTO);
+    return store.getBasketPrice(userId, basketDTO);
   }
 
   makeStoreOwner(currentId: string, storeId: string, targetUserId: string) {
@@ -767,5 +768,11 @@ export class StoresController
   }
   getProductById(userId: string, productId: string): StoreProductDTO {
     return this.Repos.Products.getProductById(productId).DTO;
+  }
+  addSpecialPriceToProduct(bid: Bid): void {
+    this.Repos.Products.getProductById(bid.ProductId).addSpecialPrice(
+      bid.UserId,
+      bid.Price
+    );
   }
 }

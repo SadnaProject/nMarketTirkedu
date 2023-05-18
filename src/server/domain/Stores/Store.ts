@@ -90,19 +90,25 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     this.Repos.Products.addProduct(this.Id, newProduct);
     return newProduct.Id;
   }
-  public getBasketPrice(basketDTO: BasketDTO): number {
+  public getBasketPrice(userId: string, basketDTO: BasketDTO): number {
     let fullBasket = this.BasketDTOToFullBasketDTO(basketDTO);
 
     fullBasket = this.discountPolicy.applyDiscounts(fullBasket);
     let price = 0;
     fullBasket.products.forEach((product) => {
+      let productPrice = product.product.price;
+      if (product.product.specialPrices.has(userId)) {
+        const possiblePrice = product.product.specialPrices.get(userId);
+        if (possiblePrice) {
+          productPrice = possiblePrice;
+        }
+      }
       price +=
-        product.BasketQuantity *
-        product.product.price *
-        (1 - product.Discount / 100);
+        product.BasketQuantity * productPrice * (1 - product.Discount / 100);
     });
     return price;
   }
+
   public checkIfBasketFulfillsPolicy(basketDTO: BasketDTO): boolean {
     const fullBasket = this.BasketDTOToFullBasketDTO(basketDTO);
     return this.constraintPolicy.isSatisfiedBy(fullBasket);

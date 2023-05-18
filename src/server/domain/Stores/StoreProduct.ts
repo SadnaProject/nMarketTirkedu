@@ -28,6 +28,7 @@ export const StoreProductDTOSchema = z.object({
   price: priceSchema,
   category: categorySchema,
   description: descriptionSchema,
+  rating: z.number().nonnegative(),
 });
 
 export type StoreProductDTO = z.infer<typeof StoreProductDTOSchema>;
@@ -141,6 +142,8 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
       price: this.Price,
       category: this.Category,
       description: this.Description,
+      rating: this.Controllers.PurchasesHistory.getReviewsByProduct(this.Id)
+        .avgRating,
     };
   }
 

@@ -1,24 +1,30 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { type Repos, createMockRepos } from "../_HasRepos";
 import { createProduct, generateProductArgs } from "../_data";
+import { Controllers } from "server/domain/_HasController";
+import { createMockControllers } from "server/domain/_createControllers";
 
 let repos: Repos;
-
+let controllers: Controllers;
 beforeEach(() => {
   repos = createMockRepos("Products");
+  controllers = createMockControllers("Stores");
+  vi.spyOn(controllers.PurchasesHistory, "getReviewsByProduct").mockReturnValue(
+    { avgRating: 0, reviews: [] }
+  );
 });
 
 describe("add product", () => {
   it("✅adds product", () => {
-    const product = createProduct(generateProductArgs());
+    const product = createProduct(generateProductArgs(), repos, controllers);
     expect(() => repos.Products.addProduct("store id", product)).not.toThrow();
     expect(repos.Products.getProductsByStoreId("store id")).toEqual([product]);
   });
 
   it("✅adds multiple products to one store", () => {
-    const product1 = createProduct(generateProductArgs());
+    const product1 = createProduct(generateProductArgs(), repos, controllers);
     expect(() => repos.Products.addProduct("store id", product1)).not.toThrow();
-    const product2 = createProduct(generateProductArgs());
+    const product2 = createProduct(generateProductArgs(), repos, controllers);
     expect(() => repos.Products.addProduct("store id", product2)).not.toThrow();
     expect(repos.Products.getProductsByStoreId("store id")).toEqual([
       product1,
@@ -33,11 +39,11 @@ describe("get all products", () => {
   });
 
   it("✅returns some products", () => {
-    const product1 = createProduct(generateProductArgs());
+    const product1 = createProduct(generateProductArgs(), repos, controllers);
     repos.Products.addProduct("store id 1", product1);
-    const product2 = createProduct(generateProductArgs());
+    const product2 = createProduct(generateProductArgs(), repos, controllers);
     repos.Products.addProduct("store id 1", product2);
-    const product3 = createProduct(generateProductArgs());
+    const product3 = createProduct(generateProductArgs(), repos, controllers);
     repos.Products.addProduct("store id 2", product3);
     expect(repos.Products.getAllProducts()).toEqual([
       product1,
@@ -49,7 +55,7 @@ describe("get all products", () => {
 
 describe("get product by id", () => {
   it("✅returns product", () => {
-    const product = createProduct(generateProductArgs());
+    const product = createProduct(generateProductArgs(), repos, controllers);
     repos.Products.addProduct("store id 1", product);
     expect(repos.Products.getProductById(product.Id)).toEqual(product);
   });
@@ -67,7 +73,7 @@ describe("get products by store id", () => {
   });
 
   it("✅returns no products but store exists", () => {
-    const product = createProduct(generateProductArgs());
+    const product = createProduct(generateProductArgs(), repos, controllers);
     repos.Products.addProduct("store id 1", product);
     repos.Products.deleteProduct(product.Id);
     expect(repos.Products.getProductsByStoreId("store id 1")).toEqual([]);
@@ -76,7 +82,7 @@ describe("get products by store id", () => {
 
 describe("get store id by product id", () => {
   it("✅returns store id", () => {
-    const product = createProduct(generateProductArgs());
+    const product = createProduct(generateProductArgs(), repos, controllers);
     repos.Products.addProduct("store id 1", product);
     expect(repos.Products.getStoreIdByProductId(product.Id)).toEqual(
       "store id 1"
@@ -86,7 +92,7 @@ describe("get store id by product id", () => {
   it("❎doesn't find product but there are other products", () => {
     repos.Products.addProduct(
       "store id 1",
-      createProduct(generateProductArgs())
+      createProduct(generateProductArgs(), repos, controllers)
     );
     expect(() => repos.Products.getStoreIdByProductId("made up id")).toThrow(
       "Product not found"

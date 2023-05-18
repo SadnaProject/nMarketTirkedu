@@ -19,11 +19,11 @@ describe("search products", () => {
     controllers = createMockControllers("Stores");
     controllers.Stores.initRepos(repos);
     products = Array.from({ length: 3 }, () =>
-      createProduct(generateProductArgs(), repos)
+      createProduct(generateProductArgs(), repos, controllers)
     );
 
     vi.spyOn(repos.Products, "getActiveProducts").mockReturnValue(products);
-    const store = createStore(generateStoreName(), repos);
+    const store = createStore(generateStoreName(), repos, controllers);
     vi.spyOn(repos.Products, "getStoreIdByProductId").mockReturnValue(store.Id);
     vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);
     vi.spyOn(controllers.PurchasesHistory, "getStoreRating").mockReturnValue(3);

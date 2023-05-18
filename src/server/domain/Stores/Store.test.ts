@@ -16,14 +16,27 @@ import {
   generateStoreName,
 } from "./_data";
 import { itUnitIntegration } from "../_mock";
-import { createTestControllers } from "../_createControllers";
+import {
+  createMockControllers,
+  createTestControllers,
+} from "../_createControllers";
 function generateForDiscountAndConstraintTests(testType: string) {
   const controllers = createTestControllers(testType, "Stores");
+  vi.spyOn(controllers.PurchasesHistory, "getReviewsByProduct").mockReturnValue(
+    { avgRating: 0, reviews: [] }
+  );
   const productData = generateProductArgs();
   productData.name = "Milk";
   productData.category = "Food";
   const repos = createTestRepos(testType);
-  const { store, product } = createStoreWithProduct(productData, repos);
+  vi.spyOn(controllers.PurchasesHistory, "getReviewsByProduct").mockReturnValue(
+    { avgRating: 0, reviews: [] }
+  );
+  const { store, product } = createStoreWithProduct(
+    productData,
+    repos,
+    controllers
+  );
   productData.quantity = 5;
   const product2Data = generateProductArgs();
   product2Data.name = "Meat";
@@ -33,7 +46,7 @@ function generateForDiscountAndConstraintTests(testType: string) {
   vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
   const product2Id = store.createProduct(product2Data);
   const product2 = StoreProduct.fromDTO(
-    { ...product2Data, id: product2Id },
+    { ...product2Data, id: product2Id, rating: 0 },
     controllers,
     repos
   );
@@ -65,9 +78,11 @@ function generateForDiscountAndConstraintTests(testType: string) {
   };
 }
 describe("constructor", () => {
-  itUnitIntegration("✅creates a store", () => {
+  itUnitIntegration("✅creates a store", (testType) => {
     const storeName = generateStoreName();
-    const store = createStore(storeName);
+    const controllers = createTestControllers(testType, "Stores");
+    const repos = createTestRepos(testType);
+    const store = createStore(storeName, repos, controllers);
     expect(store.Name).toBe(storeName);
     expect(store.IsActive).toBe(true);
   });
@@ -82,19 +97,24 @@ describe("createProduct", () => {
     const controllers = createTestControllers(testType, "Stores");
     const repos = createTestRepos(testType);
     const storeName = generateStoreName();
-    const store = createStore(storeName, repos);
+    const store = createStore(storeName, repos, controllers);
     vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
     const productData = generateProductArgs();
     const productId = store.createProduct(productData);
     const product = StoreProduct.fromDTO(
-      { ...productData, id: productId },
+      { ...productData, id: productId, rating: 0 },
       controllers,
       repos
     );
     vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValue([product]);
+    vi.spyOn(
+      controllers.PurchasesHistory,
+      "getReviewsByProduct"
+    ).mockReturnValue({ avgRating: 0, reviews: [] });
     expect(store.Products.length).toBe(1);
     expect(store.Products[0]).toEqual({
       ...productData,
+      rating: 0,
       id: productId,
     });
   });
@@ -102,7 +122,8 @@ describe("createProduct", () => {
   it("❎fails in productRepo", () => {
     const storeName = generateStoreName();
     const repos = createMockRepos();
-    const store = createStore(storeName, repos);
+    const controllers = createMockControllers("Stores");
+    const store = createStore(storeName, repos, controllers);
     vi.spyOn(repos.Products, "addProduct").mockImplementationOnce(() => {
       throw new Error("addProduct failed");
     });
@@ -114,7 +135,12 @@ describe("get basket price", () => {
   itUnitIntegration("✅gets basket price", (testType) => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
-    const { store, product } = createStoreWithProduct(productData, repos);
+    const controllers = createTestControllers(testType, "Stores");
+    const { store, product } = createStoreWithProduct(
+      productData,
+      repos,
+      controllers
+    );
     const basket: BasketDTO = {
       storeId: store.Id,
       products: [

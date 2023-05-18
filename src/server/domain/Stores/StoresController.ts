@@ -484,10 +484,7 @@ export class StoresController
         message: "Store name already exists",
       });
     this.Repos.Stores.addStore(store);
-    eventEmitter.emit(`receive bid for store ${store.Id}`, {
-      storeId: store.Id,
-      userId: founderId,
-    });
+    // TODO needs to create here event for the store
     return store.Id;
   }
 

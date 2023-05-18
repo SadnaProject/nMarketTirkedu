@@ -8,21 +8,26 @@ import { z } from "zod";
 import exp from "constants";
 const bidStateSchema = z.enum(["APPROVED", "WAITING", "REJECTED"]);
 export type BidState = z.infer<typeof bidStateSchema>;
-export type storeBidArgs = {
-  userId: string;
-  price: number;
-  productId: string;
-  type: "Store";
-};
-
-export type counterBidArgs = {
-  userId: string;
-  price: number;
-  productId: string;
-  previousBidId: string;
-  type: "Counter";
-};
-export type BidArgs = storeBidArgs | counterBidArgs;
+export const storeBidArgsSchema = z.object({
+  userId: z.string().uuid(),
+  price: z.number().nonnegative(),
+  productId: z.string().uuid(),
+  type: z.literal("Store"),
+});
+export type storeBidArgs = z.infer<typeof storeBidArgsSchema>;
+export const counterBidArgsSchema = z.object({
+  userId: z.string().uuid(),
+  price: z.number().nonnegative(),
+  productId: z.string().uuid(),
+  previousBidId: z.string().uuid(),
+  type: z.literal("Counter"),
+});
+export type counterBidArgs = z.infer<typeof counterBidArgsSchema>;
+export const bidArgsSchema = z.union([
+  storeBidArgsSchema,
+  counterBidArgsSchema,
+]);
+export type BidArgs = z.infer<typeof bidArgsSchema>;
 export type BidDTO = {
   id: string;
   userId: string;
@@ -68,7 +73,10 @@ export class Bid {
         message: "this user has already rejected this bid",
       });
     this.approvedBy.push(userId);
-    if (this.owners.every((owner) => this.approvedBy.includes(owner)))
+    if (
+      this.owners.every((owner) => this.approvedBy.includes(owner)) &&
+      this.rejectedBy.length === 0
+    )
       this.state = "APPROVED";
   }
 
@@ -112,6 +120,12 @@ export class Bid {
     return this.type;
   }
   public removeVote(userId: string) {
+    if (this.state === "APPROVED")
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "this bid is already approved",
+      });
+
     if (!this.owners.includes(userId))
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -119,6 +133,7 @@ export class Bid {
       });
     this.approvedBy = this.approvedBy.filter((id) => id !== userId);
     this.rejectedBy = this.rejectedBy.filter((id) => id !== userId);
+    if (this.rejectedBy.length === 0) this.state = "WAITING";
   }
   public get DTO(): BidDTO {
     return {

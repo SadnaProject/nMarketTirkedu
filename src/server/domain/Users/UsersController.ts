@@ -8,7 +8,8 @@ import { type CreditCard } from "../PurchasesHistory/PaymentAdaptor";
 import { TRPCError } from "@trpc/server";
 import { censored } from "../_Loggable";
 import { Bid, BidArgs, BidDTO } from "./Bid";
-import { eventEmitter } from "server/EventEmitter";
+import * as R from "ramda";
+
 export interface IUsersController {
   /**
    * This fuction checks if a user exists.
@@ -127,6 +128,12 @@ export interface IUsersController {
    */
   removeMember(userIdOfActor: string, memberIdToRemove: string): void;
   addBid(BidArgs: BidArgs): string;
+  getAllBidsSendFromUser(userId: string): BidDTO[];
+  getAllBidsSendToUser(userId: string): BidDTO[];
+  removeVoteFromBid(userId: string, bidId: string): void;
+  counterBid(userId: string, bidId: string, price: number): void;
+  approveBid(userId: string, bidId: string): void;
+  rejectBid(userId: string, bidId: string): void;
 }
 
 @testable
@@ -291,18 +298,27 @@ export class UsersController
   addBid(bidArgs: BidArgs): string {
     const bid = new Bid(bidArgs);
     this.Repos.Bids.addBid(bid);
-    bidArgs.type === "Store"
-      ? this.Controllers.Jobs.getStoreOwnersIds(
+    if (bidArgs.type === "Store") {
+      this.Controllers.Jobs.getStoreOwnersIds(
+        this.Controllers.Stores.getStoreIdByProductId(bid.UserId, bid.ProductId)
+      ).forEach((ownerId) =>
+        this.Repos.Users.getUser(ownerId).addBidToMe(bid.Id)
+      );
+      this.Repos.Users.getUser(bid.UserId).addBidFromMe(bid.Id);
+      bid.Owners = R.clone(
+        this.Controllers.Jobs.getStoreOwnersIds(
           this.Controllers.Stores.getStoreIdByProductId(
             bid.UserId,
             bid.ProductId
           )
-        ).forEach((ownerId) =>
-          this.Repos.Users.getUser(ownerId).addBidToMe(bid.Id)
         )
-      : this.Repos.Users.getUserByBidId(bidArgs.previousBidId).addBidToMe(
-          bid.Id
-        );
+      );
+    } else {
+      this.Repos.Users.getUser(bid.UserId).addBidFromMe(bid.Id);
+      const targetUser = this.Repos.Users.getUserByBidId(bidArgs.previousBidId);
+      bid.Owners = [targetUser.Id];
+      targetUser.addBidToMe(bid.Id);
+    }
     return bid.Id;
   }
   approveBid(userId: string, bidId: string): void {
@@ -334,9 +350,10 @@ export class UsersController
         case "Counter":
           this.addBid({
             userId: userId,
-            type: "Store",
+            type: "Counter",
             price: bid.Price,
             productId: bid.ProductId,
+            previousBidId: bid.Id,
           });
       }
     }
@@ -370,19 +387,13 @@ export class UsersController
       });
     }
     bid.reject(userId);
-    const counterBid = new Bid({
+    this.addBid({
       previousBidId: bidId,
       price: price,
       productId: bid.ProductId,
       userId: userId,
       type: "Counter",
     });
-    this.Repos.Bids.addBid(counterBid);
-    this.Controllers.Jobs.getStoreOwnersIds(
-      this.Controllers.Stores.getStoreIdByProductId(bid.UserId, bid.ProductId)
-    ).forEach((ownerId) =>
-      this.Repos.Users.getUser(ownerId).addBidFromMe(bid.Id)
-    );
   }
   removeVoteFromBid(userId: string, bidId: string): void {
     const bid = this.Repos.Bids.getBid(bidId);

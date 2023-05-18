@@ -1,4 +1,4 @@
-import { Bid } from "../Stores/Bid";
+import { Bid } from "./Bid";
 import { Cart, type CartDTO } from "./Cart";
 import { type Notification } from "./Notification";
 import { TRPCError } from "@trpc/server";
@@ -6,8 +6,8 @@ export class User {
   private id: string;
   private notifications: Notification[];
   private cart: Cart;
-  private myBids: Bid[] = [];
-  private bidsToMe: Bid[] = [];
+  private bidsFromMe: string[] = [];
+  private bidsToMe: string[] = [];
   constructor(id: string) {
     this.id = id;
     this.notifications = [];
@@ -62,5 +62,30 @@ export class User {
   public clone(user: User): void {
     this.notifications = user.notifications;
     this.cart = user.cart;
+  }
+  public addBidToMe(bidId: string): void {
+    if (this.bidsToMe.includes(bidId)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Bid already exists",
+      });
+    }
+    this.bidsToMe.push(bidId);
+  }
+  public addBidFromMe(bidId: string): void {
+    if (this.bidsFromMe.includes(bidId)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Bid already exists",
+      });
+    }
+    this.bidsFromMe.push(bidId);
+  }
+
+  public isBidExistFromMe(bidId: string): boolean {
+    return this.bidsFromMe.includes(bidId);
+  }
+  public isBidExistToMe(bidId: string): boolean {
+    return this.bidsToMe.includes(bidId);
   }
 }

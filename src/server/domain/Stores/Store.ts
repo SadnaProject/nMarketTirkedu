@@ -191,31 +191,6 @@ export class Store extends Mixin(HasRepos, HasControllers) {
   public removeConstraint(constraintId: string) {
     this.constraintPolicy.removeConstraint(constraintId);
   }
-  public addBid(bidArgs: bidArgs) {
-    const bid = new Bid(bidArgs);
-    this.bids.set(bid.Id, bid);
-    return bid.Id;
-  }
-  public approveBid(bidId: string, userId: string) {
-    const bid = this.bids.get(bidId);
-    if (bid) {
-      if (!this.isOwner(userId) && !this.isFounder(userId)) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Only store owners and founders can approve bids",
-        });
-      }
-      bid.approve(userId);
-      if (bid.isApproved(this.OwnersIds.concat(this.FounderId))) {
-        this.Controllers.PurchasesHistory.purchaseCart(
-          bid.UserId,
-          this.createCartDTOfromBasket(bid.Basket, bid.StoreId),
-          bid.Price,
-          bid.CreditCard
-        );
-      }
-    }
-  }
   private createCartDTOfromBasket(basket: BasketDTO, StoreId: string): CartDTO {
     const storeIdToBasket: Map<string, BasketDTO> = new Map();
     storeIdToBasket.set(StoreId, basket);

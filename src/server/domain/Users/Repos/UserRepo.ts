@@ -59,4 +59,16 @@ export class UserRepo extends Testable {
   isUserExist(id: string): boolean {
     return this.users.has(id);
   }
+  getUserByBidId(bidId: string): User {
+    const user = this.getAllUsers().find((user) =>
+      user.isBidExistFromMe(bidId)
+    );
+    if (user === undefined) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "User not found",
+      });
+    }
+    return user;
+  }
 }

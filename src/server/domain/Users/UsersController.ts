@@ -7,6 +7,7 @@ import { Testable, testable } from "server/domain/_Testable";
 import { type CreditCard } from "../PurchasesHistory/PaymentAdaptor";
 import { TRPCError } from "@trpc/server";
 import { censored } from "../_Loggable";
+import { Bid, BidArgs } from "./Bid";
 export interface IUsersController {
   /**
    * This fuction checks if a user exists.
@@ -124,6 +125,7 @@ export interface IUsersController {
    * @throws Error if the member has any position(he cant be removed if he has any position).
    */
   removeMember(userIdOfActor: string, memberIdToRemove: string): void;
+  addBid(BidArgs: BidArgs): string;
 }
 
 @testable
@@ -284,5 +286,46 @@ export class UsersController
     }
     this.Controllers.Auth.removeMember(userIdOfActor, memberIdToRemove);
     this.removeUser(memberIdToRemove);
+  }
+  addBid(bidArgs: BidArgs): string {
+    const bid = new Bid(bidArgs);
+    this.Repos.Bids.addBid(bid);
+    bidArgs.type === "Store"
+      ? this.Controllers.Jobs.getStoreOwnersIds(bidArgs.basket.storeId).forEach(
+          (ownerId) => this.Repos.Users.getUser(ownerId).addBidToMe(bid.Id)
+        )
+      : this.Repos.Users.getUserByBidId(bidArgs.previousBidId).addBidToMe(
+          bid.Id
+        );
+    return bid.Id;
+  }
+  approveBid(userId: string, bidId: string): void {
+    const bid = this.Repos.Bids.getBid(bidId);
+    if (!this.Controllers.Jobs.isStoreOwner(userId, bid.StoreId)) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User doesn't have permission to approve bid",
+      });
+    }
+    if (!this.Repos.Users.getUser(userId).isBidExistFromMe(bidId)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "User doesn't have this bid",
+      });
+    }
+    bid.approve(userId);
+    if (bid.isApproved()) {
+      ///TODO needs to add real time notification
+    }
+  }
+  rejectBid(userId: string, bidId: string): void {
+    const bid = this.Repos.Bids.getBid(bidId);
+    if (!this.Controllers.Jobs.isStoreOwner(userId, bid.StoreId)) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User doesn't have permission to reject bid",
+      });
+    }
+    bid.reject(userId);
   }
 }

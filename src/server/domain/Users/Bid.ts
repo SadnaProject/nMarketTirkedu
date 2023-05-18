@@ -23,7 +23,16 @@ export type counterBidArgs = {
   type: "Counter";
 };
 export type BidArgs = storeBidArgs | counterBidArgs;
-
+export type BidDTO = {
+  id: string;
+  userId: string;
+  productId: string;
+  price: number;
+  approvedBy: string[];
+  rejectedBy: string[];
+  state: BidState;
+  type: "Store" | "Counter";
+};
 export class Bid {
   protected id: string;
   protected productId: string;
@@ -48,13 +57,21 @@ export class Bid {
     return this.id;
   }
   public approve(userId: string) {
+    if (!this.owners.includes(userId))
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "this user can't approve this bid",
+      });
+    if (this.rejectedBy.includes(userId))
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "this user has already rejected this bid",
+      });
     this.approvedBy.push(userId);
-    if (
-      this.owners.every((owner) => this.approvedBy.includes(owner)) ||
-      this.type === "Counter"
-    )
+    if (this.owners.every((owner) => this.approvedBy.includes(owner)))
       this.state = "APPROVED";
   }
+
   public get ApprovedBy() {
     return this.approvedBy;
   }
@@ -75,6 +92,16 @@ export class Bid {
     return this.userId;
   }
   public reject(userId: string) {
+    if (!this.owners.includes(userId))
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "this user can't approve this bid",
+      });
+    if (this.approvedBy.includes(userId))
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "this user has already approved this bid",
+      });
     this.rejectedBy.push(userId);
     this.state = "REJECTED";
   }
@@ -83,5 +110,26 @@ export class Bid {
   }
   public get Type() {
     return this.type;
+  }
+  public removeVote(userId: string) {
+    if (!this.owners.includes(userId))
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "this user can't vote to this bid",
+      });
+    this.approvedBy = this.approvedBy.filter((id) => id !== userId);
+    this.rejectedBy = this.rejectedBy.filter((id) => id !== userId);
+  }
+  public get DTO(): BidDTO {
+    return {
+      id: this.id,
+      productId: this.productId,
+      price: this.price,
+      approvedBy: this.approvedBy,
+      rejectedBy: this.rejectedBy,
+      userId: this.userId,
+      state: this.state,
+      type: this.type,
+    };
   }
 }

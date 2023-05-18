@@ -87,4 +87,10 @@ export class User {
   public isBidExistToMe(bidId: string): boolean {
     return this.bidsToMe.includes(bidId);
   }
+  public get BidsFromMe(): string[] {
+    return this.bidsFromMe;
+  }
+  public get BidsToMe(): string[] {
+    return this.bidsToMe;
+  }
 }

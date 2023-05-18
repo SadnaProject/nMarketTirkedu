@@ -484,6 +484,10 @@ export class StoresController
         message: "Store name already exists",
       });
     this.Repos.Stores.addStore(store);
+    eventEmitter.emit(`receive bid for store ${store.Id}`, {
+      storeId: store.Id,
+      userId: founderId,
+    });
     return store.Id;
   }
 
@@ -603,6 +607,10 @@ export class StoresController
 
   makeStoreOwner(currentId: string, storeId: string, targetUserId: string) {
     this.Controllers.Jobs.makeStoreOwner(currentId, storeId, targetUserId);
+    eventEmitter.emit(`receive bid for store ${storeId}`, {
+      storeId: storeId,
+      userId: targetUserId,
+    });
   }
   makeStoreManager(currentId: string, storeId: string, targetUserId: string) {
     this.Controllers.Jobs.makeStoreManager(currentId, storeId, targetUserId);

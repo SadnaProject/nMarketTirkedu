@@ -16,7 +16,6 @@ import { type StoreDTO } from "./Stores/Store";
 import { type DiscountArgs } from "./Stores/DiscountPolicy/Discount";
 import { type ConditionArgs } from "./Stores/Conditions/CompositeLogicalCondition/Condition";
 import { type RoleType } from "./Jobs/Role";
-import { bidArgs } from "./Stores/Bid";
 import { BidArgs } from "./Users/Bid";
 
 @loggable

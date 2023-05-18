@@ -15,7 +15,6 @@ import { type BasketProductDTO } from "../Users/BasketProduct";
 import { type DiscountArgs } from "./DiscountPolicy/Discount";
 import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
 import { type ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condition";
-import { Bid, bidArgs } from "./Bid";
 import { CartDTO } from "../Users/Cart";
 
 export const nameSchema = z.string().nonempty();
@@ -33,7 +32,6 @@ export class Store extends Mixin(HasRepos, HasControllers) {
   private isActive: boolean;
   private discountPolicy: DiscountPolicy;
   private constraintPolicy: ConstraintPolicy;
-  private bids: Map<string, Bid> = new Map<string, Bid>();
 
   constructor(name: string) {
     super();

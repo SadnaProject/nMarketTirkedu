@@ -17,7 +17,6 @@ import { type ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condi
 import { type DiscountArgs } from "./DiscountPolicy/Discount";
 import { type BasketDTO } from "../Users/Basket";
 import { type RoleType } from "../Jobs/Role";
-import { bidArgs } from "./Bid";
 import { storeBidArgs } from "../Users/Bid";
 
 export type SearchArgs = {

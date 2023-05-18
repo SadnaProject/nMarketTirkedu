@@ -3,6 +3,8 @@ import { z } from "zod";
 import { HasRepos, type Repos } from "./_HasRepos";
 import { TRPCError } from "@trpc/server";
 import * as R from "ramda";
+import { Controllers, HasControllers } from "../_HasController";
+import { Mixin } from "ts-mixer";
 const nameSchema = z.string().nonempty("Name must be nonempty");
 const quantitySchema = z.number().nonnegative("Quantity must be non negative");
 const priceSchema = z.number().positive("Price must be positive");
@@ -30,7 +32,7 @@ export const StoreProductDTOSchema = z.object({
 
 export type StoreProductDTO = z.infer<typeof StoreProductDTOSchema>;
 
-export class StoreProduct extends HasRepos {
+export class StoreProduct extends Mixin(HasRepos, HasControllers) {
   private id: string;
   private name: string;
   private quantity: number;
@@ -49,8 +51,10 @@ export class StoreProduct extends HasRepos {
     this.description = product.description;
   }
 
-  static fromDTO(dto: StoreProductDTO, repos: Repos) {
-    const product = new StoreProduct(dto).initRepos(repos);
+  static fromDTO(dto: StoreProductDTO, controllers: Controllers, repos: Repos) {
+    const product = new StoreProduct(dto)
+      .initControllers(controllers)
+      .initRepos(repos);
     product.id = dto.id;
     return product;
   }
@@ -171,16 +175,12 @@ export class StoreProduct extends HasRepos {
   public static getActive(repos: Repos) {
     return repos.Products.getActiveProducts();
   }
-  public getPriceForUser(userId: string): number {
-    if (this.specialPrices.has(userId)) {
-      const price = this.specialPrices.get(userId);
-      if (price !== undefined) {
-        return price;
-      }
-    }
-    return this.Price;
-  }
+
   public addSpecialPrice(userId: string, price: number) {
     this.specialPrices.set(userId, price);
+  }
+  public getPriceForUser(userId: string): number {
+    const p = this.specialPrices.get(userId);
+    return p !== undefined ? p : this.Price;
   }
 }

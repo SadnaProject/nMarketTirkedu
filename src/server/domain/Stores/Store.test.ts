@@ -16,7 +16,9 @@ import {
   generateStoreName,
 } from "./_data";
 import { itUnitIntegration } from "../_mock";
+import { createTestControllers } from "../_createControllers";
 function generateForDiscountAndConstraintTests(testType: string) {
+  const controllers = createTestControllers(testType, "Stores");
   const productData = generateProductArgs();
   productData.name = "Milk";
   productData.category = "Food";
@@ -31,7 +33,8 @@ function generateForDiscountAndConstraintTests(testType: string) {
   vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
   const product2Id = store.createProduct(product2Data);
   const product2 = StoreProduct.fromDTO(
-    { ...product2Data, specialPrices: new Map(), id: product2Id },
+    { ...product2Data, id: product2Id },
+    controllers,
     repos
   );
   const basket: BasketDTO = {
@@ -76,6 +79,7 @@ describe("constructor", () => {
 
 describe("createProduct", () => {
   itUnitIntegration("✅creates a product", (testType) => {
+    const controllers = createTestControllers(testType, "Stores");
     const repos = createTestRepos(testType);
     const storeName = generateStoreName();
     const store = createStore(storeName, repos);
@@ -83,14 +87,14 @@ describe("createProduct", () => {
     const productData = generateProductArgs();
     const productId = store.createProduct(productData);
     const product = StoreProduct.fromDTO(
-      { ...productData, specialPrices: new Map(), id: productId },
+      { ...productData, id: productId },
+      controllers,
       repos
     );
     vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValue([product]);
     expect(store.Products.length).toBe(1);
     expect(store.Products[0]).toEqual({
       ...productData,
-      specialPrices: new Map(),
       id: productId,
     });
   });
@@ -117,11 +121,8 @@ describe("get basket price", () => {
         { quantity: productData.quantity, storeProductId: product.Id },
       ],
     };
-    vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValueOnce([
-      product,
-    ]);
-    vi.spyOn(repos.Stores, "getStoreById").mockReturnValueOnce(store);
-    vi.spyOn(repos.Products, "getProductById").mockReturnValueOnce(product);
+    vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);
+    vi.spyOn(repos.Products, "getProductById").mockReturnValue(product);
     expect(store.getBasketPrice("", basket)).toBe(
       product.Price * productData.quantity
     );

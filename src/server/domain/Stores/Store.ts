@@ -86,7 +86,9 @@ export class Store extends Mixin(HasRepos, HasControllers) {
   }
 
   public createProduct(product: StoreProductArgs) {
-    const newProduct = new StoreProduct(product).initRepos(this.Repos);
+    const newProduct = new StoreProduct(product)
+      .initControllers(this.Controllers)
+      .initRepos(this.Repos);
     this.Repos.Products.addProduct(this.Id, newProduct);
     return newProduct.Id;
   }
@@ -96,13 +98,9 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     fullBasket = this.discountPolicy.applyDiscounts(fullBasket);
     let price = 0;
     fullBasket.products.forEach((product) => {
-      let productPrice = product.product.price;
-      if (product.product.specialPrices.has(userId)) {
-        const possiblePrice = product.product.specialPrices.get(userId);
-        if (possiblePrice) {
-          productPrice = possiblePrice;
-        }
-      }
+      const productPrice = this.Repos.Products.getProductById(
+        product.product.id
+      ).getPriceForUser(userId);
       price +=
         product.BasketQuantity * productPrice * (1 - product.Discount / 100);
     });

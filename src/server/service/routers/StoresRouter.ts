@@ -124,6 +124,13 @@ export const StoresRouter = createTRPCRouter({
       const { storeId } = input;
       return facade.getStoreManagers(storeId);
     }),
+  getProductById: validSessionProcedure
+    .input(z.object({ productId: z.string() }))
+    .query(({ input, ctx }) => {
+      const { productId } = input;
+      return facade.getProductById(ctx.session.user.id, productId);
+    }),
+
   createProduct: validSessionProcedure
     .input(
       z.object({

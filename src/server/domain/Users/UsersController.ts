@@ -7,7 +7,8 @@ import { Testable, testable } from "server/domain/_Testable";
 import { type CreditCard } from "../PurchasesHistory/PaymentAdaptor";
 import { TRPCError } from "@trpc/server";
 import { censored } from "../_Loggable";
-import { Bid, BidArgs } from "./Bid";
+import { Bid, BidArgs, BidDTO } from "./Bid";
+import { eventEmitter } from "server/EventEmitter";
 export interface IUsersController {
   /**
    * This fuction checks if a user exists.
@@ -318,13 +319,27 @@ export class UsersController
         message: "User doesn't have permission to approve bid",
       });
     }
-    if (!this.Repos.Users.getUser(userId).isBidExistFromMe(bidId)) {
+    if (!this.Repos.Users.getUser(userId).isBidExistToMe(bidId)) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "User doesn't have this bid",
       });
     }
     bid.approve(userId);
+    if (bid.isApproved()) {
+      switch (bid.Type) {
+        case "Store":
+          this.Controllers.Stores.addSpecialPriceToProduct(bid);
+          break;
+        case "Counter":
+          this.addBid({
+            userId: userId,
+            type: "Store",
+            price: bid.Price,
+            productId: bid.ProductId,
+          });
+      }
+    }
   }
   rejectBid(userId: string, bidId: string): void {
     const bid = this.Repos.Bids.getBid(bidId);
@@ -340,5 +355,51 @@ export class UsersController
       });
     }
     bid.reject(userId);
+  }
+  counterBid(userId: string, bidId: string, price: number): void {
+    const bid = this.Repos.Bids.getBid(bidId);
+    if (
+      !this.Controllers.Jobs.isStoreOwner(
+        userId,
+        this.Controllers.Stores.getStoreIdByProductId(bid.UserId, bid.ProductId)
+      )
+    ) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User doesn't have permission to counter bid",
+      });
+    }
+    bid.reject(userId);
+    const counterBid = new Bid({
+      previousBidId: bidId,
+      price: price,
+      productId: bid.ProductId,
+      userId: userId,
+      type: "Counter",
+    });
+    this.Repos.Bids.addBid(counterBid);
+    this.Controllers.Jobs.getStoreOwnersIds(
+      this.Controllers.Stores.getStoreIdByProductId(bid.UserId, bid.ProductId)
+    ).forEach((ownerId) =>
+      this.Repos.Users.getUser(ownerId).addBidFromMe(bid.Id)
+    );
+  }
+  removeVoteFromBid(userId: string, bidId: string): void {
+    const bid = this.Repos.Bids.getBid(bidId);
+    bid.removeVote(userId);
+  }
+  getAllBidsSendToUser(userId: string): BidDTO[] {
+    const bids: BidDTO[] = [];
+    this.Repos.Users.getUser(userId).BidsToMe.forEach((bidId) =>
+      bids.push(this.Repos.Bids.getBid(bidId).DTO)
+    );
+    return bids;
+  }
+  getAllBidsSendFromUser(userId: string): BidDTO[] {
+    const bids: BidDTO[] = [];
+    this.Repos.Users.getUser(userId).BidsFromMe.forEach((bidId) =>
+      bids.push(this.Repos.Bids.getBid(bidId).DTO)
+    );
+    return bids;
   }
 }

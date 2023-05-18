@@ -14,6 +14,7 @@ export type storeBidArgs = {
   basket: BasketDTO;
   type: "Store";
 };
+
 export type counterBidArgs = {
   userId: string;
   price: number;

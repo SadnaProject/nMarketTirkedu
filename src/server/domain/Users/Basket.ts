@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { type BasketProductDTO, BasketProduct } from "./BasketProduct";
 import { TRPCError } from "@trpc/server";
 export type BasketDTO = {

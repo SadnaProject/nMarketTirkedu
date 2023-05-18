@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto";
 import { type ConditionArgs } from "../Conditions/CompositeLogicalCondition/Condition";
-import { Constraint } from "../Constraint";
 import { type FullBasketDTO } from "../StoresController";
 import { TRPCError } from "@trpc/server";
+import { Constraint } from "./Constraint";
 
 export class ConstraintPolicy {
   private storeId: string;

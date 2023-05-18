@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-    provider = "sqlite"
+    provider = "postgresql"
     // NOTE: When using postgresql, mysql or sqlserver, uncomment the @db.Text annotations in model Account below
     // Further reading:
     // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
@@ -18,6 +18,119 @@ model User {
     id    String  @id @default(cuid())
     name  String?
     email String  @unique
+}
+
+enum ConditionType {
+    AtLeast
+    AtMost
+    Exactly
+}
+
+enum TimeConditionType {
+    Before
+    After
+    At
+}
+
+enum LiteralConditionType {
+    Store
+    Category
+    Product
+    Price
+}
+
+enum CompositeConditionType {
+    Or
+    And
+    Xor
+    Implies
+}
+
+model Condition {
+    id                   String              @id @default(cuid())
+    Literalcondition     LiteralCondition?   @relation(fields: [LiteralConditionId], references: [id])
+    LiteralConditionId   String?
+    compositeCondition   CompositeCondition? @relation(fields: [compositeConditionId], references: [id])
+    compositeConditionId String?
+    dateCondition        DateCondition?      @relation(fields: [dateConditionId], references: [id])
+    dateConditionId      String?
+    Discount             Discount[]
+    Constraint           Constraint[]
+}
+
+model LiteralCondition {
+    id            String               @id @default(cuid())
+    amount        Int
+    conditionType ConditionType
+    storeId       String
+    type          LiteralConditionType
+    Condition     Condition[]
+}
+
+model DateCondition {
+    id                String            @id @default(cuid())
+    year              Int?
+    month             Int?
+    day               Int?
+    hour              Int?
+    timeConditionType TimeConditionType
+    storeId           String
+    Condition         Condition[]
+}
+
+model CompositeCondition {
+    id                     String                 @id @default(cuid())
+    CompositeConditionType CompositeConditionType
+    firstId                String
+    secondId               String
+    Condition              Condition[]
+}
+
+model Discount {
+    id          String    @id @default(cuid())
+    amount      Int
+    storeId     String
+    store       Store     @relation(fields: [storeId], references: [id])
+    conditionId String
+    condition   Condition @relation(fields: [conditionId], references: [id])
+}
+
+model Store {
+    id          String         @id @default(cuid())
+    name        String
+    isActive    Boolean
+    products    StoreProduct[]
+    discounts   Discount[]
+    Constraints Constraint[]
+}
+
+model StoreProduct {
+    id          String @id @default(cuid())
+    storeId     String
+    store       Store  @relation(fields: [storeId], references: [id])
+    name        String
+    price       Int
+    category    String
+    quantity    Int
+    description String
+
+    SpecialPrice SpecialPrice[]
+}
+
+model SpecialPrice {
+    id        String       @id @default(cuid())
+    userId    String
+    price     Int
+    product   StoreProduct @relation(fields: [productId], references: [id])
+    productId String
+}
+
+model Constraint {
+    id          String    @id @default(cuid())
+    storeId     String
+    store       Store     @relation(fields: [storeId], references: [id])
+    conditionId String
+    condition   Condition @relation(fields: [conditionId], references: [id])
 }
 
 // model Cart {

@@ -301,21 +301,23 @@ export class StoresController
   }
   searchProducts(userId: string, args: SearchArgs): StoreProductDTO[] {
     return StoreProduct.getActive(this.Repos)
-      .filter((p) =>
-        this.Controllers.Jobs.canReceivePublicDataFromStore(userId, p.Store.Id)
-      )
-      .filter((p) => {
+      .filter(async (p) => {
+        const store = await p.getStore();
+        this.Controllers.Jobs.canReceivePublicDataFromStore(userId, store.Id);
+      })
+      .filter(async (p) => {
+        const store = await p.getStore();
         const productRating =
           this.Controllers.PurchasesHistory.getReviewsByProduct(p.Id).avgRating;
         const storeRating = this.Controllers.PurchasesHistory.getStoreRating(
-          p.Store.Id
+          store.Id
         );
         return this.filterProductSearch(p, productRating, storeRating, args);
       })
-      .map((p) => p.DTO);
+      .map((p) => p.getDTO());
   }
 
-  private filterProductSearch(
+  private async filterProductSearch(
     p: StoreProduct,
     productRating: number,
     storeRating: number,
@@ -331,8 +333,9 @@ export class StoresController
       maxStoreRating = Infinity,
     }: SearchArgs
   ) {
+    const store = await p.getStore();
     return (
-      p.Store.IsActive &&
+      store.IsActive() &&
       this.search(name, p.Name) &&
       this.search(category, p.Category) &&
       keywords.every(
@@ -385,39 +388,53 @@ export class StoresController
     }
   }
 
-  isProductQuantityInStock(
+  async isProductQuantityInStock(
     userId: string,
     productId: string,
     quantity: number
-  ): boolean {
-    const product = StoreProduct.fromProductId(productId, this.Repos);
-    this.enforcePublicDataAccess(userId, product.Store.Id);
+  ): Promise<boolean> {
+    const product = await StoreProduct.fromProductId(
+      productId,
+      this.Repos,
+      this.Controllers
+    );
+    const store = await product.getStore();
+    this.enforcePublicDataAccess(userId, store.Id);
     return product.isQuantityInStock(quantity);
   }
 
-  createProduct(
+  async createProduct(
     userId: string,
     storeId: string,
     product: StoreProductArgs
-  ): string {
+  ): Promise<string> {
     if (!this.Controllers.Jobs.canCreateProductInStore(userId, storeId)) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to create product in store",
       });
     }
-    const store = Store.fromStoreId(storeId, this.Repos);
+    const store = await Store.fromStoreId(
+      storeId,
+      this.Repos,
+      this.Controllers
+    );
     return store.createProduct(product);
   }
 
-  isStoreActive(userId: string, storeId: string): boolean {
+  async isStoreActive(userId: string, storeId: string): Promise<boolean> {
     // this.checkDataRetrievalPermission(userId, storeId);
-    return Store.fromStoreId(storeId, this.Repos).IsActive;
+    const store = await Store.fromStoreId(
+      storeId,
+      this.Repos,
+      this.Controllers
+    );
+    return store.IsActive();
   }
 
   getStoreProducts(userId: string, storeId: string): StoreProductDTO[] {
     this.enforcePublicDataAccess(userId, storeId);
-    return Store.fromStoreId(storeId, this.Repos).Products;
+    return Store.fromStoreId(storeId, this.Repos, this.Controllers).Products;
   }
 
   private checkDataRetrievalPermission(userId: string, storeId: string) {
@@ -436,19 +453,29 @@ export class StoresController
     productId: string,
     quantity: number
   ): void {
-    const product = StoreProduct.fromProductId(productId, this.Repos);
+    const product = StoreProduct.fromProductId(
+      productId,
+      this.Repos,
+      this.controllers
+    );
     this.enforceProductEdit(userId, product.Store.Id);
     product.Quantity = quantity;
   }
 
   decreaseProductQuantity(productId: string, quantity: number): void {
-    StoreProduct.fromProductId(productId, this.Repos).decreaseQuantity(
-      quantity
-    );
+    StoreProduct.fromProductId(
+      productId,
+      this.Repos,
+      this.controllers
+    ).decreaseQuantity(quantity);
   }
 
   deleteProduct(userId: string, productId: string): void {
-    const product = StoreProduct.fromProductId(productId, this.Repos);
+    const product = StoreProduct.fromProductId(
+      productId,
+      this.Repos,
+      this.controllers
+    );
     if (
       !this.Controllers.Jobs.canRemoveProductFromStore(userId, product.Store.Id)
     ) {
@@ -461,7 +488,11 @@ export class StoresController
   }
 
   setProductPrice(userId: string, productId: string, price: number): void {
-    const product = StoreProduct.fromProductId(productId, this.Repos);
+    const product = StoreProduct.fromProductId(
+      productId,
+      this.Repos,
+      this.controllers
+    );
     this.enforceProductEdit(userId, product.Store.Id);
     product.Price = price;
   }
@@ -495,8 +526,8 @@ export class StoresController
         message: "User does not have permission to activate store",
       });
     }
-    const store = Store.fromStoreId(storeId, this.Repos);
-    store.IsActive = true;
+    const store = Store.fromStoreId(storeId, this.Repos, this.Controllers);
+    store.setActive(true);
     const notifiedUserIds = [
       store.FounderId,
       ...store.OwnersIds,
@@ -516,9 +547,13 @@ export class StoresController
     });
   }
 
-  deactivateStore(userId: string, storeId: string): void {
-    const store = Store.fromStoreId(storeId, this.Repos);
-    if (store.IsActive === false) {
+  async deactivateStore(userId: string, storeId: string): void {
+    const store = await Store.fromStoreId(
+      storeId,
+      this.Repos,
+      this.Controllers
+    );
+    if (store.IsActive() === false) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Store is already deactivated",
@@ -530,7 +565,7 @@ export class StoresController
         message: "User does not have permission to deactivate store",
       });
     }
-    store.IsActive = false;
+    store.setActive(false);
     const notifiedUserIds = [
       store.FounderId,
       ...store.OwnersIds,
@@ -557,7 +592,7 @@ export class StoresController
         message: "User does not have permission to close store permanently",
       });
     }
-    Store.fromStoreId(storeId, this.Repos).delete();
+    Store.fromStoreId(storeId, this.Repos, this.Controllers).delete();
     eventEmitter.emit(`store is changed ${storeId}`, {
       storeId: storeId,
       userId: userId,
@@ -570,12 +605,20 @@ export class StoresController
       userId,
       this.getStoreIdByProductId(userId, productId)
     );
-    const product = StoreProduct.fromProductId(productId, this.Repos);
+    const product = StoreProduct.fromProductId(
+      productId,
+      this.Repos,
+      this.controllers
+    );
     return product.getPriceForUser(userId);
   }
 
   getStoreIdByProductId(userId: string, productId: string): string {
-    const product = StoreProduct.fromProductId(productId, this.Repos);
+    const product = StoreProduct.fromProductId(
+      productId,
+      this.Repos,
+      this.controllers
+    );
     this.enforcePublicDataAccess(userId, product.Store.Id);
     return product.Store.Id;
   }
@@ -591,7 +634,7 @@ export class StoresController
 
   getBasketPrice(userId: string, storeId: string): number {
     this.enforcePublicDataAccess(userId, storeId);
-    const store = Store.fromStoreId(storeId, this.Repos);
+    const store = Store.fromStoreId(storeId, this.Repos, this.Controllers);
     const cartDTO = this.Controllers.Users.getCart(userId);
     const basketDTO = cartDTO.storeIdToBasket.get(storeId);
     if (!basketDTO)
@@ -642,25 +685,35 @@ export class StoresController
     );
   }
   canCreateProductInStore(currentId: string, storeId: string) {
-    return Store.fromStoreId(storeId, this.Repos).canCreateProduct(currentId);
+    return Store.fromStoreId(
+      storeId,
+      this.Repos,
+      this.Controllers
+    ).canCreateProduct(currentId);
   }
   isStoreOwner(userId: string, storeId: string) {
-    return Store.fromStoreId(storeId, this.Repos).isOwner(userId);
+    return Store.fromStoreId(storeId, this.Repos, this.Controllers).isOwner(
+      userId
+    );
   }
   isStoreManager(userId: string, storeId: string) {
-    return Store.fromStoreId(storeId, this.Repos).isManager(userId);
+    return Store.fromStoreId(storeId, this.Repos, this.Controllers).isManager(
+      userId
+    );
   }
   isStoreFounder(userId: string, storeId: string) {
-    return Store.fromStoreId(storeId, this.Repos).isFounder(userId);
+    return Store.fromStoreId(storeId, this.Repos, this.Controllers).isFounder(
+      userId
+    );
   }
   getStoreFounderId(storeId: string) {
-    return Store.fromStoreId(storeId, this.Repos).FounderId;
+    return Store.fromStoreId(storeId, this.Repos, this.Controllers).FounderId;
   }
   getStoreOwnersIds(storeId: string) {
-    return Store.fromStoreId(storeId, this.Repos).OwnersIds;
+    return Store.fromStoreId(storeId, this.Repos, this.Controllers).OwnersIds;
   }
   getStoreManagersIds(storeId: string) {
-    return Store.fromStoreId(storeId, this.Repos).ManagersIds;
+    return Store.fromStoreId(storeId, this.Repos, this.Controllers).ManagersIds;
   }
   getPurchasesByStoreId(userId: string, storeId: string) {
     if (
@@ -672,7 +725,7 @@ export class StoresController
           "User does not have permission to receive purchase history from store",
       });
 
-    return Store.fromStoreId(storeId, this.Repos).Purchases;
+    return Store.fromStoreId(storeId, this.Repos, this.Controllers).Purchases;
   }
   searchStores(userId: string, name: string): StoreDTO[] {
     if (name === "")
@@ -702,7 +755,11 @@ export class StoresController
         code: "UNAUTHORIZED",
         message: "User does not have permission to add constraint to store",
       });
-    return Store.fromStoreId(storeId, this.Repos).addConstraint(constraintArgs);
+    return Store.fromStoreId(
+      storeId,
+      this.Repos,
+      this.Controllers
+    ).addConstraint(constraintArgs);
   }
   removeConstraintFromStore(
     userId: string,
@@ -715,7 +772,9 @@ export class StoresController
         message:
           "User does not have permission to remove constraint from store",
       });
-    Store.fromStoreId(storeId, this.Repos).removeConstraint(constraintId);
+    Store.fromStoreId(storeId, this.Repos, this.Controllers).removeConstraint(
+      constraintId
+    );
   }
   addDiscountToStore(
     userId: string,
@@ -727,7 +786,9 @@ export class StoresController
         code: "UNAUTHORIZED",
         message: "User does not have permission to add discount to store",
       });
-    return Store.fromStoreId(storeId, this.Repos).addDiscount(discountArgs);
+    return Store.fromStoreId(storeId, this.Repos, this.Controllers).addDiscount(
+      discountArgs
+    );
   }
   removeDiscountFromStore(
     userId: string,
@@ -739,16 +800,20 @@ export class StoresController
         code: "UNAUTHORIZED",
         message: "User does not have permission to remove discount from store",
       });
-    Store.fromStoreId(storeId, this.Repos).removeDiscount(discountId);
+    Store.fromStoreId(storeId, this.Repos, this.Controllers).removeDiscount(
+      discountId
+    );
   }
   checkIfBasketSatisfiesStoreConstraints(
     userId: string,
     storeId: string,
     basket: BasketDTO
   ): boolean {
-    return Store.fromStoreId(storeId, this.Repos).checkIfBasketFulfillsPolicy(
-      basket
-    );
+    return Store.fromStoreId(
+      storeId,
+      this.Repos,
+      this.Controllers
+    ).checkIfBasketFulfillsPolicy(basket);
   }
   myStores(userId: string): { store: StoreDTO; role: RoleType }[] {
     const founders = this.Repos.Stores.getAllStores()
@@ -771,13 +836,18 @@ export class StoresController
       }));
     return founders.concat(owners).concat(managers);
   }
-  getProductById(userId: string, productId: string): StoreProductDTO {
-    return this.Repos.Products.getProductById(productId).DTO;
+  async getProductById(
+    userId: string,
+    productId: string
+  ): Promise<StoreProductDTO> {
+    return (await this.Repos.Products.getProductById(productId))
+      .initControllers(this.Controllers)
+      .initRepos(this.Repos)
+      .getDTO();
   }
-  addSpecialPriceToProduct(bid: Bid): void {
-    this.Repos.Products.getProductById(bid.ProductId).addSpecialPrice(
-      bid.UserId,
-      bid.Price
-    );
+  async addSpecialPriceToProduct(bid: Bid): Promise<void> {
+    const product = await this.Repos.Products.getProductById(bid.ProductId);
+    product.initControllers(this.Controllers).initRepos(this.Repos);
+    product.addSpecialPrice(bid.UserId, bid.Price);
   }
 }

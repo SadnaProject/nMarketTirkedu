@@ -41,7 +41,7 @@ describe("search products", () => {
       true
     );
     const res = controllers.Stores.searchProducts("uid", {});
-    expect(res).toEqual(products.map((p) => p.DTO));
+    expect(res).toEqual(products.map((p) => p.getDTO()));
   });
 
   it("✅should return some products because of name filter", () => {
@@ -51,7 +51,7 @@ describe("search products", () => {
     const res = controllers.Stores.searchProducts("uid", {
       name: products[0]?.Name.toUpperCase().split(" ")[0],
     });
-    expect(res).toContainEqual(products[0]?.DTO);
+    expect(res).toContainEqual(products[0]?.getDTO());
   });
 
   it("✅should return some products because of keywords", () => {
@@ -61,7 +61,7 @@ describe("search products", () => {
     const res = controllers.Stores.searchProducts("uid", {
       keywords: [products[1]?.Description.toUpperCase().split(" ")[1] ?? ""],
     });
-    expect(res).toContainEqual(products[1]?.DTO);
+    expect(res).toContainEqual(products[1]?.getDTO());
   });
 
   it("✅shouldn't return products because of made up name", () => {

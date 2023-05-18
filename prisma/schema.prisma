@@ -46,24 +46,35 @@ enum CompositeConditionType {
     Implies
 }
 
+enum CompositeDiscountType {
+    Max
+    Add
+}
+
+enum DiscountOn {
+    product
+    category
+    store
+}
+
 model Condition {
     id                   String              @id @default(cuid())
-    Literalcondition     LiteralCondition?   @relation(fields: [LiteralConditionId], references: [id])
+    LiteralCondition     LiteralCondition?   @relation(fields: [LiteralConditionId], references: [id])
     LiteralConditionId   String?
     compositeCondition   CompositeCondition? @relation(fields: [compositeConditionId], references: [id])
     compositeConditionId String?
     dateCondition        DateCondition?      @relation(fields: [dateConditionId], references: [id])
     dateConditionId      String?
-    Discount             Discount[]
     Constraint           Constraint[]
+    SimpleDiscount       SimpleDiscount[]
 }
 
 model LiteralCondition {
     id            String               @id @default(cuid())
     amount        Int
     conditionType ConditionType
-    storeId       String
     type          LiteralConditionType
+    searchFor     String?
     Condition     Condition[]
 }
 
@@ -74,7 +85,6 @@ model DateCondition {
     day               Int?
     hour              Int?
     timeConditionType TimeConditionType
-    storeId           String
     Condition         Condition[]
 }
 
@@ -87,12 +97,32 @@ model CompositeCondition {
 }
 
 model Discount {
-    id          String    @id @default(cuid())
+    id          String             @id @default(cuid())
     amount      Int
     storeId     String
-    store       Store     @relation(fields: [storeId], references: [id])
+    store       Store              @relation(fields: [storeId], references: [id])
+    compositeId String?
+    composite   CompositeDiscount? @relation(fields: [compositeId], references: [id])
+    simpleId    String?
+    simple      SimpleDiscount?    @relation(fields: [simpleId], references: [id])
+}
+
+model CompositeDiscount {
+    id       String                @id @default(cuid())
+    type     CompositeDiscountType
+    leftId   String
+    rightId  String
+    Discount Discount[]
+}
+
+model SimpleDiscount {
+    id          String     @id @default(cuid())
+    amount      Int
+    storeId     String
     conditionId String
-    condition   Condition @relation(fields: [conditionId], references: [id])
+    condition   Condition  @relation(fields: [conditionId], references: [id])
+    discountOn  DiscountOn
+    Discount    Discount[]
 }
 
 model Store {

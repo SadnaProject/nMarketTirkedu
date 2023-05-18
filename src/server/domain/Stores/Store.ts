@@ -48,27 +48,35 @@ export class Store extends Mixin(HasRepos, HasControllers) {
       .initRepos(repos)
       .initControllers(controllers);
     store.id = dto.id;
-    store.isActive = dto.isActive;
+    store.setActive(dto.isActive);
     return store;
   }
 
-  static fromStoreId(storeId: string, repos: Repos) {
-    return repos.Stores.getStoreById(storeId);
+  static async fromStoreId(
+    storeId: string,
+    repos: Repos,
+    controllers: Controllers
+  ) {
+    const store = await repos.Stores.getStoreById(storeId);
+    return store.initRepos(repos).initControllers(controllers);
   }
 
   public get Id() {
     return this.id;
   }
 
+  public set Id(id: string) {
+    this.id = id;
+  }
   public get Name() {
     return this.name;
   }
 
-  public get IsActive() {
+  public IsActive() {
     return this.isActive;
   }
 
-  public set IsActive(isActive: boolean) {
+  public setActive(isActive: boolean) {
     this.isActive = isActive;
   }
 
@@ -81,38 +89,51 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     };
   }
 
-  public get Products() {
-    return this.Repos.Products.getProductsByStoreId(this.id).map((p) => p.DTO);
+  public async getProducts() {
+    const products = await this.Repos.Products.getProductsByStoreId(this.id);
+    products.forEach((product) =>
+      product.initRepos(this.Repos).initControllers(this.Controllers)
+    );
+
+    return products.map((product) => product.getDTO());
   }
 
-  public createProduct(product: StoreProductArgs) {
+  public async createProduct(product: StoreProductArgs) {
     const newProduct = new StoreProduct(product)
       .initControllers(this.Controllers)
       .initRepos(this.Repos);
-    this.Repos.Products.addProduct(this.Id, newProduct);
+    await this.Repos.Products.addProduct(this.Id, newProduct);
     return newProduct.Id;
   }
-  public getBasketPrice(userId: string, basketDTO: BasketDTO): number {
-    let fullBasket = this.BasketDTOToFullBasketDTO(basketDTO);
+  public async getBasketPrice(
+    userId: string,
+    basketDTO: BasketDTO
+  ): Promise<number> {
+    let fullBasket = await this.BasketDTOToFullBasketDTO(basketDTO);
 
     fullBasket = this.discountPolicy.applyDiscounts(fullBasket);
     let price = 0;
     fullBasket.products.forEach((product) => {
-      const productPrice = this.Repos.Products.getProductById(
-        product.product.id
-      ).getPriceForUser(userId);
+      let productPrice = 0;
+      this.Repos.Products.getProductById(product.product.id)
+        .then((product) => (productPrice = product.getPriceForUser(userId)))
+        .catch((err) => {
+          throw err;
+        });
       price +=
         product.BasketQuantity * productPrice * (1 - product.Discount / 100);
     });
     return price;
   }
 
-  public checkIfBasketFulfillsPolicy(basketDTO: BasketDTO): boolean {
-    const fullBasket = this.BasketDTOToFullBasketDTO(basketDTO);
+  public async checkIfBasketFulfillsPolicy(
+    basketDTO: BasketDTO
+  ): Promise<boolean> {
+    const fullBasket = await this.BasketDTOToFullBasketDTO(basketDTO);
     return this.constraintPolicy.isSatisfiedBy(fullBasket);
   }
-  public delete() {
-    this.Repos.Stores.deleteStore(this.Id);
+  public async delete() {
+    await this.Repos.Stores.deleteStore(this.Id);
   }
 
   makeOwner(currentId: string, targetUserId: string) {
@@ -163,20 +184,26 @@ export class Store extends Mixin(HasRepos, HasControllers) {
   get Purchases() {
     return this.Controllers.PurchasesHistory.getPurchasesByStore(this.Id);
   }
-  BasketDTOToFullBasketDTO(basket: BasketDTO): FullBasketDTO {
+  async BasketDTOToFullBasketDTO(basket: BasketDTO): Promise<FullBasketDTO> {
+    const storeId = basket.storeId;
+    const productsPromises = basket.products.map((product) =>
+      this.BasketProductDTOToProductWithQuantityDTO(product)
+    );
+    const products = await Promise.all(productsPromises);
     return {
-      storeId: this.Id,
-      products: basket.products.map((p) =>
-        this.BasketProductDTOToProductWithQuantityDTO(p)
-      ),
+      storeId: storeId,
+      products: products,
     };
   }
-  BasketProductDTOToProductWithQuantityDTO(
+  async BasketProductDTOToProductWithQuantityDTO(
     basketProduct: BasketProductDTO
-  ): ProductWithQuantityDTO {
-    const p = this.Repos.Products.getProductById(basketProduct.storeProductId);
+  ): Promise<ProductWithQuantityDTO> {
+    const p = await this.Repos.Products.getProductById(
+      basketProduct.storeProductId
+    );
+    p.initControllers(this.Controllers).initRepos(this.Repos);
     return {
-      product: p.DTO,
+      product: p.getDTO(),
       Discount: 0,
       BasketQuantity: basketProduct.quantity,
     };
@@ -192,6 +219,18 @@ export class Store extends Mixin(HasRepos, HasControllers) {
   }
   public removeConstraint(constraintId: string) {
     this.constraintPolicy.removeConstraint(constraintId);
+  }
+  public get ConstraintPolicy() {
+    return this.constraintPolicy;
+  }
+  public set ConstraintPolicy(policy: ConstraintPolicy) {
+    this.constraintPolicy = policy;
+  }
+  public get DiscountPolicy() {
+    return this.discountPolicy;
+  }
+  public set DiscountPolicy(policy: DiscountPolicy) {
+    this.discountPolicy = policy;
   }
   private createCartDTOfromBasket(basket: BasketDTO, StoreId: string): CartDTO {
     const storeIdToBasket: Map<string, BasketDTO> = new Map();

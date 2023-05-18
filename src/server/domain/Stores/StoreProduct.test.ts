@@ -182,7 +182,7 @@ describe("is quantity in stock", () => {
       repos,
       controllers
     );
-    store.IsActive = false;
+    store.IsActive() = false;
     expect(() => product.isQuantityInStock(1)).toThrow("Store is not active");
   });
 });
@@ -228,7 +228,7 @@ describe("decrease quantity", () => {
       repos,
       controllers
     );
-    store.IsActive = false;
+    store.IsActive() = false;
     expect(() => product.decreaseQuantity(1)).toThrow("Store is not active");
     expect(product.Quantity).toBe(productData.quantity);
   });

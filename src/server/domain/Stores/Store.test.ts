@@ -8,6 +8,7 @@ import {
   createCompositeConditionArgs,
   createCompositeDiscountArgs,
   createLiteralConditionArgs,
+  createPromise,
   createSimpleDiscountArgs,
   createStore,
   createStoreWithProduct,
@@ -43,7 +44,9 @@ function generateForDiscountAndConstraintTests(testType: string) {
   product2Data.category = "Meat";
   const product1BasketQuantity = 55;
   const product2BasketQuantity = 23;
-  vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
+  vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce(
+    createPromise("aaa")
+  );
   const product2Id = store.createProduct(product2Data);
   const product2 = StoreProduct.fromDTO(
     { ...product2Data, id: product2Id, rating: 0 },
@@ -57,14 +60,13 @@ function generateForDiscountAndConstraintTests(testType: string) {
       { quantity: product2BasketQuantity, storeProductId: product2Id },
     ],
   };
-  vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValueOnce([
-    product,
-    product2,
-  ]);
-  vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);
+  vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValueOnce(
+    createPromise([product, product2])
+  );
+  vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(createPromise(store));
   vi.spyOn(repos.Products, "getProductById").mockImplementation((id) => {
-    if (id === product.Id) return product;
-    else return product2;
+    if (id === product.Id) return createPromise(product);
+    else return createPromise(product2);
   });
   const price = store.getBasketPrice("", basket);
   return {
@@ -84,7 +86,7 @@ describe("constructor", () => {
     const repos = createTestRepos(testType);
     const store = createStore(storeName, repos, controllers);
     expect(store.Name).toBe(storeName);
-    expect(store.IsActive).toBe(true);
+    expect(store.IsActive()).toBe(true);
   });
 
   itUnitIntegration("❎gets empty name", () => {
@@ -93,12 +95,14 @@ describe("constructor", () => {
 });
 
 describe("createProduct", () => {
-  itUnitIntegration("✅creates a product", (testType) => {
+  itUnitIntegration("✅creates a product", async (testType) => {
     const controllers = createTestControllers(testType, "Stores");
     const repos = createTestRepos(testType);
     const storeName = generateStoreName();
     const store = createStore(storeName, repos, controllers);
-    vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
+    vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce(
+      new Promise((resolve) => resolve("aaaaaa"))
+    );
     const productData = generateProductArgs();
     const productId = store.createProduct(productData);
     const product = StoreProduct.fromDTO(
@@ -106,13 +110,16 @@ describe("createProduct", () => {
       controllers,
       repos
     );
-    vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValue([product]);
+    vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValue(
+      new Promise((resolve) => resolve([product]))
+    );
     vi.spyOn(
       controllers.PurchasesHistory,
       "getReviewsByProduct"
     ).mockReturnValue({ avgRating: 0, reviews: [] });
-    expect(store.Products.length).toBe(1);
-    expect(store.Products[0]).toEqual({
+    const products = await store.getProducts();
+    expect(products.length).toBe(1);
+    expect(products[0]).toEqual({
       ...productData,
       rating: 0,
       id: productId,
@@ -147,8 +154,12 @@ describe("get basket price", () => {
         { quantity: productData.quantity, storeProductId: product.Id },
       ],
     };
-    vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);
-    vi.spyOn(repos.Products, "getProductById").mockReturnValue(product);
+    vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(
+      createPromise(store)
+    );
+    vi.spyOn(repos.Products, "getProductById").mockReturnValue(
+      createPromise(product)
+    );
     expect(store.getBasketPrice("", basket)).toBe(
       product.Price * productData.quantity
     );

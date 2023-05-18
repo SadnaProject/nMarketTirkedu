@@ -310,6 +310,9 @@ export class MarketFacade extends Loggable {
   getProductPrice(userId: string, productId: string): number {
     return this.controllers.Stores.getProductPrice(userId, productId);
   }
+  getProductById(userId: string, productId: string): StoreProductDTO {
+    return this.controllers.Stores.getProductById(userId, productId);
+  }
   isProductQuantityInStock(
     userId: string,
     productId: string,

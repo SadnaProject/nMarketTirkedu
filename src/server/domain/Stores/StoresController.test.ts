@@ -3,7 +3,6 @@ import { createMockControllers } from "../_createControllers";
 import { type Repos, createMockRepos } from "./_HasRepos";
 import {
   createProduct,
-  createPromise,
   createStore,
   generateProductArgs,
   generateStoreName,
@@ -23,16 +22,10 @@ describe("search products", () => {
       createProduct(generateProductArgs(), repos, controllers)
     );
 
-    vi.spyOn(repos.Products, "getActiveProducts").mockReturnValue(
-      createPromise(products)
-    );
+    vi.spyOn(repos.Products, "getActiveProducts").mockReturnValue(products);
     const store = createStore(generateStoreName(), repos, controllers);
-    vi.spyOn(repos.Products, "getStoreIdByProductId").mockReturnValue(
-      createPromise(store.Id)
-    );
-    vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(
-      createPromise(store)
-    );
+    vi.spyOn(repos.Products, "getStoreIdByProductId").mockReturnValue(store.Id);
+    vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);
     vi.spyOn(controllers.PurchasesHistory, "getStoreRating").mockReturnValue(3);
     vi.spyOn(
       controllers.PurchasesHistory,
@@ -48,7 +41,7 @@ describe("search products", () => {
       true
     );
     const res = controllers.Stores.searchProducts("uid", {});
-    expect(res).toEqual(products.map((p) => p.getDTO()));
+    expect(res).toEqual(products.map((p) => p.DTO));
   });
 
   it("✅should return some products because of name filter", () => {
@@ -58,7 +51,7 @@ describe("search products", () => {
     const res = controllers.Stores.searchProducts("uid", {
       name: products[0]?.Name.toUpperCase().split(" ")[0],
     });
-    expect(res).toContainEqual(products[0]?.getDTO());
+    expect(res).toContainEqual(products[0]?.DTO);
   });
 
   it("✅should return some products because of keywords", () => {
@@ -68,7 +61,7 @@ describe("search products", () => {
     const res = controllers.Stores.searchProducts("uid", {
       keywords: [products[1]?.Description.toUpperCase().split(" ")[1] ?? ""],
     });
-    expect(res).toContainEqual(products[1]?.getDTO());
+    expect(res).toContainEqual(products[1]?.DTO);
   });
 
   it("✅shouldn't return products because of made up name", () => {

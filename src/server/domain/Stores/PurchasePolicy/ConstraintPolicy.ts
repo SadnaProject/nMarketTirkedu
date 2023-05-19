@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto";
 import { type ConditionArgs } from "../Conditions/CompositeLogicalCondition/Condition";
+import { Constraint } from "../Constraint";
 import { type FullBasketDTO } from "../StoresController";
 import { TRPCError } from "@trpc/server";
-import { Constraint } from "./Constraint";
 
 export class ConstraintPolicy {
   private storeId: string;
@@ -11,7 +11,8 @@ export class ConstraintPolicy {
     this.storeId = storeId;
     this.constraints = new Map<string, Constraint>();
   }
-  public addConstraint(args: ConditionArgs, constraintID: string) {
+  public addConstraint(args: ConditionArgs) {
+    const constraintID = randomUUID();
     this.constraints.set(constraintID, new Constraint(args));
     return constraintID;
   }

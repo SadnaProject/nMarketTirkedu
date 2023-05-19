@@ -76,7 +76,7 @@ export function createProduct(
   return new StoreProduct(args).initControllers(controllers).initRepos(repos);
 }
 
-export async function createStoreWithProduct(
+export function createStoreWithProduct(
   productData: StoreProductArgs,
   repos: Repos,
   controllers: Controllers
@@ -85,16 +85,14 @@ export async function createStoreWithProduct(
     { avgRating: 0, reviews: [] }
   );
   const store = createStore(generateStoreName(), repos, controllers);
-  vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce(
-    createPromise("AAA")
-  );
-  const productId = await store.createProduct(productData);
+  vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
+  const productId = store.createProduct(productData);
   const product = StoreProduct.fromDTO(
     { ...productData, id: productId, rating: 0 },
     controllers,
     repos
   );
-  vi.spyOn(product, "getStore").mockReturnValue(createPromise(store));
+  vi.spyOn(product, "Store", "get").mockReturnValue(store);
   return { store, product };
 }
 export function createSimpleDiscountArgs(
@@ -164,9 +162,4 @@ export function createCompositeDiscountArgs(
     left: left,
     right: right,
   };
-}
-export function createPromise<T>(value: T) {
-  return new Promise<T>((resolve) => {
-    resolve(value);
-  });
 }

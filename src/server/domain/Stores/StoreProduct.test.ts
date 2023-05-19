@@ -47,22 +47,22 @@ describe("constructor", () => {
 });
 
 describe("set name", () => {
-  itUnitIntegration("✅sets name", (testType) => {
+  itUnitIntegration("✅sets name", async (testType) => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
     const store = createProduct(productData, repos, controllers);
-    store.Name = "new name";
+    await store.setName("new name");
     expect(store.Name).toBe("new name");
   });
 
-  itUnitIntegration("❎gets empty name", (testType) => {
+  itUnitIntegration("❎gets empty name",  (testType) => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
     const store = createProduct(productData, repos, controllers);
-    expect(() => {
-      store.Name = "";
+    expect(async() => {
+      await store.setName ( "");
     }).toThrow(ZodError);
     expect(store.Name).toBe(productData.name);
   });

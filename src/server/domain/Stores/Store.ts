@@ -43,12 +43,12 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     this.constraintPolicy = new ConstraintPolicy(this.Id);
   }
 
-  static fromDTO(dto: StoreDTO, repos: Repos, controllers: Controllers) {
+  static async fromDTO(dto: StoreDTO, repos: Repos, controllers: Controllers) {
     const store = new Store(dto.name)
       .initRepos(repos)
       .initControllers(controllers);
     store.id = dto.id;
-    store.setActive(dto.isActive);
+    await store.setActive(dto.isActive);
     return store;
   }
 
@@ -207,16 +207,21 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     };
   }
   public async addDiscount(discount: DiscountArgs) {
-    this.discountPolicy.addDiscount(discount);
-    return this.Repos.Stores.addDiscount(discount);
+    const Id = await this.Repos.Stores.addDiscount(this.Id, discount);
+    this.discountPolicy.addDiscount(discount, Id);
+    return Id;
   }
-  public removeDiscount(discountId: string) {
+  public async removeDiscount(discountId: string) {
     this.discountPolicy.removeDiscount(discountId);
+    return await this.Repos.Stores.removeDiscount(discountId);
   }
-  public addConstraint(args: ConditionArgs) {
-    return this.constraintPolicy.addConstraint(args);
+  public async addConstraint(args: ConditionArgs) {
+    const Id = await this.Repos.Stores.addConstraint(this.Id, args);
+    this.constraintPolicy.addConstraint(args, Id);
+    return Id;
   }
-  public removeConstraint(constraintId: string) {
+  public async removeConstraint(constraintId: string) {
+    await this.Repos.Stores.removeConstraint(constraintId);
     this.constraintPolicy.removeConstraint(constraintId);
   }
   public get ConstraintPolicy() {

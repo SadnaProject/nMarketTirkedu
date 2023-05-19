@@ -562,7 +562,7 @@ export class StoresController
       this.Repos,
       this.Controllers
     );
-    store.setActive(true);
+    await store.setActive(true);
     const notifiedUserIds = [
       store.FounderId,
       ...store.OwnersIds,
@@ -600,7 +600,7 @@ export class StoresController
         message: "User does not have permission to deactivate store",
       });
     }
-    store.setActive(false);
+    await store.setActive(false);
     const notifiedUserIds = [
       store.FounderId,
       ...store.OwnersIds,
@@ -813,7 +813,7 @@ export class StoresController
         message:
           "User does not have permission to remove constraint from store",
       });
-    (
+    await (
       await Store.fromStoreId(storeId, this.Repos, this.Controllers)
     ).removeConstraint(constraintId);
   }
@@ -841,7 +841,7 @@ export class StoresController
         code: "UNAUTHORIZED",
         message: "User does not have permission to remove discount from store",
       });
-    (
+    await (
       await Store.fromStoreId(storeId, this.Repos, this.Controllers)
     ).removeDiscount(discountId);
   }

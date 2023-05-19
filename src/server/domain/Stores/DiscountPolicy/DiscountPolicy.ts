@@ -10,8 +10,7 @@ export class DiscountPolicy {
     this.discounts = new Map<string, IDiscount>();
   }
 
-  public addDiscount(args: DiscountArgs) {
-    const discountID = randomUUID();
+  public addDiscount(args: DiscountArgs, discountID: string) {
     this.discounts.set(discountID, buildDiscount(args));
     return discountID;
   }

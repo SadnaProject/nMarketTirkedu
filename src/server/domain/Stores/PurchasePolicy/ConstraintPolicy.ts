@@ -11,8 +11,7 @@ export class ConstraintPolicy {
     this.storeId = storeId;
     this.constraints = new Map<string, Constraint>();
   }
-  public addConstraint(args: ConditionArgs) {
-    const constraintID = randomUUID();
+  public addConstraint(args: ConditionArgs, constraintID: string) {
     this.constraints.set(constraintID, new Constraint(args));
     return constraintID;
   }

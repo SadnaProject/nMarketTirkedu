@@ -85,7 +85,7 @@ export class StoresRepo extends Testable {
     const constraintPolicy = new ConstraintPolicy(storeId);
     for (const constraint of constraints) {
       const conditionArgs = await this.getCondition(constraint.conditionId);
-      constraintPolicy.addConstraint(conditionArgs);
+      constraintPolicy.addConstraint(conditionArgs, constraint.conditionId);
     }
     return constraintPolicy;
   }
@@ -98,7 +98,7 @@ export class StoresRepo extends Testable {
     const discountPolicy = new DiscountPolicy(storeId);
     for (const discount of discounts) {
       const discountArgs = await this.getDiscountArgs(discount.id);
-      discountPolicy.addDiscount(discountArgs);
+      discountPolicy.addDiscount(discountArgs, discount.id);
     }
     return discountPolicy;
   }
@@ -319,11 +319,72 @@ export class StoresRepo extends Testable {
         id: constraintId,
       },
     });
-    return await db.condition.delete({
+    if (!constraint) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Constraint not found",
+      });
+    }
+    return await this.deleteConditions(constraint?.conditionId);
+  }
+  public async removeDiscount(discountId: string) {
+    const discount = await db.discount.findUnique({
       where: {
-        id: constraint?.conditionId,
+        id: discountId,
+      },
+      include: {
+        composite: true,
+        simple: true,
       },
     });
+    if (discount?.composite) {
+      await this.removeDiscount(discount?.composite.leftId);
+      await this.removeDiscount(discount?.composite.rightId);
+      await db.compositeDiscount.delete({
+        where: {
+          id: discount?.composite.id,
+        },
+      });
+    } else if (discount?.simple) {
+      await this.deleteConditions(discount?.simple.conditionId);
+      await db.simpleDiscount.delete({
+        where: {
+          id: discount?.simple.id,
+        },
+      });
+    }
   }
-  public async removeDiscount(discountId: string) {}
+  private async deleteConditions(conditionId: string) {
+    const condition = await db.condition.findUnique({
+      where: {
+        id: conditionId,
+      },
+      include: {
+        compositeCondition: true,
+        dateCondition: true,
+        LiteralCondition: true,
+      },
+    });
+    if (condition?.compositeCondition) {
+      await this.deleteConditions(condition?.compositeCondition.firstId);
+      await this.deleteConditions(condition?.compositeCondition.secondId);
+      await db.compositeCondition.delete({
+        where: {
+          id: condition?.compositeCondition.id,
+        },
+      });
+    } else if (condition?.LiteralCondition) {
+      await db.literalCondition.delete({
+        where: {
+          id: condition?.LiteralCondition.id,
+        },
+      });
+    } else if (condition?.dateCondition) {
+      await db.dateCondition.delete({
+        where: {
+          id: condition?.dateCondition.id,
+        },
+      });
+    }
+  }
 }

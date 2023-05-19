@@ -3,6 +3,7 @@ import { createMockControllers } from "../_createControllers";
 import { type Repos, createMockRepos } from "./_HasRepos";
 import {
   createProduct,
+  createPromise,
   createStore,
   generateProductArgs,
   generateStoreName,
@@ -22,10 +23,16 @@ describe("search products", () => {
       createProduct(generateProductArgs(), repos, controllers)
     );
 
-    vi.spyOn(repos.Products, "getActiveProducts").mockReturnValue(products);
+    vi.spyOn(repos.Products, "getActiveProducts").mockReturnValue(
+      createPromise(products)
+    );
     const store = createStore(generateStoreName(), repos, controllers);
-    vi.spyOn(repos.Products, "getStoreIdByProductId").mockReturnValue(store.Id);
-    vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);
+    vi.spyOn(repos.Products, "getStoreIdByProductId").mockReturnValue(
+      createPromise(store.Id)
+    );
+    vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(
+      createPromise(store)
+    );
     vi.spyOn(controllers.PurchasesHistory, "getStoreRating").mockReturnValue(3);
     vi.spyOn(
       controllers.PurchasesHistory,

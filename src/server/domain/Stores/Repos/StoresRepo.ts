@@ -10,6 +10,7 @@ import { ConstraintPolicy } from "../PurchasePolicy/ConstraintPolicy";
 import { buildCondition } from "../Conditions/CompositeLogicalCondition/_typeDictionary";
 import { DiscountPolicy } from "../DiscountPolicy/DiscountPolicy";
 import { DiscountArgs } from "../DiscountPolicy/Discount";
+import { type Store as DataStore } from "@prisma/client";
 
 @testable
 export class StoresRepo extends Testable {
@@ -39,7 +40,12 @@ export class StoresRepo extends Testable {
 
   public async getAllStores() {
     const stores = await db.store.findMany();
-    return stores;
+    const realStores = [];
+    for (const store of stores) {
+      const realStore = await this.getStoreById(store.id);
+      realStores.push(realStore);
+    }
+    return realStores;
   }
 
   public async getActiveStores() {
@@ -65,7 +71,7 @@ export class StoresRepo extends Testable {
     }
     const realStore = new Store(store.name);
     realStore.Id = store.id;
-    realStore.setActive(store.isActive);
+    await realStore.setActive(store.isActive);
     realStore.DiscountPolicy = await this.getDiscounts(storeId);
     realStore.ConstraintPolicy = await this.getConstraints(storeId);
     return realStore;
@@ -77,16 +83,10 @@ export class StoresRepo extends Testable {
       },
     });
     const constraintPolicy = new ConstraintPolicy(storeId);
-
-    constraints.forEach((constraint) => {
-      this.getCondition(constraint.conditionId)
-        .then((conditionArgs) => {
-          constraintPolicy.addConstraint(conditionArgs);
-        })
-        .catch((err) => {
-          throw err;
-        });
-    });
+    for (const constraint of constraints) {
+      const conditionArgs = await this.getCondition(constraint.conditionId);
+      constraintPolicy.addConstraint(conditionArgs);
+    }
     return constraintPolicy;
   }
   public async getDiscounts(storeId: string): Promise<DiscountPolicy> {
@@ -96,15 +96,10 @@ export class StoresRepo extends Testable {
       },
     });
     const discountPolicy = new DiscountPolicy(storeId);
-    discounts.forEach((discount) => {
-      this.getDiscountArgs(discount.id)
-        .then((discountArgs) => {
-          discountPolicy.addDiscount(discountArgs);
-        })
-        .catch((err) => {
-          throw err;
-        });
-    });
+    for (const discount of discounts) {
+      const discountArgs = await this.getDiscountArgs(discount.id);
+      discountPolicy.addDiscount(discountArgs);
+    }
     return discountPolicy;
   }
   private async getDiscountArgs(discountId: string): Promise<DiscountArgs> {
@@ -195,4 +190,140 @@ export class StoresRepo extends Testable {
       },
     });
   }
+  public async addConstraint(storeId: string, condition: ConditionArgs) {
+    return (
+      await db.constraint.create({
+        data: {
+          storeId: storeId,
+          conditionId: await this.addCondition(condition),
+        },
+      })
+    ).id;
+  }
+  public async addDiscount(
+    storeId: string,
+    discount: DiscountArgs
+  ): Promise<string> {
+    if (discount.type === "Simple") {
+      const simple = await db.simpleDiscount.create({
+        data: {
+          amount: discount.amount,
+          discountOn: discount.discountOn,
+          storeId: storeId,
+          conditionId: await this.addCondition(discount.condition),
+        },
+      });
+      return (
+        await db.discount.create({
+          data: {
+            simpleId: simple.id,
+            storeId: storeId,
+          },
+        })
+      ).id;
+    } else {
+      if (discount.type === "Add" || discount.type === "Max") {
+        const composite = await db.compositeDiscount.create({
+          data: {
+            leftId: await this.addDiscount(storeId, discount.left),
+            rightId: await this.addDiscount(storeId, discount.right),
+            type: discount.type,
+          },
+        });
+        return (
+          await db.discount.create({
+            data: {
+              compositeId: composite.id,
+              storeId: storeId,
+            },
+          })
+        ).id;
+      }
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Discount type not supported",
+      });
+    }
+  }
+  public async addCondition(condition: ConditionArgs): Promise<string> {
+    if (condition.type === "Composite") {
+      return (
+        await db.condition.create({
+          data: {
+            compositeCondition: {
+              create: {
+                firstId: await this.addCondition(condition.left),
+                secondId: await this.addCondition(condition.right),
+                CompositeConditionType: condition.subType,
+              },
+            },
+          },
+        })
+      ).id;
+    } else if (condition.type === "Time") {
+      return (
+        await db.condition.create({
+          data: {
+            dateCondition: {
+              create: {
+                timeConditionType: condition.conditionType,
+                year: condition.year,
+                month: condition.month,
+                day: condition.day,
+                hour: condition.hour,
+              },
+            },
+          },
+        })
+      ).id;
+    } else {
+      if (condition.type === "Literal") {
+        return (
+          await db.condition.create({
+            data: {
+              LiteralCondition: {
+                create: {
+                  type: condition.subType,
+                  amount: condition.amount,
+                  conditionType: condition.conditionType,
+                },
+              },
+            },
+          })
+        ).id;
+      } else {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Condition is not from correct type",
+        });
+      }
+    }
+  }
+  public setField<T extends keyof DataStore>(
+    productId: string,
+    field: T,
+    value: DataStore[T]
+  ) {
+    return db.store.update({
+      where: {
+        id: productId,
+      },
+      data: {
+        [field]: value,
+      },
+    });
+  }
+  public async removeConstraint(constraintId: string) {
+    const constraint = await db.constraint.findUnique({
+      where: {
+        id: constraintId,
+      },
+    });
+    return await db.condition.delete({
+      where: {
+        id: constraint?.conditionId,
+      },
+    });
+  }
+  public async removeDiscount(discountId: string) {}
 }

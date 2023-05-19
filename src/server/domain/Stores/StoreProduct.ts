@@ -81,18 +81,20 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
     return this.name;
   }
 
-  public set Name(name: string) {
+  public async setName(name: string) {
     nameSchema.parse(name);
     this.name = name;
+    await this.Repos.Products.setField(this.Id, "name", name);
   }
 
   public get Quantity() {
     return this.quantity;
   }
 
-  public set Quantity(quantity: number) {
+  public async setQuantity(quantity: number) {
     quantitySchema.parse(quantity);
     this.quantity = quantity;
+    await this.Repos.Products.setField(this.Id, "quantity", quantity);
   }
 
   public async decreaseQuantity(quantity: number) {
@@ -103,34 +105,37 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
         message: "Not enough quantity in stock",
       });
     }
-    this.Quantity = this.Quantity - quantity;
+    await this.setQuantity(this.Quantity - quantity);
   }
 
   public get Price() {
     return this.price;
   }
 
-  public set Price(price: number) {
+  public async setPrice(price: number) {
     priceSchema.parse(price);
     this.price = price;
+    await this.Repos.Products.setField(this.Id, "price", price);
   }
 
   public get Category() {
     return this.category;
   }
 
-  public set Category(category: string) {
+  public async setCategory(category: string) {
     categorySchema.parse(category);
     this.category = category;
+    await this.Repos.Products.setField(this.Id, "category", category);
   }
 
   public get Description() {
     return this.description;
   }
 
-  public set Description(description: string) {
+  public async setDescription(description: string) {
     descriptionSchema.parse(description);
     this.description = description;
+    await this.Repos.Products.setField(this.Id, "description", description);
   }
 
   public async getStore() {
@@ -192,11 +197,11 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
     return repos.Products.getActiveProducts();
   }
 
-  public addSpecialPrice(userId: string, price: number) {
-    this.specialPrices.set(userId, price);
+  public async addSpecialPrice(userId: string, price: number) {
+    await this.Repos.Products.addSpecialPrice(userId, this.Id, price);
   }
   public getPriceForUser(userId: string): number {
-    const p = this.specialPrices.get(userId);
+    const p = this.SpecialPrices.get(userId);
     return p !== undefined ? p : this.Price;
   }
 }

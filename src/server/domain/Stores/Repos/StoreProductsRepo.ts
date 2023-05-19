@@ -1,5 +1,6 @@
 import { Testable, testable } from "server/domain/_Testable";
 import { StoreProduct } from "../StoreProduct";
+import { type StoreProduct as DataStoreProduct } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { db } from "server/db";
 import { randomUUID } from "crypto";
@@ -55,15 +56,17 @@ export class StoreProductsRepo extends Testable {
       },
     });
     const realProducts: StoreProduct[] = [];
-    products.forEach((product) => {
-      this.getProductById(product.id)
-        .then((realProduct) => {
-          realProducts.push(realProduct);
-        })
-        .catch((err) => {
-          throw err;
-        });
-    });
+    for (const product of products) {
+      const realProduct = new StoreProduct({
+        category: product.category,
+        description: product.description,
+        name: product.name,
+        price: product.price,
+        quantity: product.quantity,
+      });
+      realProduct.Id = product.id;
+      realProducts.push(realProduct);
+    }
     return realProducts;
   }
   public async getProductById(productId: string) {
@@ -89,34 +92,26 @@ export class StoreProductsRepo extends Testable {
     return realProduct;
   }
 
-  public getActiveProducts() {
-    const activeProducts: StoreProduct[] = [];
-    this.getAllProducts()
-      .then((products) => {
-        products.forEach((product) => {
-          db.storeProduct
-            .findUnique({
-              where: {
-                id: product.Id,
-              },
-              select: {
-                store: true,
-              },
-            })
-            .then((store) => {
-              if (store?.store.isActive) {
-                activeProducts.push(product);
-              }
-            })
-            .catch((err) => {
-              throw err;
-            });
-        });
-      })
-      .catch((err) => {
-        throw err;
+  public async getActiveProducts() {
+    const products = await db.storeProduct.findMany({
+      include: {
+        store: true,
+      },
+    });
+    const realProducts: StoreProduct[] = [];
+    for (const product of products) {
+      if (!product.store.isActive) continue;
+      const realProduct = new StoreProduct({
+        category: product.category,
+        description: product.description,
+        name: product.name,
+        price: product.price,
+        quantity: product.quantity,
       });
-    return activeProducts;
+      realProduct.Id = product.id;
+      realProducts.push(realProduct);
+    }
+    return realProducts;
   }
 
   public async getProductsByStoreId(storeId: string) {
@@ -126,15 +121,18 @@ export class StoreProductsRepo extends Testable {
       },
     });
     const realProducts: StoreProduct[] = [];
-    products.forEach((product) => {
-      this.getProductById(product.id)
-        .then((realProduct) => {
-          realProducts.push(realProduct);
-        })
-        .catch((err) => {
-          throw err;
-        });
-    });
+    for (const product of products) {
+      if (product.storeId !== storeId) continue;
+      const realProduct = new StoreProduct({
+        category: product.category,
+        description: product.description,
+        name: product.name,
+        price: product.price,
+        quantity: product.quantity,
+      });
+      realProduct.Id = product.id;
+      realProducts.push(realProduct);
+    }
     return realProducts;
   }
 
@@ -160,6 +158,20 @@ export class StoreProductsRepo extends Testable {
     await db.storeProduct.delete({
       where: {
         id: productId,
+      },
+    });
+  }
+  public setField<T extends keyof DataStoreProduct>(
+    productId: string,
+    field: T,
+    value: DataStoreProduct[T]
+  ) {
+    return db.storeProduct.update({
+      where: {
+        id: productId,
+      },
+      data: {
+        [field]: value,
       },
     });
   }

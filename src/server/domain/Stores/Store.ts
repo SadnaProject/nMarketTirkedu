@@ -76,8 +76,9 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     return this.isActive;
   }
 
-  public setActive(isActive: boolean) {
+  public async setActive(isActive: boolean) {
     this.isActive = isActive;
+    await this.Repos.Stores.setField(this.Id, "isActive", isActive);
   }
 
   public get DTO(): StoreDTO {
@@ -113,16 +114,13 @@ export class Store extends Mixin(HasRepos, HasControllers) {
 
     fullBasket = this.discountPolicy.applyDiscounts(fullBasket);
     let price = 0;
-    fullBasket.products.forEach((product) => {
-      let productPrice = 0;
-      this.Repos.Products.getProductById(product.product.id)
-        .then((product) => (productPrice = product.getPriceForUser(userId)))
-        .catch((err) => {
-          throw err;
-        });
+    for (const product of fullBasket.products) {
       price +=
-        product.BasketQuantity * productPrice * (1 - product.Discount / 100);
-    });
+        product.BasketQuantity *
+        (
+          await this.Repos.Products.getProductById(product.product.id)
+        ).getPriceForUser(userId);
+    }
     return price;
   }
 
@@ -208,8 +206,9 @@ export class Store extends Mixin(HasRepos, HasControllers) {
       BasketQuantity: basketProduct.quantity,
     };
   }
-  public addDiscount(discount: DiscountArgs) {
-    return this.discountPolicy.addDiscount(discount);
+  public async addDiscount(discount: DiscountArgs) {
+    this.discountPolicy.addDiscount(discount);
+    return this.Repos.Stores.addDiscount(discount);
   }
   public removeDiscount(discountId: string) {
     this.discountPolicy.removeDiscount(discountId);

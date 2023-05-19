@@ -51,14 +51,14 @@ export interface IStoresController extends HasRepos {
     userId: string,
     storeId: string,
     product: StoreProductArgs
-  ): Promise<string>;
+  ): string;
   /**
    * This function checks if a store is active.
    * @param userId The id of the user that is currently logged in.
    * @param storeId The id of the store that is being checked.
    * @returns True if the store is active, false otherwise.
    */
-  isStoreActive(userId: string, storeId: string): Promise<boolean>;
+  isStoreActive(userId: string, storeId: string): boolean;
   /**
    * This function gets all the products in a store.
    * @param userId The id of the user that is currently logged in.
@@ -66,7 +66,7 @@ export interface IStoresController extends HasRepos {
    * @returns An array of products.
    *@throws Error if the store is not active.
    */
-  getStoreProducts(userId: string, storeId: string): Promise<StoreProductDTO[]>;
+  getStoreProducts(userId: string, storeId: string): StoreProductDTO[];
   /**
    * This function sets the quantity of a product in a store.
    * @param userId The id of the user that is currently logged in.
@@ -74,11 +74,7 @@ export interface IStoresController extends HasRepos {
    * @param quantity The new quantity of the product.
    * @throws Error if the store is not active.
    */
-  setProductQuantity(
-    userId: string,
-    productId: string,
-    quantity: number
-  ): Promise<void>;
+  setProductQuantity(userId: string, productId: string, quantity: number): void;
   /**
    * This function decreases the quantity of a product in a store.
    * @param productId The id of the product that is being updated.
@@ -86,7 +82,7 @@ export interface IStoresController extends HasRepos {
    * @throws Error if the store is not active.
    * @throws Error if the quantity is invalid.
    */
-  decreaseProductQuantity(productId: string, quantity: number): Promise<void>;
+  decreaseProductQuantity(productId: string, quantity: number): void;
   /**
    * This function deletes a product from a store.
    * @param userId The id of the user that is currently logged in.
@@ -94,7 +90,7 @@ export interface IStoresController extends HasRepos {
    * @throws Error if the store is not active.
    * @throws Error if user does not have permission to delete product.
    */
-  deleteProduct(userId: string, productId: string): Promise<void>;
+  deleteProduct(userId: string, productId: string): void;
   /**
    * This function sets the price of a product in a store.
    * @param userId The id of the user that is currently logged in.
@@ -104,11 +100,7 @@ export interface IStoresController extends HasRepos {
    * @throws Error if the price is invalid.
    * @throws Error if user does not have permission to update product price.
    */
-  setProductPrice(
-    userId: string,
-    productId: string,
-    price: number
-  ): Promise<void>;
+  setProductPrice(userId: string, productId: string, price: number): void;
   //! There will be addDiscountCondition for each condition type
   /**
    * This function adds a discount to a store.
@@ -132,35 +124,35 @@ export interface IStoresController extends HasRepos {
    * @throws Error if the store name is invalid.
    * @throws Error if the store name is already taken.
    */
-  createStore(founderId: string, storeName: string): Promise<string>;
+  createStore(founderId: string, storeName: string): string;
   /**
    * This function activates a store.
    * @param userId The id of the user that is currently logged in.
    * @param storeId The id of the store that is being activated.
    * @throws Error if the user does not have permission to activate the store.
    */
-  activateStore(userId: string, storeId: string): Promise<void>;
+  activateStore(userId: string, storeId: string): void;
   /**
    * This function deactivates a store.
    * @param userId The id of the user that is currently logged in.
    * @param storeId The id of the store that is being deactivated.
    * @throws Error if the user does not have permission to deactivate the store.
    */
-  deactivateStore(userId: string, storeId: string): Promise<void>;
+  deactivateStore(userId: string, storeId: string): void;
   /**
    * This function permanently closes a store.
    * @param userId The id of the user that is currently logged in.
    * @param storeId The id of the store that is being closed.
    * @throws Error if the user does not have permission to close the store.
    */
-  closeStorePermanently(userId: string, storeId: string): Promise<void>; //! should it be deleted?
+  closeStorePermanently(userId: string, storeId: string): void; //! should it be deleted?
   /**
    * This function returns the product's price in a store.
    * @param userId The id of the user that is currently logged in.
    * @param productId The id of the product.
    * @returns The price of the product in the store.
    */
-  getProductPrice(userId: string, productId: string): Promise<number>;
+  getProductPrice(userId: string, productId: string): number;
   /**
    * This function checks if a product is in stock.
    * @param userId The id of the user that is currently logged in.
@@ -174,7 +166,7 @@ export interface IStoresController extends HasRepos {
     userId: string,
     productId: string,
     quantity: number
-  ): Promise<boolean>;
+  ): boolean;
   /**
    * This function returns the store id of a product.
    * @param userId The id of the user that is currently logged in.
@@ -182,7 +174,7 @@ export interface IStoresController extends HasRepos {
    * @returns The id of the store that the product is in.
    * @throws Error if the product does not exist.
    */
-  getStoreIdByProductId(userId: string, productId: string): Promise<string>;
+  getStoreIdByProductId(userId: string, productId: string): string;
   /**
    * This function returns the total price of a cart.
    * @param userId The id of the user that is currently logged in.
@@ -190,7 +182,7 @@ export interface IStoresController extends HasRepos {
    * @throws Error if a product does not exist.
    * @throws Error if a product does not belong to the store of its basket.
    */
-  getCartPrice(userId: string): Promise<number>;
+  getCartPrice(userId: string): number;
   /**
    * This function returns the total price of a basket.
    * @param userId The id of the user that is currently logged in.
@@ -199,16 +191,13 @@ export interface IStoresController extends HasRepos {
    * @throws Error if a product does not exist.
    * @throws Error if a product does not belong to the store of its basket.
    */
-  getBasketPrice(userId: string, storeId: string): Promise<number>;
+  getBasketPrice(userId: string, storeId: string): number;
   /**
    * This function returns the products that match the search arguments.
    * @param userId The id of the user that is currently logged in.
    * @param searchArgs The search arguments.
    */
-  searchProducts(
-    userId: string,
-    searchArgs: SearchArgs
-  ): Promise<StoreProductDTO[]>;
+  searchProducts(userId: string, searchArgs: SearchArgs): StoreProductDTO[];
   makeStoreOwner(
     currentId: string,
     storeId: string,
@@ -261,47 +250,44 @@ export interface IStoresController extends HasRepos {
     targetUserId: string,
     permission: boolean
   ): void;
-  canCreateProductInStore(currentId: string, storeId: string): Promise<boolean>;
-  isStoreOwner(userId: string, storeId: string): Promise<boolean>;
-  isStoreManager(userId: string, storeId: string): Promise<boolean>;
-  isStoreFounder(userId: string, storeId: string): Promise<boolean>;
-  getStoreFounderId(storeId: string): Promise<string>;
-  getStoreOwnersIds(storeId: string): Promise<string[]>;
-  getStoreManagersIds(storeId: string): Promise<string[]>;
-  getPurchasesByStoreId(
-    userId: string,
-    storeId: string
-  ): Promise<BasketPurchaseDTO[]>;
-  searchStores(userId: string, name: string): Promise<StoreDTO[]>;
+  canCreateProductInStore(currentId: string, storeId: string): boolean;
+  isStoreOwner(userId: string, storeId: string): boolean;
+  isStoreManager(userId: string, storeId: string): boolean;
+  isStoreFounder(userId: string, storeId: string): boolean;
+  getStoreFounderId(storeId: string): string;
+  getStoreOwnersIds(storeId: string): string[];
+  getStoreManagersIds(storeId: string): string[];
+  getPurchasesByStoreId(userId: string, storeId: string): BasketPurchaseDTO[];
+  searchStores(userId: string, name: string): StoreDTO[];
   addConstraintToStore(
     userId: string,
     storeId: string,
     constraintArgs: ConditionArgs
-  ): Promise<string>;
+  ): string;
   removeConstraintFromStore(
     userId: string,
     storeId: string,
     constraintId: string
-  ): Promise<void>;
+  ): void;
   addDiscountToStore(
     userId: string,
     storeId: string,
     discountArgs: DiscountArgs
-  ): Promise<string>;
+  ): string;
   removeDiscountFromStore(
     userId: string,
     storeId: string,
     discountId: string
-  ): Promise<void>;
+  ): void;
   checkIfBasketSatisfiesStoreConstraints(
     userId: string,
     storeId: string,
     basket: BasketDTO
-  ): Promise<boolean>;
-  getProductById(userId: string, productId: string): Promise<StoreProductDTO>;
+  ): boolean;
+  getProductById(userId: string, productId: string): StoreProductDTO;
 
-  myStores(userId: string): Promise<{ store: StoreDTO; role: RoleType }[]>;
-  addSpecialPriceToProduct(bid: Bid): Promise<void>;
+  myStores(userId: string): { store: StoreDTO; role: RoleType }[];
+  addSpecialPriceToProduct(bid: Bid): void;
 }
 
 @testable
@@ -313,30 +299,23 @@ export class StoresController
     super();
     this.initRepos(createRepos());
   }
-  async searchProducts(
-    userId: string,
-    args: SearchArgs
-  ): Promise<StoreProductDTO[]> {
-    return (await StoreProduct.getActive(this.Repos))
-      .filter(async (p) => {
-        const store = await p.getStore();
-        this.Controllers.Jobs.canReceivePublicDataFromStore(userId, store.Id);
-      })
-      .filter(async (p) => {
-        const store = await p.getStore();
+  searchProducts(userId: string, args: SearchArgs): StoreProductDTO[] {
+    return StoreProduct.getActive(this.Repos)
+      .filter((p) =>
+        this.Controllers.Jobs.canReceivePublicDataFromStore(userId, p.Store.Id)
+      )
+      .filter((p) => {
         const productRating =
           this.Controllers.PurchasesHistory.getReviewsByProduct(p.Id).avgRating;
         const storeRating = this.Controllers.PurchasesHistory.getStoreRating(
-          store.Id
+          p.Store.Id
         );
         return this.filterProductSearch(p, productRating, storeRating, args);
       })
-      .map((p) =>
-        p.initControllers(this.Controllers).initRepos(this.Repos).getDTO()
-      );
+      .map((p) => p.DTO);
   }
 
-  private async filterProductSearch(
+  private filterProductSearch(
     p: StoreProduct,
     productRating: number,
     storeRating: number,
@@ -352,9 +331,8 @@ export class StoresController
       maxStoreRating = Infinity,
     }: SearchArgs
   ) {
-    const store = await p.getStore();
     return (
-      store.IsActive() &&
+      p.Store.IsActive &&
       this.search(name, p.Name) &&
       this.search(category, p.Category) &&
       keywords.every(
@@ -407,62 +385,39 @@ export class StoresController
     }
   }
 
-  async isProductQuantityInStock(
+  isProductQuantityInStock(
     userId: string,
     productId: string,
     quantity: number
-  ): Promise<boolean> {
-    const product = await StoreProduct.fromProductId(
-      productId,
-      this.Repos,
-      this.Controllers
-    );
-    const store = await product.getStore();
-    this.enforcePublicDataAccess(userId, store.Id);
+  ): boolean {
+    const product = StoreProduct.fromProductId(productId, this.Repos);
+    this.enforcePublicDataAccess(userId, product.Store.Id);
     return product.isQuantityInStock(quantity);
   }
 
-  async createProduct(
+  createProduct(
     userId: string,
     storeId: string,
     product: StoreProductArgs
-  ): Promise<string> {
+  ): string {
     if (!this.Controllers.Jobs.canCreateProductInStore(userId, storeId)) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to create product in store",
       });
     }
-    const store = await Store.fromStoreId(
-      storeId,
-      this.Repos,
-      this.Controllers
-    );
+    const store = Store.fromStoreId(storeId, this.Repos);
     return store.createProduct(product);
   }
 
-  async isStoreActive(userId: string, storeId: string): Promise<boolean> {
+  isStoreActive(userId: string, storeId: string): boolean {
     // this.checkDataRetrievalPermission(userId, storeId);
-    const store = await Store.fromStoreId(
-      storeId,
-      this.Repos,
-      this.Controllers
-    );
-    return store.IsActive();
+    return Store.fromStoreId(storeId, this.Repos).IsActive;
   }
 
-  async getStoreProducts(
-    userId: string,
-    storeId: string
-  ): Promise<StoreProductDTO[]> {
+  getStoreProducts(userId: string, storeId: string): StoreProductDTO[] {
     this.enforcePublicDataAccess(userId, storeId);
-    const store = await Store.fromStoreId(
-      storeId,
-      this.Repos,
-      this.Controllers
-    );
-    const products = await store.getProducts();
-    return products;
+    return Store.fromStoreId(storeId, this.Repos).Products;
   }
 
   private checkDataRetrievalPermission(userId: string, storeId: string) {
@@ -476,61 +431,42 @@ export class StoresController
     }
   }
 
-  async setProductQuantity(
+  setProductQuantity(
     userId: string,
     productId: string,
     quantity: number
-  ): Promise<void> {
-    const product = await StoreProduct.fromProductId(
-      productId,
-      this.Repos,
-      this.Controllers
-    );
-    const store = await product.getStore();
-    this.enforceProductEdit(userId, store.Id);
-    await product.setQuantity(quantity);
+  ): void {
+    const product = StoreProduct.fromProductId(productId, this.Repos);
+    this.enforceProductEdit(userId, product.Store.Id);
+    product.Quantity = quantity;
   }
 
-  async decreaseProductQuantity(
-    productId: string,
-    quantity: number
-  ): Promise<void> {
-    await (
-      await StoreProduct.fromProductId(productId, this.Repos, this.Controllers)
-    ).decreaseQuantity(quantity);
+  decreaseProductQuantity(productId: string, quantity: number): void {
+    StoreProduct.fromProductId(productId, this.Repos).decreaseQuantity(
+      quantity
+    );
   }
 
-  async deleteProduct(userId: string, productId: string): Promise<void> {
-    const product = await StoreProduct.fromProductId(
-      productId,
-      this.Repos,
-      this.Controllers
-    );
-    const store = await product.getStore();
-    if (!this.Controllers.Jobs.canRemoveProductFromStore(userId, store.Id)) {
+  deleteProduct(userId: string, productId: string): void {
+    const product = StoreProduct.fromProductId(productId, this.Repos);
+    if (
+      !this.Controllers.Jobs.canRemoveProductFromStore(userId, product.Store.Id)
+    ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to delete product",
       });
     }
-    await product.delete();
+    product.delete();
   }
 
-  async setProductPrice(
-    userId: string,
-    productId: string,
-    price: number
-  ): Promise<void> {
-    const product = await StoreProduct.fromProductId(
-      productId,
-      this.Repos,
-      this.Controllers
-    );
-    this.enforceProductEdit(userId, (await product.getStore()).Id);
-    await product.setPrice(price);
+  setProductPrice(userId: string, productId: string, price: number): void {
+    const product = StoreProduct.fromProductId(productId, this.Repos);
+    this.enforceProductEdit(userId, product.Store.Id);
+    product.Price = price;
   }
 
-  async createStore(founderId: string, storeName: string): Promise<string> {
+  createStore(founderId: string, storeName: string): string {
     if (!this.Controllers.Auth.isMember(founderId)) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -542,31 +478,25 @@ export class StoresController
       .initControllers(this.Controllers);
     this.Controllers.Jobs.InitializeStore(founderId, store.Id);
     // todo needs to check if possible before doing any change
-    if ((await this.Repos.Stores.getAllNames()).has(storeName))
+    if (this.Repos.Stores.getAllNames().has(storeName))
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Store name already exists",
       });
-
-    const args = await this.Repos.Stores.addStore(store.Name);
-    store.Id = args.id;
+    this.Repos.Stores.addStore(store);
     // TODO needs to create here event for the store
     return store.Id;
   }
 
-  async activateStore(userId: string, storeId: string): Promise<void> {
+  activateStore(userId: string, storeId: string): void {
     if (!this.Controllers.Jobs.canActivateStore(userId, storeId)) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to activate store",
       });
     }
-    const store = await Store.fromStoreId(
-      storeId,
-      this.Repos,
-      this.Controllers
-    );
-    await store.setActive(true);
+    const store = Store.fromStoreId(storeId, this.Repos);
+    store.IsActive = true;
     const notifiedUserIds = [
       store.FounderId,
       ...store.OwnersIds,
@@ -586,13 +516,9 @@ export class StoresController
     });
   }
 
-  async deactivateStore(userId: string, storeId: string): Promise<void> {
-    const store = await Store.fromStoreId(
-      storeId,
-      this.Repos,
-      this.Controllers
-    );
-    if (store.IsActive() === false) {
+  deactivateStore(userId: string, storeId: string): void {
+    const store = Store.fromStoreId(storeId, this.Repos);
+    if (store.IsActive === false) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Store is already deactivated",
@@ -604,7 +530,7 @@ export class StoresController
         message: "User does not have permission to deactivate store",
       });
     }
-    await store.setActive(false);
+    store.IsActive = false;
     const notifiedUserIds = [
       store.FounderId,
       ...store.OwnersIds,
@@ -624,16 +550,14 @@ export class StoresController
     });
   }
 
-  async closeStorePermanently(userId: string, storeId: string): Promise<void> {
+  closeStorePermanently(userId: string, storeId: string): void {
     if (!this.Controllers.Jobs.canCloseStorePermanently(userId, storeId)) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to close store permanently",
       });
     }
-    await (
-      await Store.fromStoreId(storeId, this.Repos, this.Controllers)
-    ).delete();
+    Store.fromStoreId(storeId, this.Repos).delete();
     eventEmitter.emit(`store is changed ${storeId}`, {
       storeId: storeId,
       userId: userId,
@@ -641,48 +565,33 @@ export class StoresController
     });
   }
 
-  async getProductPrice(userId: string, productId: string): Promise<number> {
+  getProductPrice(userId: string, productId: string): number {
     this.enforcePublicDataAccess(
       userId,
-      await this.getStoreIdByProductId(userId, productId)
+      this.getStoreIdByProductId(userId, productId)
     );
-    const product = await StoreProduct.fromProductId(
-      productId,
-      this.Repos,
-      this.Controllers
-    );
+    const product = StoreProduct.fromProductId(productId, this.Repos);
     return product.getPriceForUser(userId);
   }
 
-  async getStoreIdByProductId(
-    userId: string,
-    productId: string
-  ): Promise<string> {
-    const product = await StoreProduct.fromProductId(
-      productId,
-      this.Repos,
-      this.Controllers
-    );
-    this.enforcePublicDataAccess(userId, (await product.getStore()).Id);
-    return (await product.getStore()).Id;
+  getStoreIdByProductId(userId: string, productId: string): string {
+    const product = StoreProduct.fromProductId(productId, this.Repos);
+    this.enforcePublicDataAccess(userId, product.Store.Id);
+    return product.Store.Id;
   }
 
-  async getCartPrice(userId: string): Promise<number> {
+  getCartPrice(userId: string): number {
     const cartDTO = this.Controllers.Users.getCart(userId);
     let price = 0;
-    for (const storeId of cartDTO.storeIdToBasket.keys()) {
-      price += await this.getBasketPrice(userId, storeId);
-    }
+    cartDTO.storeIdToBasket.forEach((basket) => {
+      price += this.getBasketPrice(userId, basket.storeId);
+    });
     return price;
   }
 
-  async getBasketPrice(userId: string, storeId: string): Promise<number> {
+  getBasketPrice(userId: string, storeId: string): number {
     this.enforcePublicDataAccess(userId, storeId);
-    const store = await Store.fromStoreId(
-      storeId,
-      this.Repos,
-      this.Controllers
-    );
+    const store = Store.fromStoreId(storeId, this.Repos);
     const cartDTO = this.Controllers.Users.getCart(userId);
     const basketDTO = cartDTO.storeIdToBasket.get(storeId);
     if (!basketDTO)
@@ -732,39 +641,28 @@ export class StoresController
       permission
     );
   }
-  async canCreateProductInStore(currentId: string, storeId: string) {
-    return (
-      await Store.fromStoreId(storeId, this.Repos, this.Controllers)
-    ).canCreateProduct(currentId);
+  canCreateProductInStore(currentId: string, storeId: string) {
+    return Store.fromStoreId(storeId, this.Repos).canCreateProduct(currentId);
   }
-  async isStoreOwner(userId: string, storeId: string) {
-    return (
-      await Store.fromStoreId(storeId, this.Repos, this.Controllers)
-    ).isOwner(userId);
+  isStoreOwner(userId: string, storeId: string) {
+    return Store.fromStoreId(storeId, this.Repos).isOwner(userId);
   }
-  async isStoreManager(userId: string, storeId: string) {
-    return (
-      await Store.fromStoreId(storeId, this.Repos, this.Controllers)
-    ).isManager(userId);
+  isStoreManager(userId: string, storeId: string) {
+    return Store.fromStoreId(storeId, this.Repos).isManager(userId);
   }
-  async isStoreFounder(userId: string, storeId: string) {
-    return (
-      await Store.fromStoreId(storeId, this.Repos, this.Controllers)
-    ).isFounder(userId);
+  isStoreFounder(userId: string, storeId: string) {
+    return Store.fromStoreId(storeId, this.Repos).isFounder(userId);
   }
-  async getStoreFounderId(storeId: string) {
-    return (await Store.fromStoreId(storeId, this.Repos, this.Controllers))
-      .FounderId;
+  getStoreFounderId(storeId: string) {
+    return Store.fromStoreId(storeId, this.Repos).FounderId;
   }
-  async getStoreOwnersIds(storeId: string) {
-    return (await Store.fromStoreId(storeId, this.Repos, this.Controllers))
-      .OwnersIds;
+  getStoreOwnersIds(storeId: string) {
+    return Store.fromStoreId(storeId, this.Repos).OwnersIds;
   }
-  async getStoreManagersIds(storeId: string) {
-    return (await Store.fromStoreId(storeId, this.Repos, this.Controllers))
-      .ManagersIds;
+  getStoreManagersIds(storeId: string) {
+    return Store.fromStoreId(storeId, this.Repos).ManagersIds;
   }
-  async getPurchasesByStoreId(userId: string, storeId: string) {
+  getPurchasesByStoreId(userId: string, storeId: string) {
     if (
       !this.Controllers.Jobs.canReceivePurchaseHistoryFromStore(userId, storeId)
     )
@@ -774,113 +672,98 @@ export class StoresController
           "User does not have permission to receive purchase history from store",
       });
 
-    return (await Store.fromStoreId(storeId, this.Repos, this.Controllers))
-      .Purchases;
+    return Store.fromStoreId(storeId, this.Repos).Purchases;
   }
-  async searchStores(userId: string, name: string): Promise<StoreDTO[]> {
-    return (await this.Repos.Stores.getAllStores())
+  searchStores(userId: string, name: string): StoreDTO[] {
+    if (name === "")
+      return this.Repos.Stores.getAllStores()
+        .filter((store) =>
+          this.Controllers.Jobs.canReceivePublicDataFromStore(userId, store.Id)
+        )
+        .map((store) => store.DTO);
+
+    return this.Repos.Stores.getAllStores()
       .filter(
         (store) =>
           this.Controllers.Jobs.canReceivePublicDataFromStore(
             userId,
             store.Id
-          ) &&
-          (name === "" || store.Name === name)
+          ) && store.Name === name
       )
-      .map(
-        (store) =>
-          store.initControllers(this.Controllers).initRepos(this.Repos).DTO
-      );
+      .map((store) => store.DTO);
   }
-  async addConstraintToStore(
+  addConstraintToStore(
     userId: string,
     storeId: string,
     constraintArgs: ConditionArgs
-  ): Promise<string> {
-    if (!(await this.isStoreOwner(userId, storeId)))
+  ): string {
+    if (!this.isStoreOwner(userId, storeId))
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to add constraint to store",
       });
-    return (
-      await Store.fromStoreId(storeId, this.Repos, this.Controllers)
-    ).addConstraint(constraintArgs);
+    return Store.fromStoreId(storeId, this.Repos).addConstraint(constraintArgs);
   }
-  async removeConstraintFromStore(
+  removeConstraintFromStore(
     userId: string,
     storeId: string,
     constraintId: string
-  ): Promise<void> {
-    if (!(await this.isStoreOwner(userId, storeId)))
+  ): void {
+    if (!this.isStoreOwner(userId, storeId))
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message:
           "User does not have permission to remove constraint from store",
       });
-    await (
-      await Store.fromStoreId(storeId, this.Repos, this.Controllers)
-    ).removeConstraint(constraintId);
+    Store.fromStoreId(storeId, this.Repos).removeConstraint(constraintId);
   }
-  async addDiscountToStore(
+  addDiscountToStore(
     userId: string,
     storeId: string,
     discountArgs: DiscountArgs
-  ): Promise<string> {
-    if (!(await this.isStoreOwner(userId, storeId)))
+  ): string {
+    if (!this.isStoreOwner(userId, storeId))
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to add discount to store",
       });
-    return (
-      await Store.fromStoreId(storeId, this.Repos, this.Controllers)
-    ).addDiscount(discountArgs);
+    return Store.fromStoreId(storeId, this.Repos).addDiscount(discountArgs);
   }
-  async removeDiscountFromStore(
+  removeDiscountFromStore(
     userId: string,
     storeId: string,
     discountId: string
-  ): Promise<void> {
-    if (!(await this.isStoreOwner(userId, storeId)))
+  ): void {
+    if (!this.isStoreOwner(userId, storeId))
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to remove discount from store",
       });
-    await (
-      await Store.fromStoreId(storeId, this.Repos, this.Controllers)
-    ).removeDiscount(discountId);
+    Store.fromStoreId(storeId, this.Repos).removeDiscount(discountId);
   }
-  async checkIfBasketSatisfiesStoreConstraints(
+  checkIfBasketSatisfiesStoreConstraints(
     userId: string,
     storeId: string,
     basket: BasketDTO
-  ): Promise<boolean> {
-    return (
-      await Store.fromStoreId(storeId, this.Repos, this.Controllers)
-    ).checkIfBasketFulfillsPolicy(basket);
+  ): boolean {
+    return Store.fromStoreId(storeId, this.Repos).checkIfBasketFulfillsPolicy(
+      basket
+    );
   }
-  async myStores(
-    userId: string
-  ): Promise<{ store: StoreDTO; role: RoleType }[]> {
-    const stores = await this.Repos.Stores.getAllStores();
-    const realStores: Store[] = [];
-    for (const store of stores) {
-      realStores.push(
-        store.initControllers(this.Controllers).initRepos(this.Repos)
-      );
-    }
-    const founders = realStores
+  myStores(userId: string): { store: StoreDTO; role: RoleType }[] {
+    const founders = this.Repos.Stores.getAllStores()
       .filter((store) => store.isFounder(userId))
       .map((store) => ({
         store: store.DTO,
         role: "Founder" as RoleType satisfies RoleType,
       }));
-    const owners = realStores
+    const owners = this.Repos.Stores.getAllStores()
       .filter((store) => store.isOwner(userId))
       .map((store) => ({
         store: store.DTO,
         role: "Owner" as RoleType satisfies RoleType,
       }));
-    const managers = realStores
+    const managers = this.Repos.Stores.getAllStores()
       .filter((store) => store.isManager(userId))
       .map((store) => ({
         store: store.DTO,
@@ -888,18 +771,13 @@ export class StoresController
       }));
     return founders.concat(owners).concat(managers);
   }
-  async getProductById(
-    userId: string,
-    productId: string
-  ): Promise<StoreProductDTO> {
-    return (await this.Repos.Products.getProductById(productId))
-      .initControllers(this.Controllers)
-      .initRepos(this.Repos)
-      .getDTO();
+  getProductById(userId: string, productId: string): StoreProductDTO {
+    return this.Repos.Products.getProductById(productId).DTO;
   }
-  async addSpecialPriceToProduct(bid: Bid): Promise<void> {
-    const product = await this.Repos.Products.getProductById(bid.ProductId);
-    product.initControllers(this.Controllers).initRepos(this.Repos);
-    await product.addSpecialPrice(bid.UserId, bid.Price);
+  addSpecialPriceToProduct(bid: Bid): void {
+    this.Repos.Products.getProductById(bid.ProductId).addSpecialPrice(
+      bid.UserId,
+      bid.Price
+    );
   }
 }

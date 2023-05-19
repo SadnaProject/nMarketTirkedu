@@ -5,7 +5,6 @@ import { TRPCError } from "@trpc/server";
 import * as R from "ramda";
 import { Controllers, HasControllers } from "../_HasController";
 import { Mixin } from "ts-mixer";
-import { s } from "vitest/dist/env-afee91f0";
 const nameSchema = z.string().nonempty("Name must be nonempty");
 const quantitySchema = z.number().nonnegative("Quantity must be non negative");
 const priceSchema = z.number().positive("Price must be positive");
@@ -61,88 +60,72 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
     return product;
   }
 
-  static async fromProductId(
-    productId: string,
-    repos: Repos,
-    controllers: Controllers
-  ) {
-    const product = await repos.Products.getProductById(productId);
-    product.initRepos(repos).initControllers(controllers);
-    return product;
+  static fromProductId(productId: string, repos: Repos) {
+    return repos.Products.getProductById(productId);
   }
 
   public get Id() {
     return this.id;
   }
-  public set Id(id: string) {
-    this.id = id;
-  }
+
   public get Name() {
     return this.name;
   }
 
-  public async setName(name: string) {
+  public set Name(name: string) {
     nameSchema.parse(name);
     this.name = name;
-    await this.Repos.Products.setField(this.Id, "name", name);
   }
 
   public get Quantity() {
     return this.quantity;
   }
 
-  public async setQuantity(quantity: number) {
+  public set Quantity(quantity: number) {
     quantitySchema.parse(quantity);
     this.quantity = quantity;
-    await this.Repos.Products.setField(this.Id, "quantity", quantity);
   }
 
-  public async decreaseQuantity(quantity: number) {
-    const flag = await this.isQuantityInStock(quantity);
-    if (!flag) {
+  public decreaseQuantity(quantity: number) {
+    if (!this.isQuantityInStock(quantity)) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Not enough quantity in stock",
       });
     }
-    await this.setQuantity(this.Quantity - quantity);
+    this.Quantity = this.Quantity - quantity;
   }
 
   public get Price() {
     return this.price;
   }
 
-  public async setPrice(price: number) {
+  public set Price(price: number) {
     priceSchema.parse(price);
     this.price = price;
-    await this.Repos.Products.setField(this.Id, "price", price);
   }
 
   public get Category() {
     return this.category;
   }
 
-  public async setCategory(category: string) {
+  public set Category(category: string) {
     categorySchema.parse(category);
     this.category = category;
-    await this.Repos.Products.setField(this.Id, "category", category);
   }
 
   public get Description() {
     return this.description;
   }
 
-  public async setDescription(description: string) {
+  public set Description(description: string) {
     descriptionSchema.parse(description);
     this.description = description;
-    await this.Repos.Products.setField(this.Id, "description", description);
   }
 
-  public async getStore() {
-    const storeId = await this.Repos.Products.getStoreIdByProductId(this.Id);
-    return (await this.Repos.Stores.getStoreById(storeId))
-      .initControllers(this.Controllers)
-      .initRepos(this.Repos);
+  public get Store() {
+    const storeId = this.Repos.Products.getStoreIdByProductId(this.Id);
+    return this.Repos.Stores.getStoreById(storeId);
   }
   public get SpecialPrices() {
     return this.specialPrices;
@@ -151,7 +134,7 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
     this.specialPrices = specialPrices;
   }
 
-  public getDTO(): StoreProductDTO {
+  public get DTO(): StoreProductDTO {
     return {
       id: this.Id,
       name: this.Name,
@@ -164,9 +147,8 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
     };
   }
 
-  public async isQuantityInStock(quantity: number): Promise<boolean> {
-    const store = await this.getStore();
-    if (!store.IsActive()) {
+  public isQuantityInStock(quantity: number): boolean {
+    if (!this.Store.IsActive) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Store is not active",
@@ -185,8 +167,8 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
     return this.Price * quantity;
   }
 
-  public async delete() {
-    await this.Repos.Products.deleteProduct(this.Id);
+  public delete() {
+    this.Repos.Products.deleteProduct(this.Id);
   }
 
   public static getAll(repos: Repos) {
@@ -197,12 +179,11 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
     return repos.Products.getActiveProducts();
   }
 
-  public async addSpecialPrice(userId: string, price: number) {
-    await this.Repos.Products.addSpecialPrice(userId, this.Id, price);
-    this.SpecialPrices.set(userId, price);
+  public addSpecialPrice(userId: string, price: number) {
+    this.specialPrices.set(userId, price);
   }
   public getPriceForUser(userId: string): number {
-    const p = this.SpecialPrices.get(userId);
+    const p = this.specialPrices.get(userId);
     return p !== undefined ? p : this.Price;
   }
 }

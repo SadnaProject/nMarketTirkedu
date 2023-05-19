@@ -98,7 +98,6 @@ model CompositeCondition {
 
 model Discount {
     id          String             @id @default(cuid())
-    amount      Int
     storeId     String
     store       Store              @relation(fields: [storeId], references: [id])
     compositeId String?

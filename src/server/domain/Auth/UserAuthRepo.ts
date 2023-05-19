@@ -1,7 +1,8 @@
 import { Testable, testable } from "server/domain/_Testable";
-import type { MemberUserAuth } from "./MemberUserAuth";
+import { MemberUserAuth } from "./MemberUserAuth";
 import type { GuestUserAuth } from "./GuestUserAuth";
 import { TRPCError } from "@trpc/server";
+import { db } from "server/db";
 
 @testable
 export class UserAuthRepo extends Testable {
@@ -14,25 +15,50 @@ export class UserAuthRepo extends Testable {
     this.guests = [];
   }
   //member related methods
-  public addMember(user: MemberUserAuth): void {
+  public async addMember(user: MemberUserAuth): Promise<void> {
     this.members.push(user);
+    //add to db
+    await db.userAuth.create({
+      data: { id: user.UserId, email: user.Email, password: user.Password },
+    });
   }
-  public getMemberByEmail(email: string): MemberUserAuth {
+  public async getMemberByEmail(email: string): Promise<MemberUserAuth> {
     const user = this.members.find((user) => user.Email === email);
-    if (user === undefined)
+    if (user === undefined) {
+      //look in db
+      const user = await db.userAuth.findUnique({ where: { email: email } });
+      if (user === null)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "user with email: " + email + " not found",
+        });
+      else return MemberUserAuth.createFromDTO(user);
+    }
+    return user;
+  }
+  private async getMemberByEmailFromDB(email: string): Promise<MemberUserAuth> {
+    //look in db
+    const user = await db.userAuth.findUnique({ where: { email: email } });
+    if (user === null)
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "user with email: " + email + " not found",
       });
-    return user;
+    else return MemberUserAuth.createFromDTO(user);
   }
-  public getMemberById(userId: string): MemberUserAuth {
+  public async getMemberById(userId: string): Promise<MemberUserAuth> {
     const user = this.members.find((user) => user.UserId === userId);
-    if (user === undefined)
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "user with id: " + userId + " not found",
-      });
+    if (user === undefined) {
+      //look in db
+      const user = await db.userAuth.findUnique({ where: { id: userId } });
+      if (user === null)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "user with id: " + userId + " not found",
+        });
+      else return MemberUserAuth.createFromDTO(user);
+    }
+
     return user;
   }
   public doesMemberExistByEmail(email: string): boolean {
@@ -87,4 +113,8 @@ export class UserAuthRepo extends Testable {
   public getAllGuests(): GuestUserAuth[] {
     return this.guests;
   }
+  //write a main function that can run add member
 }
+// const userAuthRepo = new UserAuthRepo();
+console.log("userAuthRepo");
+// await userAuthRepo.addMember(MemberUserAuth.create("a@gmail.com","sasaswfdf"));

@@ -105,3 +105,11 @@ describe("remove guest", () => {
     expect(repos.Users.getAllGuests()).toEqual(guests);
   });
 });
+
+//TODO: delete this.
+describe("trying out db", () => {
+  it("✅adds member", () => {
+    expect(true);
+    const member = getMemberI(1);
+  });
+});

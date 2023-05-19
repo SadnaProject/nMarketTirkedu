@@ -6,7 +6,7 @@ import { createCipheriv, randomBytes, pbkdf2Sync } from "crypto";
 export type MemberUserAuthDTO = {
   email: string;
   password: string;
-  salt: string;
+  // salt: string;
 } & UserAuthDTO;
 export class MemberUserAuth extends UserAuth {
   private email: string;
@@ -17,8 +17,8 @@ export class MemberUserAuth extends UserAuth {
     super("MEMBER");
     this.email = "";
     this.password = "";
-    // this.salt = "8e7cd3841781edbdd8c2ee4438cdea61";//TODO change this to a random string
-    this.salt = randomBytes(16).toString("hex");
+    this.salt = "8e7cd3841781edbdd8c2ee4438cdea61"; //TODO change this to a random string
+    // this.salt = randomBytes(16).toString("hex");
   }
   public get Email(): string {
     return this.email;
@@ -41,14 +41,20 @@ export class MemberUserAuth extends UserAuth {
   }
   public static createFromDTO(dto: MemberUserAuthDTO): MemberUserAuth {
     const memberUserAuth = new MemberUserAuth();
-    memberUserAuth.userId = dto.userId;
+    memberUserAuth.userId = dto.id;
     memberUserAuth.email = dto.email;
     memberUserAuth.password = dto.password;
-    memberUserAuth.type = dto.type;
-    memberUserAuth.sessions = dto.sessions;
-    memberUserAuth.salt = dto.salt;
+    if (dto.type !== undefined) {
+      memberUserAuth.type = dto.type;
+    }
+    // memberUserAuth.type = dto.type;
+    if (dto.sessions !== undefined) {
+      memberUserAuth.sessions = dto.sessions;
+    }
+
     return memberUserAuth;
   }
+
   private validatePasswordLegality(password: string): void {
     // z.string().parse(password);
     return;
@@ -63,12 +69,12 @@ export class MemberUserAuth extends UserAuth {
 
   public get DTO(): MemberUserAuthDTO {
     return {
-      userId: this.userId,
+      id: this.userId,
       email: this.email,
       password: this.password,
       type: this.type,
       sessions: this.sessions,
-      salt: this.salt,
+      // salt: this.salt,
     };
   }
 

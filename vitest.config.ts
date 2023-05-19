@@ -10,6 +10,7 @@ export default defineConfig({
       provider: "istanbul",
       reporter: ["lcov"],
     },
+    include: ["**/testingDb.test.ts"],
   },
   plugins: [tsconfigPaths()],
   // resolve: {

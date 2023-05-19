@@ -7,6 +7,7 @@ import { UserAuth } from "./UserAuth";
 import { GuestUserAuth, GuestUserAuthDTO } from "./GuestUserAuth";
 import { MemberUserAuth, MemberUserAuthDTO } from "./MemberUserAuth";
 import { TRPCError } from "@trpc/server";
+import { prng } from "next/dist/shared/lib/bloom-filter/base-filter";
 
 export interface IAuthController extends HasRepos {
   /**
@@ -42,7 +43,7 @@ export interface IAuthController extends HasRepos {
    * @param password The user's password.
    * @returns The user's ID.
    */
-  login(guestId: string, email: string, password: string): string;
+  login(guestId: string, email: string, password: string): Promise<string>;
   /**
    * Disconnects a user. If the user is a guest user, the user is removed from the system. If the user is a member user, the users session is invalidated.
    * @param userId The user's ID.
@@ -58,7 +59,7 @@ export interface IAuthController extends HasRepos {
    * @throws Error if the email is already in use.
    * @throws Error if the password is invalid.
    */
-  register(email: string, password: string): string;
+  register(email: string, password: string): Promise<string>;
   /**
    * Changes the user's email.
    * @param userId The user's ID.
@@ -124,9 +125,15 @@ export class AuthController
     return guest.UserId;
   }
 
-  public login(guestId: string, email: string, password: string): string {
+  public async login(
+    guestId: string,
+    email: string,
+    password: string
+  ): Promise<string> {
     // throw new Error("Method not implemented.");
-    const member: MemberUserAuth = this.Repos.Users.getMemberByEmail(email);
+    const member: MemberUserAuth = await this.Repos.Users.getMemberByEmail(
+      email
+    );
     if (!member.isPasswordCorrect(password)) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -159,7 +166,7 @@ export class AuthController
     member.logout(); //throws error if user is not connected
     return this.startSession();
   }
-  public register(email: string, password: string): string {
+  public async register(email: string, password: string): Promise<string> {
     // throw new Error("Method not implemented.");
     if (this.Repos.Users.doesMemberExistByEmail(email)) {
       throw new TRPCError({
@@ -172,7 +179,7 @@ export class AuthController
     //   throw new Error("Password is invalid, please try again with a different password");
     // }
     const ua = MemberUserAuth.create(email, password);
-    this.Repos.Users.addMember(ua);
+    await this.Repos.Users.addMember(ua);
     return ua.UserId;
   }
 

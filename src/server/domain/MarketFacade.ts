@@ -17,6 +17,7 @@ import { type DiscountArgs } from "./Stores/DiscountPolicy/Discount";
 import { type ConditionArgs } from "./Stores/Conditions/CompositeLogicalCondition/Condition";
 import { type RoleType } from "./Jobs/Role";
 import { BidArgs, BidDTO } from "./Users/Bid";
+import { PositionHolderDTO } from "./Jobs/PositionHolder";
 
 @loggable
 export class MarketFacade extends Loggable {
@@ -498,5 +499,9 @@ export class MarketFacade extends Loggable {
   removeVoteFromBid(userId: string, bidId: string): void {
     this.validateConnection(userId);
     this.controllers.Users.removeVoteFromBid(userId, bidId);
+  }
+  getJobsHierarchyOfStore(userId: string, storeId: string): PositionHolderDTO {
+    this.validateConnection(userId);
+    return this.controllers.Jobs.getJobsHierarchyOfStore(storeId);
   }
 }

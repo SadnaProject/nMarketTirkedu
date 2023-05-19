@@ -403,4 +403,9 @@ export const StoresRouter = createTRPCRouter({
         // (I need to add dependency injection for eventEmitter through HasEventEmitter class)
       });
     }),
+  getJobsHierarchyOfStore: validSessionProcedure
+    .input(z.object({ storeId: z.string() }))
+    .query(({ input, ctx }) => {
+      return facade.getJobsHierarchyOfStore(ctx.session.user.id, input.storeId);
+    }),
 });

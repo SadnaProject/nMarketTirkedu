@@ -76,4 +76,15 @@ export class JobsRepo extends Testable {
     }
     return positionHolders;
   }
+  // public getAllPositionHoldersHierarchyByStoreId(storeId: string): PositionHolder[] {
+  //   const founder = this.GetStoreFounder(storeId);
+  //   return this.getAllPositionHoldersHierarchy(founder);
+  // }
+  // private getAllPositionHoldersHierarchy( positionHolder: PositionHolder): PositionHolder[] {
+  //   const positionHolders = [positionHolder];
+  //   for (const appointedByMe of positionHolder.Appointments) {
+  //     positionHolders.push(...this.getAllPositionHoldersHierarchy(appointedByMe));
+  //   }
+  //   return positionHolders;
+  // }
 }

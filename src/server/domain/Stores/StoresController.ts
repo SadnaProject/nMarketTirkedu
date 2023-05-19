@@ -331,7 +331,9 @@ export class StoresController
         );
         return this.filterProductSearch(p, productRating, storeRating, args);
       })
-      .map((p) => p.getDTO());
+      .map((p) =>
+        p.initControllers(this.Controllers).initRepos(this.Repos).getDTO()
+      );
   }
 
   private async filterProductSearch(
@@ -545,7 +547,9 @@ export class StoresController
         code: "BAD_REQUEST",
         message: "Store name already exists",
       });
-    await this.Repos.Stores.addStore(store);
+
+    const args = await this.Repos.Stores.addStore(store.Name);
+    store.Id = args.id;
     // TODO needs to create here event for the store
     return store.Id;
   }

@@ -14,7 +14,7 @@ beforeEach(() => {
 describe("add store", () => {
   it("✅adds store", async () => {
     const store = createStore(generateStoreName(), repos, controllers);
-    expect(async () => await repos.Stores.addStore(store)).not.toThrow();
+    expect(async () => await repos.Stores.addStore(store.Name)).not.toThrow();
     expect(await repos.Stores.getAllStores()).toEqual([store]);
   });
 });
@@ -33,8 +33,8 @@ describe("get all names", () => {
   it("✅returns some names", async () => {
     const name1 = generateStoreName();
     const name2 = generateStoreName();
-    await repos.Stores.addStore(createStore(name1, repos, controllers));
-    await repos.Stores.addStore(createStore(name2, repos, controllers));
+    await repos.Stores.addStore(createStore(name1, repos, controllers).Name);
+    await repos.Stores.addStore(createStore(name2, repos, controllers).Name);
     expect(await repos.Stores.getAllNames()).toEqual(new Set([name1, name2]));
   });
 });
@@ -42,7 +42,7 @@ describe("get all names", () => {
 describe("get store by id", () => {
   it("✅returns store", async () => {
     const store = createStore(generateStoreName(), repos, controllers);
-    await repos.Stores.addStore(store);
+    await repos.Stores.addStore(store.Name);
     expect(await repos.Stores.getStoreById(store.Id)).toEqual(store);
   });
 
@@ -56,7 +56,7 @@ describe("get store by id", () => {
 describe("delete store", () => {
   it("✅deletes store", async () => {
     const store = createStore(generateStoreName(), repos, controllers);
-    await repos.Stores.addStore(store);
+    await repos.Stores.addStore(store.Name);
     expect(async () => await repos.Stores.deleteStore(store.Id)).not.toThrow();
     expect(await repos.Stores.getAllStores()).toEqual([]);
   });

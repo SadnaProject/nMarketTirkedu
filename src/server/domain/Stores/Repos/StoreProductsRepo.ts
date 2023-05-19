@@ -7,11 +7,8 @@ import { randomUUID } from "crypto";
 
 @testable
 export class StoreProductsRepo extends Testable {
-  private productsByStoreId: Map<string, StoreProduct[]>;
-
   constructor() {
     super();
-    this.productsByStoreId = new Map<string, StoreProduct[]>();
   }
 
   public async addProduct(storeId: string, product: StoreProduct) {
@@ -101,6 +98,7 @@ export class StoreProductsRepo extends Testable {
     const realProducts: StoreProduct[] = [];
     for (const product of products) {
       if (!product.store.isActive) continue;
+      console.log(product);
       const realProduct = new StoreProduct({
         category: product.category,
         description: product.description,

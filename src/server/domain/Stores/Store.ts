@@ -35,8 +35,8 @@ export class Store extends Mixin(HasRepos, HasControllers) {
 
   constructor(name: string) {
     super();
-    nameSchema.parse(name);
     this.id = randomUUID();
+    nameSchema.parse(name);
     this.name = name;
     this.isActive = true;
     this.discountPolicy = new DiscountPolicy(this.id);
@@ -103,7 +103,8 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     const newProduct = new StoreProduct(product)
       .initControllers(this.Controllers)
       .initRepos(this.Repos);
-    await this.Repos.Products.addProduct(this.Id, newProduct);
+    const productId = await this.Repos.Products.addProduct(this.Id, newProduct);
+    newProduct.Id = productId;
     return newProduct.Id;
   }
   public async getBasketPrice(

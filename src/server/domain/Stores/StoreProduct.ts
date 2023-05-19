@@ -199,6 +199,7 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
 
   public async addSpecialPrice(userId: string, price: number) {
     await this.Repos.Products.addSpecialPrice(userId, this.Id, price);
+    this.SpecialPrices.set(userId, price);
   }
   public getPriceForUser(userId: string): number {
     const p = this.SpecialPrices.get(userId);

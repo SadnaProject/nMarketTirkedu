@@ -21,11 +21,11 @@ export class StoresRepo extends Testable {
     this.stores = [];
   }
 
-  public async addStore(store: Store) {
-    await db.store.create({
+  public async addStore(storeName: string) {
+    return await db.store.create({
       data: {
-        name: store.Name,
-        isActive: store.IsActive(),
+        name: storeName,
+        isActive: true,
       },
     });
   }

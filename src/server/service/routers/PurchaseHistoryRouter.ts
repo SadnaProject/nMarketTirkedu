@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createTRPCRouter, validSessionProcedure } from "server/service/trpc";
-import { facade } from "../_facade";
+import { service } from "../_service";
 
 export const PurchasesHistoryRouter = createTRPCRouter({
   reviewStore: validSessionProcedure
@@ -13,7 +13,7 @@ export const PurchasesHistoryRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { purchaseId, storeId, review } = input;
-      return facade.reviewStore(
+      return service.reviewStore(
         ctx.session.user.id,
         purchaseId,
         storeId,
@@ -32,7 +32,7 @@ export const PurchasesHistoryRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { purchaseId, productId, review, reviewTitle, reviewBody } = input;
-      return facade.reviewProduct(
+      return service.reviewProduct(
         ctx.session.user.id,
         purchaseId,
         productId,
@@ -45,6 +45,6 @@ export const PurchasesHistoryRouter = createTRPCRouter({
     .input(z.object({ storeId: z.string() }))
     .query(({ input }) => {
       const { storeId } = input;
-      return facade.getStoreRating(storeId);
+      return service.getStoreRating(storeId);
     }),
 });

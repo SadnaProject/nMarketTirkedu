@@ -31,4 +31,8 @@ export class DiscountPolicy {
     });
     return basket;
   }
+  public get Discounts() {
+    return this.discounts;
+  }
+  
 }

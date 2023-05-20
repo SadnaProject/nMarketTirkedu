@@ -136,7 +136,18 @@ export const StoresRouter = createTRPCRouter({
       const { productId } = input;
       return service.getProductById(ctx.session.user.id, productId);
     }),
-
+    getStoreDiscounts: validSessionProcedure
+    .input(z.object({ storeId: z.string() }))
+    .query(({ input,ctx }) => {
+      const { storeId } = input;
+      return service.getStoreDiscounts(ctx.session.user.id,storeId);
+    }),
+    getStoreConstraints: validSessionProcedure
+    .input(z.object({ storeId: z.string() }))
+    .query(({ input,ctx }) => {
+      const { storeId } = input;
+      return service.getStoreConstraints(ctx.session.user.id,storeId);
+    }),
   createProduct: validSessionProcedure
     .input(
       z.object({

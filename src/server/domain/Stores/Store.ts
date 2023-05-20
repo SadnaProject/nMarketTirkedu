@@ -200,4 +200,12 @@ export class Store extends Mixin(HasRepos, HasControllers) {
       storeIdToBasket: storeIdToBasket,
     };
   }
+  public get Discounts()
+  {
+    return this.discountPolicy.Discounts;
+  }
+  public get Constraints()
+  {
+    return this.constraintPolicy.Constraints;
+  } 
 }

@@ -14,10 +14,12 @@ import { TRPCError } from "@trpc/server";
 import { eventEmitter } from "server/EventEmitter";
 import { CartPurchaseDTO } from "../PurchasesHistory/CartPurchaseHistory";
 import { type ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condition";
-import { type DiscountArgs } from "./DiscountPolicy/Discount";
+import { IDiscount, type DiscountArgs } from "./DiscountPolicy/Discount";
 import { type BasketDTO } from "../Users/Basket";
 import { type RoleType } from "../Jobs/Role";
 import { Bid, storeBidArgs } from "../Users/Bid";
+import { I } from "vitest/dist/types-94cfe4b4";
+import { Constraint } from "./Constraint";
 
 export type SearchArgs = {
   name?: string;
@@ -288,6 +290,8 @@ export interface IStoresController extends HasRepos {
 
   myStores(userId: string): { store: StoreDTO; role: RoleType }[];
   addSpecialPriceToProduct(bid: Bid): void;
+  getConstraintsByStoreId(userId: string, storeId: string):Map<string,Constraint>;
+  getDiscountsByStoreId(userId: string, storeId: string):Map<string,IDiscount> ;
 }
 
 @testable
@@ -780,4 +784,21 @@ export class StoresController
       bid.Price
     );
   }
+  getDiscountsByStoreId(userId: string, storeId: string):Map<string,IDiscount> {
+    if (!this.isStoreOwner(userId, storeId))
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User does not have permission to get discounts from store",
+      });
+    return Store.fromStoreId(storeId, this.Repos).Discounts;
+  }
+  getConstraintsByStoreId(userId: string, storeId: string):Map<string,Constraint> {
+    if (!this.isStoreOwner(userId, storeId))
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User does not have permission to get constraints from store",
+      });
+    return Store.fromStoreId(storeId, this.Repos).Constraints;
+  }
+
 }

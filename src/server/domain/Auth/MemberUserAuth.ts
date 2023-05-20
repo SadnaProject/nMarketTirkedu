@@ -31,6 +31,9 @@ export class MemberUserAuth extends UserAuth {
     this.validatePasswordLegality(password);
     this.password = this.encryptPassword(password);
   }
+  public get Password(): string {
+    return this.password;
+  }
   public static create(email: string, password: string): MemberUserAuth {
     const memberUserAuth = new MemberUserAuth();
     memberUserAuth.validateEmailLegality(email);

@@ -10,7 +10,12 @@ export default defineConfig({
       provider: "istanbul",
       reporter: ["lcov"],
     },
-    include: ["**/testingDb.test.ts"],
+    include: [
+      //"**/testingDb.test.ts",
+      //"**/AuthController.test.ts",
+      // "**/UserAuthRepo.test.ts",
+      "**/MemberUserAuth.test.ts",
+    ],
   },
   plugins: [tsconfigPaths()],
   // resolve: {

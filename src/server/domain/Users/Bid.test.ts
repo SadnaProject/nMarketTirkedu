@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { itUnitIntegration } from "../_mock";
-import { Bid, BidArgs, BidState } from "./Bid";
+import { Bid, type BidArgs, BidState } from "./Bid";
 import { beforeEach, describe, expect, it } from "vitest";
 describe("Bid", () => {
   const userId = "user123";

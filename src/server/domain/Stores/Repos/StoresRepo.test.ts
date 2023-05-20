@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { createStore, generateStoreName } from "../_data";
 import { type Repos, createMockRepos } from "../_HasRepos";
 import { createMockControllers } from "server/domain/_createControllers";
-import { Controllers } from "server/domain/_HasController";
+import { type Controllers } from "server/domain/_HasController";
 
 let repos: Repos;
 let controllers: Controllers;

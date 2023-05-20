@@ -204,6 +204,10 @@ model PositionHolder {
     role        Role        @relation(fields: [roleId], references: [id])
     roleId      String
     //todo, add my assigned position holders
+    
+    assignedPositionHolders PositionHolder[] @relation("PositionHolderToAssignees")
+    assignerId              String?
+    assignedBy              PositionHolder? @relation("PositionHolderToAssignees", fields: [assignerId,storeId], references: [userId, storeId])
 
     @@id([userId, storeId])
 }

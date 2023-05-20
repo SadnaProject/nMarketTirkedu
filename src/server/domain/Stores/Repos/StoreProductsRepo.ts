@@ -1,9 +1,9 @@
 import { Testable, testable } from "server/domain/_Testable";
-import { StoreProduct } from "../StoreProduct";
 import { type StoreProduct as DataStoreProduct } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { db } from "server/db";
 import { randomUUID } from "crypto";
+import { StoreProduct } from "../StoreProduct";
 
 @testable
 export class StoreProductsRepo extends Testable {
@@ -78,15 +78,10 @@ export class StoreProductsRepo extends Testable {
         message: "Product not found",
       });
     }
-    const realProduct = new StoreProduct({
-      category: product.category,
-      description: product.description,
-      name: product.name,
-      price: product.price,
-      quantity: product.quantity,
-    });
-    realProduct.Id = product.id;
-    return realProduct;
+    return StoreProduct.fromDAO(
+      product,
+      await this.getSpecialPrices(productId)
+    );
   }
 
   public async getActiveProducts() {
@@ -157,6 +152,33 @@ export class StoreProductsRepo extends Testable {
       where: {
         id: productId,
       },
+    });
+  }
+  public async getSpecialPrices(productId: string) {
+    const specialPrices = await db.specialPrice.findMany({
+      where: {
+        productId: productId,
+      },
+    });
+    const prices: Map<string, number> = new Map();
+    for (const price of specialPrices) {
+      prices.set(price.userId, price.price);
+    }
+    return prices;
+  }
+  public async setSpecialPrices(
+    prices: Map<string, number>,
+    productId: string
+  ) {
+    await db.specialPrice.createMany({
+      data: Array.from(prices).map(([userId, price]) => {
+        return {
+          userId: userId,
+          price: price,
+          productId: productId,
+        };
+      }),
+      skipDuplicates: true,
     });
   }
   public setField<T extends keyof DataStoreProduct>(

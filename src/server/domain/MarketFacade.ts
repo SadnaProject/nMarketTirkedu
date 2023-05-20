@@ -16,7 +16,7 @@ import { type StoreDTO } from "./Stores/Store";
 import { type DiscountArgs } from "./Stores/DiscountPolicy/Discount";
 import { type ConditionArgs } from "./Stores/Conditions/CompositeLogicalCondition/Condition";
 import { type RoleType } from "./Jobs/Role";
-import { BidArgs, BidDTO } from "./Users/Bid";
+import { type BidArgs, type BidDTO } from "./Users/Bid";
 
 @loggable
 export class MarketFacade extends Loggable {

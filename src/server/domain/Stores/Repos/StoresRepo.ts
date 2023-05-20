@@ -3,22 +3,19 @@ import { Store } from "../Store";
 import { TRPCError } from "@trpc/server";
 import { db } from "server/db";
 import {
-  ConditionArgs,
+  type ConditionArgs,
   ICondition,
 } from "../Conditions/CompositeLogicalCondition/Condition";
 import { ConstraintPolicy } from "../PurchasePolicy/ConstraintPolicy";
 import { buildCondition } from "../Conditions/CompositeLogicalCondition/_typeDictionary";
 import { DiscountPolicy } from "../DiscountPolicy/DiscountPolicy";
-import { DiscountArgs } from "../DiscountPolicy/Discount";
+import { type DiscountArgs } from "../DiscountPolicy/Discount";
 import { type Store as DataStore } from "@prisma/client";
 
 @testable
 export class StoresRepo extends Testable {
-  private stores: Store[];
-
   constructor() {
     super();
-    this.stores = [];
   }
 
   public async addStore(storeName: string) {
@@ -69,12 +66,11 @@ export class StoresRepo extends Testable {
         message: "Store not found",
       });
     }
-    const realStore = new Store(store.name);
-    realStore.Id = store.id;
-    await realStore.setActive(store.isActive);
-    realStore.DiscountPolicy = await this.getDiscounts(storeId);
-    realStore.ConstraintPolicy = await this.getConstraints(storeId);
-    return realStore;
+    return Store.fromDAO(
+      store,
+      await this.getDiscounts(storeId),
+      await this.getConstraints(storeId)
+    );
   }
   public async getConstraints(storeId: string): Promise<ConstraintPolicy> {
     const constraints = await db.constraint.findMany({
@@ -184,6 +180,9 @@ export class StoresRepo extends Testable {
   }
 
   public async deleteStore(storeId: string) {
+    await this.deleteConditions(storeId);
+    await this.deleteDiscounts(storeId);
+    await this.deleteConstraints(storeId);
     await db.store.delete({
       where: {
         id: storeId,
@@ -385,6 +384,30 @@ export class StoresRepo extends Testable {
           id: condition?.dateCondition.id,
         },
       });
+    }
+  }
+  private async deleteDiscounts(storeId: string) {
+    const discounts = await db.discount.findMany({
+      where: {
+        storeId: storeId,
+      },
+      include: {
+        composite: true,
+        simple: true,
+      },
+    });
+    for (const discount of discounts) {
+      await this.removeDiscount(discount.id);
+    }
+  }
+  private async deleteConstraints(storeId: string) {
+    const constraints = await db.constraint.findMany({
+      where: {
+        storeId: storeId,
+      },
+    });
+    for (const constraint of constraints) {
+      await this.removeConstraint(constraint.id);
     }
   }
 }

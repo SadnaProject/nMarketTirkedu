@@ -15,11 +15,10 @@ datasource db {
 }
 
 model UserAuth {
-    id    String  @id //@default(cuid())
-    name  String?
-    email String  @unique
+    id       String  @id //@default(cuid())
+    name     String?
+    email    String  @unique
     password String
-    
 }
 
 enum ConditionType {
@@ -136,15 +135,14 @@ model Store {
 }
 
 model StoreProduct {
-    id          String @id @default(cuid())
-    storeId     String
-    store       Store  @relation(fields: [storeId], references: [id])
-    name        String
-    price       Int
-    category    String
-    quantity    Int
-    description String
-
+    id           String         @id @default(cuid())
+    storeId      String
+    store        Store          @relation(fields: [storeId], references: [id])
+    name         String
+    price        Int
+    category     String
+    quantity     Int
+    description  String
     SpecialPrice SpecialPrice[]
 }
 
@@ -152,7 +150,7 @@ model SpecialPrice {
     id        String       @id @default(cuid())
     userId    String
     price     Int
-    product   StoreProduct @relation(fields: [productId], references: [id])
+    product   StoreProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
     productId String
 }
 

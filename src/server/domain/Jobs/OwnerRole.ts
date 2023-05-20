@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { type EditablePermission, Role } from "./Role";
-
+import { db } from "server/db";
 export class OwnerRole extends Role {
   constructor() {
     super();

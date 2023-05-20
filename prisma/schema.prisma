@@ -170,3 +170,40 @@ model Constraint {
 //     user          User      @relation(fields: [userId], references: [id])
 //     items         CartItem[]
 // }
+
+//JOBS COMPONENT
+enum Permission {
+    DeactivateStore
+    ActivateStore
+    AppointStoreOwner
+    AppointStoreManager
+    receiveClosedStoreData
+    AddProduct
+    EditProductDetails
+    RemoveProduct
+    receivePrivateStoreData
+}
+enum RoleType {
+    Founder
+    Owner
+    Manager
+    
+}
+model Role {
+    id          String      @id @default(cuid())
+    roleType    RoleType
+    permissions Permission[]    
+    positionHolders       PositionHolder[]
+}
+model PositionHolder {
+    // id          String      @id @default(cuid())
+    userId      String
+    //   user        User        @relation(fields: [userId], references: [id])
+    storeId     String
+    //   store       Store       @relation(fields: [storeId], references: [id])
+    role        Role        @relation(fields: [roleId], references: [id])
+    roleId      String
+    //todo, add my assigned position holders
+
+    @@id([userId, storeId])
+}

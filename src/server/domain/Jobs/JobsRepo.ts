@@ -1,6 +1,8 @@
 import { Testable, testable } from "server/domain/_Testable";
 import { type PositionHolder } from "./PositionHolder";
 import { TRPCError } from "@trpc/server";
+import { db } from "server/db";
+import { RoleType } from "@prisma/client";
 
 @testable
 export class JobsRepo extends Testable {
@@ -23,8 +25,25 @@ export class JobsRepo extends Testable {
     return this.systemAdminIds;
   }
 
-  public SetStoreFounder(founder: PositionHolder): void {
+  public async SetStoreFounder(founder: PositionHolder): Promise<void> {
     this.storeIdToFounder.set(founder.StoreId, founder);
+    //todo: there needs to only one founder role in the db
+    // if (
+    //   ((
+    //     await db.role.findMany({ where: { roleType: RoleType.Founder } })
+    //   ).length = 0)
+    // ) {
+    await db.role.create({
+      data: { id: RoleType.Founder, roleType: RoleType.Founder },
+    });
+    // }
+    await db.positionHolder.create({
+      data: {
+        storeId: founder.StoreId,
+        userId: founder.UserId,
+        roleId: RoleType.Founder,
+      },
+    });
   }
 
   public GetStoreFounder(storeId: string): PositionHolder {

@@ -1,10 +1,11 @@
 import { TRPCError } from "@trpc/server";
 import { JobsController } from "./JobsController";
 import { ManagerRole } from "./ManagerRole";
-import { type EditablePermission, type Role } from "./Role";
+import { RoleDTO, type EditablePermission, Role } from "./Role";
+import { db } from "server/db";
 
 export type PositionHolderDTO = {
-  role: Role;
+  role: RoleDTO;
   storeId: string;
   userId: string;
   appointedByMe: PositionHolderDTO[];
@@ -27,7 +28,7 @@ export class PositionHolder {
     dto: PositionHolderDTO
   ): PositionHolder {
     const positionHolder = new PositionHolder(
-      dto.role,
+      Role.createRoleFromDTO(dto.role),
       dto.storeId,
       dto.userId
     );
@@ -43,7 +44,7 @@ export class PositionHolder {
     //     return this.dto;
     // }
     return {
-      role: this.role,
+      role: this.role.DTO,
       storeId: this.storeId,
       userId: this.userId,
       appointedByMe: this.appointments.map(
@@ -51,8 +52,18 @@ export class PositionHolder {
       ),
     };
   }
-  private addPositionHolder(positionHolder: PositionHolder): void {
+  //TODO: change to private
+  public async addPositionHolder(
+    positionHolder: PositionHolder
+  ): Promise<void> {
     this.appointments.push(positionHolder);
+    await db.positionHolder.create({
+      data: {
+        storeId: positionHolder.storeId,
+        userId: positionHolder.userId,
+        role: { connect: { id: positionHolder.role.getRoleType() } },
+      },
+    });
     // if (this.dto !== undefined) {
     //     this.dto.appointedByMe.push(positionHolder.DTO);
     // }

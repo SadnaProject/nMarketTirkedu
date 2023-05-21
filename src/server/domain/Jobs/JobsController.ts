@@ -284,7 +284,6 @@ export class JobsController
     this.wasAdminInitialized = false;
     this.initRepos(createRepos());
     // this.initializeSystemAdmin();
-    // this.managerRole = new ManagerRole();
     // this.ownerRole = new OwnerRole();
     // this.founderRole = new FounderRole();
   }

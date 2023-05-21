@@ -28,9 +28,10 @@ let repos: Repos;
 const ownerRole: OwnerRole = new OwnerRole();
 const founderRole: FounderRole = new FounderRole();
 // let controllers: Controllers;
-beforeEach(() => {
+beforeEach(async () => {
   //delete all data in db
-  // await db.userAuth.deleteMany({});
+  await db.positionHolder.deleteMany({});
+  await db.role.deleteMany({});
   const testType = "integration";
   // controllers = createTestControllers(testType, "Users");
   repos = createTestRepos(testType, "jobs");
@@ -51,7 +52,8 @@ describe("trying out db", () => {
       "store1",
       "abc"
     );
-    await positionHolder.addPositionHolder(FounderTOAppoint);
+    await positionHolder.appointStoreOwner("owner1");
+    await positionHolder.appointStoreManager("manager1");
     // const founder2 = repos.Jobs.GetStoreFounder(founder.StoreId);
     // expect(founder2).toEqual(founder);
   });

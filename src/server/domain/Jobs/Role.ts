@@ -12,18 +12,18 @@ export type EditablePermission =
   | "receivePrivateStoreData";
 export type RoleType = "Owner" | "Manager" | "Founder";
 
-// import { type RoleType } from "@prisma/client";
 import { JobsController } from "./JobsController";
 // import { ManagerRole } from "./ManagerRole";
 export type RoleDTO = {
   permissions: Permission[];
-  roleType?: RoleType;
+  roleType: RoleType;
 };
 export abstract class Role {
   protected permissions: Permission[];
-  protected roleType?: RoleType;
+  protected roleType: RoleType;
   constructor() {
     this.permissions = [];
+    this.roleType = "Manager";
   }
   public static createRoleFromDTO(dto: RoleDTO): Role {
     let role: Role;
@@ -41,7 +41,7 @@ export abstract class Role {
       roleType: this.roleType,
     };
   }
-  public getRoleType(): RoleType | undefined {
+  public getRoleType(): RoleType {
     return this.roleType;
   }
 
@@ -60,4 +60,7 @@ export abstract class Role {
     return this.permissions.includes(permission);
   }
   abstract canBeAppointedToStoreOwner(): boolean;
+  public getPermissions(): Permission[] {
+    return this.permissions;
+  }
 }

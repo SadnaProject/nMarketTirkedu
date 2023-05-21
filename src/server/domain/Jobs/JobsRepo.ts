@@ -28,15 +28,19 @@ export class JobsRepo extends Testable {
   public async SetStoreFounder(founder: PositionHolder): Promise<void> {
     this.storeIdToFounder.set(founder.StoreId, founder);
     //todo: there needs to only one founder role in the db
-    // if (
-    //   ((
-    //     await db.role.findMany({ where: { roleType: RoleType.Founder } })
-    //   ).length = 0)
-    // ) {
-    await db.role.create({
-      data: { id: RoleType.Founder, roleType: RoleType.Founder },
-    });
-    // }
+    if (
+      (await db.role.findMany({ where: { roleType: RoleType.Founder } }))
+        .length == 0
+    ) {
+      console.log("creating founder role");
+      await db.role.create({
+        data: {
+          id: RoleType.Founder,
+          roleType: founder.Role.getRoleType(),
+          permissions: founder.Role.getPermissions(),
+        },
+      });
+    }
     await db.positionHolder.create({
       data: {
         storeId: founder.StoreId,

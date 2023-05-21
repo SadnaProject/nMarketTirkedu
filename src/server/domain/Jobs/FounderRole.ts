@@ -1,5 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { type EditablePermission, Role } from "./Role";
+import { db } from "server/db";
+import { RoleType } from "@prisma/client";
 
 export class FounderRole extends Role {
   //TODO maybe its better to extend OwnerRole
@@ -16,6 +18,13 @@ export class FounderRole extends Role {
     this.permissions.push("AppointStoreManager");
     this.permissions.push("receiveClosedStoreData");
   }
+  // private static async createFounderRole(): Promise<FounderRole> {
+  //   const founderRole = new FounderRole();
+  //   await db.role.create({
+  //     data: { id: RoleType.Founder, roleType: RoleType.Founder },
+  //   });
+  //   return founderRole;
+  // }
   grantPermission(permission: EditablePermission): void {
     throw new TRPCError({
       code: "BAD_REQUEST",

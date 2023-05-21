@@ -1,5 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { Role, Permission, type EditablePermission } from "./Role";
+import { db } from "server/db";
+import { RoleType } from "@prisma/client";
 
 export class ManagerRole extends Role {
   constructor() {
@@ -7,6 +9,17 @@ export class ManagerRole extends Role {
     this.permissions.push("receivePrivateStoreData");
     this.roleType = "Manager";
   }
+  // public static async createManagerRole(
+  //   managerId: string,
+  //   storeId: string
+  // ): Promise<ManagerRole> {
+  //   const managerRole = new ManagerRole();
+  //   const id =await db.role.create({
+  //     data: { roleType: RoleType.Manager },
+  //   });
+
+  //   return managerRole;
+  // }
   grantPermission(permission: EditablePermission): void {
     if (this.hasPermission(permission))
       throw new TRPCError({

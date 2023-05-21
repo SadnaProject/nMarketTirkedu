@@ -1,13 +1,15 @@
 import { TRPCError } from "@trpc/server";
 import { JobsController } from "./JobsController";
 import { ManagerRole } from "./ManagerRole";
-import { type EditablePermission, type Role } from "./Role";
+import { RoleDTO, type EditablePermission, Role } from "./Role";
+import { db } from "server/db";
+import { RoleType } from "@prisma/client";
 
 export type PositionHolderDTO = {
-  role: Role;
+  role: RoleDTO;
   storeId: string;
   userId: string;
-  appointedByMe: PositionHolderDTO[];
+  assignedPositionHolders: PositionHolderDTO[];
 };
 export class PositionHolder {
   private role: Role;
@@ -23,16 +25,19 @@ export class PositionHolder {
     this.appointments = [];
     // this.dto = undefined;
   }
+  // static createPositionHolderForManager( storeId: string, userId: string): PositionHolder {
+  //   return new PositionHolder(JobsController.managerRole, storeId, userId);
+  // }
   public static createPositionHolderFromDTO(
     dto: PositionHolderDTO
   ): PositionHolder {
     const positionHolder = new PositionHolder(
-      dto.role,
+      Role.createRoleFromDTO(dto.role),
       dto.storeId,
       dto.userId
     );
-    positionHolder.appointments = dto.appointedByMe.map((positionHolderDTO) =>
-      this.createPositionHolderFromDTO(positionHolderDTO)
+    positionHolder.appointments = dto.assignedPositionHolders.map(
+      (positionHolderDTO) => this.createPositionHolderFromDTO(positionHolderDTO)
     );
     // positionHolder.dto = dto;
     return positionHolder;
@@ -43,21 +48,31 @@ export class PositionHolder {
     //     return this.dto;
     // }
     return {
-      role: this.role,
+      role: this.role.DTO,
       storeId: this.storeId,
       userId: this.userId,
-      appointedByMe: this.appointments.map(
+      assignedPositionHolders: this.appointments.map(
         (positionHolder) => positionHolder.DTO
       ),
     };
   }
-  private addPositionHolder(positionHolder: PositionHolder): void {
-    this.appointments.push(positionHolder);
-    // if (this.dto !== undefined) {
-    //     this.dto.appointedByMe.push(positionHolder.DTO);
-    // }
+
+  private async addPositionHolder(
+    positionHolder: PositionHolder
+  ): Promise<void> {
+    // this.appointments.push(positionHolder);
+    await db.positionHolder.create({
+      data: {
+        storeId: positionHolder.storeId,
+        userId: positionHolder.userId,
+        // role: { connect: { id: positionHolder.role.getRoleType() } },
+        roleId: positionHolder.role.getRoleType(),
+        assignerId: this.userId,
+        // assignedBy: { connect: { userId: this.userId,storeId: this.storeId } },
+      },
+    });
   }
-  public appointStoreOwner(userId: string): void {
+  public async appointStoreOwner(userId: string): Promise<void> {
     if (!this.role.hasPermission("AppointStoreOwner")) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -66,13 +81,43 @@ export class PositionHolder {
           this.storeId,
       });
     }
-    this.addPositionHolder(
-      new PositionHolder(JobsController.ownerRole, this.storeId, userId)
+    // await this.addPositionHolder(
+    //   new PositionHolder(JobsController.ownerRole, this.storeId, userId)
+    // );
+    const positionHolder = new PositionHolder(
+      JobsController.ownerRole,
+      this.storeId,
+      userId
     );
+    //TODO: find a more elegant way to do this(in founder also)
+    if (
+      (await db.role.findMany({ where: { roleType: RoleType.Owner } }))
+        .length == 0
+    ) {
+      console.log("creating owner role");
+      await db.role.create({
+        data: {
+          id: RoleType.Owner,
+          roleType: positionHolder.role.getRoleType(),
+          permissions: positionHolder.role.getPermissions(),
+        },
+      });
+    }
+    await db.positionHolder.create({
+      data: {
+        storeId: positionHolder.storeId,
+        userId: positionHolder.userId,
+        // role: { connect: { id: positionHolder.role.getRoleType() } },
+        roleId: positionHolder.role.getRoleType(),
+
+        assignerId: this.userId,
+        // assignedBy: { connect: { userId: this.userId,storeId: this.storeId } },
+      },
+    });
 
     // const storeOwner = new PositionHolder(new StoreOwnerRole(), this.storeId, userId);
   }
-  public appointStoreManager(userId: string): void {
+  public async appointStoreManager(userId: string): Promise<void> {
     if (!this.role.hasPermission("AppointStoreManager")) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -81,9 +126,32 @@ export class PositionHolder {
           this.storeId,
       });
     }
-    this.addPositionHolder(
-      new PositionHolder(new ManagerRole(), this.storeId, userId)
+
+    // await this.addPositionHolder(
+    //   new PositionHolder(new ManagerRole(), this.storeId, userId)
+    // );
+    const positionHolder = new PositionHolder(
+      new ManagerRole(),
+      this.storeId,
+      userId
     );
+    const role = await db.role.create({
+      data: {
+        roleType: positionHolder.Role.getRoleType(),
+        permissions: positionHolder.Role.getPermissions(),
+      },
+    });
+    await db.positionHolder.create({
+      data: {
+        storeId: positionHolder.storeId,
+        userId: positionHolder.userId,
+        // role: { connect: { id: positionHolder.role.getRoleType() } },
+        assignerId: this.userId,
+        // role: { create: { roleType: RoleType.Manager } },
+        roleId: role.id,
+        // assignedBy: { connect: { userId: this.userId,storeId: this.storeId } },
+      },
+    });
   }
 
   public removeAppointee(userId: string): void {

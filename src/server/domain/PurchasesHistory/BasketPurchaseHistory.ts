@@ -4,10 +4,11 @@ import {
   ProductPurchase,
 } from "./ProductPurchaseHistory";
 import { type ProductReviewDTO } from "./ProductReview";
-import { type ReviewDTO, type Review } from "./Review";
+import { type ReviewDTO, Review } from "./Review";
 import { type BasketDTO } from "../Users/Basket";
 import { UsersController } from "../Users/UsersController";
 import { StoresController } from "../Stores/StoresController";
+import { BasketPurchaseDAO } from "./PurchasesHistory/CartPurchaseHistoryRepo";
 
 export type BasketPurchaseDTO = {
   purchaseId: string;
@@ -74,5 +75,26 @@ export class BasketPurchase extends HasRepos {
       BasketPurchaseDTO.price,
       BasketPurchaseDTO.purchaseId
     );
+  }
+
+  static fromDAO(basketPurchaseDAO: BasketPurchaseDAO) {
+    const products = new Map<string, ProductPurchase>();
+    const productPurchaseDAOs = basketPurchaseDAO.products;
+    productPurchaseDAOs.forEach((productPurchase) => {
+      products.set(
+        productPurchase.productId,
+        ProductPurchase.fromDAO(productPurchase)
+      );
+    });
+    const basketPurchase = new BasketPurchase(
+      basketPurchaseDAO.storeId,
+      products,
+      basketPurchaseDAO.price,
+      basketPurchaseDAO.purchaseId
+    );
+    if (basketPurchaseDAO.review) {
+      basketPurchase.review = Review.fromDAO(basketPurchaseDAO.review);
+    }
+    return basketPurchase;
   }
 }

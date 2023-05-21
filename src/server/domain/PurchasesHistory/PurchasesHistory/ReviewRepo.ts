@@ -1,5 +1,6 @@
 import { Testable, testable } from "server/domain/_Testable";
-import { type Review } from "../Review";
+import { Review } from "../Review";
+import { db } from "server/db";
 
 @testable
 export class ReviewRepo extends Testable {
@@ -9,24 +10,51 @@ export class ReviewRepo extends Testable {
     super();
     this.Reviews = [];
   }
-  public getStoreReview(purchaseId: string, storeId: string): Review {
-    const review = this.Reviews.find(
-      (review) => review.PurchaseId === purchaseId && review.StoreId === storeId
-    );
+  public async getStoreReview(
+    purchaseId: string,
+    storeId: string
+  ): Promise<Review> {
+    const review = await db.review.findUnique({
+      where: {
+        storeId_purchaseId: {
+          purchaseId: purchaseId,
+          storeId: storeId,
+        },
+      },
+    });
     if (!review) {
       throw new Error("No review found");
     }
-    return review;
+    return Review.fromDAO(review);
   }
-  public getAllStoreReviews(storeId: string): Review[] {
-    return this.Reviews.filter((review) => review.StoreId === storeId);
+  public async getAllStoreReviews(storeId: string): Promise<Review[]> {
+    const reviews = await db.review.findMany({
+      where: {
+        storeId: storeId,
+      },
+    });
+    return reviews.map((review) => Review.fromDAO(review));
   }
-  public addStoreReview(review: Review): void {
-    this.Reviews.push(review);
+  public async addStoreReview(review: Review): Promise<void> {
+    await db.review.create({
+      data: {
+        rating: review.Rating,
+        createdAt: review.CreatedAt,
+        userId: review.UserId,
+        purchaseId: review.PurchaseId,
+        storeId: review.StoreId,
+      },
+    });
   }
-  public doesStoreReviewExist(purchaseId: string, storeId: string): boolean {
-    return this.Reviews.some(
-      (review) => review.PurchaseId === purchaseId && review.StoreId === storeId
-    );
+  public async doesStoreReviewExist(purchaseId: string, storeId: string): Promise<boolean> {
+    const review = await db.review.findUnique({
+      where: {
+        storeId_purchaseId: {
+          purchaseId: purchaseId,
+          storeId: storeId,
+        },
+      },
+    });
+    return review !== null;
   }
 }

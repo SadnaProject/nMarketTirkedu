@@ -79,11 +79,11 @@ describe("setReview", () => {
       title: "title",
       description: "description",
       rating: 1,
-      id: "id",
       createdAt: date,
       userId: "userId",
       purchaseId: "purchaseId",
       productId: "productId",
+      storeId: "storeId",
     });
     productPurchase.setReview(review);
     expect(productPurchase).toEqual({

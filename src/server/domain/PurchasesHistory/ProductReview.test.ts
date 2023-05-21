@@ -13,11 +13,12 @@ const reviewData = {
   createdAt: new Date(),
   userId: "userId",
   purchaseId: "purchaseId",
-  productId: "productId",
+  storeId: "storeId",
 };
 const productReviewData = {
   title: "title",
   description: "description",
+  productId: "productId",
   ...reviewData,
 };
 
@@ -28,7 +29,6 @@ describe("ProductReview constructor", () => {
   itUnitIntegration("✅creates a product review", () => {
     const productReview = createProductReview();
     expect(productReview.Rating).toBe(reviewData.rating);
-    expect(productReview.Id).toBe(reviewData.id);
     expect(productReview.CreatedAt).toBe(reviewData.createdAt);
     expect(productReview.UserId).toBe(reviewData.userId);
     expect(productReview.PurchaseId).toBe(reviewData.purchaseId);
@@ -51,11 +51,6 @@ describe("ProductReview constructor", () => {
   itUnitIntegration("❎gets storeId and productId", () => {
     expect(
       () => new ProductReview({ ...productReviewData, storeId: "storeId" })
-    ).toThrow();
-  });
-  itUnitIntegration("❎gets undefined productId", () => {
-    expect(
-      () => new ProductReview({ ...productReviewData, productId: undefined })
     ).toThrow();
   });
 });

@@ -1,5 +1,6 @@
 import { Testable, testable } from "server/domain/_Testable";
-import { type ProductPurchase } from "../ProductPurchaseHistory";
+import { ProductPurchase } from "../ProductPurchaseHistory";
+import { db } from "server/db";
 
 @testable
 export class ProductPurchaseRepo extends Testable {
@@ -10,13 +11,34 @@ export class ProductPurchaseRepo extends Testable {
     this.ProductPurchases = [];
   }
 
-  public addProductPurchase(ProductPurchase: ProductPurchase) {
-    this.ProductPurchases.push(ProductPurchase);
+  public async addProductPurchase(
+    ProductPurchase: ProductPurchase,
+    storeId: string
+  ) {
+    await db.productPurchase.create({
+      data: {
+        purchaseId: ProductPurchase.PurchaseId,
+        productId: ProductPurchase.ProductId,
+        quantity: ProductPurchase.Quantity,
+        price: ProductPurchase.Price,
+        storeId: storeId,
+      },
+    });
   }
   // return all products with the same purchaseId
-  public getProductsPurchaseById(ProductPurchaseId: string): ProductPurchase[] {
-    return this.ProductPurchases.filter(
-      (ProductPurchase) => ProductPurchase.PurchaseId === ProductPurchaseId
+  public async getProductsPurchaseById(
+    ProductPurchaseId: string
+  ): Promise<ProductPurchase[]> {
+    const productPurchases = await db.productPurchase.findMany({
+      where: {
+        purchaseId: ProductPurchaseId,
+      },
+      include: {
+        review: true,
+      },
+    });
+    return productPurchases.map((productPurchase) =>
+      ProductPurchase.fromDAO(productPurchase)
     );
   }
 }

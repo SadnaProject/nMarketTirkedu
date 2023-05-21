@@ -18,6 +18,65 @@ model User {
     id    String  @id @default(cuid())
     name  String?
     email String  @unique
+    productReviews ProductReview[]
+    cartPurchases CartPurchase[]
+    reviews Review[]
+}
+
+model ProductReview{
+    title      String
+    description String
+    userId     String
+    user       User     @relation(fields: [userId], references: [id])
+    rating     Int
+    productId  String
+    purchaseId String
+    storeId    String
+    createdAt  DateTime @default(now())
+    productPurchase ProductPurchase? 
+    @@unique([purchaseId, productId])
+    @@id([userId, productId])
+}
+
+model Review{
+    rating     Int
+    createdAt  DateTime @default(now())
+    userId     String
+    purchaseId String
+    user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    storeId    String
+    @@id([storeId, purchaseId])
+    basketPurchase BasketPurchase? 
+}
+
+model ProductPurchase{
+    purchaseId  String 
+    productId   String 
+    quantity    Int
+    createdAt  DateTime @default(now())
+    price       Float
+    review     ProductReview? @relation(fields: [purchaseId, productId], references: [purchaseId, productId])
+    storeId     String
+    BasketPurchase BasketPurchase @relation(fields: [purchaseId, storeId], references: [purchaseId, storeId])
+    @@id([purchaseId, productId])
+}
+
+model BasketPurchase{
+    purchaseId  String 
+    storeId     String
+    products   ProductPurchase[]
+    review Review? @relation(fields: [purchaseId, storeId], references: [purchaseId, storeId])
+    price       Float
+    cartPurchase CartPurchase @relation(fields: [purchaseId], references: [purchaseId])
+    @@id([purchaseId, storeId])
+}
+
+model CartPurchase{
+    purchaseId  String @id @default(cuid())
+    userId      String
+    user        User     @relation(fields: [userId], references: [id])
+    baskets     BasketPurchase[]
+    totalPrice  Float
 }
 
 // model Cart {

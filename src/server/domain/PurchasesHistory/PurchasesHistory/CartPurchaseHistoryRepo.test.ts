@@ -17,7 +17,7 @@ const CartPurchaseData = {
 describe("addCartPurchase", () => {
   const storeIdToBasket = new Map<string, BasketPurchase>();
 
-  itUnitIntegration("should add a cart purchase", () => {
+  itUnitIntegration("should add a cart purchase", async () => {
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
@@ -25,8 +25,8 @@ describe("addCartPurchase", () => {
       CartPurchaseData.price
     );
     const cartPurchaseRepo = new CartPurchaseRepo();
-    cartPurchaseRepo.addCartPurchase(cartPurchase);
-    expect(cartPurchaseRepo.getPurchaseById(cartPurchase.PurchaseId)).toEqual(
+    await cartPurchaseRepo.addCartPurchase(cartPurchase);
+    await expect(cartPurchaseRepo.getPurchaseById(cartPurchase.PurchaseId)).resolves.toEqual(
       cartPurchase
     );
   });
@@ -34,7 +34,7 @@ describe("addCartPurchase", () => {
 describe("getPurchaseById", () => {
   const storeIdToBasket = new Map<string, BasketPurchase>();
 
-  itUnitIntegration("should return the cart purchase", () => {
+  itUnitIntegration("should return the cart purchase", async () => {
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
@@ -42,8 +42,8 @@ describe("getPurchaseById", () => {
       CartPurchaseData.price
     );
     const cartPurchaseRepo = new CartPurchaseRepo();
-    cartPurchaseRepo.addCartPurchase(cartPurchase);
-    expect(cartPurchaseRepo.getPurchaseById(cartPurchase.PurchaseId)).toEqual(
+    await cartPurchaseRepo.addCartPurchase(cartPurchase);
+    await expect(cartPurchaseRepo.getPurchaseById(cartPurchase.PurchaseId)).resolves.toEqual(
       cartPurchase
     );
   });
@@ -64,7 +64,7 @@ describe("getPurchaseById", () => {
 describe("getPurchasesByUser", () => {
   const storeIdToBasket = new Map<string, BasketPurchase>();
 
-  itUnitIntegration("should return the cart purchase", () => {
+  itUnitIntegration("should return the cart purchase", async () => {
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
@@ -72,7 +72,7 @@ describe("getPurchasesByUser", () => {
       CartPurchaseData.price
     );
     const cartPurchaseRepo = new CartPurchaseRepo();
-    cartPurchaseRepo.addCartPurchase(cartPurchase);
+    await cartPurchaseRepo.addCartPurchase(cartPurchase);
     expect(cartPurchaseRepo.getPurchasesByUser(cartPurchase.UserId)).toEqual([
       cartPurchase,
     ]);

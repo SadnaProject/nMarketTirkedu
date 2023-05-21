@@ -5,6 +5,7 @@ import {
   type BasketPurchaseDTO,
 } from "./BasketPurchaseHistory";
 import { HasRepos } from "./_HasRepos";
+import { CartPurchaseDAO } from "./PurchasesHistory/CartPurchaseHistoryRepo";
 
 // TODO: Does a class need to know its related id, or should the parent hold a map for it?
 
@@ -73,5 +74,22 @@ export class CartPurchase extends HasRepos {
       storeIdToBasketPurchases,
       cartPurchaseDTO.totalPrice
     );
+  }
+  public get TotalPrice(): number {
+    return this.totalPrice;
+  }
+  static fromDAO(cartPurchaseDAO: CartPurchaseDAO): CartPurchase {
+    const cart = new CartPurchase(
+      cartPurchaseDAO.userId,
+      cartPurchaseDAO.purchaseId,
+      new Map<string, BasketPurchase>(),
+      cartPurchaseDAO.totalPrice
+    );
+    // for each basket in cartPurchaseDAO.baskets, create a basket purchase and add it to the cart
+    cartPurchaseDAO.baskets.forEach((basketPurchaseDAO) => {
+      const basketPurchase = BasketPurchase.fromDAO(basketPurchaseDAO);
+      cart.StoreIdToBasketPurchases.set(basketPurchase.StoreId, basketPurchase);
+    });
+    return cart;
   }
 }

@@ -4,11 +4,10 @@ import { Review } from "./Review";
 
 const reviewData = {
   rating: 5,
-  id: "id",
   createdAt: new Date(),
   userId: "userId",
   purchaseId: "purchaseId",
-  productId: "productId",
+  storeId: "storeId",
 };
 
 const createReview = (repos: Repos = createRepos()) =>
@@ -18,7 +17,6 @@ describe("Review constructor", () => {
   it("✅creates a review", () => {
     const review = createReview();
     expect(review.Rating).toBe(reviewData.rating);
-    expect(review.Id).toBe(reviewData.id);
     expect(review.CreatedAt).toBe(reviewData.createdAt);
     expect(review.UserId).toBe(reviewData.userId);
     expect(review.PurchaseId).toBe(reviewData.purchaseId);
@@ -39,7 +37,6 @@ describe("Review to DTO", () => {
     const review = createReview();
     const reviewDTO = review.ReviewToDTO();
     expect(reviewDTO.rating).toBe(reviewData.rating);
-    expect(reviewDTO.id).toBe(reviewData.id);
     expect(reviewDTO.createdAt).toBe(reviewData.createdAt);
     expect(reviewDTO.userId).toBe(reviewData.userId);
     expect(reviewDTO.purchaseId).toBe(reviewData.purchaseId);

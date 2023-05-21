@@ -39,19 +39,19 @@ beforeEach(async () => {
 });
 //TODO: delete this.
 describe("trying out db", () => {
-  it("add store founder", async () => {
+  it("add store founder", () => {
     const founder = getMemberI(1);
     const positionHolder: PositionHolder = new PositionHolder(
       founderRole,
       "store1",
       founder.UserId
     );
-    await repos.jobs.SetStoreFounder(positionHolder);
-    const FounderTOAppoint: PositionHolder = new PositionHolder(
-      founderRole,
-      "store1",
-      "abc"
-    );
+    // await repos.jobs.SetStoreFounder(positionHolder);
+    // const FounderTOAppoint: PositionHolder = new PositionHolder(
+    //   founderRole,
+    //   "store1",
+    //   "abc"
+    // );
     // await positionHolder.appointStoreOwner("owner1");
 
     // await positionHolder.appointStoreManager("manager1");

@@ -16,7 +16,7 @@ import { type StoreDTO } from "./Stores/Store";
 import { type DiscountArgs } from "./Stores/DiscountPolicy/Discount";
 import { type ConditionArgs } from "./Stores/Conditions/CompositeLogicalCondition/Condition";
 import { type RoleType } from "./Jobs/Role";
-import { BidArgs, BidDTO } from "./Users/Bid";
+import { type BidArgs, type BidDTO } from "./Users/Bid";
 
 @loggable
 export class MarketFacade extends Loggable {
@@ -160,28 +160,32 @@ export class MarketFacade extends Loggable {
   isGuest(userId: string): boolean {
     return this.controllers.Auth.isGuest(userId);
   }
-  isMember(userId: string): boolean {
-    return this.controllers.Auth.isMember(userId);
+  async isMember(userId: string): Promise<boolean> {
+    return await this.controllers.Auth.isMember(userId);
   }
 
-  isConnected(userId: string): boolean {
-    return this.controllers.Auth.isConnected(userId);
+  async isConnected(userId: string): Promise<boolean> {
+    return await this.controllers.Auth.isConnected(userId);
   }
 
   // register(email: string, @censored password: string): void {
   //   this.controllers.Auth.register(email, password);
   // }
 
-  changeEmail(userId: string, newEmail: string): void {
-    this.controllers.Auth.changeEmail(userId, newEmail);
+  async changeEmail(userId: string, newEmail: string): Promise<void> {
+    await this.controllers.Auth.changeEmail(userId, newEmail);
   }
 
-  changePassword(
+  async changePassword(
     userId: string,
     @censored oldPassword: string,
     @censored newPassword: string
-  ): void {
-    this.controllers.Auth.changePassword(userId, oldPassword, newPassword);
+  ): Promise<void> {
+    await this.controllers.Auth.changePassword(
+      userId,
+      oldPassword,
+      newPassword
+    );
   }
   makeStoreOwner(currentId: string, storeId: string, targetUserId: string) {
     this.validateConnection(currentId);
@@ -406,18 +410,18 @@ export class MarketFacade extends Loggable {
    * Returns all the logged in members ids.
    * @returns Array of strings.
    */
-  getAllLoggedInMembersIds(userId: string): string[] {
+  async getAllLoggedInMembersIds(userId: string): Promise<string[]> {
     this.validateConnection(userId);
-    return this.controllers.Auth.getAllLoggedInMembersIds();
+    return await this.controllers.Auth.getAllLoggedInMembersIds();
   }
   // eslint-disable-next-line jsdoc/require-param
   /**
    * Returns all the logged out members ids.
    * @returns Array of strings.
    */
-  getAllLoggedOutMembersIds(userId: string): string[] {
+  async getAllLoggedOutMembersIds(userId: string): Promise<string[]> {
     this.validateConnection(userId);
-    return this.controllers.Auth.getAllLoggedOutMembersIds();
+    return await this.controllers.Auth.getAllLoggedOutMembersIds();
   }
   searchStores(userId: string, storeName: string): StoreDTO[] {
     this.validateConnection(userId);

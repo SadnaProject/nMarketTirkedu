@@ -1,7 +1,8 @@
 import { Testable, testable } from "server/domain/_Testable";
-import type { MemberUserAuth } from "./MemberUserAuth";
+import { MemberUserAuth } from "./MemberUserAuth";
 import type { GuestUserAuth } from "./GuestUserAuth";
 import { TRPCError } from "@trpc/server";
+import { db } from "server/db";
 
 @testable
 export class UserAuthRepo extends Testable {
@@ -14,47 +15,86 @@ export class UserAuthRepo extends Testable {
     this.guests = [];
   }
   //member related methods
-  public addMember(user: MemberUserAuth): void {
-    this.members.push(user);
+  public async addMember(user: MemberUserAuth): Promise<void> {
+    // this.members.push(user);
+    //add to db
+    // console.log("password: " + user.Password);
+    await db.userAuth.create({
+      data: {
+        id: user.UserId,
+        email: user.Email,
+        password: user.Password,
+      },
+    });
   }
-  public getMemberByEmail(email: string): MemberUserAuth {
+  public async getMemberByEmail(email: string): Promise<MemberUserAuth> {
     const user = this.members.find((user) => user.Email === email);
-    if (user === undefined)
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "user with email: " + email + " not found",
-      });
+    if (user === undefined) {
+      //look in db
+      const user = await db.userAuth.findUnique({ where: { email: email } });
+      if (user === null)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "user with email: " + email + " not found",
+        });
+      else return MemberUserAuth.createFromDTO(user);
+    }
     return user;
-  }
-  public getMemberById(userId: string): MemberUserAuth {
-    const user = this.members.find((user) => user.UserId === userId);
-    if (user === undefined)
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "user with id: " + userId + " not found",
-      });
-    return user;
-  }
-  public doesMemberExistByEmail(email: string): boolean {
-    return this.members.some((user) => user.Email === email);
-  }
-  public doesMemberExistById(userId: string): boolean {
-    return this.members.some((user) => user.UserId === userId);
   }
 
-  public removeMember(userId: string): void {
-    if (!this.doesMemberExistById(userId))
+  public async getMemberById(userId: string): Promise<MemberUserAuth> {
+    const user = this.members.find((user) => user.UserId === userId);
+    if (user === undefined) {
+      //look in db
+      const user = await db.userAuth.findUnique({ where: { id: userId } });
+      if (user === null)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "user with id: " + userId + " not found",
+        });
+      else return MemberUserAuth.createFromDTO(user);
+    }
+
+    return user;
+  }
+  public async doesMemberExistByEmail(email: string): Promise<boolean> {
+    if (this.members.some((user) => user.Email === email)) return true;
+    //search in db
+    else {
+      const user = await db.userAuth.findUnique({ where: { email: email } });
+      if (user === null) return false;
+      else return true;
+    }
+  }
+  public async doesMemberExistById(userId: string): Promise<boolean> {
+    if (this.members.some((user) => user.UserId === userId)) return true;
+    //search in db
+    else {
+      const user = await db.userAuth.findUnique({ where: { id: userId } });
+      if (user === null) return false;
+      else return true;
+    }
+  }
+
+  public async removeMember(userId: string): Promise<void> {
+    if (!(await this.doesMemberExistById(userId)))
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "user with id: " + userId + " not found",
       });
+    //remove from db
+    await db.userAuth.delete({ where: { id: userId } });
     this.members = this.members.filter((user) => user.UserId !== userId);
   }
-  public getAllMembers(): MemberUserAuth[] {
-    return this.members;
+  public async getAllMembers(): Promise<MemberUserAuth[]> {
+    //get from db
+    const members = await db.userAuth.findMany();
+    return members.map((member) => MemberUserAuth.createFromDTO(member));
   }
-  public getAllMemberEmails(): string[] {
-    return this.members.map((user) => user.Email);
+  public async getAllMemberEmails(): Promise<string[]> {
+    //get from db
+    const members = await db.userAuth.findMany();
+    return members.map((member) => member.email);
   }
   //guest related methods
   public addGuest(user: GuestUserAuth): void {

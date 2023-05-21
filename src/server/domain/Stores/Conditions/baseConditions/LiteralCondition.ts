@@ -1,5 +1,5 @@
 import { type FullBasketDTO } from "../../StoresController";
-import { conditionType } from "../CompositeLogicalCondition/Condition";
+import { type conditionType } from "../CompositeLogicalCondition/Condition";
 
 export interface ILiteralCondition {
   isSatisfiedBy(basket: FullBasketDTO): boolean;

@@ -127,24 +127,24 @@ export class Service {
   isGuest(userId: string): boolean {
     return this.facade.isGuest(userId);
   }
-  isMember(userId: string): boolean {
+  async isMember(userId: string): Promise<boolean> {
     return this.facade.isMember(userId);
   }
 
-  isConnected(userId: string): boolean {
+  async isConnected(userId: string): Promise<boolean> {
     return this.facade.isConnected(userId);
   }
 
-  changeEmail(userId: string, newEmail: string): void {
-    this.facade.changeEmail(userId, newEmail);
+  async changeEmail(userId: string, newEmail: string): Promise<void> {
+    await this.facade.changeEmail(userId, newEmail);
   }
 
-  changePassword(
+  async changePassword(
     userId: string,
     oldPassword: string,
     newPassword: string
-  ): void {
-    this.facade.changePassword(userId, oldPassword, newPassword);
+  ): Promise<void> {
+    await this.facade.changePassword(userId, oldPassword, newPassword);
   }
   makeStoreOwner(currentId: string, storeId: string, targetUserId: string) {
     this.facade.makeStoreOwner(currentId, storeId, targetUserId);
@@ -297,7 +297,7 @@ export class Service {
    * Returns all the logged in members ids.
    * @returns Array of strings.
    */
-  getAllLoggedInMembersIds(userId: string): string[] {
+  async getAllLoggedInMembersIds(userId: string): Promise<string[]> {
     return this.facade.getAllLoggedInMembersIds(userId);
   }
   // eslint-disable-next-line jsdoc/require-param
@@ -305,7 +305,7 @@ export class Service {
    * Returns all the logged out members ids.
    * @returns Array of strings.
    */
-  getAllLoggedOutMembersIds(userId: string): string[] {
+  async getAllLoggedOutMembersIds(userId: string): Promise<string[]> {
     return this.facade.getAllLoggedOutMembersIds(userId);
   }
   removeMember(userIdOfActor: string, memberIdToRemove: string) {

@@ -5,11 +5,11 @@ import { z } from "zod";
 export type UserType = "GUEST" | "MEMBER";
 
 export type UserAuthDTO = {
-  userId: string;
+  id: string;
   // email: string;
   // password: string;
-  type: UserType;
-  sessions: Session[];
+  type?: UserType;
+  sessions?: Session[];
 };
 export abstract class UserAuth {
   protected userId: string;
@@ -30,7 +30,7 @@ export abstract class UserAuth {
 
   public get DTO(): UserAuthDTO {
     return {
-      userId: this.userId,
+      id: this.userId,
       // email: this.email,
       // password: this.password,
       type: this.type,

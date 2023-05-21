@@ -15,8 +15,8 @@ import { type BasketProductDTO } from "../Users/BasketProduct";
 import { type DiscountArgs } from "./DiscountPolicy/Discount";
 import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
 import { type ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condition";
-import { CartDTO } from "../Users/Cart";
-
+import { type CartDTO } from "../Users/Cart";
+import { type Store as StoreDAO } from "@prisma/client";
 export const nameSchema = z.string().nonempty();
 
 export type StoreDTO = {
@@ -51,9 +51,25 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     store.isActive = dto.isActive;
     return store;
   }
-
-  static fromStoreId(storeId: string, repos: Repos) {
-    return repos.Stores.getStoreById(storeId);
+  static fromDAO(
+    store: StoreDAO,
+    discountPolicy: DiscountPolicy,
+    constraintPolicy: ConstraintPolicy
+  ) {
+    const newStore = new Store(store.name);
+    newStore.id = store.id;
+    newStore.isActive = store.isActive;
+    newStore.discountPolicy = discountPolicy;
+    newStore.constraintPolicy = constraintPolicy;
+    return newStore;
+  }
+  static async fromStoreId(
+    storeId: string,
+    repos: Repos,
+    controllers: Controllers
+  ) {
+    const store = await repos.Stores.getStoreById(storeId);
+    return store.initRepos(repos).initControllers(controllers);
   }
 
   public get Id() {

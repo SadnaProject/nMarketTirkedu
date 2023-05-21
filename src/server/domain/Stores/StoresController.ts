@@ -17,7 +17,7 @@ import { type ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condi
 import { type DiscountArgs } from "./DiscountPolicy/Discount";
 import { type BasketDTO } from "../Users/Basket";
 import { type RoleType } from "../Jobs/Role";
-import { Bid, storeBidArgs } from "../Users/Bid";
+import { type Bid, storeBidArgs } from "../Users/Bid";
 
 export type SearchArgs = {
   name?: string;
@@ -466,8 +466,8 @@ export class StoresController
     product.Price = price;
   }
 
-  createStore(founderId: string, storeName: string): string {
-    if (!this.Controllers.Auth.isMember(founderId)) {
+  async createStore(founderId: string, storeName: string): Promise<string> {
+    if (!(await this.Controllers.Auth.isMember(founderId))) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User is not a member",

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { type Repos, createMockRepos } from "../_HasRepos";
 import { createProduct, generateProductArgs } from "../_data";
-import { Controllers } from "server/domain/_HasController";
+import { type Controllers } from "server/domain/_HasController";
 import { createMockControllers } from "server/domain/_createControllers";
 
 let repos: Repos;

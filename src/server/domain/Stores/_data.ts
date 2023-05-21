@@ -85,8 +85,8 @@ export function createStoreWithProduct(
     { avgRating: 0, reviews: [] }
   );
   const store = createStore(generateStoreName(), repos, controllers);
-  vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
-  const productId = store.createProduct(productData);
+  vi.spyOn(repos.Products, "addProduct").mockReturnValue(createPromise("AAA"));
+  const productId = await store.createProduct(productData);
   const product = StoreProduct.fromDTO(
     { ...productData, id: productId, rating: 0 },
     controllers,

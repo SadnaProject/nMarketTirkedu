@@ -7,7 +7,7 @@ import { Testable, testable } from "server/domain/_Testable";
 import { type CreditCard } from "../PurchasesHistory/PaymentAdaptor";
 import { TRPCError } from "@trpc/server";
 import { censored } from "../_Loggable";
-import { Bid, BidArgs, BidDTO } from "./Bid";
+import { Bid, type BidArgs, type BidDTO } from "./Bid";
 import * as R from "ramda";
 
 export interface IUsersController {

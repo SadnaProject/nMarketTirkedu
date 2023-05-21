@@ -471,9 +471,9 @@ describe("Discounts", () => {
         product.Price * product1BasketQuantity * (60 / 100) +
           product2.Price * product2BasketQuantity
       );
-      store.removeDiscount(discountId);
-      expect(store.getBasketPrice("", basket)).toBe(price);
-      const discountId1 = store.addDiscount({
+      await store.removeDiscount(discountId);
+      expect(await store.getBasketPrice("", basket)).toBe(price);
+      const discountId1 = await store.addDiscount({
         type: "Add",
         left: {
           condition: {
@@ -598,8 +598,8 @@ describe("Constraint tests", () => {
           createLiteralConditionArgs("", 1, "Store", "AtLeast")
         )
       );
-      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
-      const constraintId2 = store.addConstraint(
+      expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+      const constraintId2 = await store.addConstraint(
         createCompositeConditionArgs(
           "Implies",
           createLiteralConditionArgs("", 1, "Store", "AtLeast"),
@@ -614,7 +614,7 @@ describe("Constraint tests", () => {
   );
   itUnitIntegration(
     "add composite xor constraint to store and check if it works",
-    (testType) => {
+    async (testType) => {
       const {
         price,
         product,
@@ -680,7 +680,7 @@ describe("Constraint tests", () => {
   );
   itUnitIntegration(
     "add time constraint to store and check if it works",
-    (testType) => {
+    async (testType) => {
       const {
         price,
         product,
@@ -691,7 +691,7 @@ describe("Constraint tests", () => {
         product2BasketQuantity,
       } = generateForDiscountAndConstraintTests(testType);
       const date = new Date();
-      const constraintId = store.addConstraint(
+      const constraintId = await store.addConstraint(
         createTimeConditionArgs(
           "After",
           date.getFullYear() + 1,

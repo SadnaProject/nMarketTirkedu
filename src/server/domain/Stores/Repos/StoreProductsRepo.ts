@@ -1,6 +1,9 @@
 import { Testable, testable } from "server/domain/_Testable";
-import { type StoreProduct } from "../StoreProduct";
+import { type StoreProduct as DataStoreProduct } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
+import { db } from "server/db";
+import { randomUUID } from "crypto";
+import { StoreProduct } from "../StoreProduct";
 
 @testable
 export class StoreProductsRepo extends Testable {
@@ -33,7 +36,10 @@ export class StoreProductsRepo extends Testable {
         message: "Product not found",
       });
     }
-    return product;
+    return StoreProduct.fromDAO(
+      product,
+      await this.getSpecialPrices(productId)
+    );
   }
 
   public getProductsByStoreId(storeId: string) {
@@ -52,12 +58,52 @@ export class StoreProductsRepo extends Testable {
     });
   }
 
-  public deleteProduct(productId: string) {
-    const product = this.getProductById(productId);
-    const storeId = this.getStoreIdByProductId(productId);
-    const products = this.getProductsByStoreId(storeId);
-    const index = products.indexOf(product);
-    products.splice(index, 1);
-    this.productsByStoreId.set(storeId, products);
+  public async deleteProduct(productId: string) {
+    await db.storeProduct.delete({
+      where: {
+        id: productId,
+      },
+    });
+  }
+  public async getSpecialPrices(productId: string) {
+    const specialPrices = await db.specialPrice.findMany({
+      where: {
+        productId: productId,
+      },
+    });
+    const prices: Map<string, number> = new Map();
+    for (const price of specialPrices) {
+      prices.set(price.userId, price.price);
+    }
+    return prices;
+  }
+  public async setSpecialPrices(
+    prices: Map<string, number>,
+    productId: string
+  ) {
+    await db.specialPrice.createMany({
+      data: Array.from(prices).map(([userId, price]) => {
+        return {
+          userId: userId,
+          price: price,
+          productId: productId,
+        };
+      }),
+      skipDuplicates: true,
+    });
+  }
+  public setField<T extends keyof DataStoreProduct>(
+    productId: string,
+    field: T,
+    value: DataStoreProduct[T]
+  ) {
+    return db.storeProduct.update({
+      where: {
+        id: productId,
+      },
+      data: {
+        [field]: value,
+      },
+    });
   }
 }

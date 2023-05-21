@@ -17,7 +17,7 @@ export default defineConfig({
       // "**/UserAuthRepo.test.ts",
       // "**/MemberUserAuth.test.ts",
       // "**/Session.test.ts",
-      "**/BasketPurchaseHistoryRepo.test.ts",
+      "**/Review.test.ts",
     ],
     threads: false,
   },

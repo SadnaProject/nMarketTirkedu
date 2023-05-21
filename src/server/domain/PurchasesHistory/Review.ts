@@ -1,4 +1,3 @@
-import { randomUUID } from "crypto";
 import { HasRepos } from "./_HasRepos";
 import { TRPCError } from "@trpc/server";
 import { ReviewDAO } from "./PurchasesHistory/CartPurchaseHistoryRepo";
@@ -50,7 +49,7 @@ export class Review extends HasRepos {
   public get CreatedAt(): Date {
     return this.createdAt;
   }
-  
+
   public ReviewToDTO(): ReviewDTO {
     return {
       rating: this.rating,
@@ -80,5 +79,4 @@ export class Review extends HasRepos {
   public get StoreId(): string {
     return this.storeId;
   }
-
 }

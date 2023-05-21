@@ -1,24 +1,18 @@
 import { Testable, testable } from "server/domain/_Testable";
-import { CartPurchaseDTO } from "../CartPurchaseHistory";
 import { db } from "server/db";
 import { TRPCError } from "@trpc/server";
 import {
   BasketPurchase,
   CartPurchase,
-  PrismaClient,
   ProductPurchase,
   ProductReview,
-  Review,
+  Review as DBReview,
 } from "@prisma/client";
-import { BasketPurchaseDTO } from "../BasketPurchaseHistory";
-import { ProductPurchaseDTO } from "../ProductPurchaseHistory";
-import { TypeOf } from "zod";
 import { CartPurchase as RealCartPurchase } from "../CartPurchaseHistory";
-import { inc, includes } from "ramda";
 
 export type ProductReviewDAO = ProductReview;
 
-export type ReviewDAO = Review;
+export type ReviewDAO = DBReview;
 
 export type ProductPurchaseDAO = ProductPurchase & {
   review: ProductReviewDAO | null;

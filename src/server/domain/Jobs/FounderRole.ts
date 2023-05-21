@@ -5,7 +5,8 @@ import { RoleType } from "@prisma/client";
 
 export class FounderRole extends Role {
   //TODO maybe its better to extend OwnerRole
-  constructor() {
+  private static founderRole: FounderRole;
+  private constructor() {
     super();
     this.roleType = "Founder";
     this.permissions.push("DeactivateStore");
@@ -39,5 +40,9 @@ export class FounderRole extends Role {
   }
   canBeAppointedToStoreOwner(): boolean {
     return false;
+  }
+  static getFounderRole(): FounderRole {
+    if (!this.founderRole) this.founderRole = new FounderRole();
+    return this.founderRole;
   }
 }

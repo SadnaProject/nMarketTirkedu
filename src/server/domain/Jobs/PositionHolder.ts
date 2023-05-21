@@ -1,9 +1,11 @@
 import { TRPCError } from "@trpc/server";
-import { JobsController } from "./JobsController";
-import { ManagerRole } from "./ManagerRole";
-import { RoleDTO, type EditablePermission, Role } from "./Role";
+
 import { db } from "server/db";
 import { RoleType } from "@prisma/client";
+import { RoleDTO, type EditablePermission, Role } from "./Role";
+import { OwnerRole } from "./OwnerRole";
+import { FounderRole } from "./FounderRole";
+import { ManagerRole } from "./ManagerRole";
 
 export type PositionHolderDTO = {
   role: RoleDTO;
@@ -31,11 +33,17 @@ export class PositionHolder {
   public static createPositionHolderFromDTO(
     dto: PositionHolderDTO
   ): PositionHolder {
-    const positionHolder = new PositionHolder(
-      Role.createRoleFromDTO(dto.role),
-      dto.storeId,
-      dto.userId
-    );
+    let role: Role;
+    if (dto.role.roleType === RoleType.Owner) {
+      role = OwnerRole.getOwnerRole();
+    } else if (dto.role.roleType === RoleType.Founder) {
+      role = FounderRole.getFounderRole();
+    } else {
+      role = new ManagerRole(); //TODO: change this to be the real role(it has updated permissions)
+      role.setPermissions(dto.role.permissions);
+    }
+
+    const positionHolder = new PositionHolder(role, dto.storeId, dto.userId);
     positionHolder.appointments = dto.assignedPositionHolders.map(
       (positionHolderDTO) => this.createPositionHolderFromDTO(positionHolderDTO)
     );
@@ -85,7 +93,7 @@ export class PositionHolder {
     //   new PositionHolder(JobsController.ownerRole, this.storeId, userId)
     // );
     const positionHolder = new PositionHolder(
-      JobsController.ownerRole,
+      OwnerRole.getOwnerRole(),
       this.storeId,
       userId
     );

@@ -50,6 +50,21 @@ export class JobsRepo extends Testable {
     });
   }
 
+  // public async GetStoreFounder(storeId: string): Promise<PositionHolder> {
+  //   //un some db query just for the sake of it for using await
+  //   const dbPositionHolder = await db.positionHolder.findFirst({ where: {} });
+  //   const founder = this.storeIdToFounder.get(storeId);
+  //   if (founder === undefined) {
+  //     throw new TRPCError({
+  //       code: "BAD_REQUEST",
+  //       message:
+  //         "store founder not found for store with id: " +
+  //         storeId +
+  //         " not found",
+  //     });
+  //   }
+  //   return founder;
+  // }
   public async GetStoreFounder(storeId: string): Promise<PositionHolder> {
     const founder = this.storeIdToFounder.get(storeId);
     if (founder === undefined) {

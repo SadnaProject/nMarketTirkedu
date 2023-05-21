@@ -284,8 +284,8 @@ export class JobsController
   implements IJobsController
 {
   // private managerRole: ManagerRole;
-  static ownerRole: OwnerRole = new OwnerRole();
-  static founderRole: FounderRole = new FounderRole();
+  // static ownerRole: OwnerRole = new OwnerRole();
+  // static founderRole: FounderRole = new FounderRole();
   private wasAdminInitialized: boolean;
   constructor() {
     super();
@@ -359,7 +359,7 @@ export class JobsController
 
   async InitializeStore(founderId: string, storeId: string): Promise<void> {
     const positionHolder: PositionHolder = new PositionHolder(
-      JobsController.founderRole,
+      FounderRole.getFounderRole(),
       storeId,
       founderId
     );

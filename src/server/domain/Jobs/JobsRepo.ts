@@ -1,5 +1,5 @@
 import { Testable, testable } from "server/domain/_Testable";
-import { type PositionHolder } from "./PositionHolder";
+import { PositionHolder } from "./PositionHolder";
 import { TRPCError } from "@trpc/server";
 import { db } from "server/db";
 import { RoleType } from "@prisma/client";
@@ -26,7 +26,7 @@ export class JobsRepo extends Testable {
   }
 
   public async SetStoreFounder(founder: PositionHolder): Promise<void> {
-    this.storeIdToFounder.set(founder.StoreId, founder);
+    // this.storeIdToFounder.set(founder.StoreId, founder);
     //todo: there needs to only one founder role in the db
     if (
       (await db.role.findMany({ where: { roleType: RoleType.Founder } }))
@@ -50,24 +50,90 @@ export class JobsRepo extends Testable {
     });
   }
 
-  public GetStoreFounder(storeId: string): PositionHolder {
+  public async GetStoreFounder(storeId: string): Promise<PositionHolder> {
     const founder = this.storeIdToFounder.get(storeId);
     if (founder === undefined) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message:
-          "store founder not found for store with id: " +
-          storeId +
-          " not found",
+      const dbPositionHolder = await db.positionHolder.findFirst({
+        include: { role: true, assignedPositionHolders: true },
+        where: {
+          storeId: storeId,
+          roleId: RoleType.Founder,
+        },
       });
+      if (dbPositionHolder === null) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "store founder not found for store with id: " +
+            storeId +
+            " not found",
+        });
+      }
+      const founder = await this.getPositionHolderFromDB(
+        dbPositionHolder.storeId,
+        dbPositionHolder.userId
+      );
+      return founder;
     }
     return founder;
   }
-  public getPositionHolderByUserIdAndStoreId(
+  /**
+   * Returns the whole position holder tree
+   */
+  private async getPositionHolderFromDB(
+    storeId: string,
+    userId: string
+  ): Promise<PositionHolder> {
+    const dbPositionHolder = await db.positionHolder.findUnique({
+      where: { userId_storeId: { storeId: storeId, userId: userId } },
+      include: { role: true, assignedPositionHolders: true },
+    });
+    if (dbPositionHolder === null) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "position holder with userId: " +
+          userId +
+          " not found in store: " +
+          storeId,
+      });
+    } else {
+      if (dbPositionHolder.assignedPositionHolders.length == 0) {
+        return PositionHolder.createPositionHolderFromDTO({
+          role: dbPositionHolder.role,
+          storeId: dbPositionHolder.storeId,
+          userId: dbPositionHolder.userId,
+          assignedPositionHolders: [],
+        });
+      } else {
+        const assignedPositionHolders = await Promise.all(
+          dbPositionHolder.assignedPositionHolders.map(
+            async (positionHolder) => {
+              return await this.getPositionHolderFromDB(
+                positionHolder.storeId,
+                positionHolder.userId
+              );
+            }
+          )
+        );
+        return PositionHolder.createPositionHolderFromDTO({
+          role: dbPositionHolder.role,
+          storeId: dbPositionHolder.storeId,
+          userId: dbPositionHolder.userId,
+          assignedPositionHolders: assignedPositionHolders.map(
+            (positionHolder) => {
+              return positionHolder.DTO;
+            }
+          ),
+        });
+      }
+    }
+  }
+  public async getPositionHolderByUserIdAndStoreId(
     userId: string,
     storeId: string
-  ): PositionHolder | undefined {
-    const founder = this.GetStoreFounder(storeId);
+  ): Promise<PositionHolder | undefined> {
+    const founder = await this.GetStoreFounder(storeId);
     const positionHolder = this.findPositionHolder(userId, founder);
     return positionHolder;
   }
@@ -86,8 +152,10 @@ export class JobsRepo extends Testable {
     }
     return undefined;
   }
-  public getAllPositionHoldersByStoreId(storeId: string): PositionHolder[] {
-    const founder = this.GetStoreFounder(storeId);
+  public async getAllPositionHoldersByStoreId(
+    storeId: string
+  ): Promise<PositionHolder[]> {
+    const founder = await this.GetStoreFounder(storeId);
     return this.getAllPositionHolders(founder);
   }
   private getAllPositionHolders(

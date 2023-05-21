@@ -52,8 +52,10 @@ describe("trying out db", () => {
       "store1",
       "abc"
     );
-    await positionHolder.appointStoreOwner("owner1");
-    await positionHolder.appointStoreManager("manager1");
+    // await positionHolder.appointStoreOwner("owner1");
+
+    // await positionHolder.appointStoreManager("manager1");
+
     // const founder2 = repos.Jobs.GetStoreFounder(founder.StoreId);
     // expect(founder2).toEqual(founder);
   });

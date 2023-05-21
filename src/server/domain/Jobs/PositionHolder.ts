@@ -9,7 +9,7 @@ export type PositionHolderDTO = {
   role: RoleDTO;
   storeId: string;
   userId: string;
-  appointedByMe: PositionHolderDTO[];
+  assignedPositionHolders: PositionHolderDTO[];
 };
 export class PositionHolder {
   private role: Role;
@@ -36,8 +36,8 @@ export class PositionHolder {
       dto.storeId,
       dto.userId
     );
-    positionHolder.appointments = dto.appointedByMe.map((positionHolderDTO) =>
-      this.createPositionHolderFromDTO(positionHolderDTO)
+    positionHolder.appointments = dto.assignedPositionHolders.map(
+      (positionHolderDTO) => this.createPositionHolderFromDTO(positionHolderDTO)
     );
     // positionHolder.dto = dto;
     return positionHolder;
@@ -51,7 +51,7 @@ export class PositionHolder {
       role: this.role.DTO,
       storeId: this.storeId,
       userId: this.userId,
-      appointedByMe: this.appointments.map(
+      assignedPositionHolders: this.appointments.map(
         (positionHolder) => positionHolder.DTO
       ),
     };

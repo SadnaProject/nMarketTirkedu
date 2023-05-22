@@ -1,8 +1,6 @@
 import { HasRepos } from "./_HasRepos";
 import { ProductReview, type ProductReviewDTO } from "./ProductReview";
-import { type BasketProductDTO } from "../Users/BasketProduct";
-import { StoresController } from "../Stores/StoresController";
-import { ProductPurchaseDAO } from "./PurchasesHistory/CartPurchaseHistoryRepo";
+import { ProductPurchaseDAO } from "./TypeHelper";
 import { TRPCError } from "@trpc/server";
 
 export type ProductPurchaseDTO = {
@@ -19,7 +17,7 @@ type ProductPurchaseArgs = {
   purchaseId: string;
 };
 
-export class ProductPurchase extends HasRepos {
+export class ProductPurchase {
   private purchaseId: string;
   private productId: string;
   private quantity: number;
@@ -27,7 +25,7 @@ export class ProductPurchase extends HasRepos {
   private review?: ProductReview;
 
   constructor({ productId, quantity, price, purchaseId }: ProductPurchaseArgs) {
-    super();
+    // super();
     this.purchaseId = purchaseId;
     this.productId = productId;
     this.quantity = quantity;

@@ -3,12 +3,8 @@ import {
   type ProductPurchaseDTO,
   ProductPurchase,
 } from "./ProductPurchaseHistory";
-import { type ProductReviewDTO } from "./ProductReview";
 import { type ReviewDTO, Review } from "./Review";
-import { type BasketDTO } from "../Users/Basket";
-import { UsersController } from "../Users/UsersController";
-import { StoresController } from "../Stores/StoresController";
-import { BasketPurchaseDAO } from "./PurchasesHistory/CartPurchaseHistoryRepo";
+import { BasketPurchaseDAO } from "./TypeHelper";
 
 export type BasketPurchaseDTO = {
   purchaseId: string;
@@ -17,7 +13,7 @@ export type BasketPurchaseDTO = {
   review?: ReviewDTO;
   price: number;
 };
-export class BasketPurchase extends HasRepos {
+export class BasketPurchase {
   private purchaseId: string;
   private storeId: string;
   private products: Map<string, ProductPurchase>; // product id to product purchase
@@ -30,7 +26,7 @@ export class BasketPurchase extends HasRepos {
     price: number,
     purchaseId: string
   ) {
-    super();
+    // super();
     this.purchaseId = purchaseId;
     this.storeId = storeId;
     this.products = products;

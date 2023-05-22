@@ -1,31 +1,47 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { ProductPurchase } from "../ProductPurchaseHistory";
 import { BasketPurchase } from "../BasketPurchaseHistory";
 import { BasketPurchaseRepo } from "./BasketPurchaseHistoryRepo";
 import { itUnitIntegration } from "server/domain/_mock";
+import { db } from "server/db";
+import { CartPurchase } from "../CartPurchaseHistory";
+import { CartPurchaseRepo } from "./CartPurchaseHistoryRepo";
 
-const basketPurchaseData = {
-  id: "id",
+const products = new Map<string, ProductPurchase>();
+
+const basketPurchase = new BasketPurchase("storeId", products, 1, "purchaseId");
+
+const basketPurchaseData = new Map<string, BasketPurchase>();
+basketPurchaseData.set("storeId", basketPurchase);
+
+const CartPurchaseData = {
   createdAt: new Date(),
   userId: "userId",
   purchaseId: "purchaseId",
   productId: "productId",
-  storeId: "storeId",
+  baskets: basketPurchaseData,
   quantity: 1,
   price: 1,
 };
 
+beforeEach(async () => {
+  await db.productPurchase.deleteMany({});
+  await db.basketPurchase.deleteMany({});
+  await db.cartPurchase.deleteMany({});
+  await db.user.deleteMany({});
+});
+
 describe("addBasketPurchase", () => {
   itUnitIntegration("should add a basket purchase", async (testType) => {
     const productIdToProductPurchase = new Map<string, ProductPurchase>();
-    const basketPurchase = new BasketPurchase(
-      basketPurchaseData.storeId,
-      productIdToProductPurchase,
-      basketPurchaseData.price,
-      basketPurchaseData.purchaseId
-    );
+    const cartPurchaseRepo = new CartPurchaseRepo();
     const basketPurchaseRepo = new BasketPurchaseRepo();
-    await basketPurchaseRepo.addBasketPurchase(basketPurchase);
+    const cartPurchase = new CartPurchase(
+      CartPurchaseData.userId,
+      CartPurchaseData.purchaseId,
+      CartPurchaseData.baskets,
+      CartPurchaseData.price
+    );
     await expect(
       basketPurchaseRepo.getPurchaseById(
         basketPurchase.PurchaseId,

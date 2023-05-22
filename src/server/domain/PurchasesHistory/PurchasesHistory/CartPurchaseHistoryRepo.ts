@@ -1,35 +1,11 @@
 import { Testable, testable } from "server/domain/_Testable";
 import { db } from "server/db";
 import { TRPCError } from "@trpc/server";
-import {
-  BasketPurchase,
-  CartPurchase,
-  ProductPurchase,
-  ProductReview,
-  Review as DBReview,
-} from "@prisma/client";
 import { CartPurchase as RealCartPurchase } from "../CartPurchaseHistory";
-
-export type ProductReviewDAO = ProductReview;
-
-export type ReviewDAO = DBReview;
-
-export type ProductPurchaseDAO = ProductPurchase & {
-  review: ProductReviewDAO | null;
-};
-
-export type BasketPurchaseDAO = BasketPurchase & {
-  products: ProductPurchaseDAO[];
-  review: ReviewDAO | null;
-};
-
-export type CartPurchaseDAO = CartPurchase & {
-  baskets: BasketPurchaseDAO[];
-};
 
 @testable
 export class CartPurchaseRepo extends Testable {
-  private CartPurchase: CartPurchase[];
+  private CartPurchase: RealCartPurchase[];
 
   constructor() {
     super();
@@ -114,8 +90,8 @@ export class CartPurchaseRepo extends Testable {
     }
     return RealCartPurchase.fromDAO(purchase);
   }
-  public doesPurchaseExist(purchaseId: string): boolean {
-    const purchase = db.cartPurchase.findUnique({
+  public async doesPurchaseExist(purchaseId: string): Promise<boolean> {
+    const purchase = await db.cartPurchase.findUnique({
       where: {
         purchaseId: purchaseId,
       },

@@ -1,6 +1,6 @@
+import { ReviewDAO } from "./TypeHelper";
 import { HasRepos } from "./_HasRepos";
 import { TRPCError } from "@trpc/server";
-import { ReviewDAO } from "./PurchasesHistory/CartPurchaseHistoryRepo";
 
 export type ReviewDTO = {
   userId: string;
@@ -18,7 +18,7 @@ export type ReviewArgs = {
   storeId: string;
 };
 
-export class Review extends HasRepos {
+export class Review {
   private rating: number;
   private createdAt: Date;
   private userId: string;
@@ -27,7 +27,7 @@ export class Review extends HasRepos {
 
   // create constructor for either store review or purchase review
   constructor(args: ReviewArgs) {
-    super();
+    // super();
     this.rating = args.rating;
     this.createdAt = args.createdAt;
     this.userId = args.userId;

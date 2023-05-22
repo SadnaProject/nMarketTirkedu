@@ -9,7 +9,6 @@ import { itUnitIntegration } from "../_mock";
 
 const reviewData = {
   rating: 5,
-  id: "id",
   createdAt: new Date(),
   userId: "userId",
   purchaseId: "purchaseId",
@@ -22,8 +21,13 @@ const productReviewData = {
   ...reviewData,
 };
 
-const createProductReview = (repos: Repos = createRepos()) =>
-  new ProductReview(productReviewData).initRepos(repos);
+describe("ProductReview constructor", () => {
+  itUnitIntegration("✅creates a product review", () => {
+    const productReview = new ProductReview(productReviewData);
+  });
+});
+
+const createProductReview = () => new ProductReview(productReviewData);
 
 describe("ProductReview constructor", () => {
   itUnitIntegration("✅creates a product review", () => {
@@ -32,7 +36,7 @@ describe("ProductReview constructor", () => {
     expect(productReview.CreatedAt).toBe(reviewData.createdAt);
     expect(productReview.UserId).toBe(reviewData.userId);
     expect(productReview.PurchaseId).toBe(reviewData.purchaseId);
-    expect(productReview.StoreId).toBe(undefined);
+    expect(productReview.StoreId).toBe(reviewData.storeId);
     expect(productReview.Title).toBe(productReviewData.title);
     expect(productReview.Description).toBe(productReviewData.description);
   });
@@ -48,11 +52,6 @@ describe("ProductReview constructor", () => {
       () => new ProductReview({ ...productReviewData, rating: 6 })
     ).toThrow();
   });
-  itUnitIntegration("❎gets storeId and productId", () => {
-    expect(
-      () => new ProductReview({ ...productReviewData, storeId: "storeId" })
-    ).toThrow();
-  });
 });
 
 describe("ProductReview ToDTO", () => {
@@ -62,6 +61,7 @@ describe("ProductReview ToDTO", () => {
     expect(dto).toEqual({
       title: productReviewData.title,
       description: productReviewData.description,
+      productId: productReviewData.productId,
       ...reviewData,
     });
   });

@@ -233,3 +233,49 @@ model CartPurchase{
 //     user          User      @relation(fields: [userId], references: [id])
 //     items         CartItem[]
 // }
+
+//JOBS COMPONENT
+enum Permission {
+    DeactivateStore
+    ActivateStore
+    AppointStoreOwner
+    AppointStoreManager
+    receiveClosedStoreData
+    AddProduct
+    EditProductDetails
+    RemoveProduct
+    receivePrivateStoreData
+}
+enum RoleType {
+    Founder
+    Owner
+    Manager
+
+}
+model Role {
+    id          String      @id// @default(cuid())
+    roleType    RoleType
+    permissions Permission[]
+    positionHolders       PositionHolder[]
+}
+model PositionHolder {
+    // id          String      @id @default(cuid())
+    //TODO make this two ids below a foreign key to relavent tables
+    userId      String
+    //   user        User        @relation(fields: [userId], references: [id])
+    storeId     String
+    //   store       Store       @relation(fields: [storeId], references: [id])
+    role        Role        @relation(fields: [roleId], references: [id])
+    roleId      String
+    //todo, add my assigned position holders
+
+    assignedPositionHolders PositionHolder[] @relation("PositionHolderToAssignees")
+    assignerId              String?
+    assignedBy              PositionHolder? @relation("PositionHolderToAssignees", fields: [assignerId,storeId], references: [userId, storeId])
+
+    @@id([userId, storeId])
+}
+//TODO maybe better to just save a field in the users table.
+model Admin {
+    userId      String     @id
+}

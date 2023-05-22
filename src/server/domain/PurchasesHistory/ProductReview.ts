@@ -1,5 +1,5 @@
-import { ProductReviewDAO } from "./PurchasesHistory/CartPurchaseHistoryRepo";
 import { Review, type ReviewArgs, type ReviewDTO } from "./Review";
+import { ProductReviewDAO } from "./TypeHelper";
 
 export type ProductReviewDTO = {
   title: string;

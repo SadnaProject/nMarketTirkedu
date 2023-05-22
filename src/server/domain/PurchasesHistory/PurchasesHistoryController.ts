@@ -1,24 +1,21 @@
 import { HasControllers } from "../_HasController";
 import { type CartDTO } from "../Users/Cart";
 import {
-  type BasketPurchase,
+  BasketPurchase,
   type BasketPurchaseDTO,
 } from "./BasketPurchaseHistory";
 import { CartPurchase, type CartPurchaseDTO } from "./CartPurchaseHistory";
 import { type ProductReviewDTO, ProductReview } from "./ProductReview";
-import { Review, type ReviewDTO } from "./Review";
+import { Review } from "./Review";
 import { randomUUID } from "crypto";
 import { Mixin } from "ts-mixer";
 import { Testable, testable } from "server/domain/_Testable";
 import { HasRepos, type Repos, createRepos } from "./_HasRepos";
 import { type CreditCard, PaymentAdapter } from "./PaymentAdaptor";
 import {
+  ProductPurchase,
   type ProductPurchaseDTO,
-  type ProductPurchase,
 } from "./ProductPurchaseHistory";
-import { Console, error } from "console";
-import { createControllers } from "../_createControllers";
-import { JobsController } from "../Jobs/JobsController";
 import { TRPCError } from "@trpc/server";
 import { eventEmitter } from "server/EventEmitter";
 import { censored } from "../_Loggable";
@@ -165,7 +162,9 @@ export class PurchasesHistoryController
   async addPurchase(cartPurchase: CartPurchase): Promise<void> {
     // check that purchase with same id doesn't exist
     // if this.Repos.CartPurchases.getPurchaseById(cartPurchase.PurchaseId) dosent throw, throw error
-    if (this.Repos.CartPurchases.doesPurchaseExist(cartPurchase.PurchaseId)) {
+    if (
+      await this.Repos.CartPurchases.doesPurchaseExist(cartPurchase.PurchaseId)
+    ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
@@ -181,14 +180,20 @@ export class PurchasesHistoryController
     //   });
     // });
   }
-  
-  // async addBasketPurchase(basketPurchase: BasketPurchase): Promise<void> {
-  //   await this.Repos.BasketPurchases.addBasketPurchase(basketPurchase);
-  // }
 
-  // addProductPurchase(productPurchase: ProductPurchase): void {
-  //   שwthis.Repos.ProductsPurchases.addProductPurchase(productPurchase);
-  // }
+  async addBasketPurchase(basketPurchase: BasketPurchase): Promise<void> {
+    await this.Repos.BasketPurchases.addBasketPurchase(basketPurchase);
+  }
+
+  async addProductPurchase(
+    productPurchase: ProductPurchase,
+    storeId: string
+  ): Promise<void> {
+    await this.Repos.ProductsPurchases.addProductPurchase(
+      productPurchase,
+      storeId
+    );
+  }
 
   async addStorePurchaseReview(
     userId: string,
@@ -299,7 +304,9 @@ export class PurchasesHistoryController
     };
   }
   async getPurchase(purchaseId: string): Promise<CartPurchaseDTO> {
-    if (this.Repos.CartPurchases.doesPurchaseExist(purchaseId) === false) {
+    if (
+      (await this.Repos.CartPurchases.doesPurchaseExist(purchaseId)) === false
+    ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Purchase not found",

@@ -88,7 +88,8 @@ export class Service {
     productId: string,
     review: number,
     reviewTitle: string,
-    reviewDescription: string
+    reviewDescription: string,
+    storeId: string
   ) {
     this.facade.reviewProduct(
       userId,
@@ -96,7 +97,8 @@ export class Service {
       productId,
       review,
       reviewTitle,
-      reviewDescription
+      reviewDescription,
+      storeId
     );
   }
 
@@ -280,11 +282,11 @@ export class Service {
   public logoutMember(userId: string): string {
     return this.facade.logoutMember(userId);
   }
-  public getPurchasesByUser(
+  public async getPurchasesByUser(
     adminId: string,
     userId: string
-  ): CartPurchaseDTO[] {
-    return this.facade.getPurchasesByUser(adminId, userId);
+  ): Promise<CartPurchaseDTO[]> {
+    return await this.facade.getPurchasesByUser(adminId, userId);
   }
   public getPurchasesByStore(
     userId: string,

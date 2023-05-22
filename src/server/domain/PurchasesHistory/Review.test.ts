@@ -1,5 +1,4 @@
 import { expect, describe, it } from "vitest";
-import { type Repos, createRepos } from "./_HasRepos";
 import { Review } from "./Review";
 
 const reviewData = {
@@ -10,8 +9,7 @@ const reviewData = {
   storeId: "storeId",
 };
 
-const createReview = (repos: Repos = createRepos()) =>
-  new Review(reviewData).initRepos(repos);
+const createReview = () => new Review(reviewData);
 
 describe("Review constructor", () => {
   it("✅creates a review", () => {
@@ -20,7 +18,7 @@ describe("Review constructor", () => {
     expect(review.CreatedAt).toBe(reviewData.createdAt);
     expect(review.UserId).toBe(reviewData.userId);
     expect(review.PurchaseId).toBe(reviewData.purchaseId);
-    expect(review.StoreId).toBe(undefined);
+    expect(review.StoreId).toBe(reviewData.storeId);
   });
 
   it("❎gets negative rating", () => {
@@ -40,6 +38,6 @@ describe("Review to DTO", () => {
     expect(reviewDTO.createdAt).toBe(reviewData.createdAt);
     expect(reviewDTO.userId).toBe(reviewData.userId);
     expect(reviewDTO.purchaseId).toBe(reviewData.purchaseId);
-    expect(reviewDTO.storeId).toBe(undefined);
+    expect(reviewDTO.storeId).toBe(reviewData.storeId);
   });
 });

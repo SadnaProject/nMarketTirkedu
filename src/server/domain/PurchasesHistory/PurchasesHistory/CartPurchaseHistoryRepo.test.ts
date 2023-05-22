@@ -1,11 +1,11 @@
-import { describe, expect } from "vitest";
+import { beforeEach, describe, expect } from "vitest";
 import { CartPurchase } from "../CartPurchaseHistory";
 import { CartPurchaseRepo } from "./CartPurchaseHistoryRepo";
 import { type BasketPurchase } from "../BasketPurchaseHistory";
 import { itUnitIntegration } from "server/domain/_mock";
+import { db } from "server/db";
 
 const CartPurchaseData = {
-  id: "id",
   createdAt: new Date(),
   userId: "userId",
   purchaseId: "purchaseId",
@@ -14,10 +14,34 @@ const CartPurchaseData = {
   price: 1,
 };
 
+const CartPurchaseData2 = {
+  id: "id2",
+  createdAt: new Date(),
+  userId: "userId",
+  purchaseId: "purchaseId2",
+  productId: "productId",
+  quantity: 1,
+  price: 1,
+};
+
+beforeEach(async () => {
+  await db.productPurchase.deleteMany({});
+  await db.basketPurchase.deleteMany({});
+  await db.cartPurchase.deleteMany({});
+  await db.user.deleteMany({});
+});
+
 describe("addCartPurchase", () => {
   const storeIdToBasket = new Map<string, BasketPurchase>();
 
   itUnitIntegration("should add a cart purchase", async () => {
+    await db.user.create({
+      data: {
+        id: CartPurchaseData.userId,
+        name: "name",
+        email: "email",
+      },
+    });
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
@@ -26,15 +50,22 @@ describe("addCartPurchase", () => {
     );
     const cartPurchaseRepo = new CartPurchaseRepo();
     await cartPurchaseRepo.addCartPurchase(cartPurchase);
-    await expect(cartPurchaseRepo.getPurchaseById(cartPurchase.PurchaseId)).resolves.toEqual(
-      cartPurchase
-    );
+    await expect(
+      cartPurchaseRepo.getPurchaseById(cartPurchase.PurchaseId)
+    ).resolves.toEqual(cartPurchase);
   });
 });
 describe("getPurchaseById", () => {
   const storeIdToBasket = new Map<string, BasketPurchase>();
 
   itUnitIntegration("should return the cart purchase", async () => {
+    await db.user.create({
+      data: {
+        id: CartPurchaseData.userId,
+        name: "name",
+        email: "email",
+      },
+    });
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
@@ -43,11 +74,18 @@ describe("getPurchaseById", () => {
     );
     const cartPurchaseRepo = new CartPurchaseRepo();
     await cartPurchaseRepo.addCartPurchase(cartPurchase);
-    await expect(cartPurchaseRepo.getPurchaseById(cartPurchase.PurchaseId)).resolves.toEqual(
-      cartPurchase
-    );
+    await expect(
+      cartPurchaseRepo.getPurchaseById(cartPurchase.PurchaseId)
+    ).resolves.toEqual(cartPurchase);
   });
-  itUnitIntegration("should throw if purchase not found", () => {
+  itUnitIntegration("should throw if purchase not found", async () => {
+    await db.user.create({
+      data: {
+        id: CartPurchaseData.userId,
+        name: "name",
+        email: "email",
+      },
+    });
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
@@ -55,9 +93,9 @@ describe("getPurchaseById", () => {
       CartPurchaseData.price
     );
     const cartPurchaseRepo = new CartPurchaseRepo();
-    expect(() =>
+    await expect(() =>
       cartPurchaseRepo.getPurchaseById(cartPurchase.PurchaseId)
-    ).toThrow();
+    ).rejects.toThrow();
   });
 });
 
@@ -65,6 +103,13 @@ describe("getPurchasesByUser", () => {
   const storeIdToBasket = new Map<string, BasketPurchase>();
 
   itUnitIntegration("should return the cart purchase", async () => {
+    await db.user.create({
+      data: {
+        id: CartPurchaseData.userId,
+        name: "name",
+        email: "email",
+      },
+    });
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
@@ -73,30 +118,49 @@ describe("getPurchasesByUser", () => {
     );
     const cartPurchaseRepo = new CartPurchaseRepo();
     await cartPurchaseRepo.addCartPurchase(cartPurchase);
-    expect(cartPurchaseRepo.getPurchasesByUser(cartPurchase.UserId)).toEqual([
-      cartPurchase,
-    ]);
+    await expect(
+      cartPurchaseRepo.getPurchasesByUser(cartPurchase.UserId)
+    ).resolves.toEqual([cartPurchase]);
   });
-  itUnitIntegration("should return two cart purchases", () => {
+  itUnitIntegration("should return two cart purchases", async () => {
+    await db.user.create({
+      data: {
+        id: CartPurchaseData.userId,
+        name: "name",
+        email: "email",
+      },
+    });
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
       storeIdToBasket,
       CartPurchaseData.price
     );
+    const cartPurchase2 = new CartPurchase(
+      CartPurchaseData2.userId,
+      CartPurchaseData2.purchaseId,
+      storeIdToBasket,
+      CartPurchaseData2.price
+    );
     const cartPurchaseRepo = new CartPurchaseRepo();
-    cartPurchaseRepo.addCartPurchase(cartPurchase);
-    cartPurchaseRepo.addCartPurchase(cartPurchase);
-    expect(cartPurchaseRepo.getPurchasesByUser(cartPurchase.UserId)).toEqual([
-      cartPurchase,
-      cartPurchase,
-    ]);
+    await cartPurchaseRepo.addCartPurchase(cartPurchase);
+    await cartPurchaseRepo.addCartPurchase(cartPurchase2);
+    await expect(
+      cartPurchaseRepo.getPurchasesByUser(cartPurchase.UserId)
+    ).resolves.toEqual([cartPurchase, cartPurchase2]);
   });
 });
 describe("doesPurchaseExist", () => {
   const storeIdToBasket = new Map<string, BasketPurchase>();
 
-  itUnitIntegration("should return true if purchase exists", () => {
+  itUnitIntegration("should return true if purchase exists", async () => {
+    await db.user.create({
+      data: {
+        id: CartPurchaseData.userId,
+        name: "name",
+        email: "email",
+      },
+    });
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
@@ -104,21 +168,24 @@ describe("doesPurchaseExist", () => {
       CartPurchaseData.price
     );
     const cartPurchaseRepo = new CartPurchaseRepo();
-    cartPurchaseRepo.addCartPurchase(cartPurchase);
-    expect(cartPurchaseRepo.doesPurchaseExist(cartPurchase.PurchaseId)).toBe(
-      true
-    );
+    await cartPurchaseRepo.addCartPurchase(cartPurchase);
+    await expect(
+      cartPurchaseRepo.doesPurchaseExist(cartPurchase.PurchaseId)
+    ).resolves.toBe(true);
   });
-  itUnitIntegration("should return false if purchase does not exist", () => {
-    const cartPurchase = new CartPurchase(
-      CartPurchaseData.userId,
-      CartPurchaseData.purchaseId,
-      storeIdToBasket,
-      CartPurchaseData.price
-    );
-    const cartPurchaseRepo = new CartPurchaseRepo();
-    expect(cartPurchaseRepo.doesPurchaseExist(cartPurchase.PurchaseId)).toBe(
-      false
-    );
-  });
+  itUnitIntegration(
+    "should return false if purchase does not exist",
+    async () => {
+      const cartPurchase = new CartPurchase(
+        CartPurchaseData.userId,
+        CartPurchaseData.purchaseId,
+        storeIdToBasket,
+        CartPurchaseData.price
+      );
+      const cartPurchaseRepo = new CartPurchaseRepo();
+      await expect(
+        cartPurchaseRepo.doesPurchaseExist(cartPurchase.PurchaseId)
+      ).resolves.toBe(false);
+    }
+  );
 });

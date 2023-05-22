@@ -146,48 +146,55 @@ export class Service {
   ): Promise<void> {
     await this.facade.changePassword(userId, oldPassword, newPassword);
   }
-  makeStoreOwner(currentId: string, storeId: string, targetUserId: string) {
-    this.facade.makeStoreOwner(currentId, storeId, targetUserId);
-  }
-
-  makeStoreManager(
+  async makeStoreOwner(
     currentId: string,
     storeId: string,
     targetUserId: string
-  ): void {
-    this.facade.makeStoreManager(currentId, storeId, targetUserId);
+  ) {
+    await this.facade.makeStoreOwner(currentId, storeId, targetUserId);
   }
 
-  removeStoreOwner(
+  async makeStoreManager(
     currentId: string,
     storeId: string,
     targetUserId: string
-  ): void {
-    this.facade.removeStoreOwner(currentId, storeId, targetUserId);
+  ): Promise<void> {
+    await this.facade.makeStoreManager(currentId, storeId, targetUserId);
   }
 
-  removeStoreManager(
+  async removeStoreOwner(
     currentId: string,
     storeId: string,
     targetUserId: string
-  ): void {
-    this.facade.removeStoreManager(currentId, storeId, targetUserId);
+  ): Promise<void> {
+    await this.facade.removeStoreOwner(currentId, storeId, targetUserId);
   }
-  setAddingProductToStorePermission(
+
+  async removeStoreManager(
+    currentId: string,
+    storeId: string,
+    targetUserId: string
+  ): Promise<void> {
+    await this.facade.removeStoreManager(currentId, storeId, targetUserId);
+  }
+  async setAddingProductToStorePermission(
     currentId: string,
     storeId: string,
     targetUserId: string,
     permission: boolean
-  ): void {
-    this.facade.setAddingProductToStorePermission(
+  ): Promise<void> {
+    await this.facade.setAddingProductToStorePermission(
       currentId,
       storeId,
       targetUserId,
       permission
     );
   }
-  canCreateProductInStore(currentId: string, storeId: string): boolean {
-    return this.facade.canCreateProductInStore(currentId, storeId);
+  async canCreateProductInStore(
+    currentId: string,
+    storeId: string
+  ): Promise<boolean> {
+    return await this.facade.canCreateProductInStore(currentId, storeId);
   }
   async canEditProductInStore(
     currentId: string,
@@ -195,81 +202,98 @@ export class Service {
   ): Promise<boolean> {
     return await this.facade.canEditProductInStore(currentId, storeId);
   }
-  isStoreOwner(userId: string, storeId: string): boolean {
-    return this.facade.isStoreOwner(userId, storeId);
+  async isStoreOwner(userId: string, storeId: string): Promise<boolean> {
+    return await this.facade.isStoreOwner(userId, storeId);
   }
-  isStoreManager(userId: string, storeId: string): boolean {
-    return this.facade.isStoreManager(userId, storeId);
+  async isStoreManager(userId: string, storeId: string): Promise<boolean> {
+    return await this.facade.isStoreManager(userId, storeId);
   }
-  isSystemAdmin(userId: string): boolean {
-    return this.facade.isSystemAdmin(userId);
+  async isSystemAdmin(userId: string): Promise<boolean> {
+    return await this.facade.isSystemAdmin(userId);
   }
-  getStoreFounder(storeId: string): string {
-    return this.facade.getStoreFounder(storeId);
+  async getStoreFounder(storeId: string): Promise<string> {
+    return await this.facade.getStoreFounder(storeId);
   }
-  getStoreOwners(storeId: string): string[] {
-    return this.facade.getStoreOwners(storeId);
+  async getStoreOwners(storeId: string): Promise<string[]> {
+    return await this.facade.getStoreOwners(storeId);
   }
-  getStoreManagers(storeId: string): string[] {
-    return this.facade.getStoreManagers(storeId);
+  async getStoreManagers(storeId: string): Promise<string[]> {
+    return await this.facade.getStoreManagers(storeId);
   }
-  createProduct(
+  async createProduct(
     userId: string,
     storeId: string,
     product: StoreProductArgs
-  ): string {
-    return this.facade.createProduct(userId, storeId, product);
+  ): Promise<string> {
+    return await this.facade.createProduct(userId, storeId, product);
   }
-  isStoreActive(userId: string, storeId: string): boolean {
-    return this.facade.isStoreActive(userId, storeId);
+  async isStoreActive(userId: string, storeId: string): Promise<boolean> {
+    return await this.facade.isStoreActive(userId, storeId);
   }
-  setProductQuantity(
+  async setProductQuantity(
     userId: string,
     productId: string,
     quantity: number
-  ): void {
-    this.facade.setProductQuantity(userId, productId, quantity);
+  ): Promise<void> {
+    await this.facade.setProductQuantity(userId, productId, quantity);
   }
-  decreaseProductQuantity(productId: string, quantity: number): void {
-    this.facade.decreaseProductQuantity(productId, quantity);
+  async decreaseProductQuantity(
+    productId: string,
+    quantity: number
+  ): Promise<void> {
+    await this.facade.decreaseProductQuantity(productId, quantity);
   }
-  deleteProduct(userId: string, productId: string): void {
-    this.facade.deleteProduct(userId, productId);
+  async deleteProduct(userId: string, productId: string): Promise<void> {
+    await this.facade.deleteProduct(userId, productId);
   }
-  setProductPrice(userId: string, productId: string, price: number): void {
-    this.facade.setProductPrice(userId, productId, price);
+  async setProductPrice(
+    userId: string,
+    productId: string,
+    price: number
+  ): Promise<void> {
+    await this.facade.setProductPrice(userId, productId, price);
   }
 
-  activateStore(userId: string, storeId: string): void {
-    this.facade.activateStore(userId, storeId);
+  async activateStore(userId: string, storeId: string): Promise<void> {
+    await this.facade.activateStore(userId, storeId);
   }
-  deactivateStore(userId: string, storeId: string): void {
-    this.facade.deactivateStore(userId, storeId);
+  async deactivateStore(userId: string, storeId: string): Promise<void> {
+    await this.facade.deactivateStore(userId, storeId);
   }
-  closeStorePermanently(userId: string, storeId: string): void {
-    this.facade.closeStorePermanently(userId, storeId);
+  async closeStorePermanently(userId: string, storeId: string): Promise<void> {
+    await this.facade.closeStorePermanently(userId, storeId);
   }
-  getProductPrice(userId: string, productId: string): number {
-    return this.facade.getProductPrice(userId, productId);
+  async getProductPrice(userId: string, productId: string): Promise<number> {
+    return await this.facade.getProductPrice(userId, productId);
   }
-  isProductQuantityInStock(
+  async isProductQuantityInStock(
     userId: string,
     productId: string,
     quantity: number
-  ): boolean {
-    return this.facade.isProductQuantityInStock(userId, productId, quantity);
+  ): Promise<boolean> {
+    return await this.facade.isProductQuantityInStock(
+      userId,
+      productId,
+      quantity
+    );
   }
-  getStoreIdByProductId(userId: string, productId: string): string {
-    return this.facade.getStoreIdByProductId(userId, productId);
+  async getStoreIdByProductId(
+    userId: string,
+    productId: string
+  ): Promise<string> {
+    return await this.facade.getStoreIdByProductId(userId, productId);
   }
-  getCartPrice(userId: string): number {
-    return this.facade.getCartPrice(userId);
+  async getCartPrice(userId: string): Promise<number> {
+    return await this.facade.getCartPrice(userId);
   }
-  getBasketPrice(userId: string, storeId: string): number {
-    return this.facade.getBasketPrice(userId, storeId);
+  async getBasketPrice(userId: string, storeId: string): Promise<number> {
+    return await this.facade.getBasketPrice(userId, storeId);
   }
-  searchProducts(userId: string, searchArgs: SearchArgs): StoreProductDTO[] {
-    return this.facade.searchProducts(userId, searchArgs);
+  async searchProducts(
+    userId: string,
+    searchArgs: SearchArgs
+  ): Promise<StoreProductDTO[]> {
+    return await this.facade.searchProducts(userId, searchArgs);
   }
   //TODO: Duplicate code from down here, be careful!
   public startSession(): string {
@@ -289,11 +313,11 @@ export class Service {
   ): CartPurchaseDTO[] {
     return this.facade.getPurchasesByUser(adminId, userId);
   }
-  public getPurchasesByStore(
+  public async getPurchasesByStore(
     userId: string,
     storeId: string
-  ): BasketPurchaseDTO[] {
-    return this.facade.getPurchasesByStore(userId, storeId);
+  ): Promise<BasketPurchaseDTO[]> {
+    return await this.facade.getPurchasesByStore(userId, storeId);
   }
   // eslint-disable-next-line jsdoc/require-param
   /**

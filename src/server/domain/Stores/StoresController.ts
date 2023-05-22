@@ -327,11 +327,11 @@ export class StoresController
       })
       .filter(async (p) => {
         const store = await p.getStore();
-        const productRating =
-          this.Controllers.PurchasesHistory.getReviewsByProduct(p.Id).avgRating;
-        const storeRating = this.Controllers.PurchasesHistory.getStoreRating(
-          store.Id
-        );
+        const productRating = (
+          await this.Controllers.PurchasesHistory.getReviewsByProduct(p.Id)
+        ).avgRating;
+        const storeRating =
+          await this.Controllers.PurchasesHistory.getStoreRating(store.Id);
         return this.filterProductSearch(p, productRating, storeRating, args);
       })
       .map((p) =>

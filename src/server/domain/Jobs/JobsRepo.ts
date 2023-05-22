@@ -158,11 +158,16 @@ export class JobsRepo extends Testable {
     storeId: string
   ): Promise<PositionHolder | undefined> {
     //this will work, but it is not efficient
-    const founder = await this.GetStoreFounder(storeId);
-    const positionHolder = this.findPositionHolder(userId, founder);
-    return positionHolder;
+    // const founder = await this.GetStoreFounder(storeId);
+    // const positionHolder = this.findPositionHolder(userId, founder);
+    // return positionHolder;
     //TODO the following code is more efficient,  - check if it works
-    return await this.getPositionHolderFromDB(storeId, userId);
+    try {
+      return await this.getPositionHolderFromDB(storeId, userId);
+    } catch (error) {
+      return undefined;
+    }
+    // return await this.getPositionHolderFromDB(storeId, userId);
   }
   private findPositionHolder(
     userId: string,

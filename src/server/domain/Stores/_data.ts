@@ -71,7 +71,7 @@ export function createProduct(
   controllers: Controllers
 ) {
   vi.spyOn(controllers.PurchasesHistory, "getReviewsByProduct").mockReturnValue(
-    { avgRating: 0, reviews: [] }
+    createPromise({ avgRating: 0, reviews: [] })
   );
   return new StoreProduct(args).initControllers(controllers).initRepos(repos);
 }
@@ -82,7 +82,7 @@ export async function createStoreWithProduct(
   controllers: Controllers
 ) {
   vi.spyOn(controllers.PurchasesHistory, "getReviewsByProduct").mockReturnValue(
-    { avgRating: 0, reviews: [] }
+    createPromise({ avgRating: 0, reviews: [] })
   );
   const store = createStore(generateStoreName(), repos, controllers);
   vi.spyOn(repos.Products, "addProduct").mockReturnValue(createPromise("AAA"));

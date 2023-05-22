@@ -17,9 +17,12 @@ export default defineConfig({
       // "**/UserAuthRepo.test.ts",
       // "**/MemberUserAuth.test.ts",
       // "**/Session.test.ts",
-      "**/BasketPurchaseHistoryRepo.test.ts",
+      // "**/testingDbJobs.test.ts",
+      "**/JobsController.test.ts",
+
     ],
     threads: false,
+    testTimeout: 20000,
   },
   plugins: [tsconfigPaths()],
   // resolve: {

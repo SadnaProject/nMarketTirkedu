@@ -27,12 +27,12 @@ export class Service {
     this.facade = new MarketFacade();
   }
 
-  public getLogs(userId: string) {
-    return this.facade.getLogs(userId);
+  public async getLogs(userId: string) {
+    return await this.facade.getLogs(userId);
   }
 
-  public getErrors(userId: string) {
-    return this.facade.getErrors(userId);
+  public async getErrors(userId: string) {
+    return await this.facade.getErrors(userId);
   }
 
   public addProductToCart(userId: string, productId: string, quantity: number) {

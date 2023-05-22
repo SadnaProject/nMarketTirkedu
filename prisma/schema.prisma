@@ -193,8 +193,8 @@ model Review{
     purchaseId String
     user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
     storeId    String
-    @@id([storeId, purchaseId])
-    basketPurchase BasketPurchase? 
+    @@id([purchaseId, storeId])
+    basketPurchase BasketPurchase @relation(fields: [purchaseId, storeId], references: [purchaseId, storeId])
 }
 
 model ProductPurchase{
@@ -213,7 +213,7 @@ model BasketPurchase{
     purchaseId  String 
     storeId     String
     products   ProductPurchase[]
-    review Review? @relation(fields: [purchaseId, storeId], references: [purchaseId, storeId])
+    review Review?
     price       Float
     cartPurchase CartPurchase @relation(fields: [purchaseId], references: [purchaseId])
     @@id([purchaseId, storeId])

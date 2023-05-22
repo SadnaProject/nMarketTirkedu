@@ -12,37 +12,64 @@ export class CartPurchaseRepo extends Testable {
     this.CartPurchase = [];
   }
   public async addCartPurchase(CartPurchase: RealCartPurchase) {
+    // await db.cartPurchase.create({
+    //   data: {
+    //     purchaseId: CartPurchase.PurchaseId,
+    //     userId: CartPurchase.UserId,
+    //     baskets: {
+    //       create: Object.values(
+    //         Object.fromEntries(CartPurchase.StoreIdToBasketPurchases)
+    //       ).map((basket) => {
+    //         return {
+    //           purchaseId: basket.PurchaseId,
+    //           storeId: basket.StoreId,
+    //           products: {
+    //             create: Object.values(Object.fromEntries(basket.Products)).map(
+    //               (product) => {
+    //                 return {
+    //                   purchaseId: product.PurchaseId,
+    //                   productId: product.ProductId,
+    //                   quantity: product.Quantity,
+    //                   price: product.Price,
+    //                   storeId: basket.StoreId,
+    //                 };
+    //               }
+    //             ),
+    //           },
+    //           price: basket.Price,
+    //         };
+    //       }),
+    //     },
+    //     totalPrice: CartPurchase.TotalPrice,
+    //   },
+    // }); TODO consider promiseall/waitall whatever
     await db.cartPurchase.create({
       data: {
         purchaseId: CartPurchase.PurchaseId,
         userId: CartPurchase.UserId,
-        baskets: {
-          create: Object.values(
-            Object.fromEntries(CartPurchase.StoreIdToBasketPurchases)
-          ).map((basket) => {
-            return {
-              purchaseId: basket.PurchaseId,
-              storeId: basket.StoreId,
-              products: {
-                create: Object.values(Object.fromEntries(basket.Products)).map(
-                  (product) => {
-                    return {
-                      purchaseId: product.PurchaseId,
-                      productId: product.ProductId,
-                      quantity: product.Quantity,
-                      price: product.Price,
-                      storeId: basket.StoreId,
-                    };
-                  }
-                ),
-              },
-              price: basket.Price,
-            };
-          }),
-        },
         totalPrice: CartPurchase.TotalPrice,
       },
     });
+    for (const basket of CartPurchase.StoreIdToBasketPurchases.values()) {
+      await db.basketPurchase.create({
+        data: {
+          purchaseId: basket.PurchaseId,
+          storeId: basket.StoreId,
+          price: basket.Price,
+        },
+      });
+      for (const product of basket.Products.values()) {
+        await db.productPurchase.create({
+          data: {
+            purchaseId: product.PurchaseId,
+            productId: product.ProductId,
+            quantity: product.Quantity,
+            price: product.Price,
+            storeId: basket.StoreId,
+          },
+        });
+      }
+    }
   }
 
   public async getPurchasesByUser(userId: string): Promise<RealCartPurchase[]> {

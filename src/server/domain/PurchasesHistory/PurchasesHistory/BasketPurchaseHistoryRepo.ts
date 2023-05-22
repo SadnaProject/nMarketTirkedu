@@ -78,8 +78,8 @@ export class BasketPurchaseRepo extends Testable {
     }
     return RealBasketPurchase.fromDAO(purchase);
   }
-  public hasPurchase(purchaseId: string, storeId: string): boolean {
-    const purchase = db.basketPurchase.findUnique({
+  public async hasPurchase(purchaseId: string, storeId: string): Promise<boolean> {
+    const purchase = await db.basketPurchase.findUnique({
       where: {
         purchaseId_storeId: {
           purchaseId: purchaseId,
@@ -87,6 +87,7 @@ export class BasketPurchaseRepo extends Testable {
         },
       },
     });
-    return purchase !== undefined;
+    // return weather the purchase exists
+    return purchase !== null;
   }
 }

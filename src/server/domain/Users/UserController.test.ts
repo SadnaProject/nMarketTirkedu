@@ -23,7 +23,7 @@ afterEach(() => {
   controllers.Users.removeUser(userId);
 });
 describe("add product", () => {
-  it("should test the add product functionality ", () => {
+  it("should test the add product functionality ", async () => {
     controllers = createMockControllers("Users");
     controllers.Users.addUser(userId);
 
@@ -31,12 +31,12 @@ describe("add product", () => {
     vi.spyOn(
       controllers.Stores,
       "isProductQuantityInStock"
-    ).mockReturnValueOnce(true);
+    ).mockResolvedValueOnce(true);
     const storeId = randomUUID();
-    vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockReturnValue(
+    vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockResolvedValue(
       storeId
     );
-    controllers.Users.addProductToCart(userId, productId, 5);
+    await controllers.Users.addProductToCart(userId, productId, 5);
     const sizeAfter = controllers.Users.getCart(userId).storeIdToBasket.size;
     expect(sizeBefore).toBe(0);
     expect(sizeAfter).toBe(sizeBefore + 1);
@@ -54,27 +54,27 @@ describe("add product", () => {
     controllers.Users.addUser(userId);
     const storeId = randomUUID();
     productId = randomUUID();
-    vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockReturnValue(
+    vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockResolvedValue(
       storeId
     );
     vi.spyOn(
       controllers.Stores,
       "isProductQuantityInStock"
-    ).mockReturnValueOnce(true);
+    ).mockResolvedValueOnce(true);
     expect(() =>
       controllers.Users.addProductToCart("Blabla", productId, 10)
     ).toThrow("User not found");
     vi.spyOn(
       controllers.Stores,
       "isProductQuantityInStock"
-    ).mockReturnValueOnce(false);
+    ).mockResolvedValueOnce(false);
     expect(() =>
       controllers.Users.addProductToCart(userId, productId, 100)
     ).toThrow("store don't have such amount of product");
     vi.spyOn(
       controllers.Stores,
       "isProductQuantityInStock"
-    ).mockReturnValueOnce(true);
+    ).mockResolvedValueOnce(true);
     expect(() =>
       controllers.Users.addProductToCart(userId, productId, -10)
     ).toThrow("Quantity cannot be negative");
@@ -82,20 +82,20 @@ describe("add product", () => {
 });
 
 describe("remove product", () => {
-  it("should test the remove product functionality ", () => {
+  it("should test the remove product functionality ", async () => {
     controllers = createMockControllers("Users");
     controllers.Users.addUser(userId);
-    vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockReturnValue(
+    vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockResolvedValue(
       true
     );
     const storeId = randomUUID();
-    vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockReturnValue(
+    vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockResolvedValue(
       storeId
     );
-    controllers.Users.addProductToCart(userId, productId, 5);
+    await controllers.Users.addProductToCart(userId, productId, 5);
     const productId2 = randomUUID();
-    controllers.Users.addProductToCart(userId, productId2, 5);
-    controllers.Users.removeProductFromCart(userId, productId);
+    await controllers.Users.addProductToCart(userId, productId2, 5);
+    await controllers.Users.removeProductFromCart(userId, productId);
     expect(
       controllers.Users.getCart(userId)
         .storeIdToBasket.get(storeId)
@@ -107,11 +107,11 @@ describe("remove product", () => {
         ?.products.filter((p) => p.storeProductId === productId2).length
     ).toBe(1);
   });
-  it("should test edge cases in remove product functionality ", () => {
+  it("should test edge cases in remove product functionality ", async () => {
     controllers = createMockControllers("Users");
     controllers.Users.addUser(userId);
     const storeId = randomUUID();
-    vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockReturnValue(
+    vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockResolvedValue(
       storeId
     );
     expect(() =>
@@ -120,10 +120,10 @@ describe("remove product", () => {
     expect(() =>
       controllers.Users.removeProductFromCart(userId, productId)
     ).toThrow("The requested basket not found");
-    vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockReturnValue(
+    vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockResolvedValue(
       true
     );
-    controllers.Users.addProductToCart(userId, productId, 5);
+    await controllers.Users.addProductToCart(userId, productId, 5);
     const productId2 = randomUUID();
     expect(() =>
       controllers.Users.removeProductFromCart(userId, productId2)
@@ -132,22 +132,30 @@ describe("remove product", () => {
 });
 
 describe("edit product quantity", () => {
-  it("should test the edit product quantity functionality ", () => {
+  it("should test the edit product quantity functionality ", async () => {
     controllers = createMockControllers("Users");
     controllers.Users.addUser(userId);
-    vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockReturnValue(
+    vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockResolvedValue(
       true
     );
     const storeId = randomUUID();
-    vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockReturnValue(
+    vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockResolvedValue(
       storeId
     );
     const withoutEditQuantity = 5;
-    controllers.Users.addProductToCart(userId, productId, withoutEditQuantity);
+    await controllers.Users.addProductToCart(
+      userId,
+      productId,
+      withoutEditQuantity
+    );
     const productId2 = randomUUID();
-    controllers.Users.addProductToCart(userId, productId2, withoutEditQuantity);
+    await controllers.Users.addProductToCart(
+      userId,
+      productId2,
+      withoutEditQuantity
+    );
     const editQuantity = 17;
-    controllers.Users.editProductQuantityInCart(
+    await controllers.Users.editProductQuantityInCart(
       userId,
       productId,
       editQuantity
@@ -163,31 +171,31 @@ describe("edit product quantity", () => {
         ?.products.filter((p) => p.storeProductId !== productId)[0]?.quantity
     ).toBe(withoutEditQuantity);
   });
-  it("should test edge cases in edit product quantity functionality ", () => {
+  it("should test edge cases in edit product quantity functionality ", async () => {
     controllers = createMockControllers("Users");
     controllers.Users.addUser(userId);
     const storeId = randomUUID();
-    vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockReturnValue(
+    vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockResolvedValue(
       storeId
     );
     vi.spyOn(
       controllers.Stores,
       "isProductQuantityInStock"
-    ).mockReturnValueOnce(true);
+    ).mockResolvedValueOnce(true);
     expect(() =>
       controllers.Users.editProductQuantityInCart("Blabla", productId, 10)
     ).toThrow("User not found");
     vi.spyOn(
       controllers.Stores,
       "isProductQuantityInStock"
-    ).mockReturnValueOnce(false);
+    ).mockResolvedValueOnce(false);
     expect(() =>
       controllers.Users.editProductQuantityInCart(userId, productId, 100)
     ).toThrow("store don't have such amount of product");
     vi.spyOn(
       controllers.Stores,
       "isProductQuantityInStock"
-    ).mockReturnValueOnce(true);
+    ).mockResolvedValueOnce(true);
     expect(() =>
       controllers.Users.editProductQuantityInCart(userId, productId, 10)
     ).toThrow("The requested basket not found");
@@ -195,19 +203,19 @@ describe("edit product quantity", () => {
     vi.spyOn(
       controllers.Stores,
       "isProductQuantityInStock"
-    ).mockReturnValueOnce(true);
-    controllers.Users.addProductToCart(userId, productId2, 5); //we don't really add the product to the cart
+    ).mockResolvedValueOnce(true);
+    await controllers.Users.addProductToCart(userId, productId2, 5); //we don't really add the product to the cart
     vi.spyOn(
       controllers.Stores,
       "isProductQuantityInStock"
-    ).mockReturnValueOnce(true);
+    ).mockResolvedValueOnce(true);
     expect(() =>
       controllers.Users.editProductQuantityInCart(userId, productId, 10)
     ).toThrow("Product not found");
     vi.spyOn(
       controllers.Stores,
       "isProductQuantityInStock"
-    ).mockReturnValueOnce(true);
+    ).mockResolvedValueOnce(true);
     expect(() =>
       controllers.Users.editProductQuantityInCart(userId, productId, -10)
     ).toThrow("Quantity cannot be negative");
@@ -215,24 +223,28 @@ describe("edit product quantity", () => {
 });
 
 describe("purchase cart", () => {
-  it("should test the purchase cart functionality ", () => {
+  it("should test the purchase cart functionality ", async () => {
     controllers = createMockControllers("Users");
     controllers.Users.addUser(userId);
-    vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockReturnValue(
+    vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockResolvedValue(
       true
     );
     const storeId = randomUUID();
-    vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockReturnValue(
+    vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockResolvedValue(
       storeId
     );
     const withoutEditQuantity = 5;
-    controllers.Users.addProductToCart(userId, productId, withoutEditQuantity);
+    await controllers.Users.addProductToCart(
+      userId,
+      productId,
+      withoutEditQuantity
+    );
     const price = 100;
-    vi.spyOn(controllers.Stores, "getCartPrice").mockReturnValueOnce(price);
+    vi.spyOn(controllers.Stores, "getCartPrice").mockResolvedValueOnce(price);
     vi.spyOn(controllers.PurchasesHistory, "purchaseCart").mockReturnValue();
     const notificationSizeBefore =
       controllers.Users.getNotifications(userId).length;
-    controllers.Users.purchaseCart(userId, { number: "123456789" });
+    await controllers.Users.purchaseCart(userId, { number: "123456789" });
     const notificationSizeAfter =
       controllers.Users.getNotifications(userId).length;
     expect(notificationSizeAfter).toBe(notificationSizeBefore + 1);
@@ -247,10 +259,10 @@ describe("purchase cart", () => {
     controllers = createMockControllers("Users");
     controllers.Users.addUser(userId);
     const storeId = randomUUID();
-    vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockReturnValue(
+    vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockResolvedValue(
       storeId
     );
-    vi.spyOn(controllers.Stores, "getCartPrice").mockReturnValueOnce(100);
+    vi.spyOn(controllers.Stores, "getCartPrice").mockResolvedValueOnce(100);
     vi.spyOn(controllers.PurchasesHistory, "purchaseCart").mockReturnValue();
     expect(() =>
       controllers.Users.purchaseCart("Blabla", { number: "123456789" })
@@ -295,14 +307,16 @@ describe("get unread notifications", () => {
   );
 });
 describe("register", () => {
-  it("should test the register functionality ", () => {
+  it("should test the register functionality ", async () => {
     controllers = createMockControllers("Users");
     controllers.Users.addUser(userId);
     const password = "1234";
     const email = "email";
     const MemberId = randomUUID();
-    vi.spyOn(controllers.Auth, "register").mockReturnValueOnce(MemberId);
-    expect(controllers.Users.register(email, password) === MemberId).toBe(true);
+    vi.spyOn(controllers.Auth, "register").mockResolvedValueOnce(MemberId);
+    expect(
+      (await controllers.Users.register(email, password)) === MemberId
+    ).toBe(true);
     expect(controllers.Users.getCart(MemberId).storeIdToBasket.size).toBe(0);
     expect(controllers.Users.Controllers.Users.isUserExist(MemberId)).toBe(
       true
@@ -314,54 +328,54 @@ describe("register", () => {
     const password = "1234";
     const email = "email";
     const MemberId = randomUUID();
-    vi.spyOn(controllers.Auth, "register").mockReturnValueOnce(MemberId);
+    vi.spyOn(controllers.Auth, "register").mockResolvedValueOnce(MemberId);
     expect(controllers.Users.register(email, password)).toBe(MemberId);
     expect(() => controllers.Users.register(email, password)).toThrow();
   });
 });
 describe("login", () => {
-  it("should test the login functionality ", () => {
+  it("should test the login functionality ", async () => {
     controllers = createMockControllers("Users");
     controllers.Users.addUser(userId);
     const password = "1234";
     const email = "email";
     const MemberId = randomUUID();
-    vi.spyOn(controllers.Auth, "register").mockReturnValueOnce(MemberId);
-    controllers.Users.register(email, password);
-    vi.spyOn(controllers.Auth, "login").mockReturnValueOnce(MemberId);
+    vi.spyOn(controllers.Auth, "register").mockResolvedValueOnce(MemberId);
+    await controllers.Users.register(email, password);
+    vi.spyOn(controllers.Auth, "login").mockResolvedValueOnce(MemberId);
     expect(controllers.Users.login(userId, email, password)).toBe(MemberId);
   });
-  it("should test edge cases in login functionality ", () => {
+  it("should test edge cases in login functionality ", async () => {
     controllers = createMockControllers("Users");
     controllers.Users.addUser(userId);
     const password = "1234";
     const email = "email";
     const MemberId = randomUUID();
-    vi.spyOn(controllers.Auth, "login").mockReturnValueOnce(MemberId);
+    vi.spyOn(controllers.Auth, "login").mockResolvedValueOnce(MemberId);
     expect(() => controllers.Users.login(userId, email, password)).toThrow();
-    vi.spyOn(controllers.Auth, "register").mockReturnValueOnce(MemberId);
-    controllers.Users.register(email, password);
+    vi.spyOn(controllers.Auth, "register").mockResolvedValueOnce(MemberId);
+    await controllers.Users.register(email, password);
     expect(() => controllers.Users.login(userId, "1234", password)).toThrow();
     expect(() => controllers.Users.login(userId, email, "notPass")).toThrow();
-    vi.spyOn(controllers.Auth, "login").mockReturnValueOnce(MemberId);
-    const mem = controllers.Users.login(userId, email, password);
+    vi.spyOn(controllers.Auth, "login").mockResolvedValueOnce(MemberId);
+    const mem = await controllers.Users.login(userId, email, password);
     expect(() => controllers.Users.login(mem, email, password)).toThrow();
   });
 });
 
 describe("logout", () => {
-  it("should test the logout functionality ", () => {
+  it("should test the logout functionality ", async () => {
     controllers = createMockControllers("Users");
     controllers.Users.addUser(userId);
     const password = "1234";
     const email = "email";
     const MemberId = randomUUID();
-    vi.spyOn(controllers.Auth, "register").mockReturnValueOnce(MemberId);
-    controllers.Users.register(email, password);
-    vi.spyOn(controllers.Auth, "login").mockReturnValueOnce(MemberId);
-    controllers.Users.login(userId, email, password);
+    vi.spyOn(controllers.Auth, "register").mockResolvedValueOnce(MemberId);
+    await controllers.Users.register(email, password);
+    vi.spyOn(controllers.Auth, "login").mockResolvedValueOnce(MemberId);
+    await controllers.Users.login(userId, email, password);
     const guestId = randomUUID();
-    vi.spyOn(controllers.Auth, "logout").mockReturnValueOnce(guestId);
+    vi.spyOn(controllers.Auth, "logout").mockResolvedValueOnce(guestId);
     expect(controllers.Users.logout(MemberId)).toBe(guestId);
     expect(guestId).not.toBe(MemberId);
   });
@@ -376,40 +390,40 @@ describe("logout", () => {
 });
 
 describe("remove member", () => {
-  itUnitIntegration("✅removes member ", (testType) => {
+  itUnitIntegration("✅removes member ", async (testType) => {
     testType = "integration";
     controllers = createTestControllers(testType, "Users");
     controllers.Users.addUser(userId);
     const password = "1234";
     const email = "email@gmail.com";
     // const MemberId = randomUUID();
-    const AdminId = controllers.Auth.register("admin", "admin");
+    const AdminId = await controllers.Auth.register("admin", "admin");
     controllers.Jobs.setInitialAdmin(AdminId);
     expect(true).toBe(true);
     const guestId = controllers.Users.startSession();
-    controllers.Users.register(email, password);
+    await controllers.Users.register(email, password);
     //log the user in then check if the user exists, then remove the user and check if the user exists
-    const MemberId = controllers.Users.login(guestId, email, password);
+    const MemberId = await controllers.Users.login(guestId, email, password);
     expect(controllers.Users.isUserExist(MemberId)).toBe(true);
-    controllers.Users.removeMember(AdminId, MemberId);
+    await controllers.Users.removeMember(AdminId, MemberId);
     expect(controllers.Users.isUserExist(MemberId)).toBe(false);
   });
   //a test that fails because the user is not an admin
   itUnitIntegration(
     "❌fails to remove member because asking user is not an admin",
-    (testType) => {
+    async (testType) => {
       testType = "integration";
       controllers = createTestControllers(testType, "Users");
       controllers.Users.addUser(userId);
       const password = "1234";
       const email = "email@gmail.com";
       // const MemberId = randomUUID();
-      const AdminId = controllers.Auth.register("admin", "admin");
+      const AdminId = await controllers.Auth.register("admin", "admin");
       controllers.Jobs.setInitialAdmin(AdminId);
       // expect(true).toBe(true);
       const guestId = controllers.Users.startSession();
-      controllers.Users.register(email, password);
-      const MemberId = controllers.Users.login(guestId, email, password);
+      await controllers.Users.register(email, password);
+      const MemberId = await controllers.Users.login(guestId, email, password);
       expect(controllers.Users.isUserExist(MemberId)).toBe(true);
       expect(() =>
         controllers.Users.removeMember(MemberId, MemberId)
@@ -419,14 +433,14 @@ describe("remove member", () => {
   //a test that fails because the user to remove is not a member
   itUnitIntegration(
     "❌fails to remove member because user to remove is not a member",
-    (testType) => {
+    async (testType) => {
       testType = "integration";
       controllers = createTestControllers(testType, "Users");
       controllers.Users.addUser(userId);
       const password = "1234";
       const email = "email@gmail.com";
       // const MemberId = randomUUID();
-      const AdminId = controllers.Auth.register("admin", "admin");
+      const AdminId = await controllers.Auth.register("admin", "admin");
       controllers.Jobs.setInitialAdmin(AdminId);
       // expect(true).toBe(true);
       const guestId = controllers.Users.startSession();

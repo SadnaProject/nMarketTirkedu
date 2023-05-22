@@ -317,7 +317,7 @@ export class StoresController
     userId: string,
     args: SearchArgs
   ): Promise<StoreProductDTO[]> {
-    return (await StoreProduct.getActive(this.Repos))
+    const products = (await StoreProduct.getActive(this.Repos))
       .filter(async (p) => {
         const store = await p.getStore();
         return await this.Controllers.Jobs.canReceivePublicDataFromStore(
@@ -333,10 +333,12 @@ export class StoresController
         const storeRating =
           await this.Controllers.PurchasesHistory.getStoreRating(store.Id);
         return this.filterProductSearch(p, productRating, storeRating, args);
-      })
-      .map((p) =>
-        p.initControllers(this.Controllers).initRepos(this.Repos).getDTO()
-      );
+      });
+    const productsDTO: StoreProductDTO[] = [];
+    for (const product of products) {
+      productsDTO.push(await product.getDTO());
+    }
+    return productsDTO;
   }
 
   private async filterProductSearch(
@@ -474,8 +476,7 @@ export class StoresController
       this.Repos,
       this.Controllers
     );
-    const products = await store.getProducts();
-    return products;
+    return await store.getProducts();
   }
 
   private async checkDataRetrievalPermission(userId: string, storeId: string) {
@@ -831,19 +832,24 @@ export class StoresController
       .Purchases;
   }
   async searchStores(userId: string, name: string): Promise<StoreDTO[]> {
-    return (await this.Repos.Stores.getAllStores())
-      .filter(
-        async (store) =>
-          (await this.Controllers.Jobs.canReceivePublicDataFromStore(
-            userId,
-            store.Id
-          )) &&
-          (name === "" || store.Name === name)
-      )
-      .map(
-        (store) =>
-          store.initControllers(this.Controllers).initRepos(this.Repos).DTO
+    const stores = (await this.Repos.Stores.getAllStores()).filter(
+      async (store) =>
+        (await this.Controllers.Jobs.canReceivePublicDataFromStore(
+          userId,
+          store.Id
+        )) &&
+        (name === "" || store.Name === name)
+    );
+    const storesDTO: StoreDTO[] = [];
+    for (const store of stores) {
+      storesDTO.push(
+        await store
+          .initControllers(this.Controllers)
+          .initRepos(this.Repos)
+          .getDTO()
       );
+    }
+    return storesDTO;
   }
   async addConstraintToStore(
     userId: string,
@@ -921,25 +927,32 @@ export class StoresController
         store.initControllers(this.Controllers).initRepos(this.Repos)
       );
     }
-    const founders = realStores
-      .filter((store) => store.isFounder(userId))
-      .map((store) => ({
-        store: store.DTO,
+    const myStores: { store: StoreDTO; role: RoleType }[] = [];
+    const founders = realStores.filter((store) => store.isFounder(userId));
+    for (const store of founders) {
+      const storeDTO = await store.getDTO();
+      myStores.push({
+        store: storeDTO,
         role: "Founder" as RoleType satisfies RoleType,
-      }));
-    const owners = realStores
-      .filter((store) => store.isOwner(userId))
-      .map((store) => ({
-        store: store.DTO,
+      });
+    }
+    const owners = realStores.filter((store) => store.isOwner(userId));
+    for (const store of owners) {
+      const storeDTO = await store.getDTO();
+      myStores.push({
+        store: storeDTO,
         role: "Owner" as RoleType satisfies RoleType,
-      }));
-    const managers = realStores
-      .filter((store) => store.isManager(userId))
-      .map((store) => ({
-        store: store.DTO,
+      });
+    }
+    const managers = realStores.filter((store) => store.isManager(userId));
+    for (const store of managers) {
+      const storeDTO = await store.getDTO();
+      myStores.push({
+        store: storeDTO,
         role: "Manager" as RoleType satisfies RoleType,
-      }));
-    return founders.concat(owners).concat(managers);
+      });
+    }
+    return myStores;
   }
   async getProductById(
     userId: string,

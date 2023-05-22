@@ -579,7 +579,6 @@ export class StoresController
     const store = new Store(storeName)
       .initRepos(this.Repos)
       .initControllers(this.Controllers);
-    await this.Controllers.Jobs.InitializeStore(founderId, store.Id);
     // todo needs to check if possible before doing any change
     if ((await this.Repos.Stores.getAllNames()).has(storeName))
       throw new TRPCError({
@@ -589,6 +588,7 @@ export class StoresController
 
     const args = await this.Repos.Stores.addStore(store.Name);
     store.Id = args.id;
+    await this.Controllers.Jobs.InitializeStore(founderId, store.Id);
     // TODO needs to create here event for the store
     return store.Id;
   }

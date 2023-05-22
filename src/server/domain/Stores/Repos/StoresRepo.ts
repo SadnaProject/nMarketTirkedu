@@ -1,16 +1,11 @@
-import { Testable, testable } from "server/domain/_Testable";
-import { Store } from "../Store";
-import { TRPCError } from "@trpc/server";
 import { db } from "server/db";
-import {
-  type ConditionArgs,
-  ICondition,
-} from "../Conditions/CompositeLogicalCondition/Condition";
+import { Testable, testable } from "server/domain/_Testable";
+import { TRPCError } from "@trpc/server";
+import { type Store as DataStore } from "@prisma/client";
+import { type ConditionArgs } from "../Conditions/CompositeLogicalCondition/Condition";
 import { ConstraintPolicy } from "../PurchasePolicy/ConstraintPolicy";
-import { buildCondition } from "../Conditions/CompositeLogicalCondition/_typeDictionary";
 import { DiscountPolicy } from "../DiscountPolicy/DiscountPolicy";
 import { type DiscountArgs } from "../DiscountPolicy/Discount";
-import { type Store as DataStore } from "@prisma/client";
 
 @testable
 export class StoresRepo extends Testable {
@@ -66,11 +61,7 @@ export class StoresRepo extends Testable {
         message: "Store not found",
       });
     }
-    return Store.fromDAO(
-      store,
-      await this.getDiscounts(storeId),
-      await this.getConstraints(storeId)
-    );
+    return store;
   }
   public async getConstraints(storeId: string): Promise<ConstraintPolicy> {
     const constraints = await db.constraint.findMany({

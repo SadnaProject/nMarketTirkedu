@@ -1,11 +1,9 @@
 import { z } from "zod";
-import { HasRepos, type Repos } from "./_HasRepos";
 import { StoreProduct, type StoreProductArgs } from "./StoreProduct";
 import { type BasketDTO } from "../Users/Basket";
 import { Mixin } from "ts-mixer";
 import { type Controllers, HasControllers } from "../_HasController";
 import { randomUUID } from "crypto";
-import { TRPCError } from "@trpc/server";
 import {
   type ProductWithQuantityDTO,
   type FullBasketDTO,
@@ -16,6 +14,7 @@ import { type DiscountArgs } from "./DiscountPolicy/Discount";
 import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
 import { type ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condition";
 import { type CartDTO } from "../Users/Cart";
+import { HasRepos, type Repos } from "./_HasRepos";
 import { type Store as StoreDAO } from "@prisma/client";
 export const nameSchema = z.string().nonempty();
 
@@ -68,7 +67,11 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     repos: Repos,
     controllers: Controllers
   ) {
-    const store = await repos.Stores.getStoreById(storeId);
+    const store = Store.fromDAO(
+      await repos.Stores.getStoreById(storeId),
+      await repos.Stores.getDiscounts(storeId),
+      await repos.Stores.getConstraints(storeId)
+    );
     return store.initRepos(repos).initControllers(controllers);
   }
 
@@ -102,7 +105,14 @@ export class Store extends Mixin(HasRepos, HasControllers) {
   }
 
   public async getProducts() {
-    const products = await this.Repos.Products.getProductsByStoreId(this.id);
+    const productsDAO = await this.Repos.Products.getProductsByStoreId(this.id);
+    const productsPromises = productsDAO.map(async (product) =>
+      StoreProduct.fromDAO(
+        product,
+        await this.Repos.Products.getSpecialPrices(product.id)
+      )
+    );
+    const products = await Promise.all(productsPromises);
     products.forEach((product) =>
       product.initRepos(this.Repos).initControllers(this.Controllers)
     );
@@ -116,7 +126,7 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     const newProduct = new StoreProduct(product)
       .initControllers(this.Controllers)
       .initRepos(this.Repos);
-    const productId = await this.Repos.Products.addProduct(this.Id, newProduct);
+    const productId = await this.Repos.Products.addProduct(this.Id, product);
     newProduct.Id = productId;
     return newProduct.Id;
   }
@@ -131,8 +141,9 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     for (const product of fullBasket.products) {
       price +=
         product.BasketQuantity *
-        (
-          await this.Repos.Products.getProductById(product.product.id)
+        StoreProduct.fromDAO(
+          await this.Repos.Products.getProductById(product.product.id),
+          await this.Repos.Products.getSpecialPrices(product.product.id)
         ).getPriceForUser(userId);
     }
     return price;
@@ -186,8 +197,9 @@ export class Store extends Mixin(HasRepos, HasControllers) {
   async BasketProductDTOToProductWithQuantityDTO(
     basketProduct: BasketProductDTO
   ): Promise<ProductWithQuantityDTO> {
-    const p = await this.Repos.Products.getProductById(
-      basketProduct.storeProductId
+    const p = StoreProduct.fromDAO(
+      await this.Repos.Products.getProductById(basketProduct.storeProductId),
+      await this.Repos.Products.getSpecialPrices(basketProduct.storeProductId)
     );
     p.initControllers(this.Controllers).initRepos(this.Repos);
     return {

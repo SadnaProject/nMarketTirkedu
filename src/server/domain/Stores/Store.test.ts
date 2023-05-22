@@ -61,13 +61,34 @@ async function generateForDiscountAndConstraintTests(testType: string) {
       { quantity: product2BasketQuantity, storeProductId: product2Id },
     ],
   };
+  const productDAO = {
+    category: productData.category,
+    description: productData.description,
+    name: productData.name,
+    price: productData.price,
+    quantity: productData.quantity,
+    id: product.Id,
+    storeId: (await product.getStore()).Id,
+  };
+  const productDAO2 = {
+    category: product2Data.category,
+    description: product2Data.description,
+    name: product2Data.name,
+    price: product2Data.price,
+    quantity: product2Data.quantity,
+    id: product2.Id,
+    storeId: (await product2.getStore()).Id,
+  };
+
   vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValueOnce(
-    createPromise([product, product2])
+    createPromise([productDAO, productDAO2])
   );
-  vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(createPromise(store));
+  vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(
+    createPromise({ id: store.Id, name: store.Name, isActive: true })
+  );
   vi.spyOn(repos.Products, "getProductById").mockImplementation((id) => {
-    if (id === product.Id) return createPromise(product);
-    else return createPromise(product2);
+    if (id === product.Id) return createPromise(productDAO);
+    else return createPromise(productDAO2);
   });
   const price = await store.getBasketPrice("", basket);
   return {
@@ -111,8 +132,17 @@ describe("createProduct", () => {
       controllers,
       repos
     );
+    const productDAO = {
+      category: productData.category,
+      description: productData.description,
+      name: productData.name,
+      price: productData.price,
+      quantity: productData.quantity,
+      id: productId,
+      storeId: (await product.getStore()).Id,
+    };
     vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValue(
-      new Promise((resolve) => resolve([product]))
+      new Promise((resolve) => resolve([productDAO]))
     );
     vi.spyOn(
       controllers.PurchasesHistory,
@@ -156,10 +186,23 @@ describe("get basket price", () => {
       ],
     };
     vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(
-      createPromise(store)
+      createPromise({
+        id: store.Id,
+        name: store.Name,
+        isActive: store.IsActive(),
+      })
     );
+    const productDAO = {
+      category: productData.category,
+      description: productData.description,
+      name: productData.name,
+      price: productData.price,
+      quantity: productData.quantity,
+      id: product.Id,
+      storeId: (await product.getStore()).Id,
+    };
     vi.spyOn(repos.Products, "getProductById").mockReturnValue(
-      createPromise(product)
+      createPromise(productDAO)
     );
     expect(await store.getBasketPrice("", basket)).toBe(
       product.Price * productData.quantity

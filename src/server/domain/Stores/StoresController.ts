@@ -319,24 +319,44 @@ export class StoresController
   ): Promise<StoreProductDTO[]> {
     const products = (await StoreProduct.getActive(this.Repos))
       .filter(async (p) => {
-        const store = await p.getStore();
+        const store = await StoreProduct.fromDAO(
+          p,
+          await this.Repos.Products.getSpecialPrices(p.id)
+        ).getStore();
         return await this.Controllers.Jobs.canReceivePublicDataFromStore(
           userId,
           store.Id
         );
       })
       .filter(async (p) => {
-        const store = await p.getStore();
+        const store = await StoreProduct.fromDAO(
+          p,
+          await this.Repos.Products.getSpecialPrices(p.id)
+        ).getStore();
         const productRating = (
-          await this.Controllers.PurchasesHistory.getReviewsByProduct(p.Id)
+          await this.Controllers.PurchasesHistory.getReviewsByProduct(p.id)
         ).avgRating;
         const storeRating =
           await this.Controllers.PurchasesHistory.getStoreRating(store.Id);
-        return this.filterProductSearch(p, productRating, storeRating, args);
+
+        return this.filterProductSearch(
+          StoreProduct.fromDAO(
+            p,
+            await this.Repos.Products.getSpecialPrices(p.id)
+          ),
+          productRating,
+          storeRating,
+          args
+        );
       });
     const productsDTO: StoreProductDTO[] = [];
     for (const product of products) {
-      productsDTO.push(await product.getDTO());
+      productsDTO.push(
+        await StoreProduct.fromDAO(
+          product,
+          await this.Repos.Products.getSpecialPrices(product.id)
+        ).getDTO()
+      );
     }
     return productsDTO;
   }
@@ -836,14 +856,18 @@ export class StoresController
       async (store) =>
         (await this.Controllers.Jobs.canReceivePublicDataFromStore(
           userId,
-          store.Id
+          store.id
         )) &&
-        (name === "" || store.Name === name)
+        (name === "" || store.name === name)
     );
     const storesDTO: StoreDTO[] = [];
     for (const store of stores) {
       storesDTO.push(
-        await store
+        await Store.fromDAO(
+          store,
+          await this.Repos.Stores.getDiscounts(store.id),
+          await this.Repos.Stores.getConstraints(store.id)
+        )
           .initControllers(this.Controllers)
           .initRepos(this.Repos)
           .getDTO()
@@ -924,7 +948,13 @@ export class StoresController
     const realStores: Store[] = [];
     for (const store of stores) {
       realStores.push(
-        store.initControllers(this.Controllers).initRepos(this.Repos)
+        Store.fromDAO(
+          store,
+          await this.Repos.Stores.getDiscounts(store.id),
+          await this.Repos.Stores.getConstraints(store.id)
+        )
+          .initControllers(this.Controllers)
+          .initRepos(this.Repos)
       );
     }
     const myStores: { store: StoreDTO; role: RoleType }[] = [];
@@ -958,13 +988,19 @@ export class StoresController
     userId: string,
     productId: string
   ): Promise<StoreProductDTO> {
-    return (await this.Repos.Products.getProductById(productId))
+    return StoreProduct.fromDAO(
+      await this.Repos.Products.getProductById(productId),
+      await this.Repos.Products.getSpecialPrices(productId)
+    )
       .initControllers(this.Controllers)
       .initRepos(this.Repos)
       .getDTO();
   }
   async addSpecialPriceToProduct(bid: Bid): Promise<void> {
-    const product = await this.Repos.Products.getProductById(bid.ProductId);
+    const product = StoreProduct.fromDAO(
+      await this.Repos.Products.getProductById(bid.ProductId),
+      await this.Repos.Products.getSpecialPrices(bid.ProductId)
+    );
     product.initControllers(this.Controllers).initRepos(this.Repos);
     await product.addSpecialPrice(bid.UserId, bid.Price);
   }

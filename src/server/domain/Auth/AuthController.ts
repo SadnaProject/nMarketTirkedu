@@ -7,7 +7,6 @@ import { UserAuth } from "./UserAuth";
 import { GuestUserAuth, GuestUserAuthDTO } from "./GuestUserAuth";
 import { MemberUserAuth, MemberUserAuthDTO } from "./MemberUserAuth";
 import { TRPCError } from "@trpc/server";
-import { prng } from "next/dist/shared/lib/bloom-filter/base-filter";
 
 export interface IAuthController extends HasRepos {
   /**

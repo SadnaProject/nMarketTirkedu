@@ -140,7 +140,8 @@ export class MarketFacade extends Loggable {
     productId: string,
     review: number,
     reviewTitle: string,
-    reviewDescription: string
+    reviewDescription: string,
+    storeId: string
   ) {
     this.validateConnection(userId);
     this.controllers.PurchasesHistory.addProductPurchaseReview(
@@ -149,7 +150,8 @@ export class MarketFacade extends Loggable {
       productId,
       review,
       reviewTitle,
-      reviewDescription
+      reviewDescription,
+      storeId
     );
   }
 
@@ -396,11 +398,11 @@ export class MarketFacade extends Loggable {
     this.controllers.Users.disconnect(userId);
   }
 
-  public getPurchasesByUser(
+  public async getPurchasesByUser(
     adminId: string,
     userId: string
-  ): CartPurchaseDTO[] {
-    return this.controllers.PurchasesHistory.getPurchasesByUser(
+  ): Promise<CartPurchaseDTO[]> {
+    return await this.controllers.PurchasesHistory.getPurchasesByUser(
       adminId,
       userId
     );

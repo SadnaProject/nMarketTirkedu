@@ -162,6 +162,71 @@ model Constraint {
     condition   Condition @relation(fields: [conditionId], references: [id])
 }
 
+model User {
+    id    String  @id @default(cuid())
+    name  String?
+    email String  @unique
+    productReviews ProductReview[]
+    cartPurchases CartPurchase[]
+    reviews Review[]
+}
+
+model ProductReview{
+    title      String
+    description String
+    userId     String
+    user       User     @relation(fields: [userId], references: [id])
+    rating     Int
+    productId  String
+    purchaseId String
+    storeId    String
+    createdAt  DateTime @default(now())
+    productPurchase ProductPurchase? 
+    @@unique([purchaseId, productId])
+    @@id([userId, productId])
+}
+
+model Review{
+    rating     Int
+    createdAt  DateTime @default(now())
+    userId     String
+    purchaseId String
+    user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    storeId    String
+    @@id([storeId, purchaseId])
+    basketPurchase BasketPurchase? 
+}
+
+model ProductPurchase{
+    purchaseId  String 
+    productId   String 
+    quantity    Int
+    createdAt  DateTime @default(now())
+    price       Float
+    review     ProductReview? @relation(fields: [purchaseId, productId], references: [purchaseId, productId])
+    storeId     String
+    BasketPurchase BasketPurchase @relation(fields: [purchaseId, storeId], references: [purchaseId, storeId])
+    @@id([purchaseId, productId])
+}
+
+model BasketPurchase{
+    purchaseId  String 
+    storeId     String
+    products   ProductPurchase[]
+    review Review? @relation(fields: [purchaseId, storeId], references: [purchaseId, storeId])
+    price       Float
+    cartPurchase CartPurchase @relation(fields: [purchaseId], references: [purchaseId])
+    @@id([purchaseId, storeId])
+}
+
+model CartPurchase{
+    purchaseId  String @id @default(cuid())
+    userId      String
+    user        User     @relation(fields: [userId], references: [id])
+    baskets     BasketPurchase[]
+    totalPrice  Float
+}
+
 // model Cart {
 //     id            String    @id @default(cuid())
 //     userId        String
@@ -185,12 +250,12 @@ enum RoleType {
     Founder
     Owner
     Manager
-    
+
 }
 model Role {
     id          String      @id// @default(cuid())
     roleType    RoleType
-    permissions Permission[]    
+    permissions Permission[]
     positionHolders       PositionHolder[]
 }
 model PositionHolder {
@@ -203,7 +268,7 @@ model PositionHolder {
     role        Role        @relation(fields: [roleId], references: [id])
     roleId      String
     //todo, add my assigned position holders
-    
+
     assignedPositionHolders PositionHolder[] @relation("PositionHolderToAssignees")
     assignerId              String?
     assignedBy              PositionHolder? @relation("PositionHolderToAssignees", fields: [assignerId,storeId], references: [userId, storeId])
@@ -211,6 +276,6 @@ model PositionHolder {
     @@id([userId, storeId])
 }
 //TODO maybe better to just save a field in the users table.
-model Admin {  
+model Admin {
     userId      String     @id
 }

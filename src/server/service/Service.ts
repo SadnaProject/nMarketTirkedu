@@ -367,8 +367,11 @@ export class Service {
   async searchStores(userId: string, storeName: string): Promise<StoreDTO[]> {
     return await this.facade.searchStores(userId, storeName);
   }
-  getJobsHierarchyOfStore(userId: string, storeId: string): PositionHolderDTO {
-    return this.facade.getJobsHierarchyOfStore(userId, storeId);
+  async getJobsHierarchyOfStore(
+    userId: string,
+    storeId: string
+  ): Promise<PositionHolderDTO> {
+    return await this.facade.getJobsHierarchyOfStore(userId, storeId);
   }
   // getStoreConstraints(
   //   userId: string,

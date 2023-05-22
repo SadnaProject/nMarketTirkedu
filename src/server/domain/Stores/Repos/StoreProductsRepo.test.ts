@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { type Repos, createMockRepos } from "../_HasRepos";
-import { createProduct, generateProductArgs } from "../_data";
+import { createProduct, createPromise, generateProductArgs } from "../_data";
 import { type Controllers } from "server/domain/_HasController";
 import { createMockControllers } from "server/domain/_createControllers";
 
@@ -10,7 +10,7 @@ beforeEach(() => {
   repos = createMockRepos("Products");
   controllers = createMockControllers("Stores");
   vi.spyOn(controllers.PurchasesHistory, "getReviewsByProduct").mockReturnValue(
-    { avgRating: 0, reviews: [] }
+    createPromise({ avgRating: 0, reviews: [] })
   );
 });
 

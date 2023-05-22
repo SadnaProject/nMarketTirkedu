@@ -18,14 +18,19 @@ export class JobsRepo extends Testable {
     ).map((ph) => ph.storeId);
     return [...new Set(allStoreIds)];
   }
-  public addSystemAdmin(userId: string): void {
+  public async addSystemAdmin(userId: string): Promise<void> {
     this.systemAdminIds.push(userId);
+    await db.admin.create({ data: { userId: userId } });
   }
-  public removeSystemAdmin(userId: string): void {
+  public async removeSystemAdmin(userId: string): Promise<void> {
+    await db.admin.delete({ where: { userId: userId } });
     this.systemAdminIds = this.systemAdminIds.filter((id) => id !== userId);
   }
-  public getSystemAdmins(): string[] {
-    return this.systemAdminIds;
+  public async getSystemAdmins(): Promise<string[]> {
+    // return this.systemAdminIds;
+    return (await db.admin.findMany({ select: { userId: true } })).map(
+      (admin) => admin.userId
+    );
   }
 
   public async SetStoreFounder(founder: PositionHolder): Promise<void> {

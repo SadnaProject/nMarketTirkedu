@@ -19,7 +19,7 @@ model UserAuth {
     name     String?
     email    String  @unique
     password String
-    user User?
+    // user User?
 }
 
 enum ConditionType {
@@ -222,7 +222,7 @@ model User {
     productReviews ProductReview[]
     cartPurchases CartPurchase[]
     reviews Review[]
-    auth UserAuth @relation(fields: [id], references: [id])
+    // auth UserAuth @relation(fields: [id], references: [id])
     cart Cart?
     notifications Notification[]
 }

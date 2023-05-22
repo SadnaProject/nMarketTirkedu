@@ -15,18 +15,26 @@ beforeEach(() => {
 });
 
 describe("add product", () => {
-  it("✅adds product", () => {
+  it("✅adds product", async () => {
     const product = createProduct(generateProductArgs(), repos, controllers);
-    expect(() => repos.Products.addProduct("store id", product)).not.toThrow();
-    expect(repos.Products.getProductsByStoreId("store id")).toEqual([product]);
+    expect(
+      async () => await repos.Products.addProduct("store id", product)
+    ).not.toThrow();
+    expect(await repos.Products.getProductsByStoreId("store id")).toEqual([
+      product,
+    ]);
   });
 
-  it("✅adds multiple products to one store", () => {
+  it("✅adds multiple products to one store", async () => {
     const product1 = createProduct(generateProductArgs(), repos, controllers);
-    expect(() => repos.Products.addProduct("store id", product1)).not.toThrow();
+    expect(
+      async () => await repos.Products.addProduct("store id", product1)
+    ).not.toThrow();
     const product2 = createProduct(generateProductArgs(), repos, controllers);
-    expect(() => repos.Products.addProduct("store id", product2)).not.toThrow();
-    expect(repos.Products.getProductsByStoreId("store id")).toEqual([
+    expect(
+      async () => await repos.Products.addProduct("store id", product2)
+    ).not.toThrow();
+    expect(await repos.Products.getProductsByStoreId("store id")).toEqual([
       product1,
       product2,
     ]);
@@ -34,18 +42,18 @@ describe("add product", () => {
 });
 
 describe("get all products", () => {
-  it("✅returns no products", () => {
-    expect(repos.Products.getAllProducts()).toEqual([]);
+  it("✅returns no products", async () => {
+    expect(await repos.Products.getAllProducts()).toEqual([]);
   });
 
-  it("✅returns some products", () => {
+  it("✅returns some products", async () => {
     const product1 = createProduct(generateProductArgs(), repos, controllers);
-    repos.Products.addProduct("store id 1", product1);
+    await repos.Products.addProduct("store id 1", product1);
     const product2 = createProduct(generateProductArgs(), repos, controllers);
-    repos.Products.addProduct("store id 1", product2);
+    await repos.Products.addProduct("store id 1", product2);
     const product3 = createProduct(generateProductArgs(), repos, controllers);
-    repos.Products.addProduct("store id 2", product3);
-    expect(repos.Products.getAllProducts()).toEqual([
+    await repos.Products.addProduct("store id 2", product3);
+    expect(await repos.Products.getAllProducts()).toEqual([
       product1,
       product2,
       product3,
@@ -54,54 +62,54 @@ describe("get all products", () => {
 });
 
 describe("get product by id", () => {
-  it("✅returns product", () => {
+  it("✅returns product", async () => {
     const product = createProduct(generateProductArgs(), repos, controllers);
-    repos.Products.addProduct("store id 1", product);
-    expect(repos.Products.getProductById(product.Id)).toEqual(product);
+    await repos.Products.addProduct("store id 1", product);
+    expect(await repos.Products.getProductById(product.Id)).toEqual(product);
   });
 
   it("❎doesn't find product", () => {
-    expect(() => repos.Products.getProductById("made up id")).toThrow(
-      "Product not found"
-    );
+    expect(
+      async () => await repos.Products.getProductById("made up id")
+    ).toThrow("Product not found");
   });
 });
 
 describe("get products by store id", () => {
-  it("✅returns no products because store does not exist", () => {
-    expect(repos.Products.getProductsByStoreId("made up id")).toEqual([]);
+  it("✅returns no products because store does not exist", async () => {
+    expect(await repos.Products.getProductsByStoreId("made up id")).toEqual([]);
   });
 
-  it("✅returns no products but store exists", () => {
+  it("✅returns no products but store exists", async () => {
     const product = createProduct(generateProductArgs(), repos, controllers);
-    repos.Products.addProduct("store id 1", product);
-    repos.Products.deleteProduct(product.Id);
-    expect(repos.Products.getProductsByStoreId("store id 1")).toEqual([]);
+    await repos.Products.addProduct("store id 1", product);
+    await repos.Products.deleteProduct(product.Id);
+    expect(await repos.Products.getProductsByStoreId("store id 1")).toEqual([]);
   });
 });
 
 describe("get store id by product id", () => {
-  it("✅returns store id", () => {
+  it("✅returns store id", async () => {
     const product = createProduct(generateProductArgs(), repos, controllers);
-    repos.Products.addProduct("store id 1", product);
-    expect(repos.Products.getStoreIdByProductId(product.Id)).toEqual(
+    await repos.Products.addProduct("store id 1", product);
+    expect(await repos.Products.getStoreIdByProductId(product.Id)).toEqual(
       "store id 1"
     );
   });
 
-  it("❎doesn't find product but there are other products", () => {
-    repos.Products.addProduct(
+  it("❎doesn't find product but there are other products", async () => {
+    await repos.Products.addProduct(
       "store id 1",
       createProduct(generateProductArgs(), repos, controllers)
     );
-    expect(() => repos.Products.getStoreIdByProductId("made up id")).toThrow(
-      "Product not found"
-    );
+    expect(
+      async () => await repos.Products.getStoreIdByProductId("made up id")
+    ).toThrow("Product not found");
   });
 
   it("❎doesn't find product because there are no products", () => {
-    expect(() => repos.Products.getStoreIdByProductId("made up id")).toThrow(
-      "Product not found"
-    );
+    expect(
+      async () => await repos.Products.getStoreIdByProductId("made up id")
+    ).toThrow("Product not found");
   });
 });

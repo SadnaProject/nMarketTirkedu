@@ -577,19 +577,19 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     this.controllers.Users.removeVoteFromBid(userId, bidId);
   }
-  getJobsHierarchyOfStore(userId: string, storeId: string): PositionHolderDTO {
-    this.validateConnection(userId);
-    return this.controllers.Jobs.getJobsHierarchyOfStore(storeId);
-  }
-  getStoreDiscounts(userId: string, storeId: string): Map<string, IDiscount> {
-    this.validateConnection(userId);
-    return this.controllers.Stores.getDiscountsByStoreId(userId, storeId);
-  }
-  getStoreConstraints(
+  async getJobsHierarchyOfStore(
     userId: string,
     storeId: string
-  ): Map<string, ICondition> {
+  ): Promise<PositionHolderDTO> {
     this.validateConnection(userId);
-    return this.controllers.Stores.getConstraintsByStoreId(userId, storeId);
+    return await this.controllers.Jobs.getJobsHierarchyOfStore(storeId);
   }
+  // getStoreDiscounts(userId: string, storeId: string): Map<string, IDiscount> {
+  //   this.validateConnection(userId);
+  //   return this.controllers.Stores.getDiscountsByStoreId (userId, storeId);
+  // }
+  // getStoreConstraints(userId: string, storeId: string): Map<string, ICondition> {
+  //   this.validateConnection(userId);
+  //   return this.controllers.Stores.getConstraintsByStoreId (userId, storeId);
+  // }
 }

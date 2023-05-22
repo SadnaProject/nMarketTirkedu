@@ -283,7 +283,7 @@ export interface IJobsController extends HasRepos {
    * @returns An array of PositionHolderDTO that represents the job hierarchy of a store.
    * @throws Error if the store doesn't exist.
    */
-  getJobsHierarchyOfStore(storeId: string): PositionHolderDTO;
+  getJobsHierarchyOfStore(storeId: string): Promise<PositionHolderDTO>;
 }
 
 @testable
@@ -786,9 +786,9 @@ export class JobsController
     }
     return false;
   }
-  getJobsHierarchyOfStore(storeId: string): PositionHolderDTO {
-    const founderId = this.getStoreFounderId(storeId);
-    const founder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+  async getJobsHierarchyOfStore(storeId: string): Promise<PositionHolderDTO> {
+    const founderId = await this.getStoreFounderId(storeId);
+    const founder = await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
       founderId,
       storeId
     );

@@ -72,6 +72,7 @@ export interface IPurchasesHistoryController extends HasRepos {
     totalPrice: number
   ): Promise<CartPurchaseDTO>;
   addPurchase(cartPurchase: CartPurchase): void;
+  getMyPurchases(userId: string): Promise<CartPurchaseDTO[]>;
 }
 
 @testable
@@ -101,6 +102,11 @@ export class PurchasesHistoryController
     const purchases = await this.Repos.BasketPurchases.getPurchasesByStore(
       storeId
     );
+    return purchases.map((purchase) => purchase.ToDTO());
+  }
+
+  async getMyPurchases(userId: string): Promise<CartPurchaseDTO[]> {
+    const purchases = await this.Repos.CartPurchases.getPurchasesByUser(userId);
     return purchases.map((purchase) => purchase.ToDTO());
   }
 

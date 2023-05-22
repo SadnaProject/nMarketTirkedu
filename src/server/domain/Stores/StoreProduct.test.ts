@@ -47,12 +47,12 @@ describe("constructor", () => {
 });
 
 describe("set name", () => {
-  itUnitIntegration("✅sets name", (testType) => {
+  itUnitIntegration("✅sets name", async (testType) => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
     const store = createProduct(productData, repos, controllers);
-    store.Name = "new name";
+    await store.setName("new name");
     expect(store.Name).toBe("new name");
   });
 
@@ -61,20 +61,20 @@ describe("set name", () => {
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
     const store = createProduct(productData, repos, controllers);
-    expect(() => {
-      store.Name = "";
+    expect(async () => {
+      await store.setName("");
     }).toThrow(ZodError);
     expect(store.Name).toBe(productData.name);
   });
 });
 
 describe("set quantity", () => {
-  itUnitIntegration("✅sets quantity", (testType) => {
+  itUnitIntegration("✅sets quantity", async (testType) => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
     const store = createProduct(productData, repos, controllers);
-    store.Quantity = 2;
+    await store.setQuantity(2);
     expect(store.Quantity).toBe(2);
   });
 
@@ -83,20 +83,20 @@ describe("set quantity", () => {
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
     const store = createProduct(productData, repos, controllers);
-    expect(() => {
-      store.Quantity = -1;
+    expect(async () => {
+      await store.setQuantity(-1);
     }).toThrow(ZodError);
     expect(store.Quantity).toBe(productData.quantity);
   });
 });
 
 describe("set price", () => {
-  itUnitIntegration("✅sets price", (testType) => {
+  itUnitIntegration("✅sets price", async (testType) => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
     const store = createProduct(productData, repos, controllers);
-    store.Price = 2;
+    await store.setPrice(2);
     expect(store.Price).toBe(2);
   });
 
@@ -105,20 +105,20 @@ describe("set price", () => {
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
     const store = createProduct(productData, repos, controllers);
-    expect(() => {
-      store.Price = -1;
+    expect(async () => {
+      await store.setPrice(-1);
     }).toThrow(ZodError);
     expect(store.Price).toBe(productData.price);
   });
 });
 
 describe("set category", () => {
-  itUnitIntegration("✅sets category", (testType) => {
+  itUnitIntegration("✅sets category", async (testType) => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
     const store = createProduct(productData, repos, controllers);
-    store.Category = "new category";
+    await store.setCategory("new category");
     expect(store.Category).toBe("new category");
   });
 
@@ -127,20 +127,20 @@ describe("set category", () => {
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
     const store = createProduct(productData, repos, controllers);
-    expect(() => {
-      store.Category = "";
+    expect(async () => {
+      await store.setCategory("");
     }).toThrow(ZodError);
     expect(store.Category).toBe(productData.category);
   });
 });
 
 describe("set description", () => {
-  itUnitIntegration("✅sets description", (testType) => {
+  itUnitIntegration("✅sets description", async (testType) => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
     const store = createProduct(productData, repos, controllers);
-    store.Description = "new description";
+    await store.setDescription("new description");
     expect(store.Description).toBe("new description");
   });
 
@@ -149,87 +149,113 @@ describe("set description", () => {
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
     const store = createProduct(productData, repos, controllers);
-    expect(() => {
-      store.Description = "";
+    expect(async () => {
+      await store.setDescription("");
     }).toThrow(ZodError);
     expect(store.Description).toBe(productData.description);
   });
 });
 
 describe("is quantity in stock", () => {
-  it("✅returns true", () => {
+  it("✅returns true", async () => {
     const productData = generateProductArgs();
     const repos = createMockRepos();
     const controllers = createMockControllers("Stores");
-    const { product } = createStoreWithProduct(productData, repos, controllers);
-    expect(product.isQuantityInStock(productData.quantity)).toBe(true);
-  });
-
-  it("✅returns false", () => {
-    const productData = generateProductArgs();
-    const repos = createMockRepos();
-    const controllers = createMockControllers("Stores");
-    const { product } = createStoreWithProduct(productData, repos, controllers);
-    expect(product.isQuantityInStock(productData.quantity + 1)).toBe(false);
-  });
-
-  it("❎gets inactive store", () => {
-    const productData = generateProductArgs();
-    const repos = createMockRepos();
-    const controllers = createMockControllers("Stores");
-    const { product, store } = createStoreWithProduct(
+    const { product } = await createStoreWithProduct(
       productData,
       repos,
       controllers
     );
-    store.IsActive = false;
-    expect(() => product.isQuantityInStock(1)).toThrow("Store is not active");
+    expect(await product.isQuantityInStock(productData.quantity)).toBe(true);
+  });
+
+  it("✅returns false", async () => {
+    const productData = generateProductArgs();
+    const repos = createMockRepos();
+    const controllers = createMockControllers("Stores");
+    const { product } = await createStoreWithProduct(
+      productData,
+      repos,
+      controllers
+    );
+    expect(await product.isQuantityInStock(productData.quantity + 1)).toBe(
+      false
+    );
+  });
+
+  it("❎gets inactive store", async () => {
+    const productData = generateProductArgs();
+    const repos = createMockRepos();
+    const controllers = createMockControllers("Stores");
+    const { product, store } = await createStoreWithProduct(
+      productData,
+      repos,
+      controllers
+    );
+    await store.setActive(false);
+    expect(async () => await product.isQuantityInStock(1)).toThrow(
+      "Store is not active"
+    );
   });
 });
 
 describe("get price", () => {
-  it("✅returns price", () => {
+  it("✅returns price", async () => {
     const productData = generateProductArgs();
     const repos = createMockRepos();
     const controllers = createMockControllers("Stores");
-    const { product } = createStoreWithProduct(productData, repos, controllers);
+    const { product } = await createStoreWithProduct(
+      productData,
+      repos,
+      controllers
+    );
     expect(product.getPriceByQuantity(1)).toBe(productData.price);
     expect(product.getPriceByQuantity(2)).toBe(2 * productData.price);
   });
 });
 
 describe("decrease quantity", () => {
-  it("✅decreases quantity", () => {
+  it("✅decreases quantity", async () => {
     const productData = generateProductArgs();
     const repos = createMockRepos();
     const controllers = createMockControllers("Stores");
-    const { product } = createStoreWithProduct(productData, repos, controllers);
-    product.decreaseQuantity(1);
+    const { product } = await createStoreWithProduct(
+      productData,
+      repos,
+      controllers
+    );
+    await product.decreaseQuantity(1);
     expect(product.Quantity).toBe(productData.quantity - 1);
   });
 
-  it("❎gets negative quantity", () => {
+  it("❎gets negative quantity", async () => {
     const productData = generateProductArgs();
     const repos = createMockRepos();
     const controllers = createMockControllers("Stores");
-    const { product } = createStoreWithProduct(productData, repos, controllers);
-    expect(() => product.decreaseQuantity(-1)).toThrow(
+    const { product } = await createStoreWithProduct(
+      productData,
+      repos,
+      controllers
+    );
+    expect(async () => await product.decreaseQuantity(-1)).toThrow(
       "Quantity must be positive"
     );
     expect(product.Quantity).toBe(productData.quantity);
   });
 
-  it("❎gets inactive store", () => {
+  it("❎gets inactive store", async () => {
     const productData = generateProductArgs();
     const repos = createMockRepos();
     const controllers = createMockControllers("Stores");
-    const { product, store } = createStoreWithProduct(
+    const { product, store } = await createStoreWithProduct(
       productData,
       repos,
       controllers
     );
-    store.IsActive = false;
-    expect(() => product.decreaseQuantity(1)).toThrow("Store is not active");
+    await store.setActive(false);
+    expect(async () => await product.decreaseQuantity(1)).toThrow(
+      "Store is not active"
+    );
     expect(product.Quantity).toBe(productData.quantity);
   });
 });

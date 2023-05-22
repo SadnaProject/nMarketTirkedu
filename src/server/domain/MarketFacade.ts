@@ -14,7 +14,10 @@ import { TRPCError } from "@trpc/server";
 import { type CreditCard } from "./PurchasesHistory/PaymentAdaptor";
 import { type StoreDTO } from "./Stores/Store";
 import { IDiscount, type DiscountArgs } from "./Stores/DiscountPolicy/Discount";
-import { ICondition, type ConditionArgs } from "./Stores/Conditions/CompositeLogicalCondition/Condition";
+import {
+  ICondition,
+  type ConditionArgs,
+} from "./Stores/Conditions/CompositeLogicalCondition/Condition";
 import { type RoleType } from "./Jobs/Role";
 import { BidArgs, BidDTO } from "./Users/Bid";
 import { PositionHolderDTO } from "./Jobs/PositionHolder";
@@ -573,13 +576,12 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     return this.controllers.Jobs.getJobsHierarchyOfStore(storeId);
   }
-  getStoreDiscounts(userId: string, storeId: string): Map<string, IDiscount> {
-    this.validateConnection(userId);
-    return this.controllers.Stores.getDiscountsByStoreId (userId, storeId);
-  }
-  getStoreConstraints(userId: string, storeId: string): Map<string, ICondition> {
-    this.validateConnection(userId);
-    return this.controllers.Stores.getConstraintsByStoreId (userId, storeId);
-  }
-
+  // getStoreDiscounts(userId: string, storeId: string): Map<string, IDiscount> {
+  //   this.validateConnection(userId);
+  //   return this.controllers.Stores.getDiscountsByStoreId (userId, storeId);
+  // }
+  // getStoreConstraints(userId: string, storeId: string): Map<string, ICondition> {
+  //   this.validateConnection(userId);
+  //   return this.controllers.Stores.getConstraintsByStoreId (userId, storeId);
+  // }
 }

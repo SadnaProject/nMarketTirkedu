@@ -60,7 +60,7 @@ export interface IUsersController {
    * This function purchases the cart of a user.
    * @param userId The id of the user that is currently logged in.
    */
-  purchaseCart(userId: string, creditCard: CreditCard): void;
+  purchaseCart(userId: string, creditCard: CreditCard): Promise<string>;
   /**
    * This function adds a user to the system.
    * @param user The user that is being added to the system.
@@ -213,11 +213,11 @@ export class UsersController
   async purchaseCart(
     userId: string,
     @censored creditCard: CreditCard
-  ): Promise<void> {
+  ): Promise<string> {
     const user = this.Repos.Users.getUser(userId);
     const cart = user.Cart;
     const price = this.Controllers.Stores.getCartPrice(userId);
-    this.Controllers.PurchasesHistory.purchaseCart(
+    const rid = await this.Controllers.PurchasesHistory.purchaseCart(
       userId,
       cart,
       await price,
@@ -227,6 +227,7 @@ export class UsersController
     const notification = new Notification("purchase", notificationMsg);
     user.addNotification(notification);
     user.clearCart(); /// notice we clear the cart in the end of the purchase.
+    return rid;
   }
   addUser(userId: string): void {
     this.Repos.Users.addUser(userId);

@@ -101,7 +101,7 @@ export class MarketFacade extends Loggable {
 
   public purchaseCart(userId: string, @censored creditCard: CreditCard) {
     this.validateConnection(userId);
-    this.controllers.Users.purchaseCart(userId, creditCard);
+    return this.controllers.Users.purchaseCart(userId, creditCard);
   }
 
   public removeUser(userId: string) {

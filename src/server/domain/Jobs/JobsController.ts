@@ -787,6 +787,7 @@ export class JobsController
     return false;
   }
   async getJobsHierarchyOfStore(storeId: string): Promise<PositionHolderDTO> {
+    // throw new Error("Method not implemented.");
     const founderId = await this.getStoreFounderId(storeId);
     const founder = await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
       founderId,
@@ -798,6 +799,18 @@ export class JobsController
         message: "Store not found",
       });
     }
+    await this.addEmailsToPositionHolderDTO(founder.DTO);
     return founder.DTO;
+  }
+  async addEmailsToPositionHolderDTO(
+    positionHolderDTO: PositionHolderDTO
+  ): Promise<void> {
+    const userEmail = await this.Controllers.Auth.getUserEmail(
+      positionHolderDTO.userId
+    );
+    positionHolderDTO.email = userEmail;
+    for (const appointedByMe of positionHolderDTO.assignedPositionHolders) {
+      await this.addEmailsToPositionHolderDTO(appointedByMe);
+    }
   }
 }

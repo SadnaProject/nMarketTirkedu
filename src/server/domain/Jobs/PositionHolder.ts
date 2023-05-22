@@ -11,6 +11,7 @@ export type PositionHolderDTO = {
   role: RoleDTO;
   storeId: string;
   userId: string;
+  email?: string;
   assignedPositionHolders: PositionHolderDTO[];
 };
 export class PositionHolder {

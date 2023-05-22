@@ -13,6 +13,8 @@ import { OwnerRole } from "./OwnerRole";
 import { db } from "server/db";
 import exp from "constants";
 import { JobsRepo } from "./JobsRepo";
+import { JobsController } from "./JobsController";
+import { AuthController } from "../Auth/AuthController";
 
 export function createMember(name: string, password: string) {
   return MemberUserAuth.create(name, password);
@@ -26,6 +28,7 @@ function getMemberI(i: number): MemberUserAuth {
 function getGuestI(i: number): GuestUserAuth {
   return GuestUserAuth.create();
 }
+let controllers: { Jobs: JobsController; Auth: AuthController };
 let repos: Repos;
 const ownerRole: OwnerRole = OwnerRole.getOwnerRole();
 const founderRole: FounderRole = FounderRole.getFounderRole();
@@ -36,7 +39,10 @@ beforeEach(async () => {
   await db.role.deleteMany({});
   const testType = "integration";
   // controllers = createTestControllers(testType, "Users");
-  repos = createTestRepos(testType, "jobs");
+  // repos = createTestRepos(testType, "jobs");
+  controllers = { Jobs: new JobsController(), Auth: new AuthController() };
+  repos = createTestRepos(testType);
+  controllers.Jobs.initRepos(repos);
   // repos = { jobs: new JobsRepo() };
   // controllers.Auth.initRepos(repos);
 });
@@ -65,6 +71,7 @@ describe("trying out db", () => {
       false,
       "receivePrivateStoreData"
     );
-    console.log(founder2);
+    // console.log(founder2);
+    // console.log(await controllers.Jobs.getJobsHierarchyOfStore("store1"));
   });
 });

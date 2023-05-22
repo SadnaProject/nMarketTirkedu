@@ -1,9 +1,12 @@
 import { TRPCError } from "@trpc/server";
-import { type EditablePermission, Role } from "./Role";
+import { type EditablePermission, Role, RoleDTO } from "./Role";
 import { db } from "server/db";
+
 export class OwnerRole extends Role {
-  constructor() {
+  private static OwnerRole: OwnerRole;
+  private constructor() {
     super();
+    this.id = "Owner";
     this.roleType = "Owner";
     this.permissions.push("AddProduct");
     this.permissions.push("EditProductDetails");
@@ -13,13 +16,15 @@ export class OwnerRole extends Role {
     this.permissions.push("AppointStoreManager");
     this.permissions.push("receiveClosedStoreData");
   }
-  grantPermission(permission: EditablePermission): void {
+
+  grantPermission(permission: EditablePermission): Promise<void> {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "You are not allowed to grant permissions to the owner",
     });
+    // return Promise.resolve();
   }
-  revokePermission(permission: EditablePermission): void {
+  revokePermission(permission: EditablePermission): Promise<void> {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "You are not allowed to revoke permissions from the owner",
@@ -27,5 +32,9 @@ export class OwnerRole extends Role {
   }
   canBeAppointedToStoreOwner(): boolean {
     return false;
+  }
+  static getOwnerRole(): OwnerRole {
+    if (!OwnerRole.OwnerRole) OwnerRole.OwnerRole = new OwnerRole();
+    return OwnerRole.OwnerRole;
   }
 }

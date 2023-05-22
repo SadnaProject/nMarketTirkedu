@@ -188,13 +188,14 @@ enum RoleType {
     
 }
 model Role {
-    id          String      @id @default(cuid())
+    id          String      @id// @default(cuid())
     roleType    RoleType
     permissions Permission[]    
     positionHolders       PositionHolder[]
 }
 model PositionHolder {
     // id          String      @id @default(cuid())
+    //TODO make this two ids below a foreign key to relavent tables
     userId      String
     //   user        User        @relation(fields: [userId], references: [id])
     storeId     String
@@ -208,4 +209,8 @@ model PositionHolder {
     assignedBy              PositionHolder? @relation("PositionHolderToAssignees", fields: [assignerId,storeId], references: [userId, storeId])
 
     @@id([userId, storeId])
+}
+//TODO maybe better to just save a field in the users table.
+model Admin {  
+    userId      String     @id
 }

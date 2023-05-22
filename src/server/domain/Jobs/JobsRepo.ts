@@ -12,17 +12,25 @@ export class JobsRepo extends Testable {
     super();
     this.systemAdminIds = [];
   }
-  public getAllStoreIds(): string[] {
-    return Array.from(this.storeIdToFounder.keys());
+  public async getAllStoreIds(): Promise<string[]> {
+    const allStoreIds = (
+      await db.positionHolder.findMany({ select: { storeId: true } })
+    ).map((ph) => ph.storeId);
+    return [...new Set(allStoreIds)];
   }
-  public addSystemAdmin(userId: string): void {
+  public async addSystemAdmin(userId: string): Promise<void> {
     this.systemAdminIds.push(userId);
+    await db.admin.create({ data: { userId: userId } });
   }
-  public removeSystemAdmin(userId: string): void {
+  public async removeSystemAdmin(userId: string): Promise<void> {
+    await db.admin.delete({ where: { userId: userId } });
     this.systemAdminIds = this.systemAdminIds.filter((id) => id !== userId);
   }
-  public getSystemAdmins(): string[] {
-    return this.systemAdminIds;
+  public async getSystemAdmins(): Promise<string[]> {
+    // return this.systemAdminIds;
+    return (await db.admin.findMany({ select: { userId: true } })).map(
+      (admin) => admin.userId
+    );
   }
 
   public async SetStoreFounder(founder: PositionHolder): Promise<void> {
@@ -35,6 +43,7 @@ export class JobsRepo extends Testable {
       console.log("creating founder role");
       await db.role.create({
         data: {
+          //TODO change this to just use founderRole
           id: RoleType.Founder,
           roleType: founder.Role.getRoleType(),
           permissions: founder.Role.getPermissions(),
@@ -50,6 +59,21 @@ export class JobsRepo extends Testable {
     });
   }
 
+  // public async GetStoreFounder(storeId: string): Promise<PositionHolder> {
+  //   //un some db query just for the sake of it for using await
+  //   const dbPositionHolder = await db.positionHolder.findFirst({ where: {} });
+  //   const founder = this.storeIdToFounder.get(storeId);
+  //   if (founder === undefined) {
+  //     throw new TRPCError({
+  //       code: "BAD_REQUEST",
+  //       message:
+  //         "store founder not found for store with id: " +
+  //         storeId +
+  //         " not found",
+  //     });
+  //   }
+  //   return founder;
+  // }
   public async GetStoreFounder(storeId: string): Promise<PositionHolder> {
     const founder = this.storeIdToFounder.get(storeId);
     if (founder === undefined) {
@@ -133,9 +157,12 @@ export class JobsRepo extends Testable {
     userId: string,
     storeId: string
   ): Promise<PositionHolder | undefined> {
+    //this will work, but it is not efficient
     const founder = await this.GetStoreFounder(storeId);
     const positionHolder = this.findPositionHolder(userId, founder);
     return positionHolder;
+    //TODO the following code is more efficient,  - check if it works
+    return await this.getPositionHolderFromDB(storeId, userId);
   }
   private findPositionHolder(
     userId: string,

@@ -179,7 +179,7 @@ export interface IJobsController extends HasRepos {
    * @param userId The id of the user that we are checking the permission of.
    * @param storeId The id of the store related to the permission.
    */
-  canCloseStorePermanently(userId: string, storeId: string): boolean;
+  canCloseStorePermanently(userId: string, storeId: string): Promise<boolean>;
 
   //! Add more permission functions - should we do it using enum instead?
   /**
@@ -208,7 +208,7 @@ export interface IJobsController extends HasRepos {
    * @param userId The id of the user that is being checked.
    * @returns A boolean that represents if the user is a system admin.
    */
-  isSystemAdmin(userId: string): boolean;
+  isSystemAdmin(userId: string): Promise<boolean>;
   /**
    * This function gets the founder of a store.
    * @param storeId The id of the store.
@@ -268,7 +268,7 @@ export interface IJobsController extends HasRepos {
    * This function checks if a user has the permission to remove a member of the system.
    * @param userId The id of the user that is being checked.
    */
-  canRemoveMember(userId: string): boolean;
+  canRemoveMember(userId: string): Promise<boolean>;
   /**
    * This function checks if a user has any position in the system(Owner, Manager, Founder,System Admin).
    * @param userId The id of the user that is being checked.
@@ -284,8 +284,8 @@ export class JobsController
   implements IJobsController
 {
   // private managerRole: ManagerRole;
-  static ownerRole: OwnerRole = new OwnerRole();
-  static founderRole: FounderRole = new FounderRole();
+  // static ownerRole: OwnerRole = new OwnerRole();
+  // static founderRole: FounderRole = new FounderRole();
   private wasAdminInitialized: boolean;
   constructor() {
     super();
@@ -343,7 +343,7 @@ export class JobsController
     userId: string,
     storeId: string
   ): Promise<boolean> {
-    if (this.isSystemAdmin(userId)) {
+    if (await this.isSystemAdmin(userId)) {
       return true;
     }
     const positionHolder: PositionHolder | undefined =
@@ -359,14 +359,14 @@ export class JobsController
 
   async InitializeStore(founderId: string, storeId: string): Promise<void> {
     const positionHolder: PositionHolder = new PositionHolder(
-      JobsController.founderRole,
+      FounderRole.getFounderRole(),
       storeId,
       founderId
     );
     await this.Repos.jobs.SetStoreFounder(positionHolder);
   }
   async getStoreIdsByFounder(userId: string): Promise<string[]> {
-    const storeIds = this.Repos.jobs.getAllStoreIds();
+    const storeIds = await this.Repos.jobs.getAllStoreIds();
     const foundedStores: string[] = [];
     for (const storeId of storeIds) {
       if (await this.isStoreFounder(userId, storeId)) {
@@ -377,7 +377,7 @@ export class JobsController
     return foundedStores;
   }
   async getStoreIdsByOwner(userId: string): Promise<string[]> {
-    const storeIds = this.Repos.jobs.getAllStoreIds();
+    const storeIds = await this.Repos.jobs.getAllStoreIds();
     const ownedStores: string[] = [];
     for (const storeId of storeIds) {
       if (await this.isStoreOwner(userId, storeId)) {
@@ -387,7 +387,7 @@ export class JobsController
     return ownedStores;
   }
   async getStoreIdsByManager(userId: string): Promise<string[]> {
-    const storeIds = this.Repos.jobs.getAllStoreIds();
+    const storeIds = await this.Repos.jobs.getAllStoreIds();
     const managedStores: string[] = [];
     for (const storeId of storeIds) {
       if (await this.isStoreManager(userId, storeId)) {
@@ -514,7 +514,7 @@ export class JobsController
         message: "This user cannot remove appointee",
       });
     }
-    phRemover.removeAppointee(targetUserId);
+    await phRemover.removeAppointee(targetUserId);
   }
   private async setAppointeePermission(
     currentId: string,
@@ -534,7 +534,7 @@ export class JobsController
         message: "This user cannot appoint",
       });
     }
-    phAppointer.setAppointeePermission(
+    await phAppointer.setAppointeePermission(
       targetUserId,
       permissionStatus,
       permission
@@ -652,8 +652,11 @@ export class JobsController
     }
     return ph.Role.hasPermission("DeactivateStore");
   }
-  canCloseStorePermanently(userId: string, storeId: string): boolean {
-    return this.isSystemAdmin(userId);
+  async canCloseStorePermanently(
+    userId: string,
+    storeId: string
+  ): Promise<boolean> {
+    return await this.isSystemAdmin(userId);
   }
   async isStoreOwner(userId: string, storeId: string): Promise<boolean> {
     const ph: PositionHolder | undefined =
@@ -688,21 +691,22 @@ export class JobsController
     }
     return ph.Role.isStoreFounder();
   }
-  isSystemAdmin(userId: string): boolean {
+  async isSystemAdmin(userId: string): Promise<boolean> {
     if (
-      this.Repos.jobs.getSystemAdmins().find((saId) => saId === userId) ===
-      undefined
+      (await this.Repos.jobs.getSystemAdmins()).find(
+        (saId) => saId === userId
+      ) === undefined
     ) {
       return false;
     }
     return true;
   }
 
-  setInitialAdmin(userId: string): void {
+  async setInitialAdmin(userId: string): Promise<void> {
     if (this.wasAdminInitialized) {
       throw new Error("admin was already initialized");
     }
-    this.Repos.jobs.addSystemAdmin(userId);
+    await this.Repos.jobs.addSystemAdmin(userId);
     this.wasAdminInitialized = true;
   }
   async getStoreFounderId(storeId: string): Promise<string> {
@@ -756,11 +760,11 @@ export class JobsController
     }
     return undefined;
   }
-  canRemoveMember(userId: string): boolean {
-    return this.isSystemAdmin(userId);
+  async canRemoveMember(userId: string): Promise<boolean> {
+    return await this.isSystemAdmin(userId);
   }
   async isMemberInAnyPosition(userId: string): Promise<boolean> {
-    if (this.isSystemAdmin(userId)) {
+    if (await this.isSystemAdmin(userId)) {
       return true;
     }
     if ((await this.getStoreIdsByFounder(userId)).length > 0) {

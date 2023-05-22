@@ -1,9 +1,11 @@
 import { TRPCError } from "@trpc/server";
-import { JobsController } from "./JobsController";
-import { ManagerRole } from "./ManagerRole";
-import { RoleDTO, type EditablePermission, Role } from "./Role";
+
 import { db } from "server/db";
 import { RoleType } from "@prisma/client";
+import { RoleDTO, type EditablePermission, Role } from "./Role";
+import { OwnerRole } from "./OwnerRole";
+import { FounderRole } from "./FounderRole";
+import { ManagerRole } from "./ManagerRole";
 
 export type PositionHolderDTO = {
   role: RoleDTO;
@@ -31,11 +33,17 @@ export class PositionHolder {
   public static createPositionHolderFromDTO(
     dto: PositionHolderDTO
   ): PositionHolder {
-    const positionHolder = new PositionHolder(
-      Role.createRoleFromDTO(dto.role),
-      dto.storeId,
-      dto.userId
-    );
+    let role: Role;
+    if (dto.role.roleType === RoleType.Owner) {
+      role = OwnerRole.getOwnerRole();
+    } else if (dto.role.roleType === RoleType.Founder) {
+      role = FounderRole.getFounderRole();
+    } else {
+      //TODO create all these roles using "createRoleFromDTO"(be careful with the imports, we might need to move RoleDto an another file)
+      role = ManagerRole.createManagerRoleFromDTO(dto.role);
+    }
+
+    const positionHolder = new PositionHolder(role, dto.storeId, dto.userId);
     positionHolder.appointments = dto.assignedPositionHolders.map(
       (positionHolderDTO) => this.createPositionHolderFromDTO(positionHolderDTO)
     );
@@ -56,7 +64,6 @@ export class PositionHolder {
       ),
     };
   }
-
   private async addPositionHolder(
     positionHolder: PositionHolder
   ): Promise<void> {
@@ -85,7 +92,7 @@ export class PositionHolder {
     //   new PositionHolder(JobsController.ownerRole, this.storeId, userId)
     // );
     const positionHolder = new PositionHolder(
-      JobsController.ownerRole,
+      OwnerRole.getOwnerRole(),
       this.storeId,
       userId
     );
@@ -130,13 +137,15 @@ export class PositionHolder {
     // await this.addPositionHolder(
     //   new PositionHolder(new ManagerRole(), this.storeId, userId)
     // );
+    const managerRole = new ManagerRole();
     const positionHolder = new PositionHolder(
-      new ManagerRole(),
+      managerRole,
       this.storeId,
       userId
     );
     const role = await db.role.create({
       data: {
+        id: managerRole.ID,
         roleType: positionHolder.Role.getRoleType(),
         permissions: positionHolder.Role.getPermissions(),
       },
@@ -148,13 +157,14 @@ export class PositionHolder {
         // role: { connect: { id: positionHolder.role.getRoleType() } },
         assignerId: this.userId,
         // role: { create: { roleType: RoleType.Manager } },
-        roleId: role.id,
+        roleId: managerRole.ID,
         // assignedBy: { connect: { userId: this.userId,storeId: this.storeId } },
       },
     });
+    this.appointments.push(positionHolder);
   }
 
-  public removeAppointee(userId: string): void {
+  public async removeAppointee(userId: string): Promise<void> {
     const index = this.appointments.findIndex(
       (positionHolder) => positionHolder.UserId === userId
     );
@@ -166,17 +176,21 @@ export class PositionHolder {
           this.storeId,
       });
     }
+    await db.positionHolder.delete({
+      where: { userId_storeId: { userId: userId, storeId: this.storeId } },
+    });
     this.appointments.splice(index, 1);
   }
-  public setAppointeePermission(
+  public async setAppointeePermission(
     targetUserId: string,
     permissionStatus: boolean,
     permission: EditablePermission
-  ): void {
+  ): Promise<void> {
     const appointee = this.appointments.find(
       (positionHolder) => positionHolder.UserId === targetUserId
     );
     if (appointee === undefined) {
+      //TODO search in db for a second chance
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
@@ -185,18 +199,18 @@ export class PositionHolder {
       });
     }
     if (permissionStatus) {
-      appointee.Role.grantPermission(permission);
+      await appointee.Role.grantPermission(permission);
     } else {
-      appointee.Role.revokePermission(permission);
+      await appointee.Role.revokePermission(permission);
     }
   }
 
-  public set Role(role: Role) {
-    this.role = role;
-    // if (this.dto !== undefined) {
-    //     this.dto.role = role;
-    // }
-  }
+  // public set Role(role: Role) {
+  //   this.role = role;
+  //   // if (this.dto !== undefined) {
+  //   //     this.dto.role = role;
+  //   // }
+  // }
   public get Role(): Role {
     return this.role;
   }

@@ -205,12 +205,12 @@ export class PositionHolder {
     }
   }
 
-  public set Role(role: Role) {
-    this.role = role;
-    // if (this.dto !== undefined) {
-    //     this.dto.role = role;
-    // }
-  }
+  // public set Role(role: Role) {
+  //   this.role = role;
+  //   // if (this.dto !== undefined) {
+  //   //     this.dto.role = role;
+  //   // }
+  // }
   public get Role(): Role {
     return this.role;
   }

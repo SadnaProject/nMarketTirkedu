@@ -195,13 +195,6 @@ model Cart{
     @@unique([userId])
 }
 
-model User{
-    id String @id
-    auth UserAuth @relation(fields: [id], references: [id])
-    cart Cart?
-    notifications Notification[]
-}
-
 // enum BidType {
 //     Store
 //     Counter
@@ -224,14 +217,14 @@ model User{
 //     type BidType
 // }
 
-=======
 model User {
     id    String  @id @default(cuid())
-    name  String?
-    email String  @unique
     productReviews ProductReview[]
     cartPurchases CartPurchase[]
     reviews Review[]
+    auth UserAuth @relation(fields: [id], references: [id])
+    cart Cart?
+    notifications Notification[]
 }
 
 model ProductReview{

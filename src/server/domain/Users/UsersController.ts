@@ -293,14 +293,14 @@ export class UsersController
         message: "Given user id doesn't belong to a member",
       });
     }
-    if (this.Controllers.Jobs.isMemberInAnyPosition(memberIdToRemove)) {
+    if (await this.Controllers.Jobs.isMemberInAnyPosition(memberIdToRemove)) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
           "Member is in a position, please remove him from the position first",
       });
     }
-    if (!this.Controllers.Jobs.canRemoveMember(userIdOfActor)) {
+    if (!(await this.Controllers.Jobs.canRemoveMember(userIdOfActor))) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User doesn't have permission to remove member",
@@ -313,17 +313,17 @@ export class UsersController
     const bid = new Bid(bidArgs);
     this.Repos.Bids.addBid(bid);
     if (bidArgs.type === "Store") {
-      this.Controllers.Jobs.getStoreOwnersIds(
+      await this.Controllers.Jobs.getStoreOwnersIds(
         await this.Controllers.Stores.getStoreIdByProductId(
           bid.UserId,
           bid.ProductId
         )
-      ).forEach((ownerId) =>
+      ) /*.forEach((ownerId) =>
         this.Repos.Users.getUser(ownerId).addBidToMe(bid.Id)
-      );
+      )*/;
       this.Repos.Users.getUser(bid.UserId).addBidFromMe(bid.Id);
       bid.Owners = R.clone(
-        this.Controllers.Jobs.getStoreOwnersIds(
+        await this.Controllers.Jobs.getStoreOwnersIds(
           await this.Controllers.Stores.getStoreIdByProductId(
             bid.UserId,
             bid.ProductId
@@ -342,13 +342,13 @@ export class UsersController
     const bid = this.Repos.Bids.getBid(bidId);
     if (
       bid.Type == "Store" &&
-      !this.Controllers.Jobs.isStoreOwner(
+      !(await this.Controllers.Jobs.isStoreOwner(
         userId,
         await this.Controllers.Stores.getStoreIdByProductId(
           bid.UserId,
           bid.ProductId
         )
-      )
+      ))
     ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -381,13 +381,13 @@ export class UsersController
   async rejectBid(userId: string, bidId: string): Promise<void> {
     const bid = this.Repos.Bids.getBid(bidId);
     if (
-      !this.Controllers.Jobs.isStoreOwner(
+      !(await this.Controllers.Jobs.isStoreOwner(
         userId,
         await this.Controllers.Stores.getStoreIdByProductId(
           bid.UserId,
           bid.ProductId
         )
-      )
+      ))
     ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -403,13 +403,13 @@ export class UsersController
   ): Promise<void> {
     const bid = this.Repos.Bids.getBid(bidId);
     if (
-      !this.Controllers.Jobs.isStoreOwner(
+      !(await this.Controllers.Jobs.isStoreOwner(
         userId,
         await this.Controllers.Stores.getStoreIdByProductId(
           bid.UserId,
           bid.ProductId
         )
-      )
+      ))
     ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",

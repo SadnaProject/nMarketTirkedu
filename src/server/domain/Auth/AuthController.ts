@@ -105,6 +105,12 @@ export interface IAuthController extends HasRepos {
    * @returns Array of strings.
    */
   getAllLoggedOutMembersIds(): Promise<string[]>;
+  /**
+   * @param userId The user's ID.
+   * @returns The user's email.
+   * @throws Error if the user is not a member.
+   */
+  getUserEmail(userId: string): Promise<string>;
 }
 
 @testable
@@ -266,5 +272,8 @@ export class AuthController
       }
     });
     return loggedOutUsersIds;
+  }
+  async getUserEmail(userId: string): Promise<string> {
+    return (await this.Repos.Users.getMemberById(userId)).Email;
   }
 }

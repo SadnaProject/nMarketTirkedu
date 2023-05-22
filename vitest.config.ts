@@ -17,7 +17,7 @@ export default defineConfig({
       // "**/UserAuthRepo.test.ts",
       "**/MemberUserAuth.test.ts",
       // "**/Session.test.ts",
-      // "**/testingDbJobs.test.ts",
+      "**/testingDbJobs.test.ts",
       // "**/ReviewRepo.test.ts",
       // "**/ProductPurchaseHistoryRepo.test.ts",
       "**/checkDB.test.ts",

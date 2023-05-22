@@ -116,6 +116,21 @@ export class PurchasesHistoryController
     price: number,
     @censored creditCard: CreditCard
   ): Promise<string> {
+    // for each basket run StoresController.checkIfBasketSatisfiesStoreConstraints
+    for (const [storeId, basket] of cart.storeIdToBasket) {
+      if (
+        !(await this.Controllers.Stores.checkIfBasketSatisfiesStoreConstraints(
+          userId,
+          storeId,
+          basket
+        ))
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Basket does not satisfy store constraints",
+        });
+      }
+    }
     for (const basket of cart.storeIdToBasket.values()) {
       for (const product of basket.products.values()) {
         if (

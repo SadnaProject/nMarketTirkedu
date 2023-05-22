@@ -241,7 +241,9 @@ describe("purchase cart", () => {
     );
     const price = 100;
     vi.spyOn(controllers.Stores, "getCartPrice").mockResolvedValueOnce(price);
-    vi.spyOn(controllers.PurchasesHistory, "purchaseCart").mockReturnValue();
+    vi.spyOn(controllers.PurchasesHistory, "purchaseCart").mockResolvedValue(
+      "15"
+    );
     const notificationSizeBefore =
       controllers.Users.getNotifications(userId).length;
     await controllers.Users.purchaseCart(userId, { number: "123456789" });
@@ -263,7 +265,9 @@ describe("purchase cart", () => {
       storeId
     );
     vi.spyOn(controllers.Stores, "getCartPrice").mockResolvedValueOnce(100);
-    vi.spyOn(controllers.PurchasesHistory, "purchaseCart").mockReturnValue();
+    vi.spyOn(controllers.PurchasesHistory, "purchaseCart").mockResolvedValue(
+      "15"
+    );
     expect(() =>
       controllers.Users.purchaseCart("Blabla", { number: "123456789" })
     ).toThrow("User not found");
@@ -398,7 +402,7 @@ describe("remove member", () => {
     const email = "email@gmail.com";
     // const MemberId = randomUUID();
     const AdminId = await controllers.Auth.register("admin", "admin");
-    controllers.Jobs.setInitialAdmin(AdminId);
+    await controllers.Jobs.setInitialAdmin(AdminId);
     expect(true).toBe(true);
     const guestId = controllers.Users.startSession();
     await controllers.Users.register(email, password);
@@ -419,7 +423,7 @@ describe("remove member", () => {
       const email = "email@gmail.com";
       // const MemberId = randomUUID();
       const AdminId = await controllers.Auth.register("admin", "admin");
-      controllers.Jobs.setInitialAdmin(AdminId);
+      await controllers.Jobs.setInitialAdmin(AdminId);
       // expect(true).toBe(true);
       const guestId = controllers.Users.startSession();
       await controllers.Users.register(email, password);
@@ -441,7 +445,7 @@ describe("remove member", () => {
       const email = "email@gmail.com";
       // const MemberId = randomUUID();
       const AdminId = await controllers.Auth.register("admin", "admin");
-      controllers.Jobs.setInitialAdmin(AdminId);
+      await controllers.Jobs.setInitialAdmin(AdminId);
       // expect(true).toBe(true);
       const guestId = controllers.Users.startSession();
       expect(() => controllers.Users.removeMember(AdminId, guestId)).toThrow();

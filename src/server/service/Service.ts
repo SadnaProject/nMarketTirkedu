@@ -60,7 +60,7 @@ export class Service {
     return this.facade.getNotifications(userId);
   }
   public purchaseCart(userId: string, creditCard: CreditCard) {
-    this.facade.purchaseCart(userId, creditCard);
+    return this.facade.purchaseCart(userId, creditCard);
   }
   public removeUser(userId: string) {
     this.facade.removeUser(userId);

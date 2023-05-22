@@ -196,6 +196,11 @@ export class MarketFacade extends Loggable {
       newPassword
     );
   }
+
+  async getMyPurchaseHistory(userId: string): Promise<CartPurchaseDTO[]> {
+    this.validateConnection(userId);
+    return await this.controllers.PurchasesHistory.getMyPurchases(userId);
+  }
   async makeStoreOwner(
     currentId: string,
     storeId: string,
@@ -572,9 +577,12 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     this.controllers.Users.removeVoteFromBid(userId, bidId);
   }
-  getJobsHierarchyOfStore(userId: string, storeId: string): PositionHolderDTO {
+  async getJobsHierarchyOfStore(
+    userId: string,
+    storeId: string
+  ): Promise<PositionHolderDTO> {
     this.validateConnection(userId);
-    return this.controllers.Jobs.getJobsHierarchyOfStore(storeId);
+    return await this.controllers.Jobs.getJobsHierarchyOfStore(storeId);
   }
   // getStoreDiscounts(userId: string, storeId: string): Map<string, IDiscount> {
   //   this.validateConnection(userId);

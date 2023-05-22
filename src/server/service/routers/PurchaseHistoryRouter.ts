@@ -40,8 +40,8 @@ export const PurchasesHistoryRouter = createTRPCRouter({
         reviewBody,
         storeId,
       } = input;
-      return facade.reviewProduct(
-/**TODO: Change facade to service
+      return service.reviewProduct(
+        /**TODO: Change facade to service
       const { purchaseId, productId, review, reviewTitle, reviewBody } = input;
       return service.reviewProduct(
 */
@@ -60,4 +60,8 @@ export const PurchasesHistoryRouter = createTRPCRouter({
       const { storeId } = input;
       return service.getStoreRating(storeId);
     }),
+
+  getMyPurchases: validSessionProcedure.query(({ ctx }) => {
+    return service.getMyPurchaseHistory(ctx.session.user.id);
+  }),
 });

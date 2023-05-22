@@ -240,7 +240,6 @@ model ProductReview {
     storeId         String
     createdAt       DateTime         @default(now())
     productPurchase ProductPurchase?
-
     @@id([userId, productId])
     @@unique([purchaseId, productId])
 }

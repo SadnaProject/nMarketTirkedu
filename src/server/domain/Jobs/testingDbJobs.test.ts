@@ -59,6 +59,12 @@ describe("trying out db", () => {
     await positionHolder.appointStoreManager("manager1");
     const founder2 = await repos.jobs.GetStoreFounder("store1");
     // expect(founder2).toEqual(founder);
+    await positionHolder.setAppointeePermission("manager1", true, "AddProduct");
+    await positionHolder.setAppointeePermission(
+      "manager1",
+      false,
+      "receivePrivateStoreData"
+    );
     console.log(founder2);
   });
 });

@@ -13,15 +13,18 @@ export type EditablePermission =
 export type RoleType = "Owner" | "Manager" | "Founder";
 
 export type RoleDTO = {
+  id: string;
   permissions: Permission[];
   roleType: RoleType;
 };
 export abstract class Role {
   protected permissions: Permission[];
   protected roleType: RoleType;
+  protected id: string;
   constructor() {
     this.permissions = [];
     this.roleType = "Manager";
+    this.id = "";
   }
   // static createRoleFromDTO(dto: RoleDTO, given: Role): Role {
   //   // let role: Role;
@@ -35,9 +38,13 @@ export abstract class Role {
   // }
   public get DTO(): RoleDTO {
     return {
+      id: this.id,
       permissions: this.permissions,
       roleType: this.roleType,
     };
+  }
+  public get ID(): string {
+    return this.id;
   }
   public setPermissions(permissions: Permission[]): void {
     this.permissions = permissions;
@@ -55,8 +62,8 @@ export abstract class Role {
   public isStoreFounder(): boolean {
     return this.roleType === "Founder";
   }
-  abstract grantPermission(permission: EditablePermission): void;
-  abstract revokePermission(permission: EditablePermission): void;
+  abstract grantPermission(permission: EditablePermission): Promise<void>;
+  abstract revokePermission(permission: EditablePermission): Promise<void>;
   hasPermission(permission: Permission): boolean {
     return this.permissions.includes(permission);
   }

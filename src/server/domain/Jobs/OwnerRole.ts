@@ -6,6 +6,7 @@ export class OwnerRole extends Role {
   private static OwnerRole: OwnerRole;
   private constructor() {
     super();
+    this.id = "Owner";
     this.roleType = "Owner";
     this.permissions.push("AddProduct");
     this.permissions.push("EditProductDetails");
@@ -16,13 +17,14 @@ export class OwnerRole extends Role {
     this.permissions.push("receiveClosedStoreData");
   }
 
-  grantPermission(permission: EditablePermission): void {
+  grantPermission(permission: EditablePermission): Promise<void> {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "You are not allowed to grant permissions to the owner",
     });
+    // return Promise.resolve();
   }
-  revokePermission(permission: EditablePermission): void {
+  revokePermission(permission: EditablePermission): Promise<void> {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "You are not allowed to revoke permissions from the owner",

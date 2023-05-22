@@ -366,7 +366,7 @@ export class JobsController
     await this.Repos.jobs.SetStoreFounder(positionHolder);
   }
   async getStoreIdsByFounder(userId: string): Promise<string[]> {
-    const storeIds = this.Repos.jobs.getAllStoreIds();
+    const storeIds = await this.Repos.jobs.getAllStoreIds();
     const foundedStores: string[] = [];
     for (const storeId of storeIds) {
       if (await this.isStoreFounder(userId, storeId)) {
@@ -377,7 +377,7 @@ export class JobsController
     return foundedStores;
   }
   async getStoreIdsByOwner(userId: string): Promise<string[]> {
-    const storeIds = this.Repos.jobs.getAllStoreIds();
+    const storeIds = await this.Repos.jobs.getAllStoreIds();
     const ownedStores: string[] = [];
     for (const storeId of storeIds) {
       if (await this.isStoreOwner(userId, storeId)) {
@@ -387,7 +387,7 @@ export class JobsController
     return ownedStores;
   }
   async getStoreIdsByManager(userId: string): Promise<string[]> {
-    const storeIds = this.Repos.jobs.getAllStoreIds();
+    const storeIds = await this.Repos.jobs.getAllStoreIds();
     const managedStores: string[] = [];
     for (const storeId of storeIds) {
       if (await this.isStoreManager(userId, storeId)) {
@@ -514,7 +514,7 @@ export class JobsController
         message: "This user cannot remove appointee",
       });
     }
-    phRemover.removeAppointee(targetUserId);
+    await phRemover.removeAppointee(targetUserId);
   }
   private async setAppointeePermission(
     currentId: string,

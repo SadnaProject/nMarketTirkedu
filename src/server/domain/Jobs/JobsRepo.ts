@@ -12,8 +12,11 @@ export class JobsRepo extends Testable {
     super();
     this.systemAdminIds = [];
   }
-  public getAllStoreIds(): string[] {
-    return Array.from(this.storeIdToFounder.keys());
+  public async getAllStoreIds(): Promise<string[]> {
+    const allStoreIds = (
+      await db.positionHolder.findMany({ select: { storeId: true } })
+    ).map((ph) => ph.storeId);
+    return [...new Set(allStoreIds)];
   }
   public addSystemAdmin(userId: string): void {
     this.systemAdminIds.push(userId);
@@ -35,6 +38,7 @@ export class JobsRepo extends Testable {
       console.log("creating founder role");
       await db.role.create({
         data: {
+          //TODO change this to just use founderRole
           id: RoleType.Founder,
           roleType: founder.Role.getRoleType(),
           permissions: founder.Role.getPermissions(),
@@ -148,9 +152,12 @@ export class JobsRepo extends Testable {
     userId: string,
     storeId: string
   ): Promise<PositionHolder | undefined> {
+    //this will work, but it is not efficient
     const founder = await this.GetStoreFounder(storeId);
     const positionHolder = this.findPositionHolder(userId, founder);
     return positionHolder;
+    //TODO the following code is more efficient,  - check if it works
+    return await this.getPositionHolderFromDB(storeId, userId);
   }
   private findPositionHolder(
     userId: string,

@@ -7,11 +7,9 @@ import { useRouter } from "next/router";
 import { z } from "zod";
 import StoreNavbar from "components/storeNavbar";
 import { api } from "utils/api";
-import { type StoreProductDTO } from "server/domain/Stores/StoreProduct";
 import Card from "components/card";
 import { CreateIcon } from "components/icons";
 import { cachedQueryOptions } from "utils/query";
-import { useEffect, useState } from "react";
 
 export default function Home() {
   const router = useRouter();
@@ -50,7 +48,7 @@ export default function Home() {
             )
           }
           noItemsCard={
-            <Card className="mt-0 flex h-full w-full max-w-md items-center justify-center">
+            <Card className="mt-0 flex w-full max-w-md items-center justify-center">
               No products found
             </Card>
           }

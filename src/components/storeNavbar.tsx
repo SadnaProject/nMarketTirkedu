@@ -95,7 +95,7 @@ export default function StoreNavbar({ storeId }: Props) {
             />
           </div>
           {isMyStore && (
-            <nav className="flex w-full max-w-2xl space-x-2 overflow-auto">
+            <nav className="flex w-full max-w-2xl space-x-2 overflow-x-auto">
               {links.map((link) => (
                 <Link
                   key={link.name}

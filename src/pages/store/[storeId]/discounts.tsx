@@ -59,7 +59,7 @@ export default function Home() {
     criteriaMode: "all",
     reValidateMode: "onChange",
   });
-  // api.stores.get
+  // api.stores.
 
   const handleCreateStore = formMethods.handleSubmit(
     (data) => {

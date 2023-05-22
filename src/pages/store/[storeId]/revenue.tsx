@@ -52,7 +52,7 @@ export default function Home() {
             <Link href={PATHS.receipt.path(purchase.purchaseId)}>
               <Card>
                 <h2 className="text-lg font-bold text-slate-800">
-                  {receipt.username}
+                  {purchase.username}
                 </h2>
                 <Price
                   price={purchase.price}

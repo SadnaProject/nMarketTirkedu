@@ -12,6 +12,7 @@ import { onError } from "utils/query";
 import { useGuestRedirect } from "utils/paths";
 import { RemoveIcon } from "components/icons";
 import { type PositionHolderDTO } from "server/domain/Jobs/PositionHolder";
+import { useEffect } from "react";
 
 // const jobs: Job = {
 //   id: "0",
@@ -66,6 +67,10 @@ export default function Home() {
       toast.success("Job added successfully");
     },
   });
+
+  useEffect(() => {
+    console.log(jobs);
+  }, [jobs]);
 
   return (
     <Layout>
@@ -204,10 +209,10 @@ function Job({ job }: JobProps) {
         aria-controls={`hs-basic-always-open-collapse-${job.userId}`}
       >
         {/* <AccordionIcons /> */}
-        {job.role === "Founder" && <FounderIcon />}
-        {job.role === "Owner" && <OwnerIcon />}
-        {job.role === "Manager" && <ManagerIcon />}
-        {job.name} - {job.role}
+        {job.role.roleType === "Founder" && <FounderIcon />}
+        {job.role.roleType === "Owner" && <OwnerIcon />}
+        {job.role.roleType === "Manager" && <ManagerIcon />}
+        {job.email} - {job.role.roleType}
       </button>
       <button
         className="ml-2 peer-hover:opacity-100 hover:opacity-100 sm:opacity-0"
@@ -218,7 +223,9 @@ function Job({ job }: JobProps) {
       <Modal
         id={`hs-modal-${job.userId}`}
         title="Confirm deletion"
-        content={`Are you sure you want to remove ${job.name} (${job.role}) and the subordinates from the store?`}
+        content={`Are you sure you want to remove ${job.email ?? "unknown"} (${
+          job.role.roleType
+        }) and the subordinates from the store?`}
         footer={
           <Button
             onClick={() => toast.success(job.userId)}
@@ -233,7 +240,7 @@ function Job({ job }: JobProps) {
         className="hs-accordion-content w-full overflow-hidden pl-6 transition-[height] duration-300"
         aria-labelledby={`hs-basic-always-open-heading-${job.userId}`}
       >
-        {job.appointedByMe.map((assignment) => (
+        {job.assignedPositionHolders.map((assignment) => (
           <Job key={assignment.userId} job={assignment} />
         ))}
       </div>

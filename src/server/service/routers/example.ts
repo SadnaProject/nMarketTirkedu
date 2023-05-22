@@ -54,26 +54,16 @@ export const exampleRouter = createTRPCRouter({
     });
   }),
 
-  onStorePurchase: publicProcedure
-    .input(z.object({ storeId: z.string() }))
-    // the function gets store id as input
-    .subscription(({ input }) => {
-      // we return an observable that emits a string on every purchase
-      return observable<string>((emit) => {
-        // the following function will be called on every purchase in the store
-        const onStorePurchase = (purchaseId: string) => {
-          emit.next(purchaseId);
-        };
-        // we listen to the event emitter for the store id
-        eventEmitter.on(`purchase store ${input.storeId}`, onStorePurchase);
-        // when the observable is unsubscribed, we remove the listener
-        return () => {
-          eventEmitter.off(`purchase store ${input.storeId}`, onStorePurchase);
-        };
-        // in the purchase function, we will call eventEmitter.emit(`purchase store ${storeId}`, purchaseId)
-        // (I need to add dependency injection for eventEmitter through HasEventEmitter class)
+  onStorePurchase: publicProcedure.subscription(() => {
+    return observable<unknown>((emit) => {
+      eventEmitter.subscribeToEmitter(`userId`, (msg) => {
+        emit.next(msg);
       });
-    }),
+      return () => {
+        eventEmitter.unsubscribeFromEmitter(`userId`);
+      };
+    });
+  }),
 
   authorize: publicProcedure
     .input(

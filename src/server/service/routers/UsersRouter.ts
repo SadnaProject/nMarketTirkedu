@@ -1,10 +1,13 @@
 import { z } from "zod";
 import {
   createTRPCRouter,
+  loggedInProcedure,
   publicProcedure,
   validSessionProcedure,
 } from "server/service/trpc";
 import { service } from "../_service";
+import { observable } from "@trpc/server/observable";
+import { eventEmitter } from "server/EventEmitter";
 
 export const UsersRouter = createTRPCRouter({
   addProductToCart: validSessionProcedure
@@ -125,4 +128,18 @@ export const UsersRouter = createTRPCRouter({
       const { memberIdToRemove } = input;
       return service.removeMember(ctx.session.user.id, memberIdToRemove);
     }),
+
+    subscribeToEvents: loggedInProcedure.subscription(({ctx}) => {
+      return observable<unknown>((emit) => {
+        eventEmitter.subscribeToEmitter(ctx.session.user.id, (msg) => {
+          emit.next(msg);
+        });
+        return () => {
+          eventEmitter.unsubscribeFromEmitter(`userId`);
+        };
+      });
+    }),
 });
+
+
+

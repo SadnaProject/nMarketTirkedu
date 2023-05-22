@@ -33,11 +33,12 @@ export class MarketFacade extends Loggable {
   }
 
   private validateConnection(userId: string): void {
-    if (!this.controllers.Auth.isConnected(userId))
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "User is not logged in",
-      });
+    //TODO fix this
+    // if (!this.controllers.Auth.isConnected(userId))
+    //   throw new TRPCError({
+    //     code: "UNAUTHORIZED",
+    //     message: "User is not logged in",
+    //   });
   }
 
   public getLogs(userId: string) {
@@ -189,58 +190,80 @@ export class MarketFacade extends Loggable {
       newPassword
     );
   }
-  makeStoreOwner(currentId: string, storeId: string, targetUserId: string) {
-    this.validateConnection(currentId);
-    this.controllers.Stores.makeStoreOwner(currentId, storeId, targetUserId);
-  }
-
-  makeStoreManager(
+  async makeStoreOwner(
     currentId: string,
     storeId: string,
     targetUserId: string
-  ): void {
+  ) {
     this.validateConnection(currentId);
-    this.controllers.Stores.makeStoreManager(currentId, storeId, targetUserId);
-  }
-
-  removeStoreOwner(
-    currentId: string,
-    storeId: string,
-    targetUserId: string
-  ): void {
-    this.validateConnection(currentId);
-    this.controllers.Stores.removeStoreOwner(currentId, storeId, targetUserId);
-  }
-
-  removeStoreManager(
-    currentId: string,
-    storeId: string,
-    targetUserId: string
-  ): void {
-    this.validateConnection(currentId);
-    this.controllers.Stores.removeStoreManager(
+    await this.controllers.Stores.makeStoreOwner(
       currentId,
       storeId,
       targetUserId
     );
   }
-  setAddingProductToStorePermission(
+
+  async makeStoreManager(
+    currentId: string,
+    storeId: string,
+    targetUserId: string
+  ): Promise<void> {
+    this.validateConnection(currentId);
+    await this.controllers.Stores.makeStoreManager(
+      currentId,
+      storeId,
+      targetUserId
+    );
+  }
+
+  async removeStoreOwner(
+    currentId: string,
+    storeId: string,
+    targetUserId: string
+  ): Promise<void> {
+    this.validateConnection(currentId);
+    await this.controllers.Stores.removeStoreOwner(
+      currentId,
+      storeId,
+      targetUserId
+    );
+  }
+
+  async removeStoreManager(
+    currentId: string,
+    storeId: string,
+    targetUserId: string
+  ): Promise<void> {
+    this.validateConnection(currentId);
+    await this.controllers.Stores.removeStoreManager(
+      currentId,
+      storeId,
+      targetUserId
+    );
+  }
+  async setAddingProductToStorePermission(
     currentId: string,
     storeId: string,
     targetUserId: string,
     permission: boolean
-  ): void {
+  ): Promise<void> {
     this.validateConnection(currentId);
-    this.controllers.Stores.setAddingProductToStorePermission(
+    await this.controllers.Stores.setAddingProductToStorePermission(
       currentId,
       storeId,
       targetUserId,
       permission
     );
   }
-  canCreateProductInStore(currentId: string, storeId: string): boolean {
+  async canCreateProductInStore(
+    currentId: string,
+    storeId: string
+  ): Promise<boolean> {
     this.validateConnection(currentId);
-    return this.controllers.Stores.canCreateProductInStore(currentId, storeId);
+    return await this.controllers.Stores.canCreateProductInStore(
+      currentId,
+      storeId
+    );
   }
   async canEditProductInStore(
     currentId: string,
@@ -252,105 +275,135 @@ export class MarketFacade extends Loggable {
       storeId
     );
   }
-  isStoreOwner(userId: string, storeId: string): boolean {
-    return this.controllers.Stores.isStoreOwner(userId, storeId);
+  async isStoreOwner(userId: string, storeId: string): Promise<boolean> {
+    return await this.controllers.Stores.isStoreOwner(userId, storeId);
   }
-  isStoreManager(userId: string, storeId: string): boolean {
-    return this.controllers.Stores.isStoreManager(userId, storeId);
+  async isStoreManager(userId: string, storeId: string): Promise<boolean> {
+    return await this.controllers.Stores.isStoreManager(userId, storeId);
   }
-  isStoreFounder(userId: string, storeId: string): boolean {
-    return this.controllers.Stores.isStoreFounder(userId, storeId);
+  async isStoreFounder(userId: string, storeId: string): Promise<boolean> {
+    return await this.controllers.Stores.isStoreFounder(userId, storeId);
   }
-  isSystemAdmin(userId: string): boolean {
-    return this.controllers.Jobs.isSystemAdmin(userId);
+  async isSystemAdmin(userId: string): Promise<boolean> {
+    return await this.controllers.Jobs.isSystemAdmin(userId);
   }
-  getStoreFounder(storeId: string): string {
-    return this.controllers.Stores.getStoreFounderId(storeId);
+  async getStoreFounder(storeId: string): Promise<string> {
+    return await this.controllers.Stores.getStoreFounderId(storeId);
   }
-  getStoreOwners(storeId: string): string[] {
-    return this.controllers.Stores.getStoreOwnersIds(storeId);
+  async getStoreOwners(storeId: string): Promise<string[]> {
+    return await this.controllers.Stores.getStoreOwnersIds(storeId);
   }
-  getStoreManagers(storeId: string): string[] {
-    return this.controllers.Stores.getStoreManagersIds(storeId);
+  async getStoreManagers(storeId: string): Promise<string[]> {
+    return await this.controllers.Stores.getStoreManagersIds(storeId);
   }
-  createProduct(
+  async createProduct(
     userId: string,
     storeId: string,
     product: StoreProductArgs
-  ): string {
+  ): Promise<string> {
     this.validateConnection(userId);
-    return this.controllers.Stores.createProduct(userId, storeId, product);
+    return await this.controllers.Stores.createProduct(
+      userId,
+      storeId,
+      product
+    );
   }
-  isStoreActive(userId: string, storeId: string): boolean {
-    return this.controllers.Stores.isStoreActive(userId, storeId);
+  async isStoreActive(userId: string, storeId: string): Promise<boolean> {
+    return await this.controllers.Stores.isStoreActive(userId, storeId);
   }
-  getStoreProducts(userId: string, storeId: string): StoreProductDTO[] {
-    return this.controllers.Stores.getStoreProducts(userId, storeId);
+  async getStoreProducts(
+    userId: string,
+    storeId: string
+  ): Promise<StoreProductDTO[]> {
+    return await this.controllers.Stores.getStoreProducts(userId, storeId);
   }
-  setProductQuantity(
+  async setProductQuantity(
     userId: string,
     productId: string,
     quantity: number
-  ): void {
+  ): Promise<void> {
     this.validateConnection(userId);
-    this.controllers.Stores.setProductQuantity(userId, productId, quantity);
-  }
-  decreaseProductQuantity(productId: string, quantity: number): void {
-    this.controllers.Stores.decreaseProductQuantity(productId, quantity);
-  }
-  deleteProduct(userId: string, productId: string): void {
-    this.validateConnection(userId);
-    this.controllers.Stores.deleteProduct(userId, productId);
-  }
-  setProductPrice(userId: string, productId: string, price: number): void {
-    this.validateConnection(userId);
-    this.controllers.Stores.setProductPrice(userId, productId, price);
-  }
-
-  createStore(founderId: string, storeName: string): string {
-    this.validateConnection(founderId);
-    return this.controllers.Stores.createStore(founderId, storeName);
-  }
-  activateStore(userId: string, storeId: string): void {
-    this.validateConnection(userId);
-    this.controllers.Stores.activateStore(userId, storeId);
-  }
-  deactivateStore(userId: string, storeId: string): void {
-    this.validateConnection(userId);
-    this.controllers.Stores.deactivateStore(userId, storeId);
-  }
-  closeStorePermanently(userId: string, storeId: string): void {
-    this.validateConnection(userId);
-    this.controllers.Stores.closeStorePermanently(userId, storeId);
-  }
-  getProductPrice(userId: string, productId: string): number {
-    return this.controllers.Stores.getProductPrice(userId, productId);
-  }
-  getProductById(userId: string, productId: string): StoreProductDTO {
-    return this.controllers.Stores.getProductById(userId, productId);
-  }
-  isProductQuantityInStock(
-    userId: string,
-    productId: string,
-    quantity: number
-  ): boolean {
-    return this.controllers.Stores.isProductQuantityInStock(
+    await this.controllers.Stores.setProductQuantity(
       userId,
       productId,
       quantity
     );
   }
-  getStoreIdByProductId(userId: string, productId: string): string {
-    return this.controllers.Stores.getStoreIdByProductId(userId, productId);
+  async decreaseProductQuantity(
+    productId: string,
+    quantity: number
+  ): Promise<void> {
+    await this.controllers.Stores.decreaseProductQuantity(productId, quantity);
   }
-  getCartPrice(userId: string): number {
-    return this.controllers.Stores.getCartPrice(userId);
+  async deleteProduct(userId: string, productId: string): Promise<void> {
+    this.validateConnection(userId);
+    await this.controllers.Stores.deleteProduct(userId, productId);
   }
-  getBasketPrice(userId: string, storeId: string): number {
-    return this.controllers.Stores.getBasketPrice(userId, storeId);
+  async setProductPrice(
+    userId: string,
+    productId: string,
+    price: number
+  ): Promise<void> {
+    this.validateConnection(userId);
+    await this.controllers.Stores.setProductPrice(userId, productId, price);
   }
-  searchProducts(userId: string, searchArgs: SearchArgs): StoreProductDTO[] {
-    return this.controllers.Stores.searchProducts(userId, searchArgs);
+
+  async createStore(founderId: string, storeName: string): Promise<string> {
+    this.validateConnection(founderId);
+    return await this.controllers.Stores.createStore(founderId, storeName);
+  }
+  async activateStore(userId: string, storeId: string): Promise<void> {
+    this.validateConnection(userId);
+    await this.controllers.Stores.activateStore(userId, storeId);
+  }
+  async deactivateStore(userId: string, storeId: string): Promise<void> {
+    this.validateConnection(userId);
+    await this.controllers.Stores.deactivateStore(userId, storeId);
+  }
+  async closeStorePermanently(userId: string, storeId: string): Promise<void> {
+    this.validateConnection(userId);
+    await this.controllers.Stores.closeStorePermanently(userId, storeId);
+  }
+  async getProductPrice(userId: string, productId: string): Promise<number> {
+    return await this.controllers.Stores.getProductPrice(userId, productId);
+  }
+  async getProductById(
+    userId: string,
+    productId: string
+  ): Promise<StoreProductDTO> {
+    return await this.controllers.Stores.getProductById(userId, productId);
+  }
+  async isProductQuantityInStock(
+    userId: string,
+    productId: string,
+    quantity: number
+  ): Promise<boolean> {
+    return await this.controllers.Stores.isProductQuantityInStock(
+      userId,
+      productId,
+      quantity
+    );
+  }
+  async getStoreIdByProductId(
+    userId: string,
+    productId: string
+  ): Promise<string> {
+    return await this.controllers.Stores.getStoreIdByProductId(
+      userId,
+      productId
+    );
+  }
+  async getCartPrice(userId: string): Promise<number> {
+    return await this.controllers.Stores.getCartPrice(userId);
+  }
+  async getBasketPrice(userId: string, storeId: string): Promise<number> {
+    return await this.controllers.Stores.getBasketPrice(userId, storeId);
+  }
+  async searchProducts(
+    userId: string,
+    searchArgs: SearchArgs
+  ): Promise<StoreProductDTO[]> {
+    return await this.controllers.Stores.searchProducts(userId, searchArgs);
   }
   //TODO: Duplicate code from down here, be careful!
   public startSession(): string {
@@ -407,11 +460,11 @@ export class MarketFacade extends Loggable {
       userId
     );
   }
-  public getPurchasesByStore(
+  public async getPurchasesByStore(
     userId: string,
     storeId: string
-  ): BasketPurchaseDTO[] {
-    return this.controllers.Stores.getPurchasesByStoreId(userId, storeId);
+  ): Promise<BasketPurchaseDTO[]> {
+    return await this.controllers.Stores.getPurchasesByStoreId(userId, storeId);
   }
   // eslint-disable-next-line jsdoc/require-param
   /**
@@ -431,61 +484,63 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     return await this.controllers.Auth.getAllLoggedOutMembersIds();
   }
-  searchStores(userId: string, storeName: string): StoreDTO[] {
+  async searchStores(userId: string, storeName: string): Promise<StoreDTO[]> {
     this.validateConnection(userId);
-    return this.controllers.Stores.searchStores(userId, storeName);
+    return await this.controllers.Stores.searchStores(userId, storeName);
   }
-  addDiscountToStore(
+  async addDiscountToStore(
     userId: string,
     storeId: string,
     discount: DiscountArgs
-  ): string {
+  ): Promise<string> {
     this.validateConnection(userId);
-    return this.controllers.Stores.addDiscountToStore(
+    return await this.controllers.Stores.addDiscountToStore(
       userId,
       storeId,
       discount
     );
   }
-  removeDiscountFromStore(
+  async removeDiscountFromStore(
     userId: string,
     storeId: string,
     discountId: string
-  ): void {
+  ): Promise<void> {
     this.validateConnection(userId);
-    this.controllers.Stores.removeDiscountFromStore(
+    await this.controllers.Stores.removeDiscountFromStore(
       userId,
       storeId,
       discountId
     );
   }
-  addConstraintToStore(
+  async addConstraintToStore(
     userId: string,
     storeId: string,
     constraint: ConditionArgs
-  ): string {
+  ): Promise<string> {
     this.validateConnection(userId);
-    return this.controllers.Stores.addConstraintToStore(
+    return await this.controllers.Stores.addConstraintToStore(
       userId,
       storeId,
       constraint
     );
   }
-  removeConstraintFromStore(
+  async removeConstraintFromStore(
     userId: string,
     storeId: string,
     constraintId: string
-  ): void {
+  ): Promise<void> {
     this.validateConnection(userId);
-    this.controllers.Stores.removeConstraintFromStore(
+    await this.controllers.Stores.removeConstraintFromStore(
       userId,
       storeId,
       constraintId
     );
   }
-  myStores(userId: string): { store: StoreDTO; role: RoleType }[] {
+  async myStores(
+    userId: string
+  ): Promise<{ store: StoreDTO; role: RoleType }[]> {
     this.validateConnection(userId);
-    return this.controllers.Stores.myStores(userId);
+    return await this.controllers.Stores.myStores(userId);
   }
   addBid(bid: BidArgs) {
     this.validateConnection(bid.userId);

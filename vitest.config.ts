@@ -18,6 +18,7 @@ export default defineConfig({
       // "**/MemberUserAuth.test.ts",
       // "**/Session.test.ts",
       // "**/testingDbJobs.test.ts",
+      // "**/ReviewRepo.test.ts",
       "**/ProductPurchaseHistoryRepo.test.ts",
     ],
     threads: false,

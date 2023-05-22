@@ -181,7 +181,7 @@ model ProductReview{
     purchaseId String
     storeId    String
     createdAt  DateTime @default(now())
-    productPurchase ProductPurchase? 
+    productPurchase ProductPurchase? @relation(fields: [purchaseId, productId], references: [purchaseId, productId])
     @@unique([purchaseId, productId])
     @@id([userId, productId])
 }
@@ -203,7 +203,7 @@ model ProductPurchase{
     quantity    Int
     createdAt  DateTime @default(now())
     price       Float
-    review     ProductReview? @relation(fields: [purchaseId, productId], references: [purchaseId, productId])
+    review     ProductReview? 
     storeId     String
     BasketPurchase BasketPurchase @relation(fields: [purchaseId, storeId], references: [purchaseId, storeId])
     @@id([purchaseId, productId])

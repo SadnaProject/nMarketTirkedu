@@ -19,6 +19,7 @@ model UserAuth {
     name     String?
     email    String  @unique
     password String
+    user User?
 }
 
 enum ConditionType {
@@ -161,6 +162,67 @@ model Constraint {
     conditionId String
     condition   Condition @relation(fields: [conditionId], references: [id])
 }
+
+model Notification {
+    id String   @id @default(cuid())
+    userId String
+    user User @relation(fields: [userId], references: [id])
+    type String
+    message String
+    isRead Boolean
+}
+model BasketProduct{
+    storeProductId String @id @default(cuid())
+    quantity Float
+    basket Basket @relation(fields: [userId,storeId], references: [userId,storeId])
+    storeId String
+    userId String
+}
+
+model Basket{
+    userId String 
+    storeId String
+    products BasketProduct[]
+    @@unique([userId, storeId])
+    cart Cart @relation(fields: [userId], references: [userId])
+}
+
+model Cart{
+    userId String 
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    baskets Basket[]
+    @@unique([userId])
+}
+
+model User{
+    id String @id
+    auth UserAuth @relation(fields: [id], references: [id])
+    cart Cart?
+    notifications Notification[]
+}
+
+// enum BidType {
+//     Store
+//     Counter
+// }
+
+// enum BidState{
+//     APPROVED
+//     WAITING
+//     REJECTED
+// }
+
+// model Bid{
+//     id String @id @default(cuid())
+//     user User
+//     product BasketProduct
+//     price Float
+//     approvedBy User[]
+//     rejectedBy User []
+//     state BidState
+//     type BidType
+// }
+
 
 // model Cart {
 //     id            String    @id @default(cuid())

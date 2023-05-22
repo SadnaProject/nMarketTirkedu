@@ -1,6 +1,7 @@
 import { Testable, testable } from "server/domain/_Testable";
 import { User } from "../User";
 import { TRPCError } from "@trpc/server";
+import { db } from "server/db";
 
 @testable
 export class UserRepo extends Testable {

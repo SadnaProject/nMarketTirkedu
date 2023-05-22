@@ -25,10 +25,13 @@ export class MarketFacade extends Loggable {
   constructor() {
     super();
     this.controllers = createControllers();
-    this.initializeSystemAdmin();
+    //await this.initializeSystemAdmin();
   }
-  private initializeSystemAdmin() {
-    const userId = this.controllers.Users.register("admin@gmail.com", "admin");
+  private async initializeSystemAdmin() {
+    const userId = await this.controllers.Users.register(
+      "admin@gmail.com",
+      "admin"
+    );
     this.controllers.Jobs.setInitialAdmin(userId);
   }
 
@@ -349,13 +352,13 @@ export class MarketFacade extends Loggable {
     return this.controllers.Users.startSession();
   }
 
-  public registerMember(
+  public async registerMember(
     userId: string,
     email: string,
     @censored password: string
-  ): void {
+  ): Promise<void> {
     this.validateConnection(userId);
-    this.controllers.Users.register(email, password);
+    await this.controllers.Users.register(email, password);
   }
   // eslint-disable-next-line jsdoc/require-description
   /**
@@ -370,15 +373,15 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userIdOfActor);
     this.controllers.Users.removeMember(userIdOfActor, memberIdToRemove);
   }
-  public loginMember(
+  public async loginMember(
     userId: string,
     email: string,
     @censored password: string
-  ): string {
+  ): Promise<string> {
     this.validateConnection(userId);
     return this.controllers.Users.login(userId, email, password);
   }
-  public logoutMember(userId: string): string {
+  public async logoutMember(userId: string): Promise<string> {
     this.validateConnection(userId);
     return this.controllers.Users.logout(userId);
   }
@@ -479,9 +482,9 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     return this.controllers.Stores.myStores(userId);
   }
-  addBid(bid: BidArgs) {
+  async addBid(bid: BidArgs) {
     this.validateConnection(bid.userId);
-    this.controllers.Users.addBid(bid);
+    await this.controllers.Users.addBid(bid);
   }
   getBidsFromMe(userId: string): BidDTO[] {
     this.validateConnection(userId);

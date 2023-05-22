@@ -16,7 +16,7 @@ export class ReviewRepo extends Testable {
   ): Promise<Review> {
     const review = await db.review.findUnique({
       where: {
-        storeId_purchaseId: {
+        purchaseId_storeId: {
           purchaseId: purchaseId,
           storeId: storeId,
         },
@@ -46,10 +46,13 @@ export class ReviewRepo extends Testable {
       },
     });
   }
-  public async doesStoreReviewExist(purchaseId: string, storeId: string): Promise<boolean> {
+  public async doesStoreReviewExist(
+    purchaseId: string,
+    storeId: string
+  ): Promise<boolean> {
     const review = await db.review.findUnique({
       where: {
-        storeId_purchaseId: {
+        purchaseId_storeId: {
           purchaseId: purchaseId,
           storeId: storeId,
         },

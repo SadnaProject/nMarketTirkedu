@@ -1,5 +1,7 @@
 import { Testable, testable } from "server/domain/_Testable";
-import { type ProductReview } from "../ProductReview";
+import { ProductReview } from "../ProductReview";
+import { db } from "server/db";
+import { TRPCError } from "@trpc/server";
 
 @testable
 export class ProductReviewRepo extends Testable {
@@ -9,26 +11,46 @@ export class ProductReviewRepo extends Testable {
     super();
     this.ProductReviews = [];
   }
-  public addProductReview(ProductReview: ProductReview) {
-    this.ProductReviews.push(ProductReview);
+  public async addProductReview(ProductReview: ProductReview) {
+    await db.productReview.create({
+      data: {
+        title: ProductReview.Title,
+        description: ProductReview.Description,
+        productId: ProductReview.ProductId,
+        rating: ProductReview.Rating,
+        createdAt: ProductReview.CreatedAt,
+        userId: ProductReview.UserId,
+        purchaseId: ProductReview.PurchaseId,
+        storeId: ProductReview.StoreId,
+      },
+    });
   }
-  public getProductReview(
+  public async getProductReview(
     purchaseId: string,
     productId: string
-  ): ProductReview {
-    const productReview = this.ProductReviews.find(
-      (review) =>
-        review.PurchaseId === purchaseId && review.ProductId === productId
-    );
+  ): Promise<ProductReview> {
+    const productReview = await db.productReview.findUnique({
+      where: {
+        purchaseId_productId: {
+          purchaseId: purchaseId,
+          productId: productId,
+        },
+      },
+    });
     if (!productReview) {
-      throw new Error("Product review not found");
+      throw new TRPCError({ code: "BAD_REQUEST", message: "No review found" });
     }
-    return productReview;
+    return ProductReview.fromDAO(productReview);
   }
 
-  public getAllProductReviews(productId: string): ProductReview[] {
-    return this.ProductReviews.filter(
-      (review) => review.ProductId === productId
+  public async getAllProductReviews(productId: string): Promise<ProductReview[]> {
+    const productReviews = await db.productReview.findMany({
+      where: {
+        productId: productId,
+      },
+    });
+    return productReviews.map((productReview) =>
+      ProductReview.fromDAO(productReview)
     );
   }
 
@@ -36,9 +58,14 @@ export class ProductReviewRepo extends Testable {
     purchaseId: string,
     productId: string
   ): boolean {
-    return this.ProductReviews.some(
-      (review) =>
-        review.PurchaseId === purchaseId && review.ProductId === productId
-    );
+    const productReview = db.productReview.findUnique({
+      where: {
+        purchaseId_productId: {
+          purchaseId: purchaseId,
+          productId: productId,
+        },
+      },
+    });
+    return productReview !== null;
   }
 }

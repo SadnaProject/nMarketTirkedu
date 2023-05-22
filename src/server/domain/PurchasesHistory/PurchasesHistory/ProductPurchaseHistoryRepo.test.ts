@@ -2,6 +2,7 @@ import { describe, expect } from "vitest";
 import { ProductPurchase } from "../ProductPurchaseHistory";
 import { ProductPurchaseRepo } from "./ProductPurchaseHistoryRepo";
 import { itUnitIntegration } from "server/domain/_mock";
+import { product } from "ramda";
 
 const productPurchaseData = {
   id: "id",
@@ -10,38 +11,51 @@ const productPurchaseData = {
   purchaseId: "purchaseId",
   productId: "productId",
   quantity: 1,
+  storeId: "storeId",
   price: 1,
 };
 
 describe("addProductPurchase", () => {
-  itUnitIntegration("should add a product purchase", () => {
+  itUnitIntegration("should add a product purchase", async () => {
     const productPurchase = new ProductPurchase(productPurchaseData);
     const productPurchaseRepo = new ProductPurchaseRepo();
-    productPurchaseRepo.addProductPurchase(productPurchase);
-    expect(
-      productPurchaseRepo.getProductsPurchaseById(productPurchase.PurchaseId)
-        .length
-    ).toBe(1);
+    await productPurchaseRepo.addProductPurchase(
+      productPurchase,
+      productPurchaseData.storeId
+    );
+    const products = await productPurchaseRepo.getProductsPurchaseById(
+      productPurchase.PurchaseId
+    );
+    expect(products.length).toBe(1);
   });
 });
 
 describe("getProductsPurchaseById", () => {
-  itUnitIntegration("should return the product purchase", () => {
+  itUnitIntegration("should return the product purchase", async () => {
     const productPurchase = new ProductPurchase(productPurchaseData);
     const productPurchaseRepo = new ProductPurchaseRepo();
-    productPurchaseRepo.addProductPurchase(productPurchase);
-    expect(
+    await productPurchaseRepo.addProductPurchase(
+      productPurchase,
+      productPurchaseData.storeId
+    );
+    await expect(
       productPurchaseRepo.getProductsPurchaseById(productPurchase.PurchaseId)
-    ).toEqual([productPurchase]);
+    ).resolves.toEqual([productPurchase]);
   });
 
-  itUnitIntegration("should return two product purchases", () => {
+  itUnitIntegration("should return two product purchases", async () => {
     const productPurchase = new ProductPurchase(productPurchaseData);
     const productPurchaseRepo = new ProductPurchaseRepo();
-    productPurchaseRepo.addProductPurchase(productPurchase);
-    productPurchaseRepo.addProductPurchase(productPurchase);
-    expect(
+    await productPurchaseRepo.addProductPurchase(
+      productPurchase,
+      productPurchaseData.storeId
+    );
+    await productPurchaseRepo.addProductPurchase(
+      productPurchase,
+      productPurchaseData.storeId
+    );
+    await expect(
       productPurchaseRepo.getProductsPurchaseById(productPurchase.PurchaseId)
-    ).toEqual([productPurchase, productPurchase]);
+    ).resolves.toEqual([productPurchase, productPurchase]);
   });
 });

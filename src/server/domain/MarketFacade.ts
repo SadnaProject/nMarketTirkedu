@@ -41,9 +41,9 @@ export class MarketFacade extends Loggable {
     //   });
   }
 
-  public getLogs(userId: string) {
+  public async getLogs(userId: string) {
     this.validateConnection(userId);
-    if (this.isSystemAdmin(userId)) {
+    if (await this.isSystemAdmin(userId)) {
       return this.Logs;
     }
     throw new TRPCError({
@@ -52,9 +52,9 @@ export class MarketFacade extends Loggable {
     });
   }
 
-  public getErrors(userId: string) {
+  public async getErrors(userId: string) {
     this.validateConnection(userId);
-    if (this.isSystemAdmin(userId)) {
+    if (await this.isSystemAdmin(userId)) {
       return this.Errors;
     }
     throw new TRPCError({

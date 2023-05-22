@@ -196,10 +196,10 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
         message: "Store is not active",
       });
     }
-    if (quantity <= 0) {
+    if (quantity < 0) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Quantity must be positive",
+        message: "Quantity can't be negative",
       });
     }
     return this.Quantity >= quantity;

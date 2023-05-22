@@ -11,51 +11,50 @@ import { api } from "utils/api";
 import { onError } from "utils/query";
 import { useGuestRedirect } from "utils/paths";
 import { RemoveIcon } from "components/icons";
+import { type PositionHolderDTO } from "server/domain/Jobs/PositionHolder";
+import { useEffect } from "react";
 
-interface Job {
-  id: string;
-  name: string;
-  title: "Founder" | "Owner" | "Manager";
-  assignments: Job[];
-}
-
-const jobs: Job = {
-  id: "0",
-  name: "Omer Shahar",
-  title: "Founder",
-  assignments: [
-    {
-      id: "1",
-      name: "Ron Ziskind",
-      title: "Owner",
-      assignments: [
-        {
-          id: "2",
-          name: "Barman",
-          title: "Manager",
-          assignments: [],
-        },
-        {
-          id: "3",
-          name: "Ilay Zarfaty",
-          title: "Owner",
-          assignments: [],
-        },
-      ],
-    },
-    {
-      id: "4",
-      name: "Bar not man",
-      title: "Owner",
-      assignments: [],
-    },
-  ],
-};
+// const jobs: Job = {
+//   id: "0",
+//   name: "Omer Shahar",
+//   title: "Founder",
+//   assignments: [
+//     {
+//       id: "1",
+//       name: "Ron Ziskind",
+//       title: "Owner",
+//       assignments: [
+//         {
+//           id: "2",
+//           name: "Barman",
+//           title: "Manager",
+//           assignments: [],
+//         },
+//         {
+//           id: "3",
+//           name: "Ilay Zarfaty",
+//           title: "Owner",
+//           assignments: [],
+//         },
+//       ],
+//     },
+//     {
+//       id: "4",
+//       name: "Bar not man",
+//       title: "Owner",
+//       assignments: [],
+//     },
+//   ],
+// };
 
 export default function Home() {
   useGuestRedirect();
   const router = useRouter();
   const storeId = z.undefined().or(z.string()).parse(router.query.storeId);
+  const { data: jobs } = api.stores.getJobsHierarchyOfStore.useQuery(
+    { storeId: storeId as string },
+    { enabled: !!storeId }
+  );
   const { mutate: makeStoreOwner } = api.stores.makeStoreOwner.useMutation({
     onError,
     onSuccess: () => {
@@ -69,11 +68,13 @@ export default function Home() {
     },
   });
 
+  useEffect(() => {
+    console.log(jobs);
+  }, [jobs]);
+
   return (
     <Layout>
-      <h1>The Happy Place</h1>
-      {storeId && <StoreNavbar storeId={storeId} />}
-
+      <StoreNavbar storeId={storeId} />
       <div className="flex flex-wrap sm:flex-nowrap">
         <Dropdown options={["Manager", "Owner"]} />
         <Input placeholder="Email" className="rounded-none" />
@@ -87,7 +88,7 @@ export default function Home() {
         </Button>
       </div>
       <div className="hs-accordion-group w-full" data-hs-accordion-always-open>
-        <Job job={jobs} />
+        {jobs && <Job job={jobs} />}
       </div>
     </Layout>
   );
@@ -194,51 +195,53 @@ function AccordionIcons() {
 }
 
 type JobProps = {
-  job: Job;
+  job: PositionHolderDTO;
 };
 
 function Job({ job }: JobProps) {
   return (
     <div
       className="hs-accordion active"
-      id={`hs-basic-always-open-heading-${job.id}`}
+      id={`hs-basic-always-open-heading-${job.userId}`}
     >
       <button
         className="hs-accordion-toggle peer inline-flex items-center gap-x-3 py-3 text-left font-semibold text-gray-800 transition hs-accordion-active:text-blue-600 hover:text-gray-500"
-        aria-controls={`hs-basic-always-open-collapse-${job.id}`}
+        aria-controls={`hs-basic-always-open-collapse-${job.userId}`}
       >
         {/* <AccordionIcons /> */}
-        {job.title === "Founder" && <FounderIcon />}
-        {job.title === "Owner" && <OwnerIcon />}
-        {job.title === "Manager" && <ManagerIcon />}
-        {job.name} - {job.title}
+        {job.role.roleType === "Founder" && <FounderIcon />}
+        {job.role.roleType === "Owner" && <OwnerIcon />}
+        {job.role.roleType === "Manager" && <ManagerIcon />}
+        {job.email} - {job.role.roleType}
       </button>
       <button
         className="ml-2 peer-hover:opacity-100 hover:opacity-100 sm:opacity-0"
-        data-hs-overlay={`#hs-modal-${job.id}`}
+        data-hs-overlay={`#hs-modal-${job.userId}`}
       >
         <RemoveIcon />
       </button>
       <Modal
-        id={`hs-modal-${job.id}`}
+        id={`hs-modal-${job.userId}`}
         title="Confirm deletion"
-        content={`Are you sure you want to remove ${job.name} (${job.title}) and the subordinates from the store?`}
+        content={`Are you sure you want to remove ${job.email ?? "unknown"} (${
+          job.role.roleType
+        }) and the subordinates from the store?`}
         footer={
           <Button
-            onClick={() => toast.success(job.id)}
-            data-hs-overlay={`#hs-modal-${job.id}`}
+            onClick={() => toast.success(job.userId)}
+            data-hs-overlay={`#hs-modal-${job.userId}`}
           >
             Apply changes
           </Button>
         }
       />
       <div
-        id={`hs-basic-always-open-collapse-${job.id}`}
+        id={`hs-basic-always-open-collapse-${job.userId}`}
         className="hs-accordion-content w-full overflow-hidden pl-6 transition-[height] duration-300"
-        aria-labelledby={`hs-basic-always-open-heading-${job.id}`}
+        aria-labelledby={`hs-basic-always-open-heading-${job.userId}`}
       >
-        {job.assignments.map((assignment) => (
-          <Job key={assignment.id} job={assignment} />
+        {job.assignedPositionHolders.map((assignment) => (
+          <Job key={assignment.userId} job={assignment} />
         ))}
       </div>
     </div>

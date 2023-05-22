@@ -52,12 +52,13 @@ export const UsersRouter = createTRPCRouter({
   purchaseCart: validSessionProcedure
     .input(
       z.object({
-        number: z.string(), // refers to credit card number ATM
+        creditCardNumber: z.string(), // refers to credit card number ATM
       })
     )
     .mutation(({ input, ctx }) => {
-      const { number } = input;
-      return service.purchaseCart(ctx.session.user.id, { number });
+      return service.purchaseCart(ctx.session.user.id, {
+        number: input.creditCardNumber,
+      });
     }),
 
   removeUser: validSessionProcedure.mutation(({ ctx }) => {

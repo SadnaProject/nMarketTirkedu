@@ -63,7 +63,7 @@ export class MemberUserAuth extends UserAuth {
     return;
   }
   private validateEmailLegality(email: string): void {
-    if (email === "admin") return;
+    if (email === "admin") return; // todo remove
     z.string().email().parse(email);
   }
   public isPasswordCorrect(password: string): boolean {

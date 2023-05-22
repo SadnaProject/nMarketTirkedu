@@ -238,7 +238,7 @@ describe("decrease quantity", () => {
       controllers
     );
     expect(async () => await product.decreaseQuantity(-1)).toThrow(
-      "Quantity must be positive"
+      "Quantity can't be negative"
     );
     expect(product.Quantity).toBe(productData.quantity);
   });

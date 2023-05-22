@@ -346,7 +346,6 @@ export const StoresRouter = createTRPCRouter({
       })
     )
     .query(({ input, ctx }) => {
-      console.log("hello", new Date());
       return service.searchProducts(ctx.session.user.id, input);
     }),
   getPurchaseByStore: validSessionProcedure

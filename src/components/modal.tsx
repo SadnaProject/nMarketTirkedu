@@ -9,9 +9,9 @@ export function Modal({ id, title, content, footer }: Props) {
   return (
     <div
       id={id}
-      className="hs-overlay fixed left-0 top-0 z-[60] hidden h-full w-full overflow-y-auto overflow-x-hidden"
+      className="hs-overlay fixed left-0 top-0 z-[60] hidden h-full w-full overflow-x-hidden"
     >
-      <div className="m-3 mt-0 flex min-h-[calc(100%-3.5rem)] items-center opacity-0 transition-all ease-out hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 sm:mx-auto sm:w-full sm:max-w-lg">
+      <div className="m-3 mt-0 flex min-h-[calc(100%-3.5rem)] items-center justify-center opacity-0 transition-all ease-out hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 sm:mx-auto sm:w-full sm:max-w-lg">
         <div className="flex flex-col rounded-xl border bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:shadow-slate-700/[.7]">
           <div className="flex items-center justify-between border-b px-4 py-3 dark:border-gray-700">
             <h3 className="font-bold text-gray-800 dark:text-white">{title}</h3>
@@ -36,8 +36,8 @@ export function Modal({ id, title, content, footer }: Props) {
               </svg>
             </button>
           </div>
-          <div className="overflow-y-auto p-4">
-            <p className="text-gray-800 dark:text-gray-400">{content}</p>
+          <div className="overflow-y-hidden p-4 text-gray-800 dark:text-gray-400">
+            {content}
           </div>
           <div className="flex items-center justify-end gap-x-2 border-t px-4 py-3 dark:border-gray-700">
             {footer}

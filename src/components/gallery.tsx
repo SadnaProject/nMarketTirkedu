@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { twMerge } from "tailwind-merge";
+import Card from "./card";
 
 const motionContainer = {
   hidden: { opacity: 1, scale: 0 },
@@ -26,6 +27,8 @@ type Props<T> = {
   getId: (item: T) => string;
   getItem: (item: T, index: number) => React.ReactNode;
   className?: string;
+  addItemCard?: React.ReactNode;
+  noItemsCard?: React.ReactNode;
 };
 
 export default function Gallery<T>({
@@ -33,22 +36,30 @@ export default function Gallery<T>({
   getId,
   getItem,
   className,
+  addItemCard,
+  noItemsCard,
 }: Props<T>) {
   return (
-    <motion.ul
-      className={twMerge(
-        "grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3",
-        className
-      )}
-      variants={motionContainer}
-      initial="hidden"
-      animate="visible"
-    >
-      {list.map((item, index) => (
-        <motion.li key={getId(item)} variants={motionItem}>
-          {getItem(item, index)}
-        </motion.li>
-      ))}
-    </motion.ul>
+    <>
+      <motion.ul
+        className={twMerge(
+          "grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3",
+          className
+        )}
+        variants={motionContainer}
+        initial="hidden"
+        animate="visible"
+      >
+        {addItemCard && (
+          <motion.li variants={motionItem}>{addItemCard}</motion.li>
+        )}
+        {list.map((item, index) => (
+          <motion.li key={getId(item)} variants={motionItem}>
+            {getItem(item, index)}
+          </motion.li>
+        ))}
+      </motion.ul>
+      {!addItemCard && list.length === 0 && noItemsCard}
+    </>
   );
 }

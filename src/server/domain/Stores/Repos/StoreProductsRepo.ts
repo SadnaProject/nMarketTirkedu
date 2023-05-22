@@ -42,7 +42,6 @@ export class StoreProductsRepo extends Testable {
       await this.getSpecialPrices(productId)
     );
     //return product;
-
   }
 
   public getProductsByStoreId(storeId: string) {
@@ -108,7 +107,7 @@ export class StoreProductsRepo extends Testable {
         [field]: value,
       },
     });
-/**
+    /**
   public deleteProduct(productId: string) {
     const product = this.getProductById(productId);
     const storeId = this.getStoreIdByProductId(productId);
@@ -116,5 +115,6 @@ export class StoreProductsRepo extends Testable {
     const index = products.indexOf(product);
     products.splice(index, 1);
     this.productsByStoreId.set(storeId, products);
-  }*/
+    */
+  }
 }

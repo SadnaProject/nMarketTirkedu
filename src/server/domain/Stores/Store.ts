@@ -92,12 +92,12 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     await this.Repos.Stores.setField(this.Id, "isActive", isActive);
   }
 
-  public get DTO(): StoreDTO {
+  public async getDTO(): Promise<StoreDTO> {
     return {
       id: this.id,
       name: this.name,
       isActive: this.isActive,
-      rating: this.Controllers.PurchasesHistory.getStoreRating(this.id),
+      rating: await this.Controllers.PurchasesHistory.getStoreRating(this.id),
     };
   }
 
@@ -106,8 +106,10 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     products.forEach((product) =>
       product.initRepos(this.Repos).initControllers(this.Controllers)
     );
-
-    return products.map((product) => product.getDTO());
+    const productsDTO = await Promise.all(
+      products.map((product) => product.getDTO())
+    );
+    return productsDTO;
   }
 
   public async createProduct(product: StoreProductArgs) {
@@ -146,30 +148,6 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     await this.Repos.Stores.deleteStore(this.Id);
   }
 
-  makeOwner(currentId: string, targetUserId: string) {
-    this.Controllers.Jobs.makeStoreOwner(currentId, this.Id, targetUserId);
-  }
-  makeManager(currentId: string, targetUserId: string) {
-    this.Controllers.Jobs.makeStoreManager(currentId, this.Id, targetUserId);
-  }
-  removeOwner(currentId: string, targetUserId: string) {
-    this.Controllers.Jobs.removeStoreOwner(currentId, this.Id, targetUserId);
-  }
-  removeManager(currentId: string, targetUserId: string) {
-    this.Controllers.Jobs.removeStoreManager(currentId, this.Id, targetUserId);
-  }
-  setAddingProductPermission(
-    currentId: string,
-    targetUserId: string,
-    permission: boolean
-  ) {
-    this.Controllers.Jobs.setAddingProductToStorePermission(
-      currentId,
-      this.Id,
-      targetUserId,
-      permission
-    );
-  }
   canCreateProduct(currentId: string) {
     return this.Controllers.Jobs.canCreateProductInStore(currentId, this.Id);
   }
@@ -213,7 +191,7 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     );
     p.initControllers(this.Controllers).initRepos(this.Repos);
     return {
-      product: p.getDTO(),
+      product: await p.getDTO(),
       Discount: 0,
       BasketQuantity: basketProduct.quantity,
     };

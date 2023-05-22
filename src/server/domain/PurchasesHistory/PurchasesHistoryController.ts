@@ -29,7 +29,7 @@ export interface IPurchasesHistoryController extends HasRepos {
     cart: CartDTO,
     price: number,
     creditCard: CreditCard
-  ): void; // TODO: add payment details
+  ): Promise<string>;
   addStorePurchaseReview(
     userId: string,
     purchaseId: string,
@@ -72,6 +72,7 @@ export interface IPurchasesHistoryController extends HasRepos {
     totalPrice: number
   ): Promise<CartPurchaseDTO>;
   addPurchase(cartPurchase: CartPurchase): void;
+  getMyPurchases(userId: string): Promise<CartPurchaseDTO[]>;
 }
 
 @testable
@@ -87,7 +88,7 @@ export class PurchasesHistoryController
     admingId: string,
     userId: string
   ): Promise<CartPurchaseDTO[]> {
-    if (await this.Controllers.Jobs.isSystemAdmin(admingId) === false) {
+    if ((await this.Controllers.Jobs.isSystemAdmin(admingId)) === false) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
@@ -104,12 +105,32 @@ export class PurchasesHistoryController
     return purchases.map((purchase) => purchase.ToDTO());
   }
 
+  async getMyPurchases(userId: string): Promise<CartPurchaseDTO[]> {
+    const purchases = await this.Repos.CartPurchases.getPurchasesByUser(userId);
+    return purchases.map((purchase) => purchase.ToDTO());
+  }
+
   async purchaseCart(
     userId: string,
     cart: CartDTO,
     price: number,
     @censored creditCard: CreditCard
-  ): Promise<void> {
+  ): Promise<string> {
+    // for each basket run StoresController.checkIfBasketSatisfiesStoreConstraints
+    for (const [storeId, basket] of cart.storeIdToBasket) {
+      if (
+        !(await this.Controllers.Stores.checkIfBasketSatisfiesStoreConstraints(
+          userId,
+          storeId,
+          basket
+        ))
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Basket does not satisfy store constraints",
+        });
+      }
+    }
     for (const basket of cart.storeIdToBasket.values()) {
       for (const product of basket.products.values()) {
         if (
@@ -148,7 +169,11 @@ export class PurchasesHistoryController
       }
     }
     // for every storeId in cart, EventEmmiter.emit("purchase", storeId, cart.storeIdToBasket.get(storeId))
-    const cartPurchase = await this.CartPurchaseDTOfromCartDTO(cart, userId, price);
+    const cartPurchase = await this.CartPurchaseDTOfromCartDTO(
+      cart,
+      userId,
+      price
+    );
     await this.addPurchase(CartPurchase.fromDTO(cartPurchase));
     for (const [storeId, basket] of cart.storeIdToBasket) {
       eventEmitter.emit(`purchase store ${storeId}`, {
@@ -157,6 +182,7 @@ export class PurchasesHistoryController
         storeId: storeId,
       });
     }
+    return cartPurchase.purchaseId;
   }
 
   async addPurchase(cartPurchase: CartPurchase): Promise<void> {
@@ -208,7 +234,10 @@ export class PurchasesHistoryController
           "Store already reviewed, please try again with a different purchase",
       });
     }
-    if (await this.Repos.BasketPurchases.hasPurchase(purchaseId, storeId) === false) {
+    if (
+      (await this.Repos.BasketPurchases.hasPurchase(purchaseId, storeId)) ===
+      false
+    ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Purchase not found",

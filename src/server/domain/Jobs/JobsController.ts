@@ -16,7 +16,7 @@ export interface IJobsController extends HasRepos {
    * @param founderId The id of the user that will be the founder of the store.
    * @param storeId The id of the store.
    */
-  InitializeStore(founderId: string, storeId: string): void;
+  InitializeStore(founderId: string, storeId: string): Promise<void>;
 
   /**
    * This function makes a user a store owner when they are added to a store.
@@ -29,7 +29,7 @@ export interface IJobsController extends HasRepos {
     currentId: string,
     storeId: string,
     targetUserId: string
-  ): void;
+  ): Promise<void>;
 
   /**
    *
@@ -41,28 +41,28 @@ export interface IJobsController extends HasRepos {
     currentId: string,
     storeId: string,
     targetUserId: string
-  ): void;
+  ): Promise<void>;
   /**
    * This function gets the stores that a user is a founder of.
    * @param userId The id of the user that we want to get the stores of.
    * @returns The store Id's that the user is a founder of.
    * @returns An empty array if the user wasn't found.
    */
-  getStoreIdsByFounder(userId: string): string[];
+  getStoreIdsByFounder(userId: string): Promise<string[]>;
   /**
    * This function gets the stores that a user is a owner of.
    * @param userId The id of the user that we want to get the stores of.
    * @returns The store Id's that the user is a owner of.
    * @returns An empty array if the user wasn't found.
    */
-  getStoreIdsByOwner(userId: string): string[];
+  getStoreIdsByOwner(userId: string): Promise<string[]>;
   /**
    * This function gets the stores that a user is a manager of.
    * @param userId The id of the user that we want to get the stores of.
    * @returns The store Id's that the user is a manager of.
    * @returns An empty array if the user wasn't found.
    */
-  getStoreIdsByManager(userId: string): string[];
+  getStoreIdsByManager(userId: string): Promise<string[]>;
   /**
    * This function gets the stores that a user is a manager of.
    * @param userId The id of the user that is currently logged in.
@@ -79,7 +79,7 @@ export interface IJobsController extends HasRepos {
     currentId: string,
     storeId: string,
     targetUserId: string
-  ): void;
+  ): Promise<void>;
   /**
    * This function removes a user from being a store manager.
    * @param currentId The id of the user that is currently logged in.
@@ -91,7 +91,7 @@ export interface IJobsController extends HasRepos {
     currentId: string,
     storeId: string,
     targetUserId: string
-  ): void;
+  ): Promise<void>;
   /**
    * This function sets the permission of a user to add products to a store.
    * @param currentId The id of the user that is currently logged in.
@@ -104,7 +104,7 @@ export interface IJobsController extends HasRepos {
     storeId: string,
     targetUserId: string,
     permission: boolean
-  ): void;
+  ): Promise<void>;
   /**
    * This function sets the permission of a user to remove products from a store.
    * @param currentId The id of the user that is currently logged in.
@@ -117,7 +117,7 @@ export interface IJobsController extends HasRepos {
     storeId: string,
     targetUserId: string,
     permission: boolean
-  ): void;
+  ): Promise<void>;
   /**
    * This function sets the permission of a user to edit products in a store.
    * @param currentId The id of the user that is currently logged in.
@@ -130,14 +130,14 @@ export interface IJobsController extends HasRepos {
     storeId: string,
     targetUserId: string,
     permission: boolean
-  ): void;
+  ): Promise<void>;
   /**
    * This function returns whether a user has permission to create a product in a store.
    * @param userId The id of the user that we are checking the permission of.
    * @param storeId The id of the store related to the permission.
    * @returns A boolean that represents the permission.
    */
-  canCreateProductInStore(userId: string, storeId: string): boolean;
+  canCreateProductInStore(userId: string, storeId: string): Promise<boolean>;
   /**
    * This function returns whether a user has permission to remove a product from a store.
    * @param userId The id of the user that we are checking the permission of.
@@ -146,7 +146,7 @@ export interface IJobsController extends HasRepos {
    * @throws Error if the store doesn't exist.
    * @throws Error if the user doesn't exist.
    */
-  canRemoveProductFromStore(userId: string, storeId: string): boolean;
+  canRemoveProductFromStore(userId: string, storeId: string): Promise<boolean>;
   /**
    * This function returns whether a user has permission to edit a product in a store.
    * @param userId The id of the user that we are checking the permission of.
@@ -155,7 +155,7 @@ export interface IJobsController extends HasRepos {
    * @throws Error if the store doesn't exist.
    * @throws Error if the user doesn't exist.
    */
-  canEditProductInStore(userId: string, storeId: string): boolean;
+  canEditProductInStore(userId: string, storeId: string): Promise<boolean>;
   /**
    * This function returns whether a user has permission to active the store.
    * @param userId The id of the user that we are checking the permission of.
@@ -164,7 +164,7 @@ export interface IJobsController extends HasRepos {
    * @throws Error if the store doesn't exist.
    * @throws Error if the user doesn't exist.
    */
-  canActivateStore(userId: string, storeId: string): boolean;
+  canActivateStore(userId: string, storeId: string): Promise<boolean>;
   /**
    * This function returns whether a user has permission to deactivate the store.
    * @param userId The id of the user that we are checking the permission of.
@@ -173,13 +173,13 @@ export interface IJobsController extends HasRepos {
    * @throws Error if the store doesn't exist.
    * @throws Error if the user doesn't exist.
    */
-  canDeactivateStore(userId: string, storeId: string): boolean;
+  canDeactivateStore(userId: string, storeId: string): Promise<boolean>;
   /**
    * This function returns whether a user has permission to close the store permanently.
    * @param userId The id of the user that we are checking the permission of.
    * @param storeId The id of the store related to the permission.
    */
-  canCloseStorePermanently(userId: string, storeId: string): boolean;
+  canCloseStorePermanently(userId: string, storeId: string): Promise<boolean>;
 
   //! Add more permission functions - should we do it using enum instead?
   /**
@@ -188,48 +188,48 @@ export interface IJobsController extends HasRepos {
    * @param storeId The id of the store that the user is being checked in.
    * @returns A boolean that represents the permission.
    */
-  isStoreOwner(userId: string, storeId: string): boolean;
+  isStoreOwner(userId: string, storeId: string): Promise<boolean>;
   /**
    * This function checks if a user is a store manager.
    * @param userId The id of the user that is being checked.
    * @param storeId The id of the store that the user is being checked in.
    * @returns A boolean that represents if the user is a store manager.
    */
-  isStoreManager(userId: string, storeId: string): boolean;
+  isStoreManager(userId: string, storeId: string): Promise<boolean>;
   /**
    * This function checks if a user is a store founder.
    * @param userId The id of the user that is being checked.
    * @param storeId The id of the store that the user is being checked in.
    * @returns A boolean that represents if the user is a store founder.
    */
-  isStoreFounder(userId: string, storeId: string): boolean;
+  isStoreFounder(userId: string, storeId: string): Promise<boolean>;
   /**
    * This function checks if a user is a system admin.
    * @param userId The id of the user that is being checked.
    * @returns A boolean that represents if the user is a system admin.
    */
-  isSystemAdmin(userId: string): boolean;
+  isSystemAdmin(userId: string): Promise<boolean>;
   /**
    * This function gets the founder of a store.
    * @param storeId The id of the store.
    * @returns The id of the founder of the store.
    * @throws Error if the store doesn't exist.
    */
-  getStoreFounderId(storeId: string): string;
+  getStoreFounderId(storeId: string): Promise<string>;
   /**
    * This function gets the owners of a store.
    * @param storeId The id of the store.
    * @returns The id's of the owners of the store.
    * @throws Error if the store doesn't exist.
    */
-  getStoreOwnersIds(storeId: string): string[];
+  getStoreOwnersIds(storeId: string): Promise<string[]>;
   /**
    * This function gets the managers of a store.
    * @param storeId The id of the store.
    * @returns The id's of the managers of the store.
    * @throws Error if the store doesn't exist.
    */
-  getStoreManagersIds(storeId: string): string[];
+  getStoreManagersIds(storeId: string): Promise<string[]>;
   /**
    *
    */
@@ -239,7 +239,10 @@ export interface IJobsController extends HasRepos {
    * @param userId
    * @param storeId
    */
-  canReceivePrivateDataFromStore(userId: string, storeId: string): boolean;
+  canReceivePrivateDataFromStore(
+    userId: string,
+    storeId: string
+  ): Promise<boolean>;
   /**
    * This function checks if a user can receive public data from a store.
    * @param userId
@@ -248,25 +251,32 @@ export interface IJobsController extends HasRepos {
    * @throws Error if the store doesn't exist.
    * @throws Error if the user doesn't exist.
    */
-  canReceivePublicDataFromStore(userId: string, storeId: string): boolean;
+  canReceivePublicDataFromStore(
+    userId: string,
+    storeId: string
+  ): Promise<boolean>;
   /**
    * This function checks if a user can receive purchase history from a store.
    * @param userId
    * @param storeId
    */
-  canReceivePurchaseHistoryFromStore(userId: string, storeId: string): boolean;
+  canReceivePurchaseHistoryFromStore(
+    userId: string,
+    storeId: string
+  ): Promise<boolean>;
   /**
    * This function checks if a user has the permission to remove a member of the system.
    * @param userId The id of the user that is being checked.
    */
-  canRemoveMember(userId: string): boolean;
+  canRemoveMember(userId: string): Promise<boolean>;
   /**
    * This function checks if a user has any position in the system(Owner, Manager, Founder,System Admin).
    * @param userId The id of the user that is being checked.
    * @returns A boolean that represents if the user has any position in the system.
    * @throws Error if the user doesn't exist.
    */
-  isMemberInAnyPosition(userId: string): boolean;
+
+  isMemberInAnyPosition(userId: string): Promise<boolean>;
   /**
    * This function returns the job hierarchy of a store(starting from the founder).
    * @param storeId The id of the store.
@@ -282,8 +292,8 @@ export class JobsController
   implements IJobsController
 {
   // private managerRole: ManagerRole;
-  static ownerRole: OwnerRole = new OwnerRole();
-  static founderRole: FounderRole = new FounderRole();
+  // static ownerRole: OwnerRole = new OwnerRole();
+  // static founderRole: FounderRole = new FounderRole();
   private wasAdminInitialized: boolean;
   constructor() {
     super();
@@ -291,7 +301,6 @@ export class JobsController
     this.wasAdminInitialized = false;
     this.initRepos(createRepos());
     // this.initializeSystemAdmin();
-    // this.managerRole = new ManagerRole();
     // this.ownerRole = new OwnerRole();
     // this.founderRole = new FounderRole();
   }
@@ -300,14 +309,20 @@ export class JobsController
   //   this.setInitialAdmin(userId);
   // }
 
-  canReceivePrivateDataFromStore(userId: string, storeId: string): boolean {
+  async canReceivePrivateDataFromStore(
+    userId: string,
+    storeId: string
+  ): Promise<boolean> {
     const positionHolder: PositionHolder | undefined =
-      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId, storeId);
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+        userId,
+        storeId
+      );
     if (positionHolder === undefined) {
       return false;
     }
 
-    if (this.Controllers.Stores.isStoreActive(userId, storeId))
+    if (await this.Controllers.Stores.isStoreActive(userId, storeId))
       return positionHolder.Role.hasPermission("receivePrivateStoreData");
     else
       return (
@@ -315,75 +330,91 @@ export class JobsController
         positionHolder.Role.hasPermission("receivePrivateStoreData")
       );
   }
-  canReceivePublicDataFromStore(userId: string, storeId: string): boolean {
-    if (this.Controllers.Stores.isStoreActive(userId, storeId)) return true;
+  async canReceivePublicDataFromStore(
+    userId: string,
+    storeId: string
+  ): Promise<boolean> {
+    if (await this.Controllers.Stores.isStoreActive(userId, storeId))
+      return true;
     const positionHolder: PositionHolder | undefined =
-      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId, storeId);
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+        userId,
+        storeId
+      );
     if (positionHolder === undefined) {
       return false;
     }
     return positionHolder.Role.hasPermission("receiveClosedStoreData");
   }
 
-  canReceivePurchaseHistoryFromStore(userId: string, storeId: string): boolean {
-    if (this.isSystemAdmin(userId)) {
+  async canReceivePurchaseHistoryFromStore(
+    userId: string,
+    storeId: string
+  ): Promise<boolean> {
+    if (await this.isSystemAdmin(userId)) {
       return true;
     }
     const positionHolder: PositionHolder | undefined =
-      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId, storeId);
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+        userId,
+        storeId
+      );
     if (positionHolder === undefined) {
       return false;
     }
     return positionHolder.Role.hasPermission("receivePrivateStoreData");
   }
 
-  InitializeStore(founderId: string, storeId: string): void {
+  async InitializeStore(founderId: string, storeId: string): Promise<void> {
     const positionHolder: PositionHolder = new PositionHolder(
-      JobsController.founderRole,
+      FounderRole.getFounderRole(),
       storeId,
       founderId
     );
-    this.Repos.jobs.SetStoreFounder(positionHolder);
+    await this.Repos.jobs.SetStoreFounder(positionHolder);
   }
-  getStoreIdsByFounder(userId: string): string[] {
-    const storeIds = this.Repos.jobs.getAllStoreIds();
+  async getStoreIdsByFounder(userId: string): Promise<string[]> {
+    const storeIds = await this.Repos.jobs.getAllStoreIds();
     const foundedStores: string[] = [];
     for (const storeId of storeIds) {
-      if (this.isStoreFounder(userId, storeId)) {
+      if (await this.isStoreFounder(userId, storeId)) {
         foundedStores.push(storeId);
         // const positionHolder: PositionHolder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId,storeId);
       }
     }
     return foundedStores;
   }
-  getStoreIdsByOwner(userId: string): string[] {
-    const storeIds = this.Repos.jobs.getAllStoreIds();
+  async getStoreIdsByOwner(userId: string): Promise<string[]> {
+    const storeIds = await this.Repos.jobs.getAllStoreIds();
     const ownedStores: string[] = [];
     for (const storeId of storeIds) {
-      if (this.isStoreOwner(userId, storeId)) {
+      if (await this.isStoreOwner(userId, storeId)) {
         ownedStores.push(storeId);
       }
     }
     return ownedStores;
   }
-  getStoreIdsByManager(userId: string): string[] {
-    const storeIds = this.Repos.jobs.getAllStoreIds();
+  async getStoreIdsByManager(userId: string): Promise<string[]> {
+    const storeIds = await this.Repos.jobs.getAllStoreIds();
     const managedStores: string[] = [];
     for (const storeId of storeIds) {
-      if (this.isStoreManager(userId, storeId)) {
+      if (await this.isStoreManager(userId, storeId)) {
         managedStores.push(storeId);
       }
     }
     return managedStores;
   }
-  makeStoreOwner(
+  async makeStoreOwner(
     currentId: string,
     storeId: string,
     targetUserId: string
-  ): void {
+  ): Promise<void> {
     // throw new Error("Method not implemented.");
     const phAppointer: PositionHolder | undefined =
-      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId, storeId);
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+        currentId,
+        storeId
+      );
     if (phAppointer === undefined) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -391,16 +422,16 @@ export class JobsController
       });
     }
     const positionHolder: PositionHolder | undefined =
-      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
         targetUserId,
         storeId
       );
     if (positionHolder === undefined) {
-      phAppointer.appointStoreOwner(targetUserId);
+      await phAppointer.appointStoreOwner(targetUserId);
     } else {
       if (positionHolder.Role.canBeAppointedToStoreOwner()) {
-        this.removePositionHolder(positionHolder); //TODO - is this what we want to do in this case? or should we hold two roles/positions for the same user?
-        phAppointer.appointStoreOwner(targetUserId);
+        await this.removePositionHolder(positionHolder); //TODO - is this what we want to do in this case? or should we hold two roles/positions for the same user?
+        await phAppointer.appointStoreOwner(targetUserId);
       } else {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -416,13 +447,16 @@ export class JobsController
   // getStoresByManager(userId: string): StoreDTO[] {
   //   throw new Error("Method Deprecated");
   // }
-  makeStoreManager(
+  async makeStoreManager(
     currentId: string,
     storeId: string,
     targetUserId: string
-  ): void {
+  ): Promise<void> {
     const phAppointer: PositionHolder | undefined =
-      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId, storeId);
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+        currentId,
+        storeId
+      );
     if (phAppointer === undefined) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -430,12 +464,12 @@ export class JobsController
       });
     }
     const positionHolder: PositionHolder | undefined =
-      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
         targetUserId,
         storeId
       );
     if (positionHolder === undefined) {
-      phAppointer.appointStoreManager(targetUserId);
+      await phAppointer.appointStoreManager(targetUserId);
     } else {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -445,64 +479,70 @@ export class JobsController
     }
   }
 
-  removeStoreOwner(
+  async removeStoreOwner(
     currentId: string,
     storeId: string,
     targetUserId: string
-  ): void {
-    if (!this.isStoreOwner(targetUserId, storeId)) {
+  ): Promise<void> {
+    if (!(await this.isStoreOwner(targetUserId, storeId))) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "The user requested to be removed is not a store owner",
       });
     }
-    this.removeAppointee(currentId, storeId, targetUserId);
+    await this.removeAppointee(currentId, storeId, targetUserId);
   }
 
-  removeStoreManager(
+  async removeStoreManager(
     currentId: string,
     storeId: string,
     targetUserId: string
-  ): void {
-    if (!this.isStoreManager(targetUserId, storeId)) {
+  ): Promise<void> {
+    if (!(await this.isStoreManager(targetUserId, storeId))) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "The user requested to be removed is not a store manager",
       });
     }
-    this.removeAppointee(currentId, storeId, targetUserId);
+    await this.removeAppointee(currentId, storeId, targetUserId);
   }
-  private removeAppointee(
+  private async removeAppointee(
     currentId: string,
     storeId: string,
     targetUserId: string
   ) {
     const phRemover: PositionHolder | undefined =
-      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId, storeId);
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+        currentId,
+        storeId
+      );
     if (phRemover === undefined) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "This user cannot remove appointee",
       });
     }
-    phRemover.removeAppointee(targetUserId);
+    await phRemover.removeAppointee(targetUserId);
   }
-  private setAppointeePermission(
+  private async setAppointeePermission(
     currentId: string,
     storeId: string,
     targetUserId: string,
     permissionStatus: boolean,
     permission: EditablePermission
-  ): void {
+  ): Promise<void> {
     const phAppointer: PositionHolder | undefined =
-      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(currentId, storeId);
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+        currentId,
+        storeId
+      );
     if (phAppointer === undefined) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "This user cannot appoint",
       });
     }
-    phAppointer.setAppointeePermission(
+    await phAppointer.setAppointeePermission(
       targetUserId,
       permissionStatus,
       permission
@@ -513,13 +553,13 @@ export class JobsController
   // private wasAppointedByUser(appointer: string, storeId: string, appointee: string): boolean{
   //   throw new Error("Method not implemented.");
   // }
-  setAddingProductToStorePermission(
+  async setAddingProductToStorePermission(
     currentId: string,
     storeId: string,
     targetUserId: string,
     permission: boolean
-  ): void {
-    this.setAppointeePermission(
+  ): Promise<void> {
+    await this.setAppointeePermission(
       currentId,
       storeId,
       targetUserId,
@@ -527,13 +567,13 @@ export class JobsController
       "AddProduct"
     );
   }
-  setRemovingProductFromStorePermission(
+  async setRemovingProductFromStorePermission(
     currentId: string,
     storeId: string,
     targetUserId: string,
     permission: boolean
-  ): void {
-    this.setAppointeePermission(
+  ): Promise<void> {
+    await this.setAppointeePermission(
       currentId,
       storeId,
       targetUserId,
@@ -541,13 +581,13 @@ export class JobsController
       "RemoveProduct"
     );
   }
-  setEditingProductInStorePermission(
+  async setEditingProductInStorePermission(
     currentId: string,
     storeId: string,
     targetUserId: string,
     permission: boolean
-  ): void {
-    this.setAppointeePermission(
+  ): Promise<void> {
+    await this.setAppointeePermission(
       currentId,
       storeId,
       targetUserId,
@@ -556,107 +596,146 @@ export class JobsController
     );
   }
 
-  canCreateProductInStore(userId: string, storeId: string): boolean {
+  async canCreateProductInStore(
+    userId: string,
+    storeId: string
+  ): Promise<boolean> {
     const ph: PositionHolder | undefined =
-      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId, storeId);
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+        userId,
+        storeId
+      );
     if (ph === undefined) {
       return false;
     }
     return ph.Role.hasPermission("AddProduct");
   }
-  canRemoveProductFromStore(userId: string, storeId: string): boolean {
+  async canRemoveProductFromStore(
+    userId: string,
+    storeId: string
+  ): Promise<boolean> {
     const ph: PositionHolder | undefined =
-      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId, storeId);
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+        userId,
+        storeId
+      );
     if (ph === undefined) {
       return false;
     }
     return ph.Role.hasPermission("RemoveProduct");
   }
-  canEditProductInStore(userId: string, storeId: string): boolean {
+  async canEditProductInStore(
+    userId: string,
+    storeId: string
+  ): Promise<boolean> {
     const ph: PositionHolder | undefined =
-      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId, storeId);
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+        userId,
+        storeId
+      );
     if (ph === undefined) {
       return false;
     }
     return ph.Role.hasPermission("EditProductDetails");
   }
-  canActivateStore(userId: string, storeId: string): boolean {
+  async canActivateStore(userId: string, storeId: string): Promise<boolean> {
     const ph: PositionHolder | undefined =
-      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId, storeId);
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+        userId,
+        storeId
+      );
     if (ph === undefined) {
       return false;
     }
     return ph.Role.hasPermission("ActivateStore");
   }
-  canDeactivateStore(userId: string, storeId: string): boolean {
+  async canDeactivateStore(userId: string, storeId: string): Promise<boolean> {
     const ph: PositionHolder | undefined =
-      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId, storeId);
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+        userId,
+        storeId
+      );
     if (ph === undefined) {
       return false;
     }
     return ph.Role.hasPermission("DeactivateStore");
   }
-  canCloseStorePermanently(userId: string, storeId: string): boolean {
-    return this.isSystemAdmin(userId);
+  async canCloseStorePermanently(
+    userId: string,
+    storeId: string
+  ): Promise<boolean> {
+    return await this.isSystemAdmin(userId);
   }
-  isStoreOwner(userId: string, storeId: string): boolean {
+  async isStoreOwner(userId: string, storeId: string): Promise<boolean> {
     const ph: PositionHolder | undefined =
-      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId, storeId);
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+        userId,
+        storeId
+      );
     if (ph === undefined) {
       return false;
     }
     return ph.Role.isStoreOwner();
   }
-  isStoreManager(userId: string, storeId: string): boolean {
+  async isStoreManager(userId: string, storeId: string): Promise<boolean> {
     const ph: PositionHolder | undefined =
-      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId, storeId);
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+        userId,
+        storeId
+      );
     if (ph === undefined) {
       return false;
     }
     return ph.Role.isStoreManager();
   }
-  isStoreFounder(userId: string, storeId: string): boolean {
+  async isStoreFounder(userId: string, storeId: string): Promise<boolean> {
     const ph: PositionHolder | undefined =
-      this.Repos.jobs.getPositionHolderByUserIdAndStoreId(userId, storeId);
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+        userId,
+        storeId
+      );
     if (ph === undefined) {
       return false;
     }
     return ph.Role.isStoreFounder();
   }
-  isSystemAdmin(userId: string): boolean {
+  async isSystemAdmin(userId: string): Promise<boolean> {
     if (
-      this.Repos.jobs.getSystemAdmins().find((saId) => saId === userId) ===
-      undefined
+      (await this.Repos.jobs.getSystemAdmins()).find(
+        (saId) => saId === userId
+      ) === undefined
     ) {
       return false;
     }
     return true;
   }
 
-  setInitialAdmin(userId: string): void {
+  async setInitialAdmin(userId: string): Promise<void> {
     if (this.wasAdminInitialized) {
       throw new Error("admin was already initialized");
     }
-    this.Repos.jobs.addSystemAdmin(userId);
+    await this.Repos.jobs.addSystemAdmin(userId);
     this.wasAdminInitialized = true;
   }
-  getStoreFounderId(storeId: string): string {
-    return this.Repos.jobs.GetStoreFounder(storeId).UserId;
+  async getStoreFounderId(storeId: string): Promise<string> {
+    return (await this.Repos.jobs.GetStoreFounder(storeId)).UserId;
   }
-  getStoreOwnersIds(storeId: string): string[] {
-    return this.Repos.jobs
-      .getAllPositionHoldersByStoreId(storeId)
+  async getStoreOwnersIds(storeId: string): Promise<string[]> {
+    return (await this.Repos.jobs.getAllPositionHoldersByStoreId(storeId))
       .filter((ph) => ph.Role.isStoreOwner())
       .map((ph) => ph.UserId);
   }
-  getStoreManagersIds(storeId: string): string[] {
-    return this.Repos.jobs
-      .getAllPositionHoldersByStoreId(storeId)
+  async getStoreManagersIds(storeId: string): Promise<string[]> {
+    return (await this.Repos.jobs.getAllPositionHoldersByStoreId(storeId))
       .filter((ph) => ph.Role.isStoreManager())
       .map((ph) => ph.UserId);
   }
-  private removePositionHolder(positionHolder: PositionHolder): void {
-    const founder = this.Repos.jobs.GetStoreFounder(positionHolder.StoreId);
+  private async removePositionHolder(
+    positionHolder: PositionHolder
+  ): Promise<void> {
+    const founder = await this.Repos.jobs.GetStoreFounder(
+      positionHolder.StoreId
+    );
     //find the position holder in the founder's tree
     const parent = this.findParent(positionHolder, founder);
     if (parent === undefined) {
@@ -689,20 +768,20 @@ export class JobsController
     }
     return undefined;
   }
-  canRemoveMember(userId: string): boolean {
-    return this.isSystemAdmin(userId);
+  async canRemoveMember(userId: string): Promise<boolean> {
+    return await this.isSystemAdmin(userId);
   }
-  isMemberInAnyPosition(userId: string): boolean {
-    if (this.isSystemAdmin(userId)) {
+  async isMemberInAnyPosition(userId: string): Promise<boolean> {
+    if (await this.isSystemAdmin(userId)) {
       return true;
     }
-    if (this.getStoreIdsByFounder(userId).length > 0) {
+    if ((await this.getStoreIdsByFounder(userId)).length > 0) {
       return true;
     }
-    if (this.getStoreIdsByOwner(userId).length > 0) {
+    if ((await this.getStoreIdsByOwner(userId)).length > 0) {
       return true;
     }
-    if (this.getStoreIdsByManager(userId).length > 0) {
+    if ((await this.getStoreIdsByManager(userId)).length > 0) {
       return true;
     }
     return false;

@@ -3,8 +3,11 @@ import { z } from "zod";
 import { HasRepos, type Repos } from "./_HasRepos";
 import { TRPCError } from "@trpc/server";
 import * as R from "ramda";
-import { Controllers, HasControllers } from "../_HasController";
+import { type Controllers, HasControllers } from "../_HasController";
 import { Mixin } from "ts-mixer";
+import { s } from "vitest/dist/env-afee91f0";
+import { type StoreProduct as StoreProductDAO } from "@prisma/client";
+
 const nameSchema = z.string().nonempty("Name must be nonempty");
 const quantitySchema = z.number().nonnegative("Quantity must be non negative");
 const priceSchema = z.number().positive("Price must be positive");
@@ -58,6 +61,18 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
       .initRepos(repos);
     product.id = dto.id;
     return product;
+  }
+  static fromDAO(product: StoreProductDAO, SpecialPrices: Map<string, number>) {
+    const realProduct = new StoreProduct({
+      name: product.name,
+      quantity: product.quantity,
+      price: product.price,
+      category: product.category,
+      description: product.description,
+    });
+    realProduct.id = product.id;
+    realProduct.specialPrices = SpecialPrices;
+    return realProduct;
   }
 
   static fromProductId(productId: string, repos: Repos) {
@@ -130,11 +145,15 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
   public get SpecialPrices() {
     return this.specialPrices;
   }
-  public set SpecialPrices(specialPrices: Map<string, number>) {
+  public async setSpecialPrices(specialPrices: Map<string, number>) {
     this.specialPrices = specialPrices;
+    await this.Repos.Products.setSpecialPrices(specialPrices, this.Id);
   }
 
+  public async getDTO(): Promise<StoreProductDTO> {
+/**
   public get DTO(): StoreProductDTO {
+*/
     return {
       id: this.Id,
       name: this.Name,
@@ -142,8 +161,9 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
       price: this.Price,
       category: this.Category,
       description: this.Description,
-      rating: this.Controllers.PurchasesHistory.getReviewsByProduct(this.Id)
-        .avgRating,
+      rating: (
+        await this.Controllers.PurchasesHistory.getReviewsByProduct(this.Id)
+      ).avgRating,
     };
   }
 

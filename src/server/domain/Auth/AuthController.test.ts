@@ -9,6 +9,8 @@ import {
   createTestControllers,
 } from "../_createControllers";
 import { type Controllers } from "../_HasController";
+import { AuthController } from "./AuthController";
+import { db } from "server/db";
 
 export function createMember(name: string, password: string) {
   return MemberUserAuth.create(name, password);
@@ -24,7 +26,7 @@ function getGuestI(i: number): GuestUserAuth {
   return GuestUserAuth.create();
 }
 let repos: Repos;
-let controllers: Controllers;
+let controllers: { Auth: AuthController };
 function generateEmailI(i: number): string {
   return "user" + i.toString() + "@email.com";
 }
@@ -33,16 +35,17 @@ function generatePasswordI(i: number): string {
 }
 beforeEach(() => {
   repos = createMockRepos();
-  controllers = createMockControllers("Auth");
+  controllers = { Auth: new AuthController() };
 });
 describe("starts session", () => {
-  itUnitIntegration("✅starts session", (testType) => {
+  itUnitIntegration("✅starts session", async (testType) => {
     repos = createTestRepos(testType);
     controllers.Auth.initRepos(repos);
-    vi.spyOn(repos.Users, "doesMemberExistById").mockReturnValue(false);
+    await db.userAuth.deleteMany({});
+    vi.spyOn(repos.Users, "doesMemberExistById").mockResolvedValue(false);
     vi.spyOn(repos.Users, "getGuestById").mockReturnValue(getGuestI(1));
     vi.spyOn(repos.Users, "addGuest").mockImplementation(() => {});
-    vi.spyOn(repos.Users, "doesMemberExistById").mockReturnValue(false);
+    vi.spyOn(repos.Users, "doesMemberExistById").mockResolvedValue(false);
     vi.spyOn(GuestUserAuth, "create").mockImplementation(() => {
       const guest = new GuestUserAuth();
       // vi.spyOn(guest, "isConnectionValid").mockReturnValue(true);
@@ -56,14 +59,15 @@ describe("starts session", () => {
     vi.spyOn(repos.Users, "doesGuestExistById").mockReturnValue(true);
     expect(guestId).not.toEqual("");
     expect(controllers.Auth.isGuest(guestId)).toEqual(true);
-    expect(controllers.Auth.isMember(guestId)).toEqual(false);
-    expect(controllers.Auth.isConnected(guestId)).toEqual(true);
+    expect(await controllers.Auth.isMember(guestId)).toEqual(false);
+    expect(await controllers.Auth.isConnected(guestId)).toEqual(true);
   });
 });
 describe("register member", () => {
-  itUnitIntegration("✅registers member", (testType) => {
+  itUnitIntegration("✅registers member", async (testType) => {
     repos = createTestRepos(testType);
     controllers.Auth.initRepos(repos);
+    await db.userAuth.deleteMany({});
     // vi.spyOn(MemberUserAuth, "create").mockImplementation(
     //   (email: string, password: string) => {
     //     const mockUser: MemberUserAuth = new (
@@ -80,17 +84,27 @@ describe("register member", () => {
     const validatePasswordLegality = vi
       .spyOn(MemberUserAuth.prototype as any, "validatePasswordLegality")
       .mockImplementation(() => {});
-    vi.spyOn(repos.Users, "doesMemberExistByEmail").mockReturnValue(false);
-    vi.spyOn(repos.Users, "addMember").mockImplementation(() => {});
-    expect(() =>
+    vi.spyOn(repos.Users, "doesMemberExistByEmail").mockResolvedValue(false);
+    vi.spyOn(repos.Users, "addMember").mockImplementation(async () => {});
+    // expect(
+    //   async () => await controllers.Auth.register("email@gmail.com", "password")
+    // ).not.toThrow();
+    await expect(
       controllers.Auth.register("email@gmail.com", "password")
-    ).not.toThrow();
-    vi.spyOn(repos.Users, "doesMemberExistByEmail").mockReturnValue(true);
-    expect(repos.Users.doesMemberExistByEmail("email@gmail.com")).toEqual(true);
+    ).resolves.not.toThrow();
+    // await controllers.Auth.register("email@gmail.com", "password");
+    vi.spyOn(repos.Users, "doesMemberExistByEmail").mockResolvedValue(true);
+    // expect(await repos.Users.doesMemberExistByEmail("email@gmail.com")).toEqual(
+    //   true
+    // );
+    await expect(
+      repos.Users.doesMemberExistByEmail("email@gmail.com")
+    ).resolves.toEqual(true);
   });
   itUnitIntegration(
     "❎fails to register member with existing email",
-    (testType) => {
+    async (testType) => {
+      await db.userAuth.deleteMany({});
       repos = createTestRepos(testType);
       controllers.Auth.initRepos(repos);
       const validateEmailLegality = vi
@@ -99,23 +113,30 @@ describe("register member", () => {
       const validatePasswordLegality = vi
         .spyOn(MemberUserAuth.prototype as any, "validatePasswordLegality")
         .mockImplementation(() => {});
-      vi.spyOn(repos.Users, "doesMemberExistByEmail").mockReturnValue(false);
-      vi.spyOn(repos.Users, "addMember").mockImplementation(() => {});
-      controllers.Auth.register("user1@gmail.com", "password");
-      vi.spyOn(repos.Users, "doesMemberExistByEmail").mockReturnValue(true);
-      expect(() =>
+      vi.spyOn(repos.Users, "doesMemberExistByEmail").mockResolvedValue(false);
+      vi.spyOn(repos.Users, "addMember").mockImplementation(async () => {});
+      await controllers.Auth.register("user1@gmail.com", "password");
+      vi.spyOn(repos.Users, "doesMemberExistByEmail").mockResolvedValue(true);
+      // expect(() =>
+      //   controllers.Auth.register("user1@gmail.com", "password2")
+      // ).toThrow();
+      await expect(
         controllers.Auth.register("user1@gmail.com", "password2")
-      ).toThrow();
-      expect(repos.Users.doesMemberExistByEmail("user1@gmail.com")).toEqual(
-        true
-      );
+      ).rejects.toThrow();
+      // expect(repos.Users.doesMemberExistByEmail("user1@gmail.com")).toEqual(
+      //   true
+      // );
+      await expect(
+        repos.Users.doesMemberExistByEmail("user1@gmail.com")
+      ).resolves.toEqual(true);
     }
   );
 });
 describe("login member", () => {
-  itUnitIntegration("✅logs in member", (testType) => {
+  itUnitIntegration("✅logs in member", async (testType) => {
     repos = createTestRepos(testType);
     controllers.Auth.initRepos(repos);
+    await db.userAuth.deleteMany({});
     vi.spyOn(MemberUserAuth.prototype, "isPasswordCorrect").mockReturnValue(
       true
     );
@@ -136,15 +157,21 @@ describe("login member", () => {
       .mockImplementation(() => {});
     vi.spyOn(repos.Users, "removeGuest").mockImplementation(() => {});
     vi.spyOn(repos.Users, "addGuest").mockImplementation(() => {});
-    vi.spyOn(repos.Users, "addMember").mockImplementation(() => {});
-    vi.spyOn(repos.Users, "doesMemberExistByEmail").mockReturnValue(false);
+    vi.spyOn(repos.Users, "addMember").mockImplementation(async () => {});
+    vi.spyOn(repos.Users, "doesMemberExistByEmail").mockReturnValue(
+      Promise.resolve(false)
+    );
     const guestId = controllers.Auth.startSession();
-    controllers.Auth.register(generateEmailI(1), generatePasswordI(1));
-    vi.spyOn(repos.Users, "doesMemberExistByEmail").mockReturnValue(true);
-    vi.spyOn(repos.Users, "getMemberByEmail").mockReturnValue(getMemberI(1));
+    await controllers.Auth.register(generateEmailI(1), generatePasswordI(1));
+    vi.spyOn(repos.Users, "doesMemberExistByEmail").mockReturnValue(
+      Promise.resolve(true)
+    );
+    vi.spyOn(repos.Users, "getMemberByEmail").mockReturnValue(
+      Promise.resolve(getMemberI(1))
+    );
     vi.spyOn(repos.Users, "doesGuestExistById").mockReturnValue(true);
 
-    const memberId = controllers.Auth.login(
+    const memberId = await controllers.Auth.login(
       guestId,
       generateEmailI(1),
       generatePasswordI(1)
@@ -152,28 +179,46 @@ describe("login member", () => {
     vi.spyOn(repos.Users, "doesGuestExistById").mockReturnValue(false);
     expect(controllers.Auth.isGuest(guestId)).toEqual(false);
     // expect(controllers.Auth.isMember(memberId)).toEqual(true);
-    vi.spyOn(repos.Users, "doesMemberExistById").mockReturnValue(true);
-    vi.spyOn(repos.Users, "getMemberById").mockReturnValue(getMemberI(1));
+    vi.spyOn(repos.Users, "doesMemberExistById").mockResolvedValue(true);
+    vi.spyOn(repos.Users, "getMemberById").mockReturnValue(
+      Promise.resolve(getMemberI(1))
+    );
     vi.spyOn(
       MemberUserAuth.prototype,
       "isUserLoggedInAsMember"
     ).mockReturnValue(true);
-    expect(controllers.Auth.isConnected(memberId)).toEqual(true);
+    expect(await controllers.Auth.isConnected(memberId)).toEqual(true);
   });
 });
+//TODO resolve sessions and then run this test
 // describe("get all members", () => {
-// itUnitIntegration("✅gets all logged in/out members", (testType) => {
-//   testType = "integration";
-//   controllers = createTestControllers(testType, "Auth");
-//   repos = createTestRepos(testType);
-//   controllers.Auth.initRepos(repos);
-//   controllers.Auth.register(generateEmailI(1), generatePasswordI(1));
-//   controllers.Auth.register(generateEmailI(2), generatePasswordI(2));
-//   expect(controllers.Auth.getAllLoggedOutMembersIds().length).toEqual(2);
-//   expect(controllers.Auth.getAllLoggedInMembersIds().length).toEqual(0);
-//   const guestId = controllers.Auth.startSession();
-//   controllers.Auth.login(guestId, generateEmailI(1), generatePasswordI(1));
-//   expect(controllers.Auth.getAllLoggedOutMembersIds().length).toEqual(1);
-//   expect(controllers.Auth.getAllLoggedInMembersIds().length).toEqual(1);
-// });
+//   itUnitIntegration("✅gets all logged in/out members", async (testType) => {
+//     testType = "integration";
+//     repos = createTestRepos(testType);
+//     controllers.Auth.initRepos(repos);
+//     await db.userAuth.deleteMany({});
+
+//     await controllers.Auth.register(generateEmailI(1), generatePasswordI(1));
+//     await controllers.Auth.register(generateEmailI(2), generatePasswordI(2));
+//     // expect(controllers.Auth.getAllLoggedOutMembersIds().length).toEqual(2);
+//     // expect(controllers.Auth.getAllLoggedInMembersIds().length).toEqual(0);
+//     let allLoggedOutMembersIds =
+//       await controllers.Auth.getAllLoggedOutMembersIds();
+//     let allLoggedInMembersIds =
+//       await controllers.Auth.getAllLoggedInMembersIds();
+//     expect(allLoggedOutMembersIds.length).toEqual(2);
+//     expect(allLoggedInMembersIds.length).toEqual(0);
+//     const guestId = controllers.Auth.startSession();
+//     await controllers.Auth.login(
+//       guestId,
+//       generateEmailI(1),
+//       generatePasswordI(1)
+//     );
+//     // expect(controllers.Auth.getAllLoggedOutMembersIds().length).toEqual(1);
+//     // expect(controllers.Auth.getAllLoggedInMembersIds().length).toEqual(1);
+//     allLoggedOutMembersIds = await controllers.Auth.getAllLoggedOutMembersIds();
+//     allLoggedInMembersIds = await controllers.Auth.getAllLoggedInMembersIds();
+//     expect(allLoggedOutMembersIds.length).toEqual(1);
+//     expect(allLoggedInMembersIds.length).toEqual(1);
+//   });
 // });

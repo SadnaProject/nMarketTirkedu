@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-    provider = "sqlite"
+    provider = "postgresql"
     // NOTE: When using postgresql, mysql or sqlserver, uncomment the @db.Text annotations in model Account below
     // Further reading:
     // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
@@ -14,11 +14,275 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+model UserAuth {
+    id       String  @id //@default(cuid())
+    name     String?
+    email    String  @unique
+    password String
+    user User?
+}
+
+enum ConditionType {
+    AtLeast
+    AtMost
+    Exactly
+}
+
+enum TimeConditionType {
+    Before
+    After
+    At
+}
+
+enum LiteralConditionType {
+    Store
+    Category
+    Product
+    Price
+}
+
+enum CompositeConditionType {
+    Or
+    And
+    Xor
+    Implies
+}
+
+enum CompositeDiscountType {
+    Max
+    Add
+}
+
+enum DiscountOn {
+    product
+    category
+    store
+}
+
+model Condition {
+    id                   String              @id @default(cuid())
+    LiteralCondition     LiteralCondition?   @relation(fields: [LiteralConditionId], references: [id])
+    LiteralConditionId   String?
+    compositeCondition   CompositeCondition? @relation(fields: [compositeConditionId], references: [id])
+    compositeConditionId String?
+    dateCondition        DateCondition?      @relation(fields: [dateConditionId], references: [id])
+    dateConditionId      String?
+    Constraint           Constraint[]
+    SimpleDiscount       SimpleDiscount[]
+}
+
+model LiteralCondition {
+    id            String               @id @default(cuid())
+    amount        Int
+    conditionType ConditionType
+    type          LiteralConditionType
+    searchFor     String?
+    Condition     Condition[]
+}
+
+model DateCondition {
+    id                String            @id @default(cuid())
+    year              Int?
+    month             Int?
+    day               Int?
+    hour              Int?
+    timeConditionType TimeConditionType
+    Condition         Condition[]
+}
+
+model CompositeCondition {
+    id                     String                 @id @default(cuid())
+    CompositeConditionType CompositeConditionType
+    firstId                String
+    secondId               String
+    Condition              Condition[]
+}
+
+model Discount {
+    id          String             @id @default(cuid())
+    storeId     String
+    store       Store              @relation(fields: [storeId], references: [id])
+    compositeId String?
+    composite   CompositeDiscount? @relation(fields: [compositeId], references: [id])
+    simpleId    String?
+    simple      SimpleDiscount?    @relation(fields: [simpleId], references: [id])
+}
+
+model CompositeDiscount {
+    id       String                @id @default(cuid())
+    type     CompositeDiscountType
+    leftId   String
+    rightId  String
+    Discount Discount[]
+}
+
+model SimpleDiscount {
+    id          String     @id @default(cuid())
+    amount      Int
+    storeId     String
+    conditionId String
+    condition   Condition  @relation(fields: [conditionId], references: [id])
+    discountOn  DiscountOn
+    Discount    Discount[]
+}
+
+model Store {
+    id          String         @id @default(cuid())
+    name        String
+    isActive    Boolean
+    products    StoreProduct[]
+    discounts   Discount[]
+    Constraints Constraint[]
+}
+
+model StoreProduct {
+    id           String         @id @default(cuid())
+    storeId      String
+    store        Store          @relation(fields: [storeId], references: [id])
+    name         String
+    price        Int
+    category     String
+    quantity     Int
+    description  String
+    SpecialPrice SpecialPrice[]
+}
+
+model SpecialPrice {
+    id        String       @id @default(cuid())
+    userId    String
+    price     Int
+    product   StoreProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+    productId String
+}
+
+model Constraint {
+    id          String    @id @default(cuid())
+    storeId     String
+    store       Store     @relation(fields: [storeId], references: [id])
+    conditionId String
+    condition   Condition @relation(fields: [conditionId], references: [id])
+}
+
+
+model Notification {
+    id String   @id @default(cuid())
+    userId String
+    user User @relation(fields: [userId], references: [id])
+    type String
+    message String
+    isRead Boolean
+}
+model BasketProduct{
+    storeProductId String @id @default(cuid())
+    quantity Float
+    basket Basket @relation(fields: [userId,storeId], references: [userId,storeId])
+    storeId String
+    userId String
+}
+
+model Basket{
+    userId String 
+    storeId String
+    products BasketProduct[]
+    @@unique([userId, storeId])
+    cart Cart @relation(fields: [userId], references: [userId])
+}
+
+model Cart{
+    userId String 
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    baskets Basket[]
+    @@unique([userId])
+}
+
+// enum BidType {
+//     Store
+//     Counter
+// }
+
+// enum BidState{
+//     APPROVED
+//     WAITING
+//     REJECTED
+// }
+
+// model Bid{
+//     id String @id @default(cuid())
+//     user User
+//     product BasketProduct
+//     price Float
+//     approvedBy User[]
+//     rejectedBy User []
+//     state BidState
+//     type BidType
+// }
+
 model User {
     id    String  @id @default(cuid())
-    name  String?
-    email String  @unique
+    productReviews ProductReview[]
+    cartPurchases CartPurchase[]
+    reviews Review[]
+    auth UserAuth @relation(fields: [id], references: [id])
+    cart Cart?
+    notifications Notification[]
 }
+
+model ProductReview{
+    title      String
+    description String
+    userId     String
+    user       User     @relation(fields: [userId], references: [id])
+    rating     Int
+    productId  String
+    purchaseId String
+    storeId    String
+    createdAt  DateTime @default(now())
+    productPurchase ProductPurchase? 
+    @@unique([purchaseId, productId])
+    @@id([userId, productId])
+}
+
+model Review{
+    rating     Int
+    createdAt  DateTime @default(now())
+    userId     String
+    purchaseId String
+    user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    storeId    String
+    @@id([purchaseId, storeId])
+    basketPurchase BasketPurchase @relation(fields: [purchaseId, storeId], references: [purchaseId, storeId])
+}
+
+model ProductPurchase{
+    purchaseId  String 
+    productId   String 
+    quantity    Int
+    createdAt  DateTime @default(now())
+    price       Float
+    review     ProductReview? @relation(fields: [purchaseId, productId], references: [purchaseId, productId])
+    storeId     String
+    BasketPurchase BasketPurchase @relation(fields: [purchaseId, storeId], references: [purchaseId, storeId])
+    @@id([purchaseId, productId])
+}
+
+model BasketPurchase{
+    purchaseId  String 
+    storeId     String
+    products   ProductPurchase[]
+    review Review?
+    price       Float
+    cartPurchase CartPurchase @relation(fields: [purchaseId], references: [purchaseId])
+    @@id([purchaseId, storeId])
+}
+
+model CartPurchase{
+    purchaseId  String @id @default(cuid())
+    userId      String
+    user        User     @relation(fields: [userId], references: [id])
+    baskets     BasketPurchase[]
+    totalPrice  Float
+}
+
 
 // model Cart {
 //     id            String    @id @default(cuid())
@@ -26,3 +290,49 @@ model User {
 //     user          User      @relation(fields: [userId], references: [id])
 //     items         CartItem[]
 // }
+
+//JOBS COMPONENT
+enum Permission {
+    DeactivateStore
+    ActivateStore
+    AppointStoreOwner
+    AppointStoreManager
+    receiveClosedStoreData
+    AddProduct
+    EditProductDetails
+    RemoveProduct
+    receivePrivateStoreData
+}
+enum RoleType {
+    Founder
+    Owner
+    Manager
+
+}
+model Role {
+    id          String      @id// @default(cuid())
+    roleType    RoleType
+    permissions Permission[]
+    positionHolders       PositionHolder[]
+}
+model PositionHolder {
+    // id          String      @id @default(cuid())
+    //TODO make this two ids below a foreign key to relavent tables
+    userId      String
+    //   user        User        @relation(fields: [userId], references: [id])
+    storeId     String
+    //   store       Store       @relation(fields: [storeId], references: [id])
+    role        Role        @relation(fields: [roleId], references: [id])
+    roleId      String
+    //todo, add my assigned position holders
+
+    assignedPositionHolders PositionHolder[] @relation("PositionHolderToAssignees")
+    assignerId              String?
+    assignedBy              PositionHolder? @relation("PositionHolderToAssignees", fields: [assignerId,storeId], references: [userId, storeId])
+
+    @@id([userId, storeId])
+}
+//TODO maybe better to just save a field in the users table.
+model Admin {
+    userId      String     @id
+}

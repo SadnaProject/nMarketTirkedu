@@ -28,17 +28,30 @@ export const PurchasesHistoryRouter = createTRPCRouter({
         review: z.number(),
         reviewTitle: z.string(),
         reviewBody: z.string(),
+        storeId: z.string(),
       })
     )
     .mutation(({ input, ctx }) => {
+      const {
+        purchaseId,
+        productId,
+        review,
+        reviewTitle,
+        reviewBody,
+        storeId,
+      } = input;
+      return facade.reviewProduct(
+/**TODO: Change facade to service
       const { purchaseId, productId, review, reviewTitle, reviewBody } = input;
       return service.reviewProduct(
+*/
         ctx.session.user.id,
         purchaseId,
         productId,
         review,
         reviewTitle,
-        reviewBody
+        reviewBody,
+        storeId
       );
     }),
   getStoreRating: validSessionProcedure

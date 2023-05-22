@@ -15,8 +15,8 @@ import { type BasketProductDTO } from "../Users/BasketProduct";
 import { type DiscountArgs } from "./DiscountPolicy/Discount";
 import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
 import { type ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condition";
-import { CartDTO } from "../Users/Cart";
-
+import { type CartDTO } from "../Users/Cart";
+import { type Store as StoreDAO } from "@prisma/client";
 export const nameSchema = z.string().nonempty();
 
 export type StoreDTO = {
@@ -51,9 +51,30 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     store.isActive = dto.isActive;
     return store;
   }
+  static fromDAO(
+    store: StoreDAO,
+    discountPolicy: DiscountPolicy,
+    constraintPolicy: ConstraintPolicy
+  ) {
+    const newStore = new Store(store.name);
+    newStore.id = store.id;
+    newStore.isActive = store.isActive;
+    newStore.discountPolicy = discountPolicy;
+    newStore.constraintPolicy = constraintPolicy;
+    return newStore;
+  }
+  static async fromStoreId(
+    storeId: string,
+    repos: Repos,
+    controllers: Controllers
+  ) {
+    const store = await repos.Stores.getStoreById(storeId);
+    return store.initRepos(repos).initControllers(controllers);
+/**
 
   static fromStoreId(storeId: string, repos: Repos) {
     return repos.Stores.getStoreById(storeId);
+*/
   }
 
   public get Id() {
@@ -72,17 +93,28 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     this.isActive = isActive;
   }
 
-  public get DTO(): StoreDTO {
+  public async getDTO(): Promise<StoreDTO> {
     return {
       id: this.id,
       name: this.name,
       isActive: this.isActive,
-      rating: this.Controllers.PurchasesHistory.getStoreRating(this.id),
+      rating: await this.Controllers.PurchasesHistory.getStoreRating(this.id),
     };
   }
 
+  public async getProducts() {
+    const products = await this.Repos.Products.getProductsByStoreId(this.id);
+    products.forEach((product) =>
+      product.initRepos(this.Repos).initControllers(this.Controllers)
+    );
+    const productsDTO = await Promise.all(
+      products.map((product) => product.getDTO())
+    );
+    return productsDTO;
+/**
   public get Products() {
     return this.Repos.Products.getProductsByStoreId(this.id).map((p) => p.DTO);
+*/
   }
 
   public createProduct(product: StoreProductArgs) {
@@ -115,30 +147,6 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     this.Repos.Stores.deleteStore(this.Id);
   }
 
-  makeOwner(currentId: string, targetUserId: string) {
-    this.Controllers.Jobs.makeStoreOwner(currentId, this.Id, targetUserId);
-  }
-  makeManager(currentId: string, targetUserId: string) {
-    this.Controllers.Jobs.makeStoreManager(currentId, this.Id, targetUserId);
-  }
-  removeOwner(currentId: string, targetUserId: string) {
-    this.Controllers.Jobs.removeStoreOwner(currentId, this.Id, targetUserId);
-  }
-  removeManager(currentId: string, targetUserId: string) {
-    this.Controllers.Jobs.removeStoreManager(currentId, this.Id, targetUserId);
-  }
-  setAddingProductPermission(
-    currentId: string,
-    targetUserId: string,
-    permission: boolean
-  ) {
-    this.Controllers.Jobs.setAddingProductToStorePermission(
-      currentId,
-      this.Id,
-      targetUserId,
-      permission
-    );
-  }
   canCreateProduct(currentId: string) {
     return this.Controllers.Jobs.canCreateProductInStore(currentId, this.Id);
   }
@@ -176,7 +184,10 @@ export class Store extends Mixin(HasRepos, HasControllers) {
   ): ProductWithQuantityDTO {
     const p = this.Repos.Products.getProductById(basketProduct.storeProductId);
     return {
+      product: await p.getDTO(),
+/**
       product: p.DTO,
+*/
       Discount: 0,
       BasketQuantity: basketProduct.quantity,
     };

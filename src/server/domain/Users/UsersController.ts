@@ -7,7 +7,7 @@ import { Testable, testable } from "server/domain/_Testable";
 import { type CreditCard } from "../PurchasesHistory/PaymentAdaptor";
 import { TRPCError } from "@trpc/server";
 import { censored } from "../_Loggable";
-import { Bid, BidArgs, BidDTO } from "./Bid";
+import { Bid, type BidArgs, type BidDTO } from "./Bid";
 import * as R from "ramda";
 
 export interface IUsersController {
@@ -97,7 +97,7 @@ export interface IUsersController {
     notificationType: string,
     notificationMsg: string
   ): string;
-  register(email: string, password: string): string;
+  register(email: string, password: string): Promise<string>;
   /**
    * This function will start new session for user.
    */
@@ -113,12 +113,12 @@ export interface IUsersController {
    * @param email The email of the user that want to login.
    * @param password The password of the user that want to login.
    */
-  login(guestId: string, email: string, password: string): string;
+  login(guestId: string, email: string, password: string): Promise<string>;
   /**
    * This function will logs out the member from the system.
    * @param userId The id of the user that is currently logged in.
    */
-  logout(userId: string): string;
+  logout(userId: string): Promise<string>;
   /**
    * @param userIdOfActor The user id of the user that asks to remove the member.
    * @param memberIdToRemove The user id of the member to remove.
@@ -127,7 +127,7 @@ export interface IUsersController {
    * @throws Error if the member has any position(he cant be removed if he has any position).
    */
   removeMember(userIdOfActor: string, memberIdToRemove: string): void;
-  addBid(BidArgs: BidArgs): string;
+  addBid(BidArgs: BidArgs): Promise<string>;
   getAllBidsSendFromUser(userId: string): BidDTO[];
   getAllBidsSendToUser(userId: string): BidDTO[];
   removeVoteFromBid(userId: string, bidId: string): void;
@@ -148,46 +148,53 @@ export class UsersController
   getNotifications(userId: string): Notification[] {
     return this.Repos.Users.getUser(userId).Notifications;
   }
-  addProductToCart(userId: string, productId: string, quantity: number): void {
+  async addProductToCart(
+    userId: string,
+    productId: string,
+    quantity: number
+  ): Promise<void> {
     const user = this.Repos.Users.getUser(userId); // notice that we get the user from the repo and not from the system
     const storeId = this.Controllers.Stores.getStoreIdByProductId(
       userId,
       productId
     );
     if (
-      !this.Controllers.Stores.isProductQuantityInStock(
+      !(await this.Controllers.Stores.isProductQuantityInStock(
         userId,
         productId,
         quantity
-      )
+      ))
     ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "store don't have such amount of product",
       });
     }
-    user.addProductToCart(productId, quantity, storeId);
+    user.addProductToCart(productId, quantity, await storeId);
   }
-  removeProductFromCart(userId: string, productId: string): void {
+  async removeProductFromCart(
+    userId: string,
+    productId: string
+  ): Promise<void> {
     const user = this.Repos.Users.getUser(userId);
     const storeId = this.Controllers.Stores.getStoreIdByProductId(
       userId,
       productId
     );
-    user.removeProductFromCart(productId, storeId);
+    user.removeProductFromCart(productId, await storeId);
   }
-  editProductQuantityInCart(
+  async editProductQuantityInCart(
     userId: string,
     productId: string,
     quantity: number
-  ): void {
+  ): Promise<void> {
     const user = this.Repos.Users.getUser(userId);
     if (
-      !this.Controllers.Stores.isProductQuantityInStock(
+      !(await this.Controllers.Stores.isProductQuantityInStock(
         userId,
         productId,
         quantity
-      )
+      ))
     ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -198,22 +205,25 @@ export class UsersController
       userId,
       productId
     );
-    user.editProductQuantityInCart(productId, storeId, quantity);
+    user.editProductQuantityInCart(productId, await storeId, quantity);
   }
   getCart(userId: string): CartDTO {
     return this.Repos.Users.getUser(userId).Cart;
   }
-  purchaseCart(userId: string, @censored creditCard: CreditCard): void {
+  async purchaseCart(
+    userId: string,
+    @censored creditCard: CreditCard
+  ): Promise<void> {
     const user = this.Repos.Users.getUser(userId);
     const cart = user.Cart;
     const price = this.Controllers.Stores.getCartPrice(userId);
     this.Controllers.PurchasesHistory.purchaseCart(
       userId,
       cart,
-      price,
+      await price,
       creditCard
     );
-    const notificationMsg = `The cart ${cart.toString()} has been purchased for ${price}.`;
+    const notificationMsg = `The cart ${cart.toString()} has been purchased for ${await price}.`;
     const notification = new Notification("purchase", notificationMsg);
     user.addNotification(notification);
     user.clearCart(); /// notice we clear the cart in the end of the purchase.
@@ -247,67 +257,74 @@ export class UsersController
     this.addUser(guestId);
     return guestId;
   }
-  register(email: string, @censored password: string): string {
+  async register(email: string, @censored password: string): Promise<string> {
     const MemberId = this.Controllers.Auth.register(email, password);
-    this.Repos.Users.addUser(MemberId);
+    this.Repos.Users.addUser(await MemberId);
     return MemberId;
   }
-  login(guestId: string, email: string, @censored password: string): string {
+  async login(
+    guestId: string,
+    email: string,
+    @censored password: string
+  ): Promise<string> {
     this.Repos.Users.getUser(guestId);
     const MemberId = this.Controllers.Auth.login(guestId, email, password);
-    this.Repos.Users.getUser(MemberId);
+    this.Repos.Users.getUser(await MemberId);
     return MemberId;
   }
-  logout(userId: string): string {
+  async logout(userId: string): Promise<string> {
     const guestId = this.Controllers.Auth.logout(userId);
-    this.Repos.Users.addUser(guestId);
+    this.Repos.Users.addUser(await guestId);
     return guestId;
   }
-  disconnect(userId: string): void {
+  async disconnect(userId: string): Promise<void> {
     if (this.Controllers.Auth.isGuest(userId)) {
       this.Repos.Users.removeUser(userId);
     }
-    this.Controllers.Auth.disconnect(userId);
+    await this.Controllers.Auth.disconnect(userId);
   }
   isUserExist(userId: string): boolean {
     return this.Repos.Users.isUserExist(userId);
   }
-  removeMember(userIdOfActor: string, memberIdToRemove: string) {
+  async removeMember(userIdOfActor: string, memberIdToRemove: string) {
     if (!this.isUserExist(memberIdToRemove)) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Given user id doesn't belong to a member",
       });
     }
-    if (this.Controllers.Jobs.isMemberInAnyPosition(memberIdToRemove)) {
+    if (await this.Controllers.Jobs.isMemberInAnyPosition(memberIdToRemove)) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
           "Member is in a position, please remove him from the position first",
       });
     }
-    if (!this.Controllers.Jobs.canRemoveMember(userIdOfActor)) {
+    if (!(await this.Controllers.Jobs.canRemoveMember(userIdOfActor))) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User doesn't have permission to remove member",
       });
     }
-    this.Controllers.Auth.removeMember(userIdOfActor, memberIdToRemove);
+    await this.Controllers.Auth.removeMember(userIdOfActor, memberIdToRemove);
     this.removeUser(memberIdToRemove);
   }
-  addBid(bidArgs: BidArgs): string {
+  async addBid(bidArgs: BidArgs): Promise<string> {
     const bid = new Bid(bidArgs);
     this.Repos.Bids.addBid(bid);
     if (bidArgs.type === "Store") {
-      this.Controllers.Jobs.getStoreOwnersIds(
-        this.Controllers.Stores.getStoreIdByProductId(bid.UserId, bid.ProductId)
-      ).forEach((ownerId) =>
+      await this.Controllers.Jobs.getStoreOwnersIds(
+        await this.Controllers.Stores.getStoreIdByProductId(
+          bid.UserId,
+          bid.ProductId
+        )
+      ) /*.forEach((ownerId) =>
         this.Repos.Users.getUser(ownerId).addBidToMe(bid.Id)
-      );
+      )*/;
       this.Repos.Users.getUser(bid.UserId).addBidFromMe(bid.Id);
       bid.Owners = R.clone(
-        this.Controllers.Jobs.getStoreOwnersIds(
-          this.Controllers.Stores.getStoreIdByProductId(
+        await this.Controllers.Jobs.getStoreOwnersIds(
+          await this.Controllers.Stores.getStoreIdByProductId(
             bid.UserId,
             bid.ProductId
           )
@@ -321,14 +338,17 @@ export class UsersController
     }
     return bid.Id;
   }
-  approveBid(userId: string, bidId: string): void {
+  async approveBid(userId: string, bidId: string): Promise<void> {
     const bid = this.Repos.Bids.getBid(bidId);
     if (
       bid.Type == "Store" &&
-      !this.Controllers.Jobs.isStoreOwner(
+      !(await this.Controllers.Jobs.isStoreOwner(
         userId,
-        this.Controllers.Stores.getStoreIdByProductId(bid.UserId, bid.ProductId)
-      )
+        await this.Controllers.Stores.getStoreIdByProductId(
+          bid.UserId,
+          bid.ProductId
+        )
+      ))
     ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -345,10 +365,10 @@ export class UsersController
     if (bid.isApproved()) {
       switch (bid.Type) {
         case "Store":
-          this.Controllers.Stores.addSpecialPriceToProduct(bid);
+          await this.Controllers.Stores.addSpecialPriceToProduct(bid);
           break;
         case "Counter":
-          this.addBid({
+          await this.addBid({
             userId: userId,
             type: "Counter",
             price: bid.Price,
@@ -358,13 +378,16 @@ export class UsersController
       }
     }
   }
-  rejectBid(userId: string, bidId: string): void {
+  async rejectBid(userId: string, bidId: string): Promise<void> {
     const bid = this.Repos.Bids.getBid(bidId);
     if (
-      !this.Controllers.Jobs.isStoreOwner(
+      !(await this.Controllers.Jobs.isStoreOwner(
         userId,
-        this.Controllers.Stores.getStoreIdByProductId(bid.UserId, bid.ProductId)
-      )
+        await this.Controllers.Stores.getStoreIdByProductId(
+          bid.UserId,
+          bid.ProductId
+        )
+      ))
     ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -373,13 +396,20 @@ export class UsersController
     }
     bid.reject(userId);
   }
-  counterBid(userId: string, bidId: string, price: number): void {
+  async counterBid(
+    userId: string,
+    bidId: string,
+    price: number
+  ): Promise<void> {
     const bid = this.Repos.Bids.getBid(bidId);
     if (
-      !this.Controllers.Jobs.isStoreOwner(
+      !(await this.Controllers.Jobs.isStoreOwner(
         userId,
-        this.Controllers.Stores.getStoreIdByProductId(bid.UserId, bid.ProductId)
-      )
+        await this.Controllers.Stores.getStoreIdByProductId(
+          bid.UserId,
+          bid.ProductId
+        )
+      ))
     ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -387,7 +417,7 @@ export class UsersController
       });
     }
     bid.reject(userId);
-    this.addBid({
+    await this.addBid({
       previousBidId: bidId,
       price: price,
       productId: bid.ProductId,

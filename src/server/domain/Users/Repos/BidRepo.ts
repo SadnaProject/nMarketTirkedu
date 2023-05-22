@@ -1,6 +1,6 @@
 import { Testable, testable } from "server/domain/_Testable";
 import { TRPCError } from "@trpc/server";
-import { Bid } from "../Bid";
+import { type Bid } from "../Bid";
 
 @testable
 export class BidRepo extends Testable {

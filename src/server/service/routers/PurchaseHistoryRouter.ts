@@ -60,4 +60,8 @@ export const PurchasesHistoryRouter = createTRPCRouter({
       const { storeId } = input;
       return service.getStoreRating(storeId);
     }),
+
+  getMyPurchases: validSessionProcedure.query(({ ctx }) => {
+    return service.getMyPurchaseHistory(ctx.session.user.id);
+  }),
 });

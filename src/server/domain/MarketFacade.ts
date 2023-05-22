@@ -196,6 +196,11 @@ export class MarketFacade extends Loggable {
       newPassword
     );
   }
+
+  async getMyPurchaseHistory(userId: string): Promise<CartPurchaseDTO[]> {
+    this.validateConnection(userId);
+    return await this.controllers.PurchasesHistory.getMyPurchases(userId);
+  }
   async makeStoreOwner(
     currentId: string,
     storeId: string,

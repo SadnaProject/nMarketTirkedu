@@ -181,6 +181,10 @@ export class Service {
     await this.facade.removeStoreOwner(currentId, storeId, targetUserId);
   }
 
+  async getMyPurchaseHistory(userId: string): Promise<CartPurchaseDTO[]> {
+    return await this.facade.getMyPurchaseHistory(userId);
+  }
+
   async removeStoreManager(
     currentId: string,
     storeId: string,

@@ -208,7 +208,7 @@ export class PurchasesHistoryController
           "Store already reviewed, please try again with a different purchase",
       });
     }
-    if (this.Repos.BasketPurchases.hasPurchase(purchaseId, storeId) === false) {
+    if (await this.Repos.BasketPurchases.hasPurchase(purchaseId, storeId) === false) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Purchase not found",

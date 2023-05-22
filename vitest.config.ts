@@ -18,8 +18,7 @@ export default defineConfig({
       // "**/MemberUserAuth.test.ts",
       // "**/Session.test.ts",
       // "**/testingDbJobs.test.ts",
-      "**/JobsController.test.ts",
-
+      "**/ProductPurchaseHistoryRepo.test.ts",
     ],
     threads: false,
     testTimeout: 20000,

@@ -166,7 +166,7 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
     await this.Repos.Products.setSpecialPrices(specialPrices, this.Id);
   }
 
-  public getDTO(): StoreProductDTO {
+  public async getDTO(): Promise<StoreProductDTO> {
     return {
       id: this.Id,
       name: this.Name,
@@ -174,8 +174,9 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
       price: this.Price,
       category: this.Category,
       description: this.Description,
-      rating: this.Controllers.PurchasesHistory.getReviewsByProduct(this.Id)
-        .avgRating,
+      rating: (
+        await this.Controllers.PurchasesHistory.getReviewsByProduct(this.Id)
+      ).avgRating,
     };
   }
 

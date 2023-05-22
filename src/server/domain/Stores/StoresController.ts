@@ -213,7 +213,7 @@ export interface IStoresController extends HasRepos {
     currentId: string,
     storeId: string,
     targetUserId: string
-  ): void;
+  ): Promise<void>;
   /**
    * This function makes a user a store manager.
    * @param currentId The id of the user that is currently logged in.
@@ -225,7 +225,7 @@ export interface IStoresController extends HasRepos {
     currentId: string,
     storeId: string,
     targetUserId: string
-  ): void;
+  ): Promise<void>;
   /**
    * This function removes a user from being a store owner.
    * @param currentId The id of the user that is currently logged in.
@@ -239,7 +239,7 @@ export interface IStoresController extends HasRepos {
     currentId: string,
     storeId: string,
     targetUserId: string
-  ): void;
+  ): Promise<void>;
   /**
    * This function removes a user from being a store manager.
    * @param currentId The id of the user that is currently logged in.
@@ -254,13 +254,13 @@ export interface IStoresController extends HasRepos {
     currentId: string,
     storeId: string,
     targetUserId: string
-  ): void;
+  ): Promise<void>;
   setAddingProductToStorePermission(
     currentId: string,
     storeId: string,
     targetUserId: string,
     permission: boolean
-  ): void;
+  ): Promise<void>;
   canCreateProductInStore(currentId: string, storeId: string): Promise<boolean>;
   isStoreOwner(userId: string, storeId: string): Promise<boolean>;
   isStoreManager(userId: string, storeId: string): Promise<boolean>;
@@ -317,23 +317,28 @@ export class StoresController
     userId: string,
     args: SearchArgs
   ): Promise<StoreProductDTO[]> {
-    return (await StoreProduct.getActive(this.Repos))
+    const products = (await StoreProduct.getActive(this.Repos))
       .filter(async (p) => {
         const store = await p.getStore();
-        this.Controllers.Jobs.canReceivePublicDataFromStore(userId, store.Id);
-      })
-      .filter(async (p) => {
-        const store = await p.getStore();
-        const productRating =
-          this.Controllers.PurchasesHistory.getReviewsByProduct(p.Id).avgRating;
-        const storeRating = this.Controllers.PurchasesHistory.getStoreRating(
+        return await this.Controllers.Jobs.canReceivePublicDataFromStore(
+          userId,
           store.Id
         );
-        return this.filterProductSearch(p, productRating, storeRating, args);
       })
-      .map((p) =>
-        p.initControllers(this.Controllers).initRepos(this.Repos).getDTO()
-      );
+      .filter(async (p) => {
+        const store = await p.getStore();
+        const productRating = (
+          await this.Controllers.PurchasesHistory.getReviewsByProduct(p.Id)
+        ).avgRating;
+        const storeRating =
+          await this.Controllers.PurchasesHistory.getStoreRating(store.Id);
+        return this.filterProductSearch(p, productRating, storeRating, args);
+      });
+    const productsDTO: StoreProductDTO[] = [];
+    for (const product of products) {
+      productsDTO.push(await product.getDTO());
+    }
+    return productsDTO;
   }
 
   private async filterProductSearch(
@@ -378,18 +383,12 @@ export class StoresController
       : true;
   }
 
-  private enforcePublicDataAccess(userId: string, storeId: string) {
-    if (!this.Controllers.Jobs.canReceivePublicDataFromStore(userId, storeId)) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "User does not have permission to receive data from store",
-      });
-    }
-  }
-
-  private enforcePrivateDataAccess(userId: string, storeId: string) {
+  private async enforcePublicDataAccess(userId: string, storeId: string) {
     if (
-      !this.Controllers.Jobs.canReceivePrivateDataFromStore(userId, storeId)
+      !(await this.Controllers.Jobs.canReceivePublicDataFromStore(
+        userId,
+        storeId
+      ))
     ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -398,8 +397,22 @@ export class StoresController
     }
   }
 
-  private enforceProductEdit(userId: string, storeId: string) {
-    if (!this.Controllers.Jobs.canEditProductInStore(userId, storeId)) {
+  private async enforcePrivateDataAccess(userId: string, storeId: string) {
+    if (
+      !(await this.Controllers.Jobs.canReceivePrivateDataFromStore(
+        userId,
+        storeId
+      ))
+    ) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User does not have permission to receive data from store",
+      });
+    }
+  }
+
+  private async enforceProductEdit(userId: string, storeId: string) {
+    if (!(await this.Controllers.Jobs.canEditProductInStore(userId, storeId))) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to edit product",
@@ -418,7 +431,7 @@ export class StoresController
       this.Controllers
     );
     const store = await product.getStore();
-    this.enforcePublicDataAccess(userId, store.Id);
+    await this.enforcePublicDataAccess(userId, store.Id);
     return product.isQuantityInStock(quantity);
   }
 
@@ -427,7 +440,9 @@ export class StoresController
     storeId: string,
     product: StoreProductArgs
   ): Promise<string> {
-    if (!this.Controllers.Jobs.canCreateProductInStore(userId, storeId)) {
+    if (
+      !(await this.Controllers.Jobs.canCreateProductInStore(userId, storeId))
+    ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to create product in store",
@@ -455,19 +470,21 @@ export class StoresController
     userId: string,
     storeId: string
   ): Promise<StoreProductDTO[]> {
-    this.enforcePublicDataAccess(userId, storeId);
+    await this.enforcePublicDataAccess(userId, storeId);
     const store = await Store.fromStoreId(
       storeId,
       this.Repos,
       this.Controllers
     );
-    const products = await store.getProducts();
-    return products;
+    return await store.getProducts();
   }
 
-  private checkDataRetrievalPermission(userId: string, storeId: string) {
+  private async checkDataRetrievalPermission(userId: string, storeId: string) {
     if (
-      !this.Controllers.Jobs.canReceivePrivateDataFromStore(userId, storeId)
+      !(await this.Controllers.Jobs.canReceivePrivateDataFromStore(
+        userId,
+        storeId
+      ))
     ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -487,7 +504,7 @@ export class StoresController
       this.Controllers
     );
     const store = await product.getStore();
-    this.enforceProductEdit(userId, store.Id);
+    await this.enforceProductEdit(userId, store.Id);
     await product.setQuantity(quantity);
   }
 
@@ -507,7 +524,9 @@ export class StoresController
       this.Controllers
     );
     const store = await product.getStore();
-    if (!this.Controllers.Jobs.canRemoveProductFromStore(userId, store.Id)) {
+    if (
+      !(await this.Controllers.Jobs.canRemoveProductFromStore(userId, store.Id))
+    ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to delete product",
@@ -526,7 +545,7 @@ export class StoresController
       this.Repos,
       this.Controllers
     );
-    this.enforceProductEdit(userId, (await product.getStore()).Id);
+    await this.enforceProductEdit(userId, (await product.getStore()).Id);
     await product.setPrice(price);
   }
 
@@ -540,7 +559,7 @@ export class StoresController
     const store = new Store(storeName)
       .initRepos(this.Repos)
       .initControllers(this.Controllers);
-    this.Controllers.Jobs.InitializeStore(founderId, store.Id);
+    await this.Controllers.Jobs.InitializeStore(founderId, store.Id);
     // todo needs to check if possible before doing any change
     if ((await this.Repos.Stores.getAllNames()).has(storeName))
       throw new TRPCError({
@@ -555,7 +574,7 @@ export class StoresController
   }
 
   async activateStore(userId: string, storeId: string): Promise<void> {
-    if (!this.Controllers.Jobs.canActivateStore(userId, storeId)) {
+    if (!(await this.Controllers.Jobs.canActivateStore(userId, storeId))) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to activate store",
@@ -567,11 +586,10 @@ export class StoresController
       this.Controllers
     );
     await store.setActive(true);
-    const notifiedUserIds = [
-      store.FounderId,
-      ...store.OwnersIds,
-      ...store.ManagersIds,
-    ];
+    const ownerIds = await store.OwnersIds;
+    const managerIds = await store.ManagersIds;
+    const founderId = await store.FounderId;
+    const notifiedUserIds = [founderId, ...ownerIds, ...managerIds];
     notifiedUserIds.forEach((uid) => {
       this.Controllers.Users.addNotification(
         uid,
@@ -598,18 +616,17 @@ export class StoresController
         message: "Store is already deactivated",
       });
     }
-    if (!this.Controllers.Jobs.canDeactivateStore(userId, storeId)) {
+    if (!(await this.Controllers.Jobs.canDeactivateStore(userId, storeId))) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to deactivate store",
       });
     }
     await store.setActive(false);
-    const notifiedUserIds = [
-      store.FounderId,
-      ...store.OwnersIds,
-      ...store.ManagersIds,
-    ];
+    const ownerIds = await store.OwnersIds;
+    const managerIds = await store.ManagersIds;
+    const founderId = await store.FounderId;
+    const notifiedUserIds = [founderId, ...ownerIds, ...managerIds];
     notifiedUserIds.forEach((uid) => {
       this.Controllers.Users.addNotification(
         uid,
@@ -625,7 +642,9 @@ export class StoresController
   }
 
   async closeStorePermanently(userId: string, storeId: string): Promise<void> {
-    if (!this.Controllers.Jobs.canCloseStorePermanently(userId, storeId)) {
+    if (
+      !(await this.Controllers.Jobs.canCloseStorePermanently(userId, storeId))
+    ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to close store permanently",
@@ -642,7 +661,7 @@ export class StoresController
   }
 
   async getProductPrice(userId: string, productId: string): Promise<number> {
-    this.enforcePublicDataAccess(
+    await this.enforcePublicDataAccess(
       userId,
       await this.getStoreIdByProductId(userId, productId)
     );
@@ -663,7 +682,7 @@ export class StoresController
       this.Repos,
       this.Controllers
     );
-    this.enforcePublicDataAccess(userId, (await product.getStore()).Id);
+    await this.enforcePublicDataAccess(userId, (await product.getStore()).Id);
     return (await product.getStore()).Id;
   }
 
@@ -677,7 +696,7 @@ export class StoresController
   }
 
   async getBasketPrice(userId: string, storeId: string): Promise<number> {
-    this.enforcePublicDataAccess(userId, storeId);
+    await this.enforcePublicDataAccess(userId, storeId);
     const store = await Store.fromStoreId(
       storeId,
       this.Repos,
@@ -693,39 +712,71 @@ export class StoresController
     return store.getBasketPrice(userId, basketDTO);
   }
 
-  makeStoreOwner(currentId: string, storeId: string, targetUserId: string) {
-    this.Controllers.Jobs.makeStoreOwner(currentId, storeId, targetUserId);
+  async makeStoreOwner(
+    currentId: string,
+    storeId: string,
+    targetUserId: string
+  ) {
+    await this.Controllers.Jobs.makeStoreOwner(
+      currentId,
+      storeId,
+      targetUserId
+    );
     eventEmitter.emit(`receive bid for store ${storeId}`, {
       storeId: storeId,
       userId: targetUserId,
     });
   }
-  makeStoreManager(currentId: string, storeId: string, targetUserId: string) {
-    this.Controllers.Jobs.makeStoreManager(currentId, storeId, targetUserId);
+  async makeStoreManager(
+    currentId: string,
+    storeId: string,
+    targetUserId: string
+  ) {
+    await this.Controllers.Jobs.makeStoreManager(
+      currentId,
+      storeId,
+      targetUserId
+    );
   }
-  removeStoreOwner(currentId: string, storeId: string, targetUserId: string) {
-    this.Controllers.Jobs.removeStoreOwner(currentId, storeId, targetUserId);
+  async removeStoreOwner(
+    currentId: string,
+    storeId: string,
+    targetUserId: string
+  ) {
+    await this.Controllers.Jobs.removeStoreOwner(
+      currentId,
+      storeId,
+      targetUserId
+    );
     eventEmitter.emit(`member is changed ${targetUserId}`, {
       changerId: currentId,
       changeeId: targetUserId,
       state: "removed as owner",
     });
   }
-  removeStoreManager(currentId: string, storeId: string, targetUserId: string) {
-    this.Controllers.Jobs.removeStoreManager(currentId, storeId, targetUserId);
+  async removeStoreManager(
+    currentId: string,
+    storeId: string,
+    targetUserId: string
+  ) {
+    await this.Controllers.Jobs.removeStoreManager(
+      currentId,
+      storeId,
+      targetUserId
+    );
     eventEmitter.emit(`member is changed ${targetUserId}`, {
       changerId: currentId,
       changeeId: targetUserId,
       state: "removed as manager",
     });
   }
-  setAddingProductToStorePermission(
+  async setAddingProductToStorePermission(
     currentId: string,
     storeId: string,
     targetUserId: string,
     permission: boolean
   ) {
-    this.Controllers.Jobs.setAddingProductToStorePermission(
+    await this.Controllers.Jobs.setAddingProductToStorePermission(
       currentId,
       storeId,
       targetUserId,
@@ -766,7 +817,10 @@ export class StoresController
   }
   async getPurchasesByStoreId(userId: string, storeId: string) {
     if (
-      !this.Controllers.Jobs.canReceivePurchaseHistoryFromStore(userId, storeId)
+      !(await this.Controllers.Jobs.canReceivePurchaseHistoryFromStore(
+        userId,
+        storeId
+      ))
     )
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -778,19 +832,24 @@ export class StoresController
       .Purchases;
   }
   async searchStores(userId: string, name: string): Promise<StoreDTO[]> {
-    return (await this.Repos.Stores.getAllStores())
-      .filter(
-        (store) =>
-          this.Controllers.Jobs.canReceivePublicDataFromStore(
-            userId,
-            store.Id
-          ) &&
-          (name === "" || store.Name === name)
-      )
-      .map(
-        (store) =>
-          store.initControllers(this.Controllers).initRepos(this.Repos).DTO
+    const stores = (await this.Repos.Stores.getAllStores()).filter(
+      async (store) =>
+        (await this.Controllers.Jobs.canReceivePublicDataFromStore(
+          userId,
+          store.Id
+        )) &&
+        (name === "" || store.Name === name)
+    );
+    const storesDTO: StoreDTO[] = [];
+    for (const store of stores) {
+      storesDTO.push(
+        await store
+          .initControllers(this.Controllers)
+          .initRepos(this.Repos)
+          .getDTO()
       );
+    }
+    return storesDTO;
   }
   async addConstraintToStore(
     userId: string,
@@ -868,25 +927,32 @@ export class StoresController
         store.initControllers(this.Controllers).initRepos(this.Repos)
       );
     }
-    const founders = realStores
-      .filter((store) => store.isFounder(userId))
-      .map((store) => ({
-        store: store.DTO,
+    const myStores: { store: StoreDTO; role: RoleType }[] = [];
+    const founders = realStores.filter((store) => store.isFounder(userId));
+    for (const store of founders) {
+      const storeDTO = await store.getDTO();
+      myStores.push({
+        store: storeDTO,
         role: "Founder" as RoleType satisfies RoleType,
-      }));
-    const owners = realStores
-      .filter((store) => store.isOwner(userId))
-      .map((store) => ({
-        store: store.DTO,
+      });
+    }
+    const owners = realStores.filter((store) => store.isOwner(userId));
+    for (const store of owners) {
+      const storeDTO = await store.getDTO();
+      myStores.push({
+        store: storeDTO,
         role: "Owner" as RoleType satisfies RoleType,
-      }));
-    const managers = realStores
-      .filter((store) => store.isManager(userId))
-      .map((store) => ({
-        store: store.DTO,
+      });
+    }
+    const managers = realStores.filter((store) => store.isManager(userId));
+    for (const store of managers) {
+      const storeDTO = await store.getDTO();
+      myStores.push({
+        store: storeDTO,
         role: "Manager" as RoleType satisfies RoleType,
-      }));
-    return founders.concat(owners).concat(managers);
+      });
+    }
+    return myStores;
   }
   async getProductById(
     userId: string,

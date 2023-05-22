@@ -25,14 +25,14 @@ import {
 async function generateForDiscountAndConstraintTests(testType: string) {
   const controllers = createTestControllers(testType, "Stores");
   vi.spyOn(controllers.PurchasesHistory, "getReviewsByProduct").mockReturnValue(
-    { avgRating: 0, reviews: [] }
+    createPromise({ avgRating: 0, reviews: [] })
   );
   const productData = generateProductArgs();
   productData.name = "Milk";
   productData.category = "Food";
   const repos = createTestRepos(testType);
   vi.spyOn(controllers.PurchasesHistory, "getReviewsByProduct").mockReturnValue(
-    { avgRating: 0, reviews: [] }
+    createPromise({ avgRating: 0, reviews: [] })
   );
   const { store, product } = await createStoreWithProduct(
     productData,
@@ -117,7 +117,7 @@ describe("createProduct", () => {
     vi.spyOn(
       controllers.PurchasesHistory,
       "getReviewsByProduct"
-    ).mockReturnValue({ avgRating: 0, reviews: [] });
+    ).mockReturnValue(createPromise({ avgRating: 0, reviews: [] }));
     const products = await store.getProducts();
     expect(products.length).toBe(1);
     expect(products[0]).toEqual({

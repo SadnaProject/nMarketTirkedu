@@ -21,15 +21,15 @@ import { PaymentAdapter } from "./PaymentAdaptor";
 
 const reviewData = {
   rating: 5,
-  id: "id",
   createdAt: new Date(),
   userId: "admin",
   purchaseId: "purchaseId",
-  productId: "productId",
+  storeId: "storeId",
 };
 const productReviewData = {
   title: "title",
   description: "description",
+  productId: "productId",
   ...reviewData,
 };
 const productPurchaseData = {
@@ -104,7 +104,7 @@ describe("addProductPurchaseReview", () => {
     const productReview = createProductReview();
     const cartPurchase = createCartPurchase();
     vi.spyOn(CartPurchaseRepo.prototype, "getPurchaseById").mockReturnValue(
-      cartPurchase
+      Promise.resolve(cartPurchase)
     );
     vi.spyOn(
       ProductReviewRepo.prototype,
@@ -113,7 +113,7 @@ describe("addProductPurchaseReview", () => {
     vi.spyOn(
       ProductPurchaseRepo.prototype,
       "getProductsPurchaseById"
-    ).mockReturnValue([createProductPurchase()]);
+    ).mockReturnValue(Promise.resolve([createProductPurchase()]));
     controllers.PurchasesHistory.addPurchase(cartPurchase);
     expect(() =>
       controllers.PurchasesHistory.addProductPurchaseReview(
@@ -122,7 +122,8 @@ describe("addProductPurchaseReview", () => {
         "productId",
         5,
         "title",
-        "description"
+        "description",
+        "storeId"
       )
     ).not.toThrow();
   });
@@ -135,10 +136,11 @@ describe("addProductPurchaseReview", () => {
     controllers.PurchasesHistory.addProductPurchaseReview(
       productReview.UserId,
       productReview.PurchaseId,
-      productReview.ProductId!,
+      productReview.ProductId,
       productReview.Rating,
       productReview.Title,
-      productReview.Description
+      productReview.Description,
+      productReview.StoreId
     );
     vi.spyOn(
       ProductReviewRepo.prototype,
@@ -151,7 +153,8 @@ describe("addProductPurchaseReview", () => {
         "productId",
         5,
         "title",
-        "description"
+        "description",
+        "storeId"
       )
     ).toThrow();
   });
@@ -166,7 +169,7 @@ describe("addProductPurchaseReview", () => {
       vi.spyOn(
         ProductPurchaseRepo.prototype,
         "getProductsPurchaseById"
-      ).mockReturnValue([]);
+      ).mockReturnValue(Promise.resolve([]));
       expect(() =>
         controllers.PurchasesHistory.addProductPurchaseReview(
           "admin",
@@ -174,7 +177,8 @@ describe("addProductPurchaseReview", () => {
           "productId2",
           5,
           "title",
-          "description"
+          "description",
+          "storeId"
         )
       ).toThrow();
     }
@@ -194,7 +198,8 @@ describe("addProductPurchaseReview", () => {
           "productId",
           5,
           "title",
-          "description"
+          "description",
+          "storeId"
         )
       ).toThrow();
     }
@@ -207,7 +212,7 @@ describe("addStorePurchaseReview", () => {
     const cartPurchase = createCartPurchase();
     controllers.PurchasesHistory.addPurchase(cartPurchase);
     vi.spyOn(ReviewRepo.prototype, "doesStoreReviewExist").mockReturnValue(
-      false
+      Promise.resolve(false)
     );
     vi.spyOn(BasketPurchaseRepo.prototype, "hasPurchase").mockReturnValue(true);
     expect(() =>
@@ -229,7 +234,7 @@ describe("addStorePurchaseReview", () => {
       5
     );
     vi.spyOn(ReviewRepo.prototype, "doesStoreReviewExist").mockReturnValue(
-      true
+      Promise.resolve(true)
     );
     expect(() =>
       controllers.PurchasesHistory.addStorePurchaseReview(
@@ -265,15 +270,16 @@ describe("getCartPurchaseByUserId", () => {
     const userId = controllers.Auth.register("admin", "admin");
     vi.spyOn(controllers.Jobs, "setInitialAdmin").mockReturnValue();
     controllers.Jobs.setInitialAdmin(userId);
-    vi.spyOn(CartPurchaseRepo.prototype, "addCartPurchase").mockReturnValue();
-    vi.spyOn(
-      BasketPurchaseRepo.prototype,
-      "addBasketPurchase"
-    ).mockReturnValue();
+    vi.spyOn(CartPurchaseRepo.prototype, "addCartPurchase").mockReturnValue(
+      Promise.resolve()
+    );
+    vi.spyOn(BasketPurchaseRepo.prototype, "addBasketPurchase").mockReturnValue(
+      Promise.resolve()
+    );
     vi.spyOn(
       ProductPurchaseRepo.prototype,
       "addProductPurchase"
-    ).mockReturnValue();
+    ).mockReturnValue(Promise.resolve());
     vi.spyOn(
       CartPurchaseRepo.prototype,
       "doesPurchaseExist"
@@ -283,9 +289,9 @@ describe("getCartPurchaseByUserId", () => {
     vi.spyOn(CartPurchaseRepo.prototype, "doesPurchaseExist").mockReturnValue(
       true
     );
-    vi.spyOn(CartPurchaseRepo.prototype, "getPurchasesByUser").mockReturnValue([
-      cartPurchase,
-    ]);
+    vi.spyOn(CartPurchaseRepo.prototype, "getPurchasesByUser").mockReturnValue(
+      Promise.resolve([cartPurchase])
+    );
     expect(
       controllers.PurchasesHistory.getPurchasesByUser(
         "admin",
@@ -358,7 +364,7 @@ describe("addPurchase", () => {
 
 // test get reviews by product id
 describe("getReviewsByProductId", () => {
-  itUnitIntegration("✅gets reviews by product id", () => {
+  itUnitIntegration("✅gets reviews by product id", async () => {
     const productReview = createProductReview();
     const cartPurchase = createCartPurchase();
     vi.spyOn(CartPurchaseRepo.prototype, "doesPurchaseExist").mockReturnValue(
@@ -371,21 +377,20 @@ describe("getReviewsByProductId", () => {
       "productId",
       5,
       "title",
-      "description"
+      "description",
+      "storeId"
     );
-
-    expect(
-      controllers.PurchasesHistory.getReviewsByProduct("productId").reviews
-        .length
-    ).toBe(1);
-    expect(
-      controllers.PurchasesHistory.getReviewsByProduct("productId").avgRating
-    ).toBe(5);
+    const reviews = await controllers.PurchasesHistory.getReviewsByProduct(
+      "productId"
+    );
+    expect(reviews.reviews.length).toBe(1);
+    expect(reviews.avgRating).toBe(5);
   });
-  itUnitIntegration("❎gets undefined reviews by product id", () => {
-    expect(
-      controllers.PurchasesHistory.getReviewsByProduct("productId").reviews
-    ).toStrictEqual([]);
+  itUnitIntegration("❎gets undefined reviews by product id", async () => {
+    const reviews = await controllers.PurchasesHistory.getReviewsByProduct(
+      "productId"
+    );
+    expect(reviews.reviews).toStrictEqual([]);
   });
 });
 
@@ -400,9 +405,9 @@ describe("getReviewsByStore", () => {
       "storeId",
       5
     );
-    vi.spyOn(ReviewRepo.prototype, "getAllStoreReviews").mockReturnValue([
-      createReview(),
-    ]);
+    vi.spyOn(ReviewRepo.prototype, "getAllStoreReviews").mockReturnValue(
+      Promise.resolve([createReview()])
+    );
     expect(controllers.PurchasesHistory.getReviewsByStore("storeId")).toBe(1);
   });
   itUnitIntegration("❎gets undefined reviews by store id", () => {
@@ -421,7 +426,7 @@ describe("getReviewsByStore", () => {
       5
     );
     vi.spyOn(ReviewRepo.prototype, "doesStoreReviewExist").mockReturnValue(
-      true
+      Promise.resolve(true)
     );
     expect(() =>
       controllers.PurchasesHistory.addStorePurchaseReview(
@@ -436,20 +441,22 @@ describe("getReviewsByStore", () => {
 
 // test get purchase by store id
 describe("getPurchasesByStore", () => {
-  itUnitIntegration("✅gets purchases by store id", () => {
+  itUnitIntegration("✅gets purchases by store id", async () => {
     const cartPurchase = createCartPurchase();
     controllers.PurchasesHistory.addPurchase(cartPurchase);
     vi.spyOn(CartPurchaseRepo.prototype, "doesPurchaseExist").mockReturnValue(
       true
     );
-    expect(
-      controllers.PurchasesHistory.getPurchasesByStore("storeId").length
-    ).toBe(1);
+    const purchases = await controllers.PurchasesHistory.getPurchasesByStore(
+      "storeId"
+    );
+    expect(purchases.length).toBe(1);
   });
-  itUnitIntegration("❎gets undefined purchases by store id", () => {
-    expect(
-      controllers.PurchasesHistory.getPurchasesByStore("storeId").length
-    ).toBe(0);
+  itUnitIntegration("❎gets undefined purchases by store id", async () => {
+    const purchases = await controllers.PurchasesHistory.getPurchasesByStore(
+      "storeId"
+    );
+    expect(purchases.length).toBe(0);
   });
 });
 
@@ -464,9 +471,9 @@ describe("getStoreRating", () => {
       "storeId",
       5
     );
-    vi.spyOn(ReviewRepo.prototype, "getAllStoreReviews").mockReturnValue([
-      createReview(),
-    ]);
+    vi.spyOn(ReviewRepo.prototype, "getAllStoreReviews").mockReturnValue(
+      Promise.resolve([createReview()])
+    );
     expect(controllers.PurchasesHistory.getStoreRating("storeId")).toBe(5);
   });
   itUnitIntegration("❎gets undefined store rating", () => {

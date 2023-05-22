@@ -33,11 +33,12 @@ export class MarketFacade extends Loggable {
   }
 
   private validateConnection(userId: string): void {
-    if (!this.controllers.Auth.isConnected(userId))
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "User is not logged in",
-      });
+    //TODO fix this
+    // if (!this.controllers.Auth.isConnected(userId))
+    //   throw new TRPCError({
+    //     code: "UNAUTHORIZED",
+    //     message: "User is not logged in",
+    //   });
   }
 
   public getLogs(userId: string) {

@@ -1,24 +1,21 @@
 import { HasControllers } from "../_HasController";
 import { type CartDTO } from "../Users/Cart";
 import {
-  type BasketPurchase,
+  BasketPurchase,
   type BasketPurchaseDTO,
 } from "./BasketPurchaseHistory";
 import { CartPurchase, type CartPurchaseDTO } from "./CartPurchaseHistory";
 import { type ProductReviewDTO, ProductReview } from "./ProductReview";
-import { Review, type ReviewDTO } from "./Review";
+import { Review } from "./Review";
 import { randomUUID } from "crypto";
 import { Mixin } from "ts-mixer";
 import { Testable, testable } from "server/domain/_Testable";
 import { HasRepos, type Repos, createRepos } from "./_HasRepos";
 import { type CreditCard, PaymentAdapter } from "./PaymentAdaptor";
 import {
+  ProductPurchase,
   type ProductPurchaseDTO,
-  type ProductPurchase,
 } from "./ProductPurchaseHistory";
-import { Console, error } from "console";
-import { createControllers } from "../_createControllers";
-import { JobsController } from "../Jobs/JobsController";
 import { TRPCError } from "@trpc/server";
 import { eventEmitter } from "server/EventEmitter";
 import { censored } from "../_Loggable";
@@ -26,7 +23,7 @@ import { type BasketDTO } from "../Users/Basket";
 import { type BasketProductDTO } from "../Users/BasketProduct";
 
 export interface IPurchasesHistoryController extends HasRepos {
-  getPurchase(purchaseId: string): CartPurchaseDTO;
+  getPurchase(purchaseId: string): Promise<CartPurchaseDTO>;
   purchaseCart(
     userId: string,
     cart: CartDTO,
@@ -45,16 +42,20 @@ export interface IPurchasesHistoryController extends HasRepos {
     productId: string,
     rating: number,
     title: string,
-    description: string
+    description: string,
+    storeId: string
   ): void;
-  getStoreRating(storeId: string): number;
-  getReviewsByStore(storeId: string): number;
-  getReviewsByProduct(productId: string): {
+  getStoreRating(storeId: string): Promise<number>;
+  getReviewsByStore(storeId: string): Promise<number>;
+  getReviewsByProduct(productId: string): Promise<{
     reviews: ProductReviewDTO[];
     avgRating: number;
-  };
-  getPurchasesByUser(admingId: string, userId: string): CartPurchaseDTO[];
-  getPurchasesByStore(storeId: string): BasketPurchaseDTO[];
+  }>;
+  getPurchasesByUser(
+    admingId: string,
+    userId: string
+  ): Promise<CartPurchaseDTO[]>;
+  getPurchasesByStore(storeId: string): Promise<BasketPurchaseDTO[]>;
   ProductPurchaseDTOFromBasketProductDTO(
     basketProductDTO: BasketProductDTO,
     purchaseId: string,
@@ -82,7 +83,10 @@ export class PurchasesHistoryController
     super();
     this.initRepos(repos);
   }
-  getPurchasesByUser(admingId: string, userId: string): CartPurchaseDTO[] {
+  async getPurchasesByUser(
+    admingId: string,
+    userId: string
+  ): Promise<CartPurchaseDTO[]> {
     if (this.Controllers.Jobs.isSystemAdmin(admingId) === false) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -90,22 +94,22 @@ export class PurchasesHistoryController
           "User is not a system admin, and therefore cannot view other users' purchases",
       });
     }
-    return this.Repos.CartPurchases.getPurchasesByUser(userId).map((purchase) =>
-      purchase.ToDTO()
-    );
+    const purchases = await this.Repos.CartPurchases.getPurchasesByUser(userId);
+    return purchases.map((purchase) => purchase.ToDTO());
   }
-  getPurchasesByStore(storeId: string): BasketPurchaseDTO[] {
-    return this.Repos.BasketPurchases.getPurchasesByStore(storeId).map(
-      (purchase) => purchase.ToDTO()
+  async getPurchasesByStore(storeId: string): Promise<BasketPurchaseDTO[]> {
+    const purchases = await this.Repos.BasketPurchases.getPurchasesByStore(
+      storeId
     );
+    return purchases.map((purchase) => purchase.ToDTO());
   }
 
-  purchaseCart(
+  async purchaseCart(
     userId: string,
     cart: CartDTO,
     price: number,
     @censored creditCard: CreditCard
-  ): void {
+  ): Promise<void> {
     cart.storeIdToBasket.forEach((basket) => {
       basket.products.forEach((product) => {
         if (
@@ -145,7 +149,7 @@ export class PurchasesHistoryController
     });
     // for every storeId in cart, EventEmmiter.emit("purchase", storeId, cart.storeIdToBasket.get(storeId))
     const cartPurchase = this.CartPurchaseDTOfromCartDTO(cart, userId, price);
-    this.addPurchase(CartPurchase.fromDTO(cartPurchase));
+    await this.addPurchase(CartPurchase.fromDTO(cartPurchase));
     for (const [storeId, basket] of cart.storeIdToBasket) {
       eventEmitter.emit(`purchase store ${storeId}`, {
         purchaseId: cartPurchase.purchaseId,
@@ -155,47 +159,56 @@ export class PurchasesHistoryController
     }
   }
 
-  addPurchase(cartPurchase: CartPurchase): void {
+  async addPurchase(cartPurchase: CartPurchase): Promise<void> {
     // check that purchase with same id doesn't exist
     // if this.Repos.CartPurchases.getPurchaseById(cartPurchase.PurchaseId) dosent throw, throw error
-    if (this.Repos.CartPurchases.doesPurchaseExist(cartPurchase.PurchaseId)) {
+    if (
+      await this.Repos.CartPurchases.doesPurchaseExist(cartPurchase.PurchaseId)
+    ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
           "Purchase with same id already exists, please try again with a different cart",
       });
     }
-    this.Repos.CartPurchases.addCartPurchase(cartPurchase);
+    await this.Repos.CartPurchases.addCartPurchase(cartPurchase);
     // for each <string, basket> in cart do addBasketPurchase
-    cartPurchase.StoreIdToBasketPurchases.forEach((basket, storeId) => {
-      this.addBasketPurchase(basket);
-      basket.Products.forEach((product) => {
-        this.addProductPurchase(product);
-      });
-    });
-  }
-  addBasketPurchase(basketPurchase: BasketPurchase): void {
-    this.Repos.BasketPurchases.addBasketPurchase(basketPurchase);
+    // cartPurchase.StoreIdToBasketPurchases.forEach((basket, storeId) => {
+    //   this.addBasketPurchase(basket);
+    //   basket.Products.forEach((product) => {
+    //     this.addProductPurchase(product);
+    //   });
+    // });
   }
 
-  addProductPurchase(productPurchase: ProductPurchase): void {
-    this.Repos.ProductsPurchases.addProductPurchase(productPurchase);
+  async addBasketPurchase(basketPurchase: BasketPurchase): Promise<void> {
+    await this.Repos.BasketPurchases.addBasketPurchase(basketPurchase);
   }
 
-  addStorePurchaseReview(
+  async addProductPurchase(
+    productPurchase: ProductPurchase,
+    storeId: string
+  ): Promise<void> {
+    await this.Repos.ProductsPurchases.addProductPurchase(
+      productPurchase,
+      storeId
+    );
+  }
+
+  async addStorePurchaseReview(
     userId: string,
     purchaseId: string,
     storeId: string,
     rating: number
-  ): void {
-    if (this.Repos.Reviews.doesStoreReviewExist(purchaseId, storeId)) {
+  ): Promise<void> {
+    if (await this.Repos.Reviews.doesStoreReviewExist(purchaseId, storeId)) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
           "Store already reviewed, please try again with a different purchase",
       });
     }
-    if (this.Repos.BasketPurchases.hasPurchase(purchaseId) === false) {
+    if (this.Repos.BasketPurchases.hasPurchase(purchaseId, storeId) === false) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Purchase not found",
@@ -203,22 +216,22 @@ export class PurchasesHistoryController
     }
     const review = new Review({
       rating: rating,
-      id: randomUUID(),
       createdAt: new Date(),
       userId: userId,
       purchaseId: purchaseId,
       storeId: storeId,
     });
-    this.Repos.Reviews.addStoreReview(review);
+    await this.Repos.Reviews.addStoreReview(review);
   }
-  addProductPurchaseReview(
+  async addProductPurchaseReview(
     userId: string,
     purchaseId: string,
     productId: string,
     rating: number,
     title: string,
-    description: string
-  ): void {
+    description: string,
+    storeId: string
+  ): Promise<void> {
     if (
       this.Repos.ProductReviews.doesProductReviewExist(purchaseId, productId)
     ) {
@@ -237,11 +250,11 @@ export class PurchasesHistoryController
         message: "Purchase not found",
       });
     }
-    // check if there is product with productId in getProductsPurchaseById
+    const products = await this.Repos.ProductsPurchases.getProductsPurchaseById(
+      purchaseId
+    );
     if (
-      this.Repos.ProductsPurchases.getProductsPurchaseById(purchaseId).find(
-        (product) => product.ProductId === productId
-      ) === undefined
+      products.find((product) => product.ProductId === productId) === undefined
     ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -249,36 +262,38 @@ export class PurchasesHistoryController
       });
     }
     const productReview = new ProductReview({
-      rating: rating,
-      id: randomUUID(),
-      createdAt: new Date(),
-      userId: userId,
-      purchaseId: purchaseId,
       title: title,
       description: description,
       productId: productId,
+      rating: rating,
+      createdAt: new Date(),
+      userId: userId,
+      purchaseId: purchaseId,
+      storeId: storeId,
     });
-    this.Repos.ProductReviews.addProductReview(productReview);
+    await this.Repos.ProductReviews.addProductReview(productReview);
   }
-  getStoreRating(storeId: string): number {
+  async getStoreRating(storeId: string): Promise<number> {
     let sum = 0;
     let count = 0;
-    const reviews = this.Repos.Reviews.getAllStoreReviews(storeId);
+    const reviews = await this.Repos.Reviews.getAllStoreReviews(storeId);
     for (const review of reviews) {
       sum += review.Rating;
       count++;
     }
     return sum / count || 0;
   }
-  getReviewsByStore(storeId: string): number {
-    const reviews = this.Repos.Reviews.getAllStoreReviews(storeId);
+  async getReviewsByStore(storeId: string): Promise<number> {
+    const reviews = await this.Repos.Reviews.getAllStoreReviews(storeId);
     return reviews.length;
   }
-  getReviewsByProduct(productId: string): {
+  async getReviewsByProduct(productId: string): Promise<{
     reviews: ProductReviewDTO[];
     avgRating: number;
-  } {
-    const reviews = this.Repos.ProductReviews.getAllProductReviews(productId);
+  }> {
+    const reviews = await this.Repos.ProductReviews.getAllProductReviews(
+      productId
+    );
     let sum = 0;
     for (const review of reviews) {
       sum += review.Rating;
@@ -288,14 +303,17 @@ export class PurchasesHistoryController
       avgRating: sum / reviews.length || 0,
     };
   }
-  getPurchase(purchaseId: string): CartPurchaseDTO {
-    if (this.Repos.CartPurchases.doesPurchaseExist(purchaseId) === false) {
+  async getPurchase(purchaseId: string): Promise<CartPurchaseDTO> {
+    if (
+      (await this.Repos.CartPurchases.doesPurchaseExist(purchaseId)) === false
+    ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Purchase not found",
       });
     }
-    return this.Repos.CartPurchases.getPurchaseById(purchaseId)!.ToDTO();
+    const purchase = await this.Repos.CartPurchases.getPurchaseById(purchaseId);
+    return purchase.ToDTO();
   }
   BasketPurchaseDTOFromBasketDTO(
     basketDTO: BasketDTO,

@@ -60,17 +60,17 @@ export interface IPurchasesHistoryController extends HasRepos {
     basketProductDTO: BasketProductDTO,
     purchaseId: string,
     userId: string
-  ): ProductPurchaseDTO;
+  ): Promise<ProductPurchaseDTO>;
   BasketPurchaseDTOFromBasketDTO(
     basket: BasketDTO,
     purchaseId: string,
     userId: string
-  ): BasketPurchaseDTO;
+  ): Promise<BasketPurchaseDTO>;
   CartPurchaseDTOfromCartDTO(
     cartDTO: CartDTO,
     userId: string,
     totalPrice: number
-  ): CartPurchaseDTO;
+  ): Promise<CartPurchaseDTO>;
   addPurchase(cartPurchase: CartPurchase): void;
 }
 
@@ -87,7 +87,7 @@ export class PurchasesHistoryController
     admingId: string,
     userId: string
   ): Promise<CartPurchaseDTO[]> {
-    if (this.Controllers.Jobs.isSystemAdmin(admingId) === false) {
+    if (await this.Controllers.Jobs.isSystemAdmin(admingId) === false) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
@@ -110,22 +110,22 @@ export class PurchasesHistoryController
     price: number,
     @censored creditCard: CreditCard
   ): Promise<void> {
-    cart.storeIdToBasket.forEach((basket) => {
-      basket.products.forEach((product) => {
+    for (const basket of cart.storeIdToBasket.values()) {
+      for (const product of basket.products.values()) {
         if (
-          !this.Controllers.Stores.isProductQuantityInStock(
+          !(await this.Controllers.Stores.isProductQuantityInStock(
             userId,
             product.storeProductId,
             product.quantity
-          )
+          ))
         ) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "Product quantity is not available",
           });
         }
-      });
-    });
+      }
+    }
     if (cart.storeIdToBasket.size === 0) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -139,16 +139,16 @@ export class PurchasesHistoryController
           "Payment failed, please check your credit card details and try again",
       });
     }
-    cart.storeIdToBasket.forEach((basket) => {
-      basket.products.forEach((product) => {
-        this.Controllers.Stores.decreaseProductQuantity(
+    for (const basket of cart.storeIdToBasket.values()) {
+      for (const product of basket.products.values()) {
+        await this.Controllers.Stores.decreaseProductQuantity(
           product.storeProductId,
           product.quantity
         );
-      });
-    });
+      }
+    }
     // for every storeId in cart, EventEmmiter.emit("purchase", storeId, cart.storeIdToBasket.get(storeId))
-    const cartPurchase = this.CartPurchaseDTOfromCartDTO(cart, userId, price);
+    const cartPurchase = await this.CartPurchaseDTOfromCartDTO(cart, userId, price);
     await this.addPurchase(CartPurchase.fromDTO(cartPurchase));
     for (const [storeId, basket] of cart.storeIdToBasket) {
       eventEmitter.emit(`purchase store ${storeId}`, {
@@ -315,53 +315,60 @@ export class PurchasesHistoryController
     const purchase = await this.Repos.CartPurchases.getPurchaseById(purchaseId);
     return purchase.ToDTO();
   }
-  BasketPurchaseDTOFromBasketDTO(
+  async BasketPurchaseDTOFromBasketDTO(
     basketDTO: BasketDTO,
     purchaseId: string,
     userId: string
-  ): BasketPurchaseDTO {
+  ): Promise<BasketPurchaseDTO> {
     const products = new Map<string, ProductPurchaseDTO>();
-    basketDTO.products.forEach((product) => {
+    for (const product of basketDTO.products) {
       products.set(
         product.storeProductId,
-        this.ProductPurchaseDTOFromBasketProductDTO(product, purchaseId, userId)
+        await this.ProductPurchaseDTOFromBasketProductDTO(
+          product,
+          purchaseId,
+          userId
+        )
       );
-    });
+    }
     return {
       purchaseId: purchaseId,
       storeId: basketDTO.storeId,
       products: products,
-      price: this.Controllers.Stores.getBasketPrice(userId, basketDTO.storeId),
+      price: await this.Controllers.Stores.getBasketPrice(
+        userId,
+        basketDTO.storeId
+      ),
     };
   }
-  ProductPurchaseDTOFromBasketProductDTO(
+  async ProductPurchaseDTOFromBasketProductDTO(
     basketProductDTO: BasketProductDTO,
     purchaseId: string,
     userId: string
-  ): ProductPurchaseDTO {
+  ): Promise<ProductPurchaseDTO> {
     return {
       productId: basketProductDTO.storeProductId,
       quantity: basketProductDTO.quantity,
-      price: this.Controllers.Stores.getProductPrice(
+      price: await this.Controllers.Stores.getProductPrice(
         userId,
         basketProductDTO.storeProductId
       ),
       purchaseId: purchaseId,
     };
   }
-  CartPurchaseDTOfromCartDTO(
+  async CartPurchaseDTOfromCartDTO(
     cartDTO: CartDTO,
     userId: string,
     totalPrice: number
-  ): CartPurchaseDTO {
+  ): Promise<CartPurchaseDTO> {
     const purchaseId = randomUUID();
     const storeIdToBasketPurchases = new Map<string, BasketPurchaseDTO>();
-    cartDTO.storeIdToBasket.forEach((basketPurchase, storeId) => {
+    for (const [storeId, basket] of cartDTO.storeIdToBasket) {
       storeIdToBasketPurchases.set(
         storeId,
-        this.BasketPurchaseDTOFromBasketDTO(basketPurchase, purchaseId, userId)
+        await this.BasketPurchaseDTOFromBasketDTO(basket, purchaseId, userId)
       );
-    });
+    }
     return {
       purchaseId: purchaseId,
       userId: userId,

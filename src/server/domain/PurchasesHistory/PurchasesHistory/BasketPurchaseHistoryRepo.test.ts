@@ -55,10 +55,10 @@ describe("getPurchaseById", () => {
   const productIdToProductPurchase = new Map<string, ProductPurchase>();
   itUnitIntegration("should return the basket purchase", async () => {
     const basketPurchase = new BasketPurchase(
-      basketPurchaseData.storeId,
+      "storeId",
       productIdToProductPurchase,
-      basketPurchaseData.price,
-      basketPurchaseData.purchaseId
+      1,
+      "purchaseId"
     );
     const basketPurchaseRepo = new BasketPurchaseRepo();
     await basketPurchaseRepo.addBasketPurchase(basketPurchase);

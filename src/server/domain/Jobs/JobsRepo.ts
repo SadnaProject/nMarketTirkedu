@@ -34,6 +34,7 @@ export class JobsRepo extends Testable {
   }
 
   public async SetStoreFounder(founder: PositionHolder): Promise<void> {
+    //todo: delete the row below
     // this.storeIdToFounder.set(founder.StoreId, founder);
     //todo: there needs to only one founder role in the db
     if (

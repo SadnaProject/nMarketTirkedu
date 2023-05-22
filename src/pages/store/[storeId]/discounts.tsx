@@ -59,6 +59,7 @@ export default function Home() {
     criteriaMode: "all",
     reValidateMode: "onChange",
   });
+  // api.stores.get
 
   const handleCreateStore = formMethods.handleSubmit(
     (data) => {
@@ -69,8 +70,7 @@ export default function Home() {
 
   return (
     <Layout className="max-w-none">
-      <h1>The Happy Place</h1>
-      {storeId && <StoreNavbar storeId={storeId} />}
+      <StoreNavbar storeId={storeId} />
       <div
         className="hs-accordion-group flex w-full overflow-auto"
         data-hs-accordion-always-open

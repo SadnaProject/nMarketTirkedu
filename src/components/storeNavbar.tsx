@@ -2,57 +2,120 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { twMerge } from "tailwind-merge";
 import PATHS from "utils/paths";
-import { BookIcon } from "./icons";
+import { BookIcon, TrashIcon } from "./icons";
+import { api } from "utils/api";
+import { useEffect, useState } from "react";
+import { cachedQueryOptions } from "utils/query";
+import Button from "./button";
+import { Modal } from "./modal";
 
 type Props = {
-  storeId: string;
+  storeId: string | undefined;
 };
 
 export default function StoreNavbar({ storeId }: Props) {
   const router = useRouter();
+  const { data: isSystemAdmin } = api.jobs.isSystemAdmin.useQuery(
+    undefined,
+    cachedQueryOptions
+  );
+  const { mutate: closeStorePermanently } =
+    api.stores.closeStorePermanently.useMutation({
+      ...cachedQueryOptions,
+      onSuccess: () => router.push(PATHS.stores.path),
+    });
+  const { data: myStores } = api.stores.myStores.useQuery(
+    undefined,
+    cachedQueryOptions
+  );
+  const [isMyStore, setIsMyStore] = useState(false);
+  useEffect(() => {
+    if (myStores) {
+      setIsMyStore(myStores.some((myStore) => myStore.store.id === storeId));
+    }
+  }, [myStores, storeId]);
 
   const links = [
     {
       name: "Products",
-      href: PATHS.store.path(storeId),
+      href: PATHS.store.path(storeId ?? ""),
       icon: <OverviewIcon />,
     },
-    { name: "Jobs", href: PATHS.storeJobs.path(storeId), icon: <JobsIcon /> },
+    {
+      name: "Jobs",
+      href: PATHS.storeJobs.path(storeId ?? ""),
+      icon: <JobsIcon />,
+    },
     {
       name: "Revenue",
-      href: PATHS.storeRevenue.path(storeId),
+      href: PATHS.storeRevenue.path(storeId ?? ""),
       icon: <RevenueIcon />,
     },
     {
       name: "Discounts",
-      href: PATHS.storeDiscounts.path(storeId),
+      href: PATHS.storeDiscounts.path(storeId ?? ""),
       icon: <DiscountIcon />,
     },
     {
       name: "Policy",
-      href: PATHS.storePolicy.path(storeId),
+      href: PATHS.storePolicy.path(storeId ?? ""),
       icon: <BookIcon />,
     },
   ];
 
   return (
-    <nav className="flex w-full max-w-2xl space-x-2 overflow-auto">
-      {links.map((link) => (
-        <Link
-          key={link.name}
-          className={twMerge(
-            "inline-flex grow basis-0 items-center justify-center gap-2 rounded-lg px-4 py-3 text-center text-sm font-medium",
-            router.asPath.split("?")[0] === link.href
-              ? "bg-blue-600 text-white"
-              : "bg-transparent text-gray-500 hover:text-blue-600"
+    <>
+      {storeId && (
+        <>
+          <div className="flex items-center gap-2">
+            <h1>The Happy TODO</h1>
+            {isSystemAdmin && (
+              <button data-hs-overlay={"#hs-modal-perm-close"}>
+                <TrashIcon />
+              </button>
+            )}
+            <Modal
+              id={"hs-modal-perm-close"}
+              title="Confirm permanent closure"
+              content={
+                <>
+                  Are you sure you want to close the store permanently?
+                  <br />
+                  This action cannot be undone.
+                </>
+              }
+              footer={
+                <Button
+                  onClick={() => closeStorePermanently({ storeId })}
+                  data-hs-overlay={"#hs-modal-perm-close"}
+                >
+                  Close store permanently
+                </Button>
+              }
+            />
+          </div>
+          {isMyStore && (
+            <nav className="flex w-full max-w-2xl space-x-2 overflow-auto">
+              {links.map((link) => (
+                <Link
+                  key={link.name}
+                  className={twMerge(
+                    "inline-flex grow basis-0 items-center justify-center gap-2 rounded-lg px-4 py-3 text-center text-sm font-medium",
+                    router.asPath.split("?")[0] === link.href
+                      ? "bg-blue-600 text-white"
+                      : "bg-transparent text-gray-500 hover:text-blue-600"
+                  )}
+                  href={link.href}
+                >
+                  {link.icon}
+                  {link.name}
+                </Link>
+              ))}
+            </nav>
           )}
-          href={link.href}
-        >
-          {link.icon}
-          {link.name}
-        </Link>
-      ))}
-    </nav>
+        </>
+      )}
+    </>
   );
 }
 

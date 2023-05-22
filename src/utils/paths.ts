@@ -3,7 +3,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
-type UserType = Session["user"]["type"];
+type UserType = Session["user"]["type"] | "admin";
 
 type Path = {
   path: string | ((...args: string[]) => string);
@@ -18,6 +18,10 @@ const PATHS = {
   product: {
     path: (productId: string) => `/product/${productId}`,
     for: ["guest", "member"],
+  },
+  editProduct: {
+    path: (productId: string) => `/product/${productId}/edit`,
+    for: ["member"],
   },
   stores: { path: "/stores", for: ["guest", "member"] },
   store: {
@@ -45,11 +49,6 @@ const PATHS = {
     path: (storeId: string) => `/store/${storeId}/createProduct`,
     for: ["member"],
   },
-  editProduct: {
-    path: (storeId: string, productId: string) =>
-      `/store/${storeId}/editProduct/${productId}`,
-    for: ["member"],
-  },
   myStores: { path: "/myStores", for: ["member"] },
   myReceipts: { path: "/myReceipts", for: ["member"] },
   receipt: {
@@ -58,6 +57,7 @@ const PATHS = {
   },
   chat: { path: (uid: string) => `/chat/${uid}`, for: ["member"] },
   cart: { path: "/cart", for: ["guest", "member"] },
+  adminPanel: { path: "/admin", for: ["admin"] },
 } as const satisfies Record<string, Path>;
 export default PATHS;
 

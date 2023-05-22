@@ -13,14 +13,13 @@ import Href from "components/href";
 import { FormInput } from "components/form";
 import { api } from "utils/api";
 import { onError } from "utils/query";
-import { useCallback } from "react";
 
 const formSchema = z.object({
   email: z
     .string()
     .nonempty("Email is required")
     .email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z.string().min(5, "Password must be at least 5 characters"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -79,14 +78,14 @@ export default function Home() {
               field="email"
               label="Email address"
               type="email"
-              register={register}
+              {...register("email")}
               errors={errors}
             />
             <FormInput
               field="password"
               label="Password"
               type="password"
-              register={register}
+              {...register("password")}
               errors={errors}
             />
 

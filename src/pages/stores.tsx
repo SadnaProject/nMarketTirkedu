@@ -14,7 +14,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { api } from "utils/api";
 import { toast } from "react-hot-toast";
-import { cachedQueryOptions, onError } from "utils/query";
+import { cachedQueryOptions } from "utils/query";
 
 const formSchema = z.object({
   name: z.string(),
@@ -28,21 +28,20 @@ export default function Home() {
   const {
     register,
     handleSubmit,
-    setValue,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
     getValues,
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: { name: "" },
   });
-  const { data: stores } = api.stores.searchStores.useQuery(
+  const { data: stores, refetch } = api.stores.searchStores.useQuery(
     getValues(),
     cachedQueryOptions
   );
 
   const handleSearch = handleSubmit(
-    async (data) => {
-      // await refetch();
+    (data) => {
+      void refetch();
     },
     (e) => {
       toast.error(Object.values(e)[0]?.message || "Something went wrong");

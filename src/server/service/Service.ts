@@ -106,8 +106,12 @@ export class Service {
     return this.facade.getStoreRating(storeId);
   }
 
-  public loginMember(userId: string, email: string, password: string): string {
-    return this.facade.loginMember(userId, email, password);
+  public async loginMember(
+    userId: string,
+    email: string,
+    password: string
+  ): Promise<string> {
+    return await this.facade.loginMember(userId, email, password);
   }
 
   public disconnectUser(userId: string) {
@@ -302,12 +306,16 @@ export class Service {
     return this.facade.startSession();
   }
 
-  public registerMember(userId: string, email: string, password: string): void {
-    this.facade.registerMember(userId, email, password);
+  public async registerMember(
+    userId: string,
+    email: string,
+    password: string
+  ): Promise<void> {
+    await this.facade.registerMember(userId, email, password);
   }
 
-  public logoutMember(userId: string): string {
-    return this.facade.logoutMember(userId);
+  public async logoutMember(userId: string): Promise<string> {
+    return await this.facade.logoutMember(userId);
   }
   public async getPurchasesByUser(
     adminId: string,

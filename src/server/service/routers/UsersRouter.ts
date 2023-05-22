@@ -4,7 +4,7 @@ import {
   publicProcedure,
   validSessionProcedure,
 } from "server/service/trpc";
-import { facade } from "../_facade";
+import { service } from "../_service";
 
 export const UsersRouter = createTRPCRouter({
   addProductToCart: validSessionProcedure
@@ -16,7 +16,7 @@ export const UsersRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { productId, amount } = input;
-      return facade.addProductToCart(ctx.session.user.id, productId, amount);
+      return service.addProductToCart(ctx.session.user.id, productId, amount);
     }),
   removeProductFromCart: validSessionProcedure
     .input(
@@ -26,7 +26,7 @@ export const UsersRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { productId } = input;
-      return facade.removeProductFromCart(ctx.session.user.id, productId);
+      return service.removeProductFromCart(ctx.session.user.id, productId);
     }),
   editProductQuantityInCart: validSessionProcedure
     .input(
@@ -37,17 +37,17 @@ export const UsersRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { productId, amount } = input;
-      return facade.editProductQuantityInCart(
+      return service.editProductQuantityInCart(
         ctx.session.user.id,
         productId,
         amount
       );
     }),
   getCart: validSessionProcedure.query(({ ctx }) => {
-    return facade.getCart(ctx.session.user.id);
+    return service.getCart(ctx.session.user.id);
   }),
   getNotifications: validSessionProcedure.query(({ ctx }) => {
-    return facade.getNotifications(ctx.session.user.id);
+    return service.getNotifications(ctx.session.user.id);
   }),
   purchaseCart: validSessionProcedure
     .input(
@@ -57,11 +57,11 @@ export const UsersRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { number } = input;
-      return facade.purchaseCart(ctx.session.user.id, { number });
+      return service.purchaseCart(ctx.session.user.id, { number });
     }),
 
   removeUser: validSessionProcedure.mutation(({ ctx }) => {
-    return facade.removeUser(ctx.session.user.id);
+    return service.removeUser(ctx.session.user.id);
   }),
   readNotification: validSessionProcedure
     .input(
@@ -71,7 +71,7 @@ export const UsersRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { notificationId } = input;
-      return facade.readNotification(ctx.session.user.id, notificationId);
+      return service.readNotification(ctx.session.user.id, notificationId);
     }),
   addNotification: validSessionProcedure
     .input(
@@ -82,14 +82,14 @@ export const UsersRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { notificationType, notification } = input;
-      return facade.addNotification(
+      return service.addNotification(
         ctx.session.user.id,
         notificationType,
         notification
       );
     }),
   getUnreadNotifications: validSessionProcedure.query(({ ctx }) => {
-    return facade.getUnreadNotifications(ctx.session.user.id);
+    return service.getUnreadNotifications(ctx.session.user.id);
   }),
   registerMember: validSessionProcedure
     .input(
@@ -100,7 +100,7 @@ export const UsersRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { email, password } = input;
-      return facade.registerMember(ctx.session.user.id, email, password);
+      return service.registerMember(ctx.session.user.id, email, password);
     }),
   loginMember: validSessionProcedure
     .input(
@@ -111,18 +111,18 @@ export const UsersRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { email, password } = input;
-      return facade.loginMember(ctx.session.user.id, email, password);
+      return service.loginMember(ctx.session.user.id, email, password);
     }),
   logoutMember: validSessionProcedure.mutation(({ ctx }) => {
-    return facade.logoutMember(ctx.session.user.id);
+    return service.logoutMember(ctx.session.user.id);
   }),
   disconnectUser: validSessionProcedure.mutation(({ ctx }) => {
-    return facade.disconnectUser(ctx.session.user.id);
+    return service.disconnectUser(ctx.session.user.id);
   }),
   removeMember: validSessionProcedure
     .input(z.object({ memberIdToRemove: z.string() }))
     .mutation(({ input, ctx }) => {
       const { memberIdToRemove } = input;
-      return facade.removeMember(ctx.session.user.id, memberIdToRemove);
+      return service.removeMember(ctx.session.user.id, memberIdToRemove);
     }),
 });

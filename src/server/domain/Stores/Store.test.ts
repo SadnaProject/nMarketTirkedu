@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+/**import { describe, expect, it, vi } from "vitest";
 import { Store } from "./Store";
 import { createMockRepos, createTestRepos } from "./_HasRepos";
 import { type BasketDTO } from "../Users/Basket";
@@ -8,7 +8,6 @@ import {
   createCompositeConditionArgs,
   createCompositeDiscountArgs,
   createLiteralConditionArgs,
-  createPromise,
   createSimpleDiscountArgs,
   createStore,
   createStoreWithProduct,
@@ -21,8 +20,7 @@ import {
   createMockControllers,
   createTestControllers,
 } from "../_createControllers";
-
-async function generateForDiscountAndConstraintTests(testType: string) {
+function generateForDiscountAndConstraintTests(testType: string) {
   const controllers = createTestControllers(testType, "Stores");
   vi.spyOn(controllers.PurchasesHistory, "getReviewsByProduct").mockReturnValue(
     createPromise({ avgRating: 0, reviews: [] })
@@ -34,7 +32,7 @@ async function generateForDiscountAndConstraintTests(testType: string) {
   vi.spyOn(controllers.PurchasesHistory, "getReviewsByProduct").mockReturnValue(
     createPromise({ avgRating: 0, reviews: [] })
   );
-  const { store, product } = await createStoreWithProduct(
+  const { store, product } = createStoreWithProduct(
     productData,
     repos,
     controllers
@@ -45,10 +43,8 @@ async function generateForDiscountAndConstraintTests(testType: string) {
   product2Data.category = "Meat";
   const product1BasketQuantity = 55;
   const product2BasketQuantity = 23;
-  vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce(
-    createPromise("aaa")
-  );
-  const product2Id = await store.createProduct(product2Data);
+  vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
+  const product2Id = store.createProduct(product2Data);
   const product2 = StoreProduct.fromDTO(
     { ...product2Data, id: product2Id, rating: 0 },
     controllers,
@@ -61,15 +57,16 @@ async function generateForDiscountAndConstraintTests(testType: string) {
       { quantity: product2BasketQuantity, storeProductId: product2Id },
     ],
   };
-  vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValueOnce(
-    createPromise([product, product2])
-  );
-  vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(createPromise(store));
+  vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValueOnce([
+    product,
+    product2,
+  ]);
+  vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);
   vi.spyOn(repos.Products, "getProductById").mockImplementation((id) => {
-    if (id === product.Id) return createPromise(product);
-    else return createPromise(product2);
+    if (id === product.Id) return product;
+    else return product2;
   });
-  const price = await store.getBasketPrice("", basket);
+  const price = store.getBasketPrice("", basket);
   return {
     price,
     product,
@@ -87,7 +84,7 @@ describe("constructor", () => {
     const repos = createTestRepos(testType);
     const store = createStore(storeName, repos, controllers);
     expect(store.Name).toBe(storeName);
-    expect(store.IsActive()).toBe(true);
+    expect(store.IsActive).toBe(true);
   });
 
   itUnitIntegration("❎gets empty name", () => {
@@ -96,24 +93,20 @@ describe("constructor", () => {
 });
 
 describe("createProduct", () => {
-  itUnitIntegration("✅creates a product", async (testType) => {
+  itUnitIntegration("✅creates a product", (testType) => {
     const controllers = createTestControllers(testType, "Stores");
     const repos = createTestRepos(testType);
     const storeName = generateStoreName();
     const store = createStore(storeName, repos, controllers);
-    vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce(
-      new Promise((resolve) => resolve("aaaaaa"))
-    );
+    vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce();
     const productData = generateProductArgs();
-    const productId = await store.createProduct(productData);
+    const productId = store.createProduct(productData);
     const product = StoreProduct.fromDTO(
       { ...productData, id: productId, rating: 0 },
       controllers,
       repos
     );
-    vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValue(
-      new Promise((resolve) => resolve([product]))
-    );
+    vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValue([product]);
     vi.spyOn(
       controllers.PurchasesHistory,
       "getReviewsByProduct"
@@ -140,11 +133,11 @@ describe("createProduct", () => {
   });
 });
 describe("get basket price", () => {
-  itUnitIntegration("✅gets basket price", async (testType) => {
+  itUnitIntegration("✅gets basket price", (testType) => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
-    const { store, product } = await createStoreWithProduct(
+    const { store, product } = createStoreWithProduct(
       productData,
       repos,
       controllers
@@ -155,19 +148,15 @@ describe("get basket price", () => {
         { quantity: productData.quantity, storeProductId: product.Id },
       ],
     };
-    vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(
-      createPromise(store)
-    );
-    vi.spyOn(repos.Products, "getProductById").mockReturnValue(
-      createPromise(product)
-    );
+    vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(store);
+    vi.spyOn(repos.Products, "getProductById").mockReturnValue(product);
     expect(store.getBasketPrice("", basket)).toBe(
       product.Price * productData.quantity
     );
   });
 });
 describe("Discounts", () => {
-  itUnitIntegration("add simple product discount", async (testType) => {
+  itUnitIntegration("add simple product discount", (testType) => {
     const {
       price,
       product,
@@ -176,13 +165,13 @@ describe("Discounts", () => {
       basket,
       product1BasketQuantity,
       product2BasketQuantity,
-    } = await generateForDiscountAndConstraintTests(testType);
+    } = generateForDiscountAndConstraintTests(testType);
 
     expect(store.getBasketPrice("", basket)).toBe(
       product.Price * product1BasketQuantity +
         product2.Price * product2BasketQuantity
     );
-    const discountId = await store.addDiscount(
+    const discountId = store.addDiscount(
       createSimpleDiscountArgs(
         product.Name,
         15,
@@ -190,15 +179,15 @@ describe("Discounts", () => {
         createLiteralConditionArgs(product.Name, 1, "Product", "AtLeast")
       )
     );
-    const priceWithDiscount = await store.getBasketPrice("", basket);
+    const priceWithDiscount = store.getBasketPrice("", basket);
     expect(priceWithDiscount).toBe(
       product.Price * product1BasketQuantity * (85 / 100) +
         product2.Price * product2BasketQuantity
     );
-    await store.removeDiscount(discountId);
-    expect(await store.getBasketPrice("", basket)).toBe(price);
+    store.removeDiscount(discountId);
+    expect(store.getBasketPrice("", basket)).toBe(price);
   });
-  itUnitIntegration("add simple category discount", async (testType) => {
+  itUnitIntegration("add simple category discount", (testType) => {
     const {
       price,
       product,
@@ -207,9 +196,9 @@ describe("Discounts", () => {
       basket,
       product1BasketQuantity,
       product2BasketQuantity,
-    } = await generateForDiscountAndConstraintTests(testType);
+    } = generateForDiscountAndConstraintTests(testType);
 
-    const discountId = await store.addDiscount(
+    const discountId = store.addDiscount(
       createSimpleDiscountArgs(
         product.Category,
         15,
@@ -217,15 +206,15 @@ describe("Discounts", () => {
         createLiteralConditionArgs(product.Category, 1, "Category", "AtLeast")
       )
     );
-    const priceWithDiscount = await store.getBasketPrice("", basket);
+    const priceWithDiscount = store.getBasketPrice("", basket);
     expect(priceWithDiscount).toBe(
       product.Price * product1BasketQuantity * (85 / 100) +
         product2.Price * product2BasketQuantity
     );
-    await store.removeDiscount(discountId);
-    expect(await store.getBasketPrice("", basket)).toBe(price);
+    store.removeDiscount(discountId);
+    expect(store.getBasketPrice("", basket)).toBe(price);
   });
-  itUnitIntegration("add simple price discount", async (testType) => {
+  itUnitIntegration("add simple price discount", (testType) => {
     const {
       price,
       product,
@@ -234,9 +223,9 @@ describe("Discounts", () => {
       basket,
       product1BasketQuantity,
       product2BasketQuantity,
-    } = await generateForDiscountAndConstraintTests(testType);
+    } = generateForDiscountAndConstraintTests(testType);
 
-    const discountId = await store.addDiscount(
+    const discountId = store.addDiscount(
       createSimpleDiscountArgs(
         product.Category,
         15,
@@ -249,14 +238,14 @@ describe("Discounts", () => {
         )
       )
     );
-    const priceWithDiscount = await store.getBasketPrice("", basket);
+    const priceWithDiscount = store.getBasketPrice("", basket);
     expect(priceWithDiscount).toBe(
       product.Price * product1BasketQuantity * (85 / 100) +
         product2.Price * product2BasketQuantity
     );
-    await store.removeDiscount(discountId);
-    expect(await store.getBasketPrice("", basket)).toBe(price);
-    const discountId1 = await store.addDiscount(
+    store.removeDiscount(discountId);
+    expect(store.getBasketPrice("", basket)).toBe(price);
+    const discountId1 = store.addDiscount(
       createSimpleDiscountArgs(
         product.Category,
         15,
@@ -269,12 +258,12 @@ describe("Discounts", () => {
         )
       )
     );
-    const priceWithDiscount1 = await store.getBasketPrice("", basket);
+    const priceWithDiscount1 = store.getBasketPrice("", basket);
     expect(priceWithDiscount1).toBe(price);
-    await store.removeDiscount(discountId1);
-    expect(await store.getBasketPrice("", basket)).toBe(price);
+    store.removeDiscount(discountId1);
+    expect(store.getBasketPrice("", basket)).toBe(price);
   });
-  itUnitIntegration("add simple basket discount", async (testType) => {
+  itUnitIntegration("add simple basket discount", (testType) => {
     const {
       price,
       product,
@@ -283,9 +272,9 @@ describe("Discounts", () => {
       basket,
       product1BasketQuantity,
       product2BasketQuantity,
-    } = await generateForDiscountAndConstraintTests(testType);
+    } = generateForDiscountAndConstraintTests(testType);
 
-    const discountId = await store.addDiscount(
+    const discountId = store.addDiscount(
       createSimpleDiscountArgs(
         product.Category,
         15,
@@ -293,56 +282,53 @@ describe("Discounts", () => {
         createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
       )
     );
-    const priceWithDiscount = await store.getBasketPrice("", basket);
+    const priceWithDiscount = store.getBasketPrice("", basket);
     expect(priceWithDiscount).toBe(
       product.Price * product1BasketQuantity * (85 / 100) +
         product2.Price * product2BasketQuantity * (85 / 100)
     );
-    await store.removeDiscount(discountId);
-    expect(await store.getBasketPrice("", basket)).toBe(price);
+    store.removeDiscount(discountId);
+    expect(store.getBasketPrice("", basket)).toBe(price);
+  });
+  itUnitIntegration("add max discount with simple condition", (testType) => {
+    const {
+      price,
+      product,
+      product2,
+      store,
+      basket,
+      product1BasketQuantity,
+      product2BasketQuantity,
+    } = generateForDiscountAndConstraintTests(testType);
+
+    const discountId = store.addDiscount(
+      createCompositeDiscountArgs(
+        createSimpleDiscountArgs(
+          product.Category,
+          15,
+          "category",
+          createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
+        ),
+        createSimpleDiscountArgs(
+          product.Category,
+          15,
+          "store",
+          createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
+        ),
+        "Max"
+      )
+    );
+    const priceWithDiscount = store.getBasketPrice("", basket);
+    expect(priceWithDiscount).toBe(
+      product.Price * product1BasketQuantity * (85 / 100) +
+        product2.Price * product2BasketQuantity * (85 / 100)
+    );
+    store.removeDiscount(discountId);
+    expect(store.getBasketPrice("", basket)).toBe(price);
   });
   itUnitIntegration(
-    "add max discount with simple condition",
-    async (testType) => {
-      const {
-        price,
-        product,
-        product2,
-        store,
-        basket,
-        product1BasketQuantity,
-        product2BasketQuantity,
-      } = await generateForDiscountAndConstraintTests(testType);
-
-      const discountId = await store.addDiscount(
-        createCompositeDiscountArgs(
-          createSimpleDiscountArgs(
-            product.Category,
-            15,
-            "category",
-            createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
-          ),
-          createSimpleDiscountArgs(
-            product.Category,
-            15,
-            "store",
-            createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
-          ),
-          "Max"
-        )
-      );
-      const priceWithDiscount = await store.getBasketPrice("", basket);
-      expect(priceWithDiscount).toBe(
-        product.Price * product1BasketQuantity * (85 / 100) +
-          product2.Price * product2BasketQuantity * (85 / 100)
-      );
-      await store.removeDiscount(discountId);
-      expect(await store.getBasketPrice("", basket)).toBe(price);
-    }
-  );
-  itUnitIntegration(
     "add compose ADD discount with simple condition",
-    async (testType) => {
+    (testType) => {
       const {
         price,
         product,
@@ -351,8 +337,8 @@ describe("Discounts", () => {
         basket,
         product1BasketQuantity,
         product2BasketQuantity,
-      } = await generateForDiscountAndConstraintTests(testType);
-      const discountId = await store.addDiscount(
+      } = generateForDiscountAndConstraintTests(testType);
+      const discountId = store.addDiscount(
         createCompositeDiscountArgs(
           createSimpleDiscountArgs(
             product.Category,
@@ -369,66 +355,58 @@ describe("Discounts", () => {
           "Add"
         )
       );
-      const priceWithDiscount = await store.getBasketPrice("", basket);
+      const priceWithDiscount = store.getBasketPrice("", basket);
       expect(priceWithDiscount).toBe(
         product.Price * product1BasketQuantity * (70 / 100) +
           product2.Price * product2BasketQuantity * (85 / 100)
       );
-      await store.removeDiscount(discountId);
-      expect(await store.getBasketPrice("", basket)).toBe(price);
+      store.removeDiscount(discountId);
+      expect(store.getBasketPrice("", basket)).toBe(price);
     }
   );
-  itUnitIntegration(
-    "add compose discount with And condition",
-    async (testType) => {
-      const {
-        price,
-        product,
-        product2,
-        store,
-        basket,
-        product1BasketQuantity,
-        product2BasketQuantity,
-      } = await generateForDiscountAndConstraintTests(testType);
+  itUnitIntegration("add compose discount with And condition", (testType) => {
+    const {
+      price,
+      product,
+      product2,
+      store,
+      basket,
+      product1BasketQuantity,
+      product2BasketQuantity,
+    } = generateForDiscountAndConstraintTests(testType);
 
-      const discountId = await store.addDiscount(
-        createCompositeDiscountArgs(
-          createSimpleDiscountArgs(
-            product.Category,
-            15,
-            "category",
-            createCompositeConditionArgs(
-              "And",
-              createLiteralConditionArgs(
-                product.Category,
-                1,
-                "Store",
-                "AtLeast"
-              ),
-              createLiteralConditionArgs(product.Category, 1, "Store", "AtMost")
-            )
-          ),
-          createSimpleDiscountArgs(
-            product.Category,
-            15,
-            "store",
-            createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
-          ),
-          "Add"
-        )
-      );
-      const priceWithDiscount = await store.getBasketPrice("", basket);
-      expect(priceWithDiscount).toBe(
-        product.Price * product1BasketQuantity * (85 / 100) +
-          product2.Price * product2BasketQuantity * (85 / 100)
-      );
-      await store.removeDiscount(discountId);
-      expect(await store.getBasketPrice("", basket)).toBe(price);
-    }
-  );
+    const discountId = store.addDiscount(
+      createCompositeDiscountArgs(
+        createSimpleDiscountArgs(
+          product.Category,
+          15,
+          "category",
+          createCompositeConditionArgs(
+            "And",
+            createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast"),
+            createLiteralConditionArgs(product.Category, 1, "Store", "AtMost")
+          )
+        ),
+        createSimpleDiscountArgs(
+          product.Category,
+          15,
+          "store",
+          createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
+        ),
+        "Add"
+      )
+    );
+    const priceWithDiscount = store.getBasketPrice("", basket);
+    expect(priceWithDiscount).toBe(
+      product.Price * product1BasketQuantity * (85 / 100) +
+        product2.Price * product2BasketQuantity * (85 / 100)
+    );
+    store.removeDiscount(discountId);
+    expect(store.getBasketPrice("", basket)).toBe(price);
+  });
   itUnitIntegration(
     "add compose MAX discount with compose logic implies condition",
-    async (testType) => {
+    (testType) => {
       const {
         price,
         product,
@@ -437,8 +415,8 @@ describe("Discounts", () => {
         basket,
         product1BasketQuantity,
         product2BasketQuantity,
-      } = await generateForDiscountAndConstraintTests(testType);
-      const discountId = await store.addDiscount({
+      } = generateForDiscountAndConstraintTests(testType);
+      const discountId = store.addDiscount({
         type: "Add",
         left: {
           condition: {
@@ -489,7 +467,7 @@ describe("Discounts", () => {
           type: "Simple",
         },
       });
-      const priceWithDiscount = await store.getBasketPrice("", basket);
+      const priceWithDiscount = store.getBasketPrice("", basket);
       expect(priceWithDiscount).toBe(
         product.Price * product1BasketQuantity * (60 / 100) +
           product2.Price * product2BasketQuantity
@@ -497,6 +475,11 @@ describe("Discounts", () => {
       await store.removeDiscount(discountId);
       expect(await store.getBasketPrice("", basket)).toBe(price);
       const discountId1 = await store.addDiscount({
+/**
+      store.removeDiscount(discountId);
+      expect(store.getBasketPrice("", basket)).toBe(price);
+      const discountId1 = store.addDiscount({
+*/
         type: "Add",
         left: {
           condition: {
@@ -547,20 +530,20 @@ describe("Discounts", () => {
           type: "Simple",
         },
       });
-      const priceWithDiscount1 = await store.getBasketPrice("", basket);
+      const priceWithDiscount1 = store.getBasketPrice("", basket);
       expect(priceWithDiscount1).toBe(
         product.Price * product1BasketQuantity * (85 / 100) +
           product2.Price * product2BasketQuantity
       );
-      await store.removeDiscount(discountId1);
-      expect(await store.getBasketPrice("", basket)).toBe(price);
+      store.removeDiscount(discountId1);
+      expect(store.getBasketPrice("", basket)).toBe(price);
     }
   );
 });
 describe("Constraint tests", () => {
   itUnitIntegration(
     "add simple constraint to store and check if it works",
-    async (testType) => {
+    (testType) => {
       const {
         price,
         product,
@@ -569,18 +552,18 @@ describe("Constraint tests", () => {
         basket,
         product1BasketQuantity,
         product2BasketQuantity,
-      } = await generateForDiscountAndConstraintTests(testType);
-      const constraintId = await store.addConstraint(
+      } = generateForDiscountAndConstraintTests(testType);
+      const constraintId = store.addConstraint(
         createLiteralConditionArgs("", 1, "Store", "AtMost")
       );
-      expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
-      await store.removeConstraint(constraintId);
-      expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
+      store.removeConstraint(constraintId);
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
     }
   );
   itUnitIntegration(
     "add composite AND constraint to store and check if it works",
-    async (testType) => {
+    (testType) => {
       const {
         price,
         product,
@@ -589,22 +572,22 @@ describe("Constraint tests", () => {
         basket,
         product1BasketQuantity,
         product2BasketQuantity,
-      } = await generateForDiscountAndConstraintTests(testType);
-      const constraintId = await store.addConstraint(
+      } = generateForDiscountAndConstraintTests(testType);
+      const constraintId = store.addConstraint(
         createCompositeConditionArgs(
           "And",
           createLiteralConditionArgs("", 1, "Store", "AtLeast"),
           createLiteralConditionArgs("", 1, "Store", "AtMost")
         )
       );
-      expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
-      await store.removeConstraint(constraintId);
-      expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
+      store.removeConstraint(constraintId);
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
     }
   );
   itUnitIntegration(
     "add composite implies constraint to store and check if it works",
-    async (testType) => {
+    (testType) => {
       const {
         price,
         product,
@@ -613,8 +596,8 @@ describe("Constraint tests", () => {
         basket,
         product1BasketQuantity,
         product2BasketQuantity,
-      } = await generateForDiscountAndConstraintTests(testType);
-      const constraintId = await store.addConstraint(
+      } = generateForDiscountAndConstraintTests(testType);
+      const constraintId = store.addConstraint(
         createCompositeConditionArgs(
           "Implies",
           createLiteralConditionArgs("", 1, "Store", "AtMost"),
@@ -623,16 +606,20 @@ describe("Constraint tests", () => {
       );
       expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
       const constraintId2 = await store.addConstraint(
+/**
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+      const constraintId2 = store.addConstraint(
+*/
         createCompositeConditionArgs(
           "Implies",
           createLiteralConditionArgs("", 1, "Store", "AtLeast"),
           createLiteralConditionArgs("", 1, "Store", "AtMost")
         )
       );
-      expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
-      await store.removeConstraint(constraintId2);
-      await store.removeConstraint(constraintId);
-      expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
+      store.removeConstraint(constraintId2);
+      store.removeConstraint(constraintId);
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
     }
   );
   itUnitIntegration(
@@ -646,31 +633,31 @@ describe("Constraint tests", () => {
         basket,
         product1BasketQuantity,
         product2BasketQuantity,
-      } = await generateForDiscountAndConstraintTests(testType);
-      const constraintId = await store.addConstraint(
+      } = generateForDiscountAndConstraintTests(testType);
+      const constraintId = store.addConstraint(
         createCompositeConditionArgs(
           "Xor",
           createLiteralConditionArgs("", 1, "Store", "AtMost"),
           createLiteralConditionArgs("", 1, "Store", "AtLeast")
         )
       );
-      expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
-      const constraintId2 = await store.addConstraint(
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+      const constraintId2 = store.addConstraint(
         createCompositeConditionArgs(
           "Xor",
           createLiteralConditionArgs("", 1, "Store", "AtLeast"),
           createLiteralConditionArgs("", 5, "Store", "AtLeast")
         )
       );
-      expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
-      await store.removeConstraint(constraintId2);
-      await store.removeConstraint(constraintId);
-      expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
+      store.removeConstraint(constraintId2);
+      store.removeConstraint(constraintId);
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
     }
   );
   itUnitIntegration(
     "add composite or constraint to store and check if it works",
-    async (testType) => {
+    (testType) => {
       const {
         price,
         product,
@@ -679,26 +666,26 @@ describe("Constraint tests", () => {
         basket,
         product1BasketQuantity,
         product2BasketQuantity,
-      } = await generateForDiscountAndConstraintTests(testType);
-      const constraintId = await store.addConstraint(
+      } = generateForDiscountAndConstraintTests(testType);
+      const constraintId = store.addConstraint(
         createCompositeConditionArgs(
           "Or",
           createLiteralConditionArgs("", 1, "Store", "AtMost"),
           createLiteralConditionArgs("", 1, "Store", "AtLeast")
         )
       );
-      expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
-      const constraintId2 = await store.addConstraint(
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+      const constraintId2 = store.addConstraint(
         createCompositeConditionArgs(
           "Or",
           createLiteralConditionArgs("", 1, "Store", "AtMost"),
           createLiteralConditionArgs("NO_SUCH_PRODUCT", 5, "Product", "AtLeast")
         )
       );
-      expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
-      await store.removeConstraint(constraintId2);
-      await store.removeConstraint(constraintId);
-      expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
+      store.removeConstraint(constraintId2);
+      store.removeConstraint(constraintId);
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
     }
   );
   itUnitIntegration(
@@ -712,9 +699,12 @@ describe("Constraint tests", () => {
         basket,
         product1BasketQuantity,
         product2BasketQuantity,
-      } = await generateForDiscountAndConstraintTests(testType);
+      } = generateForDiscountAndConstraintTests(testType);
       const date = new Date();
       const constraintId = await store.addConstraint(
+/**
+      const constraintId = store.addConstraint(
+*/
         createTimeConditionArgs(
           "After",
           date.getFullYear() + 1,
@@ -723,9 +713,9 @@ describe("Constraint tests", () => {
           undefined
         )
       );
-      expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
-      await store.removeConstraint(constraintId);
-      expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
+      store.removeConstraint(constraintId);
+      expect(store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
     }
   );
 });

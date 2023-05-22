@@ -1,8 +1,8 @@
 import { createTRPCRouter, validSessionProcedure } from "server/service/trpc";
-import { facade } from "../_facade";
+import { service } from "../_service";
 
 export const JobsRouter = createTRPCRouter({
   isSystemAdmin: validSessionProcedure.query(({ ctx }) => {
-    return facade.isSystemAdmin(ctx.session.user.id);
+    return service.isSystemAdmin(ctx.session.user.id);
   }),
 });

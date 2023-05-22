@@ -1,6 +1,7 @@
 import { Testable, testable } from "server/domain/_Testable";
-import { Store } from "../Store";
+import { type Store } from "../Store";
 import { TRPCError } from "@trpc/server";
+
 import { db } from "server/db";
 import {
   type ConditionArgs,
@@ -12,60 +13,38 @@ import { DiscountPolicy } from "../DiscountPolicy/DiscountPolicy";
 import { type DiscountArgs } from "../DiscountPolicy/Discount";
 import { type Store as DataStore } from "@prisma/client";
 
+
 @testable
 export class StoresRepo extends Testable {
   constructor() {
     super();
   }
 
-  public async addStore(storeName: string) {
-    return await db.store.create({
-      data: {
-        name: storeName,
-        isActive: true,
-      },
-    });
-  }
-  public async getAllNames() {
-    const stores = await db.store.findMany({
-      select: {
-        name: true,
-      },
-    });
-    return new Set(stores.map((store) => store.name));
+  public addStore(store: Store) {
+    this.stores.push(store);
   }
 
-  public async getAllStores() {
-    const stores = await db.store.findMany();
-    const realStores = [];
-    for (const store of stores) {
-      const realStore = await this.getStoreById(store.id);
-      realStores.push(realStore);
-    }
-    return realStores;
+  public getAllStores() {
+    return this.stores;
   }
 
-  public async getActiveStores() {
-    const stores = await db.store.findMany({
-      where: {
-        isActive: true,
-      },
-    });
-    return stores;
+  public getActiveStores() {
+    return this.stores.filter((store) => store.IsActive);
   }
 
-  public async getStoreById(storeId: string) {
-    const store = await db.store.findUnique({
-      where: {
-        id: storeId,
-      },
-    });
+  public getAllNames() {
+    return new Set(this.stores.map((store) => store.Name));
+  }
+
+  public getStoreById(storeId: string) {
+    const store = this.stores.find((store) => store.Id === storeId);
     if (!store) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Store not found",
       });
     }
+
     return Store.fromDAO(
       store,
       await this.getDiscounts(storeId),

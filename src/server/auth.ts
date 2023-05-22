@@ -14,7 +14,7 @@ import { appRouter } from "./service/root";
 import zConvert from "./helpers/zConvert";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { facade } from "./service/_facade";
+import { service } from "./service/_service";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`

@@ -5,7 +5,7 @@ import { Testable, testable } from "server/domain/_Testable";
 import { ManagerRole } from "./ManagerRole";
 import { OwnerRole } from "./OwnerRole";
 import { HasRepos, createRepos } from "./_HasRepos";
-import { PositionHolder } from "./PositionHolder";
+import { PositionHolder, PositionHolderDTO } from "./PositionHolder";
 import { FounderRole } from "./FounderRole";
 import { type EditablePermission } from "./Role";
 import { TRPCError } from "@trpc/server";
@@ -275,7 +275,15 @@ export interface IJobsController extends HasRepos {
    * @returns A boolean that represents if the user has any position in the system.
    * @throws Error if the user doesn't exist.
    */
+
   isMemberInAnyPosition(userId: string): Promise<boolean>;
+  /**
+   * This function returns the job hierarchy of a store(starting from the founder).
+   * @param storeId The id of the store.
+   * @returns An array of PositionHolderDTO that represents the job hierarchy of a store.
+   * @throws Error if the store doesn't exist.
+   */
+  getJobsHierarchyOfStore(storeId: string): PositionHolderDTO;
 }
 
 @testable
@@ -777,5 +785,19 @@ export class JobsController
       return true;
     }
     return false;
+  }
+  getJobsHierarchyOfStore(storeId: string): PositionHolderDTO {
+    const founderId = this.getStoreFounderId(storeId);
+    const founder = this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+      founderId,
+      storeId
+    );
+    if (founder === undefined) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Store not found",
+      });
+    }
+    return founder.DTO;
   }
 }

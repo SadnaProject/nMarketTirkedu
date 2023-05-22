@@ -8,6 +8,12 @@ import {
 import { type BasketDTO } from "server/domain/Users/Basket";
 import { type CartDTO } from "server/domain/Users/Cart";
 import { type CreditCard } from "server/domain/PurchasesHistory/PaymentAdaptor";
+import { type StoreDTO } from "server/domain/Stores/Store";
+import { type RoleType } from "server/domain/Jobs/Role";
+import { PositionHolderDTO } from "server/domain/Jobs/PositionHolder";
+import { Constraint } from "server/domain/Stores/Constraint";
+import { ICondition } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
+import { IDiscount } from "server/domain/Stores/DiscountPolicy/Discount";
 
 export type SearchArgs = {
   name?: string;
@@ -348,4 +354,23 @@ export class Service {
   removeMember(userIdOfActor: string, memberIdToRemove: string) {
     this.facade.removeMember(userIdOfActor, memberIdToRemove);
   }
+  getProductById(userId: string, productId: string): StoreProductDTO {
+    return this.facade.getProductById(userId, productId);
+  }
+  myStores(userId: string): { store: StoreDTO; role: RoleType }[] {
+    return this.facade.myStores(userId);
+  }
+  searchStores(userId: string, storeName: string): StoreDTO[] {
+    return this.facade.searchStores(userId, storeName);
+  }
+  getJobsHierarchyOfStore(userId: string, storeId: string): PositionHolderDTO {
+    return this.facade.getJobsHierarchyOfStore(userId, storeId);
+  }
+  getStoreConstraints(userId: string, storeId: string): Map<string,ICondition> {
+    return this.facade.getStoreConstraints(userId, storeId);
+  }
+  getStoreDiscounts(userId: string, storeId: string): Map<string,IDiscount> {
+    return this.facade.getStoreDiscounts(userId, storeId);
+  }
+
 }

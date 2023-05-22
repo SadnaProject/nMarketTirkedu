@@ -1,4 +1,5 @@
 import { Testable, testable } from "server/domain/_Testable";
+
 import { type StoreProduct as DataStoreProduct } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { db } from "server/db";
@@ -7,71 +8,29 @@ import { StoreProduct } from "../StoreProduct";
 
 @testable
 export class StoreProductsRepo extends Testable {
+  private productsByStoreId: Map<string, StoreProduct[]>;
+
   constructor() {
     super();
+    this.productsByStoreId = new Map<string, StoreProduct[]>();
   }
 
-  public async addProduct(storeId: string, product: StoreProduct) {
-    const p = await db.storeProduct.create({
-      data: {
-        name: product.Name,
-        category: product.Category,
-        price: product.Price,
-        quantity: product.Quantity,
-        storeId: storeId,
-        description: product.Description,
-      },
-    });
-    return p.id;
+  public addProduct(storeId: string, product: StoreProduct) {
+    const products = this.productsByStoreId.get(storeId) || [];
+    products.push(product);
+    this.productsByStoreId.set(storeId, products);
   }
-  public async addSpecialPrice(
-    userId: string,
-    productId: string,
-    price: number
-  ) {
-    await db.specialPrice.create({
-      data: {
-        userId: userId,
-        productId: productId,
-        price: price,
-      },
-    });
+
+  public getAllProducts() {
+    return Array.from(this.productsByStoreId.values()).flat();
   }
-  public async getSpecialPrice(userId: string, productId: string) {
-    const specialPrice = await db.specialPrice.findFirst({
-      where: {
-        userId: userId,
-        productId: productId,
-      },
-    });
-    return specialPrice?.price;
+
+  public getActiveProducts() {
+    return this.getAllProducts().filter((product) => product.Store.IsActive);
   }
-  public async getAllProducts() {
-    const products = await db.storeProduct.findMany({
-      include: {
-        store: true,
-      },
-    });
-    const realProducts: StoreProduct[] = [];
-    for (const product of products) {
-      const realProduct = new StoreProduct({
-        category: product.category,
-        description: product.description,
-        name: product.name,
-        price: product.price,
-        quantity: product.quantity,
-      });
-      realProduct.Id = product.id;
-      realProducts.push(realProduct);
-    }
-    return realProducts;
-  }
-  public async getProductById(productId: string) {
-    const product = await db.storeProduct.findUnique({
-      where: {
-        id: productId,
-      },
-    });
+
+  public getProductById(productId: string) {
+    const product = this.getAllProducts().find((p) => p.Id === productId);
     if (!product) {
       throw new TRPCError({
         code: "NOT_FOUND",
@@ -82,69 +41,24 @@ export class StoreProductsRepo extends Testable {
       product,
       await this.getSpecialPrices(productId)
     );
+    //return product;
+
   }
 
-  public async getActiveProducts() {
-    const products = await db.storeProduct.findMany({
-      include: {
-        store: true,
-      },
-    });
-    const realProducts: StoreProduct[] = [];
-    for (const product of products) {
-      if (!product.store.isActive) continue;
-      console.log(product);
-      const realProduct = new StoreProduct({
-        category: product.category,
-        description: product.description,
-        name: product.name,
-        price: product.price,
-        quantity: product.quantity,
-      });
-      realProduct.Id = product.id;
-      realProducts.push(realProduct);
-    }
-    return realProducts;
+  public getProductsByStoreId(storeId: string) {
+    return this.productsByStoreId.get(storeId) || [];
   }
 
-  public async getProductsByStoreId(storeId: string) {
-    const products = await db.storeProduct.findMany({
-      where: {
-        storeId: storeId,
-      },
-    });
-    const realProducts: StoreProduct[] = [];
-    for (const product of products) {
-      if (product.storeId !== storeId) continue;
-      const realProduct = new StoreProduct({
-        category: product.category,
-        description: product.description,
-        name: product.name,
-        price: product.price,
-        quantity: product.quantity,
-      });
-      realProduct.Id = product.id;
-      realProducts.push(realProduct);
+  public getStoreIdByProductId(productId: string) {
+    for (const [storeId, products] of this.productsByStoreId.entries()) {
+      if (products.find((p) => p.Id === productId)) {
+        return storeId;
+      }
     }
-    return realProducts;
-  }
-
-  public async getStoreIdByProductId(productId: string) {
-    const store = await db.storeProduct.findUnique({
-      where: {
-        id: productId,
-      },
-      select: {
-        store: true,
-      },
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Product not found",
     });
-    if (!store) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Product not found",
-      });
-    }
-    return store.store.id;
   }
 
   public async deleteProduct(productId: string) {
@@ -194,5 +108,13 @@ export class StoreProductsRepo extends Testable {
         [field]: value,
       },
     });
-  }
+/**
+  public deleteProduct(productId: string) {
+    const product = this.getProductById(productId);
+    const storeId = this.getStoreIdByProductId(productId);
+    const products = this.getProductsByStoreId(storeId);
+    const index = products.indexOf(product);
+    products.splice(index, 1);
+    this.productsByStoreId.set(storeId, products);
+  }*/
 }

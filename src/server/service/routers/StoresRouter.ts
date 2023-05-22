@@ -5,7 +5,7 @@ import {
   publicProcedure,
 } from "server/service/trpc";
 import { observable } from "@trpc/server/observable";
-import { facade } from "../_facade";
+import { service } from "../_service";
 import { eventEmitter } from "server/EventEmitter";
 
 export const StoresRouter = createTRPCRouter({
@@ -18,7 +18,7 @@ export const StoresRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { storeId, targetUserId } = input;
-      return facade.makeStoreOwner(ctx.session.user.id, storeId, targetUserId);
+      return service.makeStoreOwner(ctx.session.user.id, storeId, targetUserId);
     }),
   makeStoreManager: validSessionProcedure
     .input(
@@ -29,7 +29,7 @@ export const StoresRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { storeId, targetUserId } = input;
-      return facade.makeStoreManager(
+      return service.makeStoreManager(
         ctx.session.user.id,
         storeId,
         targetUserId
@@ -44,7 +44,7 @@ export const StoresRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { storeId, targetUserId } = input;
-      return facade.removeStoreOwner(
+      return service.removeStoreOwner(
         ctx.session.user.id,
         storeId,
         targetUserId
@@ -59,7 +59,7 @@ export const StoresRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { storeId, targetUserId } = input;
-      return facade.removeStoreManager(
+      return service.removeStoreManager(
         ctx.session.user.id,
         storeId,
         targetUserId
@@ -75,7 +75,7 @@ export const StoresRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { storeId, targetUserId, permission } = input;
-      return facade.setAddingProductToStorePermission(
+      return service.setAddingProductToStorePermission(
         ctx.session.user.id,
         storeId,
         targetUserId,
@@ -86,57 +86,68 @@ export const StoresRouter = createTRPCRouter({
     .input(z.object({ storeId: z.string() }))
     .query(({ input, ctx }) => {
       const { storeId } = input;
-      return facade.canCreateProductInStore(ctx.session.user.id, storeId);
+      return service.canCreateProductInStore(ctx.session.user.id, storeId);
     }),
   canEditProductInStore: validSessionProcedure
     .input(z.object({ storeId: z.string() }))
     .query(({ input, ctx }) => {
       const { storeId } = input;
-      return facade.canEditProductInStore(ctx.session.user.id, storeId);
+      return service.canEditProductInStore(ctx.session.user.id, storeId);
     }),
   isStoreOwner: validSessionProcedure
     .input(z.object({ storeId: z.string() }))
     .query(({ input, ctx }) => {
       const { storeId } = input;
-      return facade.isStoreOwner(ctx.session.user.id, storeId);
+      return service.isStoreOwner(ctx.session.user.id, storeId);
     }),
   isStoreManager: validSessionProcedure
     .input(z.object({ storeId: z.string() }))
     .query(({ input, ctx }) => {
       const { storeId } = input;
-      return facade.isStoreManager(ctx.session.user.id, storeId);
+      return service.isStoreManager(ctx.session.user.id, storeId);
     }),
   isStoreFounder: validSessionProcedure
     .input(z.object({ storeId: z.string() }))
     .query(({ input, ctx }) => {
       const { storeId } = input;
-      return facade.isStoreFounder(ctx.session.user.id, storeId);
+      return service.isStoreFounder(ctx.session.user.id, storeId);
     }),
   getStoreFounder: validSessionProcedure
     .input(z.object({ storeId: z.string() }))
     .query(({ input }) => {
       const { storeId } = input;
-      return facade.getStoreFounder(storeId);
+      return service.getStoreFounder(storeId);
     }),
   getStoreOwners: validSessionProcedure
     .input(z.object({ storeId: z.string() }))
     .query(({ input }) => {
       const { storeId } = input;
-      return facade.getStoreOwners(storeId);
+      return service.getStoreOwners(storeId);
     }),
   getStoreManagers: validSessionProcedure
     .input(z.object({ storeId: z.string() }))
     .query(({ input }) => {
       const { storeId } = input;
-      return facade.getStoreManagers(storeId);
+      return service.getStoreManagers(storeId);
     }),
   getProductById: validSessionProcedure
     .input(z.object({ productId: z.string() }))
     .query(({ input, ctx }) => {
       const { productId } = input;
-      return facade.getProductById(ctx.session.user.id, productId);
+      return service.getProductById(ctx.session.user.id, productId);
     }),
-
+    getStoreDiscounts: validSessionProcedure
+    .input(z.object({ storeId: z.string() }))
+    .query(({ input,ctx }) => {
+      const { storeId } = input;
+      return service.getStoreDiscounts(ctx.session.user.id,storeId);
+    }),
+    getStoreConstraints: validSessionProcedure
+    .input(z.object({ storeId: z.string() }))
+    .query(({ input,ctx }) => {
+      const { storeId } = input;
+      return service.getStoreConstraints(ctx.session.user.id,storeId);
+    }),
   createProduct: validSessionProcedure
     .input(
       z.object({
@@ -150,7 +161,7 @@ export const StoresRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { storeId, name, category, quantity, price, description } = input;
-      return facade.createProduct(ctx.session.user.id, storeId, {
+      return service.createProduct(ctx.session.user.id, storeId, {
         name,
         category,
         price,
@@ -162,16 +173,16 @@ export const StoresRouter = createTRPCRouter({
     .input(z.object({ storeId: z.string() }))
     .query(({ input, ctx }) => {
       const { storeId } = input;
-      return facade.isStoreActive(ctx.session.user.id, storeId);
+      return service.isStoreActive(ctx.session.user.id, storeId);
     }),
   getStoreProducts: validSessionProcedure
     .input(z.object({ storeId: z.string() }))
     .query(({ input, ctx }) => {
       const { storeId } = input;
-      return facade.getStoreProducts(ctx.session.user.id, storeId);
+      return service.getStoreProducts(ctx.session.user.id, storeId);
     }),
   myStores: validSessionProcedure.query(({ ctx }) => {
-    return facade.myStores(ctx.session.user.id);
+    return service.myStores(ctx.session.user.id);
   }),
 
   setProductQuantity: validSessionProcedure
@@ -183,7 +194,7 @@ export const StoresRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { productId, quantity } = input;
-      return facade.setProductQuantity(
+      return service.setProductQuantity(
         ctx.session.user.id,
         productId,
         quantity
@@ -198,7 +209,7 @@ export const StoresRouter = createTRPCRouter({
     )
     .mutation(({ input }) => {
       const { productId, quantity } = input;
-      return facade.decreaseProductQuantity(productId, quantity);
+      return service.decreaseProductQuantity(productId, quantity);
     }),
   deleteProduct: validSessionProcedure
     .input(
@@ -208,7 +219,7 @@ export const StoresRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { productId } = input;
-      return facade.deleteProduct(ctx.session.user.id, productId);
+      return service.deleteProduct(ctx.session.user.id, productId);
     }),
   setProductPrice: validSessionProcedure
     .input(
@@ -219,7 +230,7 @@ export const StoresRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { productId, price } = input;
-      return facade.setProductPrice(ctx.session.user.id, productId, price);
+      return service.setProductPrice(ctx.session.user.id, productId, price);
     }),
   createStore: validSessionProcedure
     .input(
@@ -229,7 +240,7 @@ export const StoresRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { name } = input;
-      return facade.createStore(ctx.session.user.id, name);
+      return service.createStore(ctx.session.user.id, name);
     }),
   activateStore: validSessionProcedure
     .input(
@@ -239,7 +250,7 @@ export const StoresRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { storeId } = input;
-      return facade.activateStore(ctx.session.user.id, storeId);
+      return service.activateStore(ctx.session.user.id, storeId);
     }),
   deactivateStore: validSessionProcedure
     .input(
@@ -249,7 +260,7 @@ export const StoresRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { storeId } = input;
-      return facade.deactivateStore(ctx.session.user.id, storeId);
+      return service.deactivateStore(ctx.session.user.id, storeId);
     }),
   closeStorePermanently: validSessionProcedure
     .input(
@@ -259,7 +270,7 @@ export const StoresRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { storeId } = input;
-      return facade.closeStorePermanently(ctx.session.user.id, storeId);
+      return service.closeStorePermanently(ctx.session.user.id, storeId);
     }),
   getProductPrice: validSessionProcedure
     .input(
@@ -269,7 +280,7 @@ export const StoresRouter = createTRPCRouter({
     )
     .query(({ input, ctx }) => {
       const { productId } = input;
-      return facade.getProductPrice(ctx.session.user.id, productId);
+      return service.getProductPrice(ctx.session.user.id, productId);
     }),
   isProductQuantityInStock: validSessionProcedure
     .input(
@@ -280,7 +291,7 @@ export const StoresRouter = createTRPCRouter({
     )
     .query(({ input, ctx }) => {
       const { productId, quantity } = input;
-      return facade.isProductQuantityInStock(
+      return service.isProductQuantityInStock(
         ctx.session.user.id,
         productId,
         quantity
@@ -293,7 +304,10 @@ export const StoresRouter = createTRPCRouter({
       })
     )
     .query(({ input, ctx }) => {
-      return facade.getStoreIdByProductId(ctx.session.user.id, input.productId);
+      return service.getStoreIdByProductId(
+        ctx.session.user.id,
+        input.productId
+      );
     }),
   searchStores: validSessionProcedure
     .input(
@@ -302,10 +316,10 @@ export const StoresRouter = createTRPCRouter({
       })
     )
     .query(({ input, ctx }) => {
-      return facade.searchStores(ctx.session.user.id, input.name);
+      return service.searchStores(ctx.session.user.id, input.name);
     }),
   getCartPrice: validSessionProcedure.query(({ ctx }) => {
-    return facade.getCartPrice(ctx.session.user.id);
+    return service.getCartPrice(ctx.session.user.id);
   }),
   getBasketPrice: validSessionProcedure
     .input(
@@ -314,7 +328,7 @@ export const StoresRouter = createTRPCRouter({
       })
     )
     .query(({ input, ctx }) => {
-      return facade.getBasketPrice(ctx.session.user.id, input.storeId);
+      return service.getBasketPrice(ctx.session.user.id, input.storeId);
     }),
 
   searchProducts: validSessionProcedure
@@ -333,7 +347,7 @@ export const StoresRouter = createTRPCRouter({
     )
     .query(({ input, ctx }) => {
       console.log("hello", new Date());
-      return facade.searchProducts(ctx.session.user.id, input);
+      return service.searchProducts(ctx.session.user.id, input);
     }),
   getPurchaseByStore: validSessionProcedure
     .input(
@@ -343,7 +357,7 @@ export const StoresRouter = createTRPCRouter({
     )
     .query(({ input, ctx }) => {
       const { storeId } = input;
-      return facade.getPurchasesByStore(ctx.session.user.id, storeId);
+      return service.getPurchasesByStore(ctx.session.user.id, storeId);
     }),
 
   changeStoreState: publicProcedure
@@ -402,5 +416,13 @@ export const StoresRouter = createTRPCRouter({
         // in the purchase function, we will call eventEmitter.emit(`purchase store ${storeId}`, purchaseId)
         // (I need to add dependency injection for eventEmitter through HasEventEmitter class)
       });
+    }),
+  getJobsHierarchyOfStore: validSessionProcedure
+    .input(z.object({ storeId: z.string() }))
+    .query(({ input, ctx }) => {
+      return service.getJobsHierarchyOfStore(
+        ctx.session.user.id,
+        input.storeId
+      );
     }),
 });

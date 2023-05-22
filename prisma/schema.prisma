@@ -255,7 +255,9 @@ enum RoleType {
 model Role {
     id          String      @id// @default(cuid())
     roleType    RoleType
+
     permissions Permission[]
+
     positionHolders       PositionHolder[]
 }
 model PositionHolder {
@@ -276,6 +278,7 @@ model PositionHolder {
     @@id([userId, storeId])
 }
 //TODO maybe better to just save a field in the users table.
+
 model Admin {
     userId      String     @id
 }

@@ -191,8 +191,11 @@ export class Service {
   canCreateProductInStore(currentId: string, storeId: string): boolean {
     return this.facade.canCreateProductInStore(currentId, storeId);
   }
-  canEditProductInStore(currentId: string, storeId: string): boolean {
-    return this.facade.canEditProductInStore(currentId, storeId);
+  async canEditProductInStore(
+    currentId: string,
+    storeId: string
+  ): Promise<boolean> {
+    return await this.facade.canEditProductInStore(currentId, storeId);
   }
   isStoreOwner(userId: string, storeId: string): boolean {
     return this.facade.isStoreOwner(userId, storeId);

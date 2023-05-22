@@ -1,29 +1,74 @@
 import { TRPCError } from "@trpc/server";
-import { Role, Permission, type EditablePermission } from "./Role";
+import {
+  Role,
+  Permission,
+  type EditablePermission,
+  type RoleDTO,
+} from "./Role";
+import { db } from "server/db";
+import { RoleType } from "@prisma/client";
+import { randomUUID } from "crypto";
 
 export class ManagerRole extends Role {
   constructor() {
     super();
+    //set id to be some unique value
+    this.id = randomUUID();
     this.permissions.push("receivePrivateStoreData");
     this.roleType = "Manager";
   }
-  grantPermission(permission: EditablePermission): void {
+  // public static async createManagerRole(
+  //   managerId: string,
+  //   storeId: string
+  // ): Promise<ManagerRole> {
+  //   const managerRole = new ManagerRole();
+  //   const id =await db.role.create({
+  //     data: { roleType: RoleType.Manager },
+  //   });
+
+  //   return managerRole;
+  // }
+  public static createManagerRoleFromDTO(roleDTO: RoleDTO): ManagerRole {
+    const managerRole = new ManagerRole();
+    managerRole.permissions = roleDTO.permissions;
+    managerRole.roleType = roleDTO.roleType;
+    managerRole.id = roleDTO.id;
+    return managerRole;
+  }
+  async grantPermission(permission: EditablePermission): Promise<void> {
     if (this.hasPermission(permission))
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "The role already has this permission",
       });
-    else this.permissions.push(permission);
+    else {
+      console.log(this.ID);
+      await db.role.update({
+        where: { id: this.id },
+        data: { permissions: { push: permission } },
+      });
+
+      this.permissions.push(permission);
+    }
   }
-  revokePermission(permission: EditablePermission): void {
+  async revokePermission(permission: EditablePermission): Promise<void> {
     if (!this.hasPermission(permission))
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "The role does not have this permission",
       });
     else {
-      const index = this.permissions.indexOf(permission);
-      this.permissions.splice(index, 1);
+      // const index = this.permissions.indexOf(permission);
+      const updatedPermissions = this.permissions.filter(
+        (p) => p !== permission
+      );
+      //delete permission from roles permissions
+      await db.role.update({
+        where: { id: this.id },
+        data: { permissions: updatedPermissions },
+      });
+      this.permissions = updatedPermissions;
+      // this.permissions.splice(index, 1);
     }
   }
   canBeAppointedToStoreOwner(): boolean {

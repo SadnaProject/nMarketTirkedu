@@ -182,6 +182,10 @@ export class Service {
     await this.facade.removeStoreOwner(currentId, storeId, targetUserId);
   }
 
+  async getMyPurchaseHistory(userId: string): Promise<CartPurchaseDTO[]> {
+    return await this.facade.getMyPurchaseHistory(userId);
+  }
+
   async removeStoreManager(
     currentId: string,
     storeId: string,
@@ -366,11 +370,13 @@ export class Service {
   getJobsHierarchyOfStore(userId: string, storeId: string): PositionHolderDTO {
     return this.facade.getJobsHierarchyOfStore(userId, storeId);
   }
-  getStoreConstraints(userId: string, storeId: string): Map<string,ICondition> {
+  getStoreConstraints(
+    userId: string,
+    storeId: string
+  ): Map<string, ICondition> {
     return this.facade.getStoreConstraints(userId, storeId);
   }
-  getStoreDiscounts(userId: string, storeId: string): Map<string,IDiscount> {
+  getStoreDiscounts(userId: string, storeId: string): Map<string, IDiscount> {
     return this.facade.getStoreDiscounts(userId, storeId);
   }
-
 }

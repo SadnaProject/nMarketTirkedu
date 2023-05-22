@@ -3,7 +3,7 @@ name: CI
 on: [push, pull_request]
 
 env:
-  DATABASE_URL: "file:./db.sqlite"
+  DATABASE_URL: "postgres://postgres:FNdhIaYvtsdxev77@db.lbwnlnoxzclizasvfeaj.supabase.co:6543/postgres"
   NEXTAUTH_URL: "localhost:3000"
   NEXTAUTH_SECRET: "SECRET"
   WS_URL: "ws://localhost:3001"

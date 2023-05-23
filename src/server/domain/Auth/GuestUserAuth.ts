@@ -39,6 +39,6 @@ export class GuestUserAuth extends UserAuth {
     return false;
   }
   public isUserLoggedInAsGuest(): boolean {
-    return this.isConnectionValid();
+    return true;
   }
 }

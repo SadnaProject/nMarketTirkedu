@@ -19,6 +19,7 @@ model UserAuth {
     name     String?
     email    String  @unique
     password String
+    isLoggedIn Boolean @default(false)
     // user User?
 }
 

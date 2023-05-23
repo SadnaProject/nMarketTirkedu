@@ -582,6 +582,7 @@ export class MarketFacade extends Loggable {
     storeId: string
   ): Promise<PositionHolderDTO> {
     this.validateConnection(userId);
+    // console.log("getJobsHierarchyOfStore");
     return await this.controllers.Jobs.getJobsHierarchyOfStore(storeId);
   }
   // getStoreDiscounts(userId: string, storeId: string): Map<string, IDiscount> {

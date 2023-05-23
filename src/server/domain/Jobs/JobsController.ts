@@ -5,7 +5,7 @@ import { Testable, testable } from "server/domain/_Testable";
 import { ManagerRole } from "./ManagerRole";
 import { OwnerRole } from "./OwnerRole";
 import { HasRepos, createRepos } from "./_HasRepos";
-import { PositionHolder, PositionHolderDTO } from "./PositionHolder";
+import { PositionHolder, type PositionHolderDTO } from "./PositionHolder";
 import { FounderRole } from "./FounderRole";
 import { type EditablePermission } from "./Role";
 import { TRPCError } from "@trpc/server";
@@ -233,7 +233,7 @@ export interface IJobsController extends HasRepos {
   /**
    *
    */
-  setInitialAdmin(userId: string): void;
+  setInitialAdmin(userId: string): Promise<void>;
   /**
    * This function checks if a user can receive any data from a store(owners, managers, products, etc.).
    * @param userId

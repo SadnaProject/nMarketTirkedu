@@ -1,7 +1,7 @@
 import { HasControllers } from "../_HasController";
 import { type CartDTO } from "../Users/Cart";
 import {
-  BasketPurchase,
+  type BasketPurchase,
   type BasketPurchaseDTO,
 } from "./BasketPurchaseHistory";
 import { CartPurchase, type CartPurchaseDTO } from "./CartPurchaseHistory";
@@ -13,7 +13,7 @@ import { Testable, testable } from "server/domain/_Testable";
 import { HasRepos, type Repos, createRepos } from "./_HasRepos";
 import { type CreditCard, PaymentAdapter } from "./PaymentAdaptor";
 import {
-  ProductPurchase,
+  type ProductPurchase,
   type ProductPurchaseDTO,
 } from "./ProductPurchaseHistory";
 import { TRPCError } from "@trpc/server";
@@ -35,7 +35,7 @@ export interface IPurchasesHistoryController extends HasRepos {
     purchaseId: string,
     storeId: string,
     review: number
-  ): void; // TODO: add
+  ): Promise<void>;
   addProductPurchaseReview(
     userId: string,
     purchaseId: string,
@@ -44,7 +44,7 @@ export interface IPurchasesHistoryController extends HasRepos {
     title: string,
     description: string,
     storeId: string
-  ): void;
+  ): Promise<void>;
   getStoreRating(storeId: string): Promise<number>;
   getReviewsByStore(storeId: string): Promise<number>;
   getReviewsByProduct(productId: string): Promise<{
@@ -71,7 +71,7 @@ export interface IPurchasesHistoryController extends HasRepos {
     userId: string,
     totalPrice: number
   ): Promise<CartPurchaseDTO>;
-  addPurchase(cartPurchase: CartPurchase): void;
+  addPurchase(cartPurchase: CartPurchase): Promise<void>;
   getMyPurchases(userId: string): Promise<CartPurchaseDTO[]>;
 }
 

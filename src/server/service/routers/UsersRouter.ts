@@ -6,8 +6,6 @@ import {
   loggedInProcedure,
 } from "server/service/trpc";
 import { service } from "../_service";
-import { eventEmitter } from "server/EventEmitter";
-import { observable } from "@trpc/server/observable";
 
 export const UsersRouter = createTRPCRouter({
   addProductToCart: validSessionProcedure

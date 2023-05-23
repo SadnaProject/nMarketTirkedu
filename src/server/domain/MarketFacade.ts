@@ -19,8 +19,8 @@ import {
   type ConditionArgs,
 } from "./Stores/Conditions/CompositeLogicalCondition/Condition";
 import { type RoleType } from "./Jobs/Role";
-import { BidArgs, BidDTO } from "./Users/Bid";
-import { PositionHolderDTO } from "./Jobs/PositionHolder";
+import { type BidArgs, type BidDTO } from "./Users/Bid";
+import { type PositionHolderDTO } from "./Jobs/PositionHolder";
 @loggable
 export class MarketFacade extends Loggable {
   private controllers: Controllers;
@@ -70,21 +70,25 @@ export class MarketFacade extends Loggable {
   }
 
   //Checking if user is logged in is done here.
-  public addProductToCart(userId: string, productId: string, quantity: number) {
-    this.validateConnection(userId);
-    this.controllers.Users.addProductToCart(userId, productId, quantity);
-  }
-  public removeProductFromCart(userId: string, productId: string) {
-    this.validateConnection(userId);
-    this.controllers.Users.removeProductFromCart(userId, productId);
-  }
-  public editProductQuantityInCart(
+  public async addProductToCart(
     userId: string,
     productId: string,
     quantity: number
   ) {
     this.validateConnection(userId);
-    this.controllers.Users.editProductQuantityInCart(
+    await this.controllers.Users.addProductToCart(userId, productId, quantity);
+  }
+  public removeProductFromCart(userId: string, productId: string) {
+    this.validateConnection(userId);
+    this.controllers.Users.removeProductFromCart(userId, productId);
+  }
+  public async editProductQuantityInCart(
+    userId: string,
+    productId: string,
+    quantity: number
+  ) {
+    this.validateConnection(userId);
+    await this.controllers.Users.editProductQuantityInCart(
       userId,
       productId,
       quantity

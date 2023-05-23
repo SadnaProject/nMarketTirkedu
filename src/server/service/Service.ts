@@ -40,18 +40,22 @@ export class Service {
     return await this.facade.getErrors(userId);
   }
 
-  public addProductToCart(userId: string, productId: string, quantity: number) {
-    this.facade.addProductToCart(userId, productId, quantity);
-  }
-  public removeProductFromCart(userId: string, productId: string) {
-    this.facade.removeProductFromCart(userId, productId);
-  }
-  public editProductQuantityInCart(
+  public async addProductToCart(
     userId: string,
     productId: string,
     quantity: number
   ) {
-    this.facade.editProductQuantityInCart(userId, productId, quantity);
+    await this.facade.addProductToCart(userId, productId, quantity);
+  }
+  public removeProductFromCart(userId: string, productId: string) {
+    this.facade.removeProductFromCart(userId, productId);
+  }
+  public async editProductQuantityInCart(
+    userId: string,
+    productId: string,
+    quantity: number
+  ) {
+    await this.facade.editProductQuantityInCart(userId, productId, quantity);
   }
   public getCart(userId: string) {
     return this.facade.getCart(userId);

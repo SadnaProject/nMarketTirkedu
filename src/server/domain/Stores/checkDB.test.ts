@@ -70,6 +70,6 @@ describe("trying out db", () => {
     const compose = createCompositeDiscountArgs(simple, simple1, "Add");
     await realStore.addDiscount(compose);
     expect(true).toBe(true);
-    await repos.Stores.deleteStore(storeDAO.id);
+    // await repos.Stores.deleteStore(storeDAO.id);
   });
 });

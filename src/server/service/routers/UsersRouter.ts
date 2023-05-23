@@ -6,6 +6,7 @@ import {
   loggedInProcedure,
 } from "server/service/trpc";
 import { service } from "../_service";
+import { observable } from "@trpc/server/observable";
 
 export const UsersRouter = createTRPCRouter({
   addProductToCart: validSessionProcedure
@@ -119,12 +120,16 @@ export const UsersRouter = createTRPCRouter({
     return service.logoutMember(ctx.session.user.id);
   }),
   onLoginEvent: loggedInProcedure.subscription(({ ctx }) => {
-    return () => {
+    return observable<string>((emit) => {
       //TODO support this, I need to add some login function that receives the user id(seems a bit unsecure but ok)
       // return service.loginMember();
+      console.log("login of user", ctx.session.user.id);
 
-      return () => service.logoutMember(ctx.session.user.id);
-    };
+      return () => {
+        console.log("logout of user", ctx.session.user.id);
+        void service.logoutMember(ctx.session.user.id);
+      };
+    });
   }),
 
   // onAddNotificationEvent: publicProcedure.subscription(() => {

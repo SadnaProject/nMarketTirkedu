@@ -146,7 +146,7 @@ export class AuthController
           "Password is incorrect, please try again with a different password",
       });
     }
-    member.login();
+    await member.login();
     this.Repos.Users.removeGuest(guestId);
     return member.UserId;
   }
@@ -159,7 +159,7 @@ export class AuthController
         userId
       );
 
-      member.logout(); //throws error if user is not connected
+      await member.logout(); //throws error if user is not connected
     }
   }
   public async logout(userId: string): Promise<string> {
@@ -170,7 +170,7 @@ export class AuthController
       });
     }
     const member: MemberUserAuth = await this.Repos.Users.getMemberById(userId);
-    member.logout(); //throws error if user is not connected
+    await member.logout(); //throws error if user is not connected
     return this.startSession();
   }
   public async register(email: string, password: string): Promise<string> {

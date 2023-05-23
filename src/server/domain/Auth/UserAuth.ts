@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { type Session } from "./Session";
 import { z } from "zod";
+import { db } from "server/db";
 
 export type UserType = "GUEST" | "MEMBER";
 
@@ -17,11 +18,13 @@ export abstract class UserAuth {
   // private password: string;
   protected type: UserType;
   protected sessions: Session[];
+  protected isLoggedIn: boolean;
 
   protected constructor(type: UserType) {
     this.userId = randomUUID();
     this.type = type;
     this.sessions = [];
+    this.isLoggedIn = false;
   }
 
   public get UserId(): string {
@@ -40,6 +43,16 @@ export abstract class UserAuth {
 
   protected addSession(session: Session): void {
     this.sessions.push(session);
+  }
+  public get IsLoggedIn(): boolean {
+    return this.isLoggedIn;
+  }
+  public async setIsLoggedIn(isLoggedIn: boolean) {
+    await db.userAuth.update({
+      where: { id: this.userId },
+      data: { isLoggedIn: isLoggedIn },
+    });
+    this.isLoggedIn = isLoggedIn;
   }
 
   public isConnectionValid(): boolean {

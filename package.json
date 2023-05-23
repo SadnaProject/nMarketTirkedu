@@ -7,7 +7,7 @@
     "test:client": "playwright test",
     "dev": "pnpm db-push && run-p dev:*",
     "typecheck": "tsc --noEmit",
-    "db-push": "prisma db push && prisma generate",
+    "db-push": "prisma db push --force-reset && prisma generate",
     "studio": "prisma studio",
     "lint-fix": "eslint --fix ./src && prettier --write ./src",
     "gen-test": "npx playwright codegen localhost:3000",

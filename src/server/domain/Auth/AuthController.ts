@@ -114,6 +114,12 @@ export interface IAuthController extends HasRepos {
    * @throws Error if the user is not a member.
    */
   getUserEmail(userId: string): Promise<string>;
+  /**
+   * @param email The user's email.
+   * @returns The user's ID.
+   * @throws Error if the email does not belong to a member.
+   */
+  getMemberIdByEmail(email: string): Promise<string>;
 }
 
 @testable
@@ -282,5 +288,8 @@ export class AuthController
   }
   async getUserEmail(userId: string): Promise<string> {
     return (await this.Repos.Users.getMemberById(userId)).Email;
+  }
+  public async getMemberIdByEmail(email: string): Promise<string> {
+    return (await this.Repos.Users.getMemberByEmail(email)).UserId;
   }
 }

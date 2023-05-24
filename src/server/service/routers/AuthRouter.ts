@@ -50,5 +50,9 @@ export const AuthRouter = createTRPCRouter({
   getAllLoggedOutMembersIds: validSessionProcedure.query(({ ctx }) => {
     return service.getAllLoggedOutMembersIds(ctx.session.user.id);
   }),
+  getMemberIdByEmail: validSessionProcedure.input(z.object({email: z.string()})).query(({input, ctx}) => {
+    const {email} = input;
+    return service.getMemberIdByEmail(email);
+  }
   
 });

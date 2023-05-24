@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { type Session } from "./Session";
 import { z } from "zod";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 
 export type UserType = "GUEST" | "MEMBER";
 
@@ -48,7 +48,7 @@ export abstract class UserAuth {
     return this.isLoggedIn;
   }
   public async setIsLoggedIn(isLoggedIn: boolean) {
-    await db.userAuth.update({
+    await getDB().userAuth.update({
       where: { id: this.userId },
       data: { isLoggedIn: isLoggedIn },
     });

@@ -1,6 +1,6 @@
 import { Testable, testable } from "server/domain/_Testable";
 import { Review } from "../Review";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 
 @testable
 export class ReviewRepo extends Testable {
@@ -14,7 +14,7 @@ export class ReviewRepo extends Testable {
     purchaseId: string,
     storeId: string
   ): Promise<Review> {
-    const review = await db.review.findUnique({
+    const review = await getDB().review.findUnique({
       where: {
         purchaseId_storeId: {
           purchaseId: purchaseId,
@@ -28,7 +28,7 @@ export class ReviewRepo extends Testable {
     return Review.fromDAO(review);
   }
   public async getAllStoreReviews(storeId: string): Promise<Review[]> {
-    const reviews = await db.review.findMany({
+    const reviews = await getDB().review.findMany({
       where: {
         storeId: storeId,
       },
@@ -36,7 +36,7 @@ export class ReviewRepo extends Testable {
     return reviews.map((review) => Review.fromDAO(review));
   }
   public async addStoreReview(review: Review): Promise<void> {
-    await db.review.create({
+    await getDB().review.create({
       data: {
         rating: review.Rating,
         createdAt: review.CreatedAt,
@@ -50,7 +50,7 @@ export class ReviewRepo extends Testable {
     purchaseId: string,
     storeId: string
   ): Promise<boolean> {
-    const review = await db.review.findUnique({
+    const review = await getDB().review.findUnique({
       where: {
         purchaseId_storeId: {
           purchaseId: purchaseId,

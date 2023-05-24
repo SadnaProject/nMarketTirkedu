@@ -2,7 +2,7 @@ import { Testable, testable } from "server/domain/_Testable";
 import { MemberUserAuth } from "./MemberUserAuth";
 import type { GuestUserAuth } from "./GuestUserAuth";
 import { TRPCError } from "@trpc/server";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 
 @testable
 export class UserAuthRepo extends Testable {
@@ -19,7 +19,7 @@ export class UserAuthRepo extends Testable {
     // this.members.push(user);
     //add to db
     // console.log("password: " + user.Password);
-    await db.userAuth.create({
+    await getDB().userAuth.create({
       data: {
         id: user.UserId,
         email: user.Email,
@@ -31,7 +31,9 @@ export class UserAuthRepo extends Testable {
     const user = this.members.find((user) => user.Email === email);
     if (user === undefined) {
       //look in db
-      const user = await db.userAuth.findUnique({ where: { email: email } });
+      const user = await getDB().userAuth.findUnique({
+        where: { email: email },
+      });
       if (user === null)
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -46,7 +48,7 @@ export class UserAuthRepo extends Testable {
     const user = this.members.find((user) => user.UserId === userId);
     if (user === undefined) {
       //look in db
-      const user = await db.userAuth.findUnique({ where: { id: userId } });
+      const user = await getDB().userAuth.findUnique({ where: { id: userId } });
       if (user === null)
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -61,7 +63,9 @@ export class UserAuthRepo extends Testable {
     if (this.members.some((user) => user.Email === email)) return true;
     //search in db
     else {
-      const user = await db.userAuth.findUnique({ where: { email: email } });
+      const user = await getDB().userAuth.findUnique({
+        where: { email: email },
+      });
       if (user === null) return false;
       else return true;
     }
@@ -70,7 +74,7 @@ export class UserAuthRepo extends Testable {
     if (this.members.some((user) => user.UserId === userId)) return true;
     //search in db
     else {
-      const user = await db.userAuth.findUnique({ where: { id: userId } });
+      const user = await getDB().userAuth.findUnique({ where: { id: userId } });
       if (user === null) return false;
       else return true;
     }
@@ -83,17 +87,17 @@ export class UserAuthRepo extends Testable {
         message: "user with id: " + userId + " not found",
       });
     //remove from db
-    await db.userAuth.delete({ where: { id: userId } });
+    await getDB().userAuth.delete({ where: { id: userId } });
     this.members = this.members.filter((user) => user.UserId !== userId);
   }
   public async getAllMembers(): Promise<MemberUserAuth[]> {
     //get from db
-    const members = await db.userAuth.findMany();
+    const members = await getDB().userAuth.findMany();
     return members.map((member) => MemberUserAuth.createFromDTO(member));
   }
   public async getAllMemberEmails(): Promise<string[]> {
     //get from db
-    const members = await db.userAuth.findMany();
+    const members = await getDB().userAuth.findMany();
     return members.map((member) => member.email);
   }
   //guest related methods

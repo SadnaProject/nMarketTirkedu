@@ -1,8 +1,6 @@
 ///check data base create
 import { beforeEach, describe, expect, it } from "vitest";
 import { type Repos, createTestRepos } from "./_HasRepos";
-import { StoresRepo } from "./Repos/StoresRepo";
-import { UserAuthRepo } from "../Auth/UserAuthRepo";
 import { Store } from "./Store";
 import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
 import { ConstraintPolicy } from "./PurchasePolicy/ConstraintPolicy";
@@ -13,6 +11,7 @@ import {
   createSimpleDiscountArgs,
 } from "./_data";
 import { randomUUID } from "crypto";
+
 let repos: Repos;
 beforeEach(() => {
   //delete all data in db

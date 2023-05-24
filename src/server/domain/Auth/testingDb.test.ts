@@ -5,7 +5,7 @@ import { GuestUserAuth } from "./GuestUserAuth";
 import { itUnitIntegration } from "../_mock";
 import { createTestControllers } from "../_createControllers";
 import { type Controllers } from "../_HasController";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 
 export function createMember(name: string, password: string) {
   return MemberUserAuth.create(name, password);
@@ -23,7 +23,7 @@ let repos: Repos;
 let controllers: Controllers;
 beforeEach(async () => {
   //delete all data in db
-  await db.userAuth.deleteMany({});
+  await getDB().userAuth.deleteMany({});
   const testType = "integration";
   // controllers = createTestControllers(testType, "Users");
   repos = createTestRepos(testType);

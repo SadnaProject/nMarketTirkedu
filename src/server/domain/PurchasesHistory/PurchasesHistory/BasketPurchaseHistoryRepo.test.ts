@@ -3,7 +3,7 @@ import { ProductPurchase } from "../ProductPurchaseHistory";
 import { BasketPurchase } from "../BasketPurchaseHistory";
 import { BasketPurchaseRepo } from "./BasketPurchaseHistoryRepo";
 import { itUnitIntegration } from "server/domain/_mock";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 import { CartPurchase } from "../CartPurchaseHistory";
 import { CartPurchaseRepo } from "./CartPurchaseHistoryRepo";
 
@@ -26,11 +26,11 @@ const CartPurchaseData = {
 };
 
 beforeEach(async () => {
-  await db.productPurchase.deleteMany({});
-  await db.basketPurchase.deleteMany({});
-  await db.cartPurchase.deleteMany({});
-  await db.user.deleteMany({});
-  await db.user.create({
+  await getDB().productPurchase.deleteMany({});
+  await getDB().basketPurchase.deleteMany({});
+  await getDB().cartPurchase.deleteMany({});
+  await getDB().user.deleteMany({});
+  await getDB().user.create({
     data: {
       id: CartPurchaseData.userId,
       name: "name",

@@ -8,7 +8,7 @@ import { Dropdown, SmallDropdown } from "components/dropdown";
 import { toast } from "react-hot-toast";
 import { Modal } from "components/modal";
 import { api } from "utils/api";
-import { onError } from "utils/query";
+import { cachedQueryOptions, onError } from "utils/query";
 import { useGuestRedirect } from "utils/paths";
 import { RemoveIcon } from "components/icons";
 import { type PositionHolderDTO } from "server/domain/Jobs/PositionHolder";
@@ -26,34 +26,60 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function Home() {
   useGuestRedirect();
-  const { register, handleSubmit } = useForm<FormValues>({
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    setValue,
+    formState: { errors },
+  } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
+    mode: "all",
+    criteriaMode: "all",
+    reValidateMode: "onChange",
   });
   const router = useRouter();
   const storeId = z.undefined().or(z.string()).parse(router.query.storeId);
-  const { data: jobs } = api.stores.getJobsHierarchyOfStore.useQuery(
-    { storeId: storeId as string },
-    { enabled: !!storeId }
-  );
+  const { data: jobs, refetch: refetchJobsHierarchy } =
+    api.stores.getJobsHierarchyOfStore.useQuery(
+      { storeId: storeId as string },
+      { enabled: !!storeId }
+    );
   const { mutate: makeStoreOwner } = api.stores.makeStoreOwner.useMutation({
-    onError,
-    onSuccess: () => {
+    ...cachedQueryOptions,
+    onSuccess: async () => {
+      await refetchJobsHierarchy();
       toast.success("Job added successfully");
     },
   });
   const { mutate: makeStoreManager } = api.stores.makeStoreManager.useMutation({
-    onError,
-    onSuccess: () => {
+    ...cachedQueryOptions,
+    onSuccess: async () => {
+      await refetchJobsHierarchy();
       toast.success("Job added successfully");
     },
   });
+  const { refetch: getAssignmentId } = api.auth.getMemberIdByEmail.useQuery(
+    { email: getValues("email") },
+    { ...cachedQueryOptions, enabled: !!storeId }
+  );
 
   const handleAssignment = handleSubmit(
-    (data) => {
+    async (data) => {
+      const { data: assignmentId } = await getAssignmentId();
+      if (!assignmentId) {
+        return;
+      }
       if (data.role === "Owner") {
-        // makeStoreOwner({ storeId: storeId as string, targetUserId });
+        makeStoreOwner({
+          storeId: storeId as string,
+          targetUserId: assignmentId,
+        });
       } else if (data.role === "Manager") {
-        // makeStoreManager({ storeId: storeId as string, email: data.email });
+        makeStoreManager({
+          storeId: storeId as string,
+          targetUserId: assignmentId,
+        });
       }
     },
     (e) => toast.error(Object.values(e)[0]?.message || "Something went wrong")

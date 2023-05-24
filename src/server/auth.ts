@@ -7,7 +7,7 @@ import {
   User,
 } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 import { env } from "env.mjs";
 import Credentials from "next-auth/providers/credentials";
 import { appRouter } from "./service/root";
@@ -15,6 +15,7 @@ import zConvert from "./helpers/zConvert";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { service } from "./service/_service";
+import { dbGlobal } from "./db";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -152,7 +153,7 @@ export const authOptions: NextAuthOptions = {
     newUser: "/register",
   },
   secret: env.NEXTAUTH_SECRET,
-  adapter: PrismaAdapter(db),
+  adapter: PrismaAdapter(dbGlobal),
 };
 
 /**

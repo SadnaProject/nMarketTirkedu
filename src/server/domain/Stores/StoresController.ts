@@ -19,6 +19,7 @@ import { type BasketDTO } from "../Users/Basket";
 import { type RoleType } from "../Jobs/Role";
 import { type Bid, storeBidArgs } from "../Users/Bid";
 import { type StoreProduct as StoreProductDAO } from "@prisma/client";
+
 export type SearchArgs = {
   name?: string;
   category?: string;

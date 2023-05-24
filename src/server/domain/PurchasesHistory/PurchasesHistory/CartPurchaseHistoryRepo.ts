@@ -1,5 +1,5 @@
 import { Testable, testable } from "server/domain/_Testable";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 import { TRPCError } from "@trpc/server";
 import { CartPurchase as RealCartPurchase } from "../CartPurchaseHistory";
 
@@ -43,7 +43,7 @@ export class CartPurchaseRepo extends Testable {
     //     totalPrice: CartPurchase.TotalPrice,
     //   },
     // }); TODO consider promiseall/waitall whatever
-    await db.cartPurchase.create({
+    await getDB().cartPurchase.create({
       data: {
         purchaseId: CartPurchase.PurchaseId,
         userId: CartPurchase.UserId,
@@ -51,7 +51,7 @@ export class CartPurchaseRepo extends Testable {
       },
     });
     for (const basket of CartPurchase.StoreIdToBasketPurchases.values()) {
-      await db.basketPurchase.create({
+      await getDB().basketPurchase.create({
         data: {
           purchaseId: basket.PurchaseId,
           storeId: basket.StoreId,
@@ -59,7 +59,7 @@ export class CartPurchaseRepo extends Testable {
         },
       });
       for (const product of basket.Products.values()) {
-        await db.productPurchase.create({
+        await getDB().productPurchase.create({
           data: {
             purchaseId: product.PurchaseId,
             productId: product.ProductId,
@@ -73,7 +73,7 @@ export class CartPurchaseRepo extends Testable {
   }
 
   public async getPurchasesByUser(userId: string): Promise<RealCartPurchase[]> {
-    const cartPurchases = await db.cartPurchase.findMany({
+    const cartPurchases = await getDB().cartPurchase.findMany({
       where: {
         userId: userId,
       },
@@ -95,7 +95,7 @@ export class CartPurchaseRepo extends Testable {
     });
   }
   public async getPurchaseById(purchaseId: string): Promise<RealCartPurchase> {
-    const purchase = await db.cartPurchase.findUnique({
+    const purchase = await getDB().cartPurchase.findUnique({
       where: {
         purchaseId: purchaseId,
       },
@@ -118,7 +118,7 @@ export class CartPurchaseRepo extends Testable {
     return RealCartPurchase.fromDAO(purchase);
   }
   public async doesPurchaseExist(purchaseId: string): Promise<boolean> {
-    const purchase = await db.cartPurchase.findUnique({
+    const purchase = await getDB().cartPurchase.findUnique({
       where: {
         purchaseId: purchaseId,
       },

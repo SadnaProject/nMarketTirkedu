@@ -1,5 +1,5 @@
 import { beforeEach } from "vitest";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 // import { exec } from "child_process";
 
 // async function runCommand(command: string): Promise<void> {
@@ -15,7 +15,7 @@ import { db } from "server/db";
 // }
 
 export async function setup() {
-  await db.$executeRawUnsafe(
+  await getDB().$executeRawUnsafe(
     "DO $$ DECLARE\
   r RECORD;\
 BEGIN\

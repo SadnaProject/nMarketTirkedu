@@ -1,6 +1,6 @@
 import { Testable, testable } from "server/domain/_Testable";
 import { ProductPurchase } from "../ProductPurchaseHistory";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 
 @testable
 export class ProductPurchaseRepo extends Testable {
@@ -15,7 +15,7 @@ export class ProductPurchaseRepo extends Testable {
     ProductPurchase: ProductPurchase,
     storeId: string
   ) {
-    await db.productPurchase.create({
+    await getDB().productPurchase.create({
       data: {
         purchaseId: ProductPurchase.PurchaseId,
         productId: ProductPurchase.ProductId,
@@ -29,7 +29,7 @@ export class ProductPurchaseRepo extends Testable {
   public async getProductsPurchaseById(
     ProductPurchaseId: string
   ): Promise<ProductPurchase[]> {
-    const productPurchases = await db.productPurchase.findMany({
+    const productPurchases = await getDB().productPurchase.findMany({
       where: {
         purchaseId: ProductPurchaseId,
       },

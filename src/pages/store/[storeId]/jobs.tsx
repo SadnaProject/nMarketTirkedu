@@ -4,85 +4,114 @@ import { z } from "zod";
 import StoreNavbar from "components/storeNavbar";
 import Input from "components/input";
 import Button from "components/button";
-import { Dropdown } from "components/dropdown";
+import { Dropdown, SmallDropdown } from "components/dropdown";
 import { toast } from "react-hot-toast";
 import { Modal } from "components/modal";
 import { api } from "utils/api";
-import { onError } from "utils/query";
+import { cachedQueryOptions, onError } from "utils/query";
 import { useGuestRedirect } from "utils/paths";
 import { RemoveIcon } from "components/icons";
 import { type PositionHolderDTO } from "server/domain/Jobs/PositionHolder";
-import { useEffect } from "react";
+import { roleTypeSchema } from "server/domain/Jobs/Role";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { type RoleType } from "@prisma/client";
 
-// const jobs: Job = {
-//   id: "0",
-//   name: "Omer Shahar",
-//   title: "Founder",
-//   assignments: [
-//     {
-//       id: "1",
-//       name: "Ron Ziskind",
-//       title: "Owner",
-//       assignments: [
-//         {
-//           id: "2",
-//           name: "Barman",
-//           title: "Manager",
-//           assignments: [],
-//         },
-//         {
-//           id: "3",
-//           name: "Ilay Zarfaty",
-//           title: "Owner",
-//           assignments: [],
-//         },
-//       ],
-//     },
-//     {
-//       id: "4",
-//       name: "Bar not man",
-//       title: "Owner",
-//       assignments: [],
-//     },
-//   ],
-// };
+const formSchema = z.object({
+  role: roleTypeSchema,
+  email: z.string().email(),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function Home() {
   useGuestRedirect();
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    setValue,
+    formState: { errors },
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    mode: "all",
+    criteriaMode: "all",
+    reValidateMode: "onChange",
+  });
   const router = useRouter();
   const storeId = z.undefined().or(z.string()).parse(router.query.storeId);
-  const { data: jobs } = api.stores.getJobsHierarchyOfStore.useQuery(
-    { storeId: storeId as string },
-    { enabled: !!storeId }
-  );
+  const { data: jobs, refetch: refetchJobsHierarchy } =
+    api.stores.getJobsHierarchyOfStore.useQuery(
+      { storeId: storeId as string },
+      { enabled: !!storeId }
+    );
   const { mutate: makeStoreOwner } = api.stores.makeStoreOwner.useMutation({
-    onError,
-    onSuccess: () => {
+    ...cachedQueryOptions,
+    onSuccess: async () => {
+      await refetchJobsHierarchy();
       toast.success("Job added successfully");
     },
   });
   const { mutate: makeStoreManager } = api.stores.makeStoreManager.useMutation({
-    onError,
-    onSuccess: () => {
+    ...cachedQueryOptions,
+    onSuccess: async () => {
+      await refetchJobsHierarchy();
       toast.success("Job added successfully");
     },
   });
+  const { refetch: getAssignmentId } = api.auth.getMemberIdByEmail.useQuery(
+    { email: getValues("email") },
+    { ...cachedQueryOptions, enabled: !!storeId }
+  );
 
-  useEffect(() => {
-    console.log(jobs);
-  }, [jobs]);
+  const handleAssignment = handleSubmit(
+    async (data) => {
+      const { data: assignmentId } = await getAssignmentId();
+      if (!assignmentId) {
+        return;
+      }
+      if (data.role === "Owner") {
+        makeStoreOwner({
+          storeId: storeId as string,
+          targetUserId: assignmentId,
+        });
+      } else if (data.role === "Manager") {
+        makeStoreManager({
+          storeId: storeId as string,
+          targetUserId: assignmentId,
+        });
+      }
+    },
+    (e) => toast.error(Object.values(e)[0]?.message || "Something went wrong")
+  );
 
   return (
     <Layout>
       <StoreNavbar storeId={storeId} />
-      <div className="flex flex-wrap sm:flex-nowrap">
-        <Dropdown options={["Manager", "Owner"]} />
-        <Input placeholder="Email" className="rounded-none" />
+      <div className="flex w-full max-w-md flex-wrap sm:flex-nowrap">
+        <SmallDropdown
+          options={
+            [
+              { label: "Owner", value: "Owner" },
+              { label: "Manager", value: "Manager" },
+            ] satisfies {
+              label: string;
+              value: RoleType;
+            }[]
+          }
+          {...register("role")}
+          className="rounded-b-none sm:w-40 sm:rounded-b-lg sm:rounded-br-none sm:rounded-tr-none"
+        />
+        <Input
+          placeholder="Email"
+          className="rounded-none"
+          {...register("email")}
+        />
         <Button
           glowClassName="w-full"
           glowContainerClassName="w-full sm:w-auto"
           className="h-full w-full rounded-t-lg sm:rounded-lg sm:rounded-l-none"
-          // onClick={()=>}
+          onClick={() => void handleAssignment()}
         >
           Add
         </Button>
@@ -199,6 +228,36 @@ type JobProps = {
 };
 
 function Job({ job }: JobProps) {
+  const { mutate: removeStoreOwner } = api.stores.removeStoreOwner.useMutation({
+    onError,
+    onSuccess: () => {
+      toast.success("Job removed successfully");
+    },
+  });
+  const { mutate: removeStoreManager } =
+    api.stores.removeStoreManager.useMutation({
+      onError,
+      onSuccess: () => {
+        toast.success("Job removed successfully");
+      },
+    });
+
+  const handleRemoval = (job: PositionHolderDTO) => {
+    if (job.role.roleType === "Owner") {
+      removeStoreOwner({
+        storeId: job.storeId,
+        targetUserId: job.userId,
+      });
+    } else if (job.role.roleType === "Manager") {
+      removeStoreManager({
+        storeId: job.storeId,
+        targetUserId: job.userId,
+      });
+    } else {
+      toast.error("User cannot be removed. Incident will be reported");
+    }
+  };
+
   return (
     <div
       className="hs-accordion active"
@@ -228,7 +287,7 @@ function Job({ job }: JobProps) {
         }) and the subordinates from the store?`}
         footer={
           <Button
-            onClick={() => toast.success(job.userId)}
+            onClick={() => handleRemoval(job)}
             data-hs-overlay={`#hs-modal-${job.userId}`}
           >
             Apply changes

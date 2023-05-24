@@ -101,6 +101,9 @@ export class MemberUserAuth extends UserAuth {
     this.addSession(session);
     return session;
   }
+  public async reConnect(): Promise<void> {
+    await this.setIsLoggedIn(true);
+  }
   public async logout(): Promise<void> {
     console.log("Member is logging out");
 

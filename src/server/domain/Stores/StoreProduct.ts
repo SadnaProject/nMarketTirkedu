@@ -229,4 +229,15 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
     const p = this.SpecialPrices.get(userId);
     return p !== undefined ? p : this.Price;
   }
+  public async getDAO(): Promise<StoreProductDAO> {
+    return {
+      category: this.Category,
+      description: this.Description,
+      id: this.Id,
+      name: this.Name,
+      price: this.Price,
+      quantity: this.Quantity,
+      storeId: (await this.getStore()).Id,
+    };
+  }
 }

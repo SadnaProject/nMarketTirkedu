@@ -30,4 +30,7 @@ export class DiscountPolicy {
     });
     return basket;
   }
+  public getDiscounts() {
+    return this.discounts;
+  }
 }

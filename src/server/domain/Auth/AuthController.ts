@@ -48,7 +48,10 @@ export interface IAuthController extends HasRepos {
    * @param userId The user's ID.
    * @throws Error if the user is not connected.
    */
-
+  /**
+   * reconnects a user. By its id. this allows to reconnect a user with a valid cookie.
+   */
+  reConnectMember(userId: string): Promise<void>;
   disconnect(userId: string): Promise<void>;
   /**
    * Registers a new user.
@@ -111,6 +114,12 @@ export interface IAuthController extends HasRepos {
    * @throws Error if the user is not a member.
    */
   getUserEmail(userId: string): Promise<string>;
+  /**
+   * @param email The user's email.
+   * @returns The user's ID.
+   * @throws Error if the email does not belong to a member.
+   */
+  getMemberIdByEmail(email: string): Promise<string>;
 }
 
 @testable
@@ -149,6 +158,10 @@ export class AuthController
     await member.login();
     this.Repos.Users.removeGuest(guestId);
     return member.UserId;
+  }
+  public async reConnectMember(userId: string): Promise<void> {
+    const member: MemberUserAuth = await this.Repos.Users.getMemberById(userId);
+    await member.reConnect();
   }
   public async disconnect(userId: string): Promise<void> {
     if (this.isGuest(userId)) {
@@ -275,5 +288,8 @@ export class AuthController
   }
   async getUserEmail(userId: string): Promise<string> {
     return (await this.Repos.Users.getMemberById(userId)).Email;
+  }
+  public async getMemberIdByEmail(email: string): Promise<string> {
+    return (await this.Repos.Users.getMemberByEmail(email)).UserId;
   }
 }

@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { type EditablePermission, Role, RoleDTO } from "./Role";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 
 export class OwnerRole extends Role {
   private static OwnerRole: OwnerRole;

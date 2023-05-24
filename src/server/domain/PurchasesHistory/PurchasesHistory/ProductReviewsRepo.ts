@@ -1,6 +1,6 @@
 import { Testable, testable } from "server/domain/_Testable";
 import { ProductReview } from "../ProductReview";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 import { TRPCError } from "@trpc/server";
 
 @testable
@@ -12,7 +12,7 @@ export class ProductReviewRepo extends Testable {
     this.ProductReviews = [];
   }
   public async addProductReview(ProductReview: ProductReview) {
-    await db.productReview.create({
+    await getDB().productReview.create({
       data: {
         title: ProductReview.Title,
         description: ProductReview.Description,
@@ -29,7 +29,7 @@ export class ProductReviewRepo extends Testable {
     purchaseId: string,
     productId: string
   ): Promise<ProductReview> {
-    const productReview = await db.productReview.findUnique({
+    const productReview = await getDB().productReview.findUnique({
       where: {
         purchaseId_productId: {
           purchaseId: purchaseId,
@@ -43,8 +43,10 @@ export class ProductReviewRepo extends Testable {
     return ProductReview.fromDAO(productReview);
   }
 
-  public async getAllProductReviews(productId: string): Promise<ProductReview[]> {
-    const productReviews = await db.productReview.findMany({
+  public async getAllProductReviews(
+    productId: string
+  ): Promise<ProductReview[]> {
+    const productReviews = await getDB().productReview.findMany({
       where: {
         productId: productId,
       },
@@ -58,7 +60,7 @@ export class ProductReviewRepo extends Testable {
     purchaseId: string,
     productId: string
   ): boolean {
-    const productReview = db.productReview.findUnique({
+    const productReview = getDB().productReview.findUnique({
       where: {
         purchaseId_productId: {
           purchaseId: purchaseId,

@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export type Permission =
   | "DeactivateStore"
   | "ActivateStore"
@@ -9,8 +11,10 @@ export type EditablePermission =
   | "AddProduct"
   | "EditProductDetails"
   | "RemoveProduct"
+  | "ModifyPurchasePolicy"
   | "receivePrivateStoreData";
-export type RoleType = "Owner" | "Manager" | "Founder";
+export const roleTypeSchema = z.enum(["Owner", "Manager", "Founder"]);
+export type RoleType = z.infer<typeof roleTypeSchema>;
 
 export type RoleDTO = {
   id: string;

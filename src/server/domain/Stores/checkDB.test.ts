@@ -1,8 +1,6 @@
 ///check data base create
 import { beforeEach, describe, expect, it } from "vitest";
 import { type Repos, createTestRepos } from "./_HasRepos";
-import { StoresRepo } from "./Repos/StoresRepo";
-import { UserAuthRepo } from "../Auth/UserAuthRepo";
 import { Store } from "./Store";
 import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
 import { ConstraintPolicy } from "./PurchasePolicy/ConstraintPolicy";
@@ -12,6 +10,7 @@ import {
   createLiteralConditionArgs,
   createSimpleDiscountArgs,
 } from "./_data";
+import { randomUUID } from "crypto";
 
 let repos: Repos;
 beforeEach(() => {
@@ -21,10 +20,10 @@ beforeEach(() => {
   repos = createTestRepos("integration");
   // controllers.Auth.initRepos(repos);
 });
-//TODO: delete this.
 describe("trying out db", () => {
   it("✅adds store", async () => {
-    const storeDAO = await repos.Stores.addStore("name");
+    const id = randomUUID();
+    const storeDAO = await repos.Stores.addStore("name", id);
     const realStore = Store.fromDAO(
       storeDAO,
       new DiscountPolicy(storeDAO.id),
@@ -70,6 +69,7 @@ describe("trying out db", () => {
     const compose = createCompositeDiscountArgs(simple, simple1, "Add");
     await realStore.addDiscount(compose);
     expect(true).toBe(true);
-    // await repos.Stores.deleteStore(storeDAO.id);
-  });
+
+    await repos.Stores.deleteStore(realStore.Id);
+  }, 10000000);
 });

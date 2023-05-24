@@ -12,7 +12,7 @@ export default defineConfig({
       reporter: ["lcov"],
     },
     include: [
-      // "**/testingDb.test.ts",
+      "**/testingDb.test.ts",
       // "**/AuthController.test.ts",
       // "**/UserAuthRepo.test.ts",
       //"**/MemberUserAuth.test.ts",

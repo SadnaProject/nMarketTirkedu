@@ -22,7 +22,7 @@ const publicLinks = [
 
 const privateLinks = [
   { name: "My Stores", path: PATHS.myStores.path },
-  // { name: "My Receipts", path: PATHS.myReceipts.path },
+  { name: "My Receipts", path: PATHS.myReceipts.path },
 ] as const;
 
 const adminLinks = [

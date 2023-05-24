@@ -48,6 +48,7 @@ export default function Home() {
   const { mutate: addToCart } = api.users.addProductToCart.useMutation({
     ...cachedQueryOptions,
     onSuccess: () => {
+      // await new Promise((resolve) => setTimeout(resolve, 1000)); // todo delete
       document.dispatchEvent(new Event(onCartChangeEvent));
       void refetchCart();
     },

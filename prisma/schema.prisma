@@ -15,10 +15,10 @@ datasource db {
 }
 
 model UserAuth {
-    id       String  @id //@default(cuid())
-    name     String?
-    email    String  @unique
-    password String
+    id         String  @id //@default(cuid())
+    name       String?
+    email      String  @unique
+    password   String
     isLoggedIn Boolean @default(false)
     // user User?
 }
@@ -68,8 +68,12 @@ model Condition {
     compositeConditionId String?
     dateCondition        DateCondition?      @relation(fields: [dateConditionId], references: [id])
     dateConditionId      String?
-    Constraint           Constraint[]
-    SimpleDiscount       SimpleDiscount[]
+    discountId           String?
+    discount             SimpleDiscount?     @relation(fields: [discountId], references: [id])
+    constraintId         String?
+    constraint           Constraint?         @relation(fields: [constraintId], references: [id])
+    storeId              String?
+    store                Store?              @relation(fields: [storeId], references: [id])
 }
 
 model LiteralCondition {
@@ -101,8 +105,8 @@ model CompositeCondition {
 
 model Discount {
     id          String             @id @default(cuid())
-    storeId     String
-    store       Store              @relation(fields: [storeId], references: [id])
+    storeId     String?
+    store       Store?             @relation(fields: [storeId], references: [id])
     compositeId String?
     composite   CompositeDiscount? @relation(fields: [compositeId], references: [id])
     simpleId    String?
@@ -118,28 +122,27 @@ model CompositeDiscount {
 }
 
 model SimpleDiscount {
-    id          String     @id @default(cuid())
-    amount      Int
-    storeId     String
-    conditionId String
-    condition   Condition  @relation(fields: [conditionId], references: [id])
-    discountOn  DiscountOn
-    Discount    Discount[]
+    id         String      @id @default(cuid())
+    amount     Int
+    discountOn DiscountOn
+    Condition  Condition[]
+    Discount   Discount[]
 }
 
 model Store {
-    id          String         @id @default(cuid())
+    id          String         @id
     name        String
     isActive    Boolean
     products    StoreProduct[]
     discounts   Discount[]
     Constraints Constraint[]
+    Condition   Condition[]
 }
 
 model StoreProduct {
     id           String         @id @default(cuid())
     storeId      String
-    store        Store          @relation(fields: [storeId], references: [id])
+    store        Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
     name         String
     price        Int
     category     String
@@ -157,11 +160,10 @@ model SpecialPrice {
 }
 
 model Constraint {
-    id          String    @id @default(cuid())
-    storeId     String
-    store       Store     @relation(fields: [storeId], references: [id])
-    conditionId String
-    condition   Condition @relation(fields: [conditionId], references: [id])
+    id        String      @id @default(cuid())
+    storeId   String
+    store     Store       @relation(fields: [storeId], references: [id])
+    Condition Condition[]
 }
 
 model Notification {
@@ -245,6 +247,7 @@ model ProductReview {
     storeId         String
     createdAt       DateTime         @default(now())
     productPurchase ProductPurchase?
+
     @@id([userId, productId])
     @@unique([purchaseId, productId])
 }
@@ -311,6 +314,7 @@ enum Permission {
     EditProductDetails
     RemoveProduct
     receivePrivateStoreData
+    ModifyPurchasePolicy
 }
 
 enum RoleType {

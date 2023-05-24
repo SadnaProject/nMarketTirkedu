@@ -8,7 +8,7 @@ import { GuestUserAuth } from "../Auth/GuestUserAuth";
 import { MemberUserAuth } from "../Auth/MemberUserAuth";
 import { JobsController } from "./JobsController";
 import { AuthController } from "../Auth/AuthController";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 export function createMember(name: string, password: string) {
   return MemberUserAuth.create(name, password);
 }
@@ -32,10 +32,10 @@ function generatePasswordI(i: number): string {
   return "password" + i.toString();
 }
 beforeEach(async () => {
-  await db.positionHolder.deleteMany({});
-  await db.role.deleteMany({});
-  await db.admin.deleteMany({});
-  await db.userAuth.deleteMany({});
+  await getDB().positionHolder.deleteMany({});
+  await getDB().role.deleteMany({});
+  await getDB().admin.deleteMany({});
+  await getDB().userAuth.deleteMany({});
   const testType = "integration";
   // controllers = createTestControllers(testType, "Jobs");
   controllers = { Jobs: new JobsController(), Auth: new AuthController() };

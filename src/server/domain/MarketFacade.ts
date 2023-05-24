@@ -1,7 +1,5 @@
 import { type Controllers } from "./_HasController";
-import { type CartDTO } from "./Users/Cart";
 import { createControllers } from "./_createControllers";
-import { type BasketDTO } from "./Users/Basket";
 import {
   type StoreProductDTO,
   type StoreProductArgs,
@@ -13,14 +11,14 @@ import { type BasketPurchaseDTO } from "./PurchasesHistory/BasketPurchaseHistory
 import { TRPCError } from "@trpc/server";
 import { type CreditCard } from "./PurchasesHistory/PaymentAdaptor";
 import { type StoreDTO } from "./Stores/Store";
-import { IDiscount, type DiscountArgs } from "./Stores/DiscountPolicy/Discount";
-import {
-  ICondition,
-  type ConditionArgs,
-} from "./Stores/Conditions/CompositeLogicalCondition/Condition";
+import { type DiscountArgs } from "./Stores/DiscountPolicy/Discount";
+import { type ConditionArgs } from "./Stores/Conditions/CompositeLogicalCondition/Condition";
 import { type RoleType } from "./Jobs/Role";
-import { BidArgs, BidDTO } from "./Users/Bid";
-import { PositionHolderDTO } from "./Jobs/PositionHolder";
+import { type BidArgs, type BidDTO } from "./Users/Bid";
+import { type PositionHolderDTO } from "./Jobs/PositionHolder";
+import { transactional } from "./_Transactional";
+
+@transactional
 @loggable
 export class MarketFacade extends Loggable {
   private controllers: Controllers;
@@ -35,7 +33,7 @@ export class MarketFacade extends Loggable {
       "admin@gmail.com",
       "admin"
     );
-    this.controllers.Jobs.setInitialAdmin(userId);
+    await this.controllers.Jobs.setInitialAdmin(userId);
   }
 
   private validateConnection(userId: string): void {
@@ -130,14 +128,14 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     return this.controllers.Users.getUnreadNotifications(userId);
   }
-  public reviewStore(
+  public async reviewStore(
     userId: string,
     purchaseId: string,
     storeId: string,
     review: number
   ) {
     this.validateConnection(userId);
-    this.controllers.PurchasesHistory.addStorePurchaseReview(
+    await this.controllers.PurchasesHistory.addStorePurchaseReview(
       userId,
       purchaseId,
       storeId,
@@ -145,7 +143,7 @@ export class MarketFacade extends Loggable {
     );
   }
 
-  public reviewProduct(
+  public async reviewProduct(
     userId: string,
     purchaseId: string,
     productId: string,
@@ -155,7 +153,7 @@ export class MarketFacade extends Loggable {
     storeId: string
   ) {
     this.validateConnection(userId);
-    this.controllers.PurchasesHistory.addProductPurchaseReview(
+    await this.controllers.PurchasesHistory.addProductPurchaseReview(
       userId,
       purchaseId,
       productId,
@@ -454,9 +452,13 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     return this.controllers.Users.login(userId, email, password);
   }
+  public async reConnectMember(userId: string): Promise<void> {
+    // this.validateConnection(userId);
+    return await this.controllers.Auth.reConnectMember(userId);
+  }
   public async logoutMember(userId: string): Promise<string> {
     this.validateConnection(userId);
-    return this.controllers.Users.logout(userId);
+    return await this.controllers.Users.logout(userId);
   }
   //This is not called logout because it also disconnects guest users which were not logged in.
   //disconnects a user. if the user is a guest user, the user is removed from the system.
@@ -588,6 +590,9 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     // console.log("getJobsHierarchyOfStore");
     return await this.controllers.Jobs.getJobsHierarchyOfStore(storeId);
+  }
+  async getMemberIdByEmail(email: string): Promise<string> {
+    return await this.controllers.Auth.getMemberIdByEmail(email);
   }
   // getStoreDiscounts(userId: string, storeId: string): Map<string, IDiscount> {
   //   this.validateConnection(userId);

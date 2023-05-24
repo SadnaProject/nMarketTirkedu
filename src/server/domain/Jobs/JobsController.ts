@@ -5,7 +5,7 @@ import { Testable, testable } from "server/domain/_Testable";
 import { ManagerRole } from "./ManagerRole";
 import { OwnerRole } from "./OwnerRole";
 import { HasRepos, createRepos } from "./_HasRepos";
-import { PositionHolder, PositionHolderDTO } from "./PositionHolder";
+import { PositionHolder, type PositionHolderDTO } from "./PositionHolder";
 import { FounderRole } from "./FounderRole";
 import { type EditablePermission } from "./Role";
 import { TRPCError } from "@trpc/server";
@@ -233,7 +233,7 @@ export interface IJobsController extends HasRepos {
   /**
    *
    */
-  setInitialAdmin(userId: string): void;
+  setInitialAdmin(userId: string): Promise<void>;
   /**
    * This function checks if a user can receive any data from a store(owners, managers, products, etc.).
    * @param userId
@@ -269,6 +269,15 @@ export interface IJobsController extends HasRepos {
    * @param userId The id of the user that is being checked.
    */
   canRemoveMember(userId: string): Promise<boolean>;
+  /**
+   * This function checks if a user has permission to change the store's purchase policy.(Constraints and discounts)
+   * @param userId The id of the user that is being checked.
+   * @param storeId The id of the store that the user is being checked in.
+   * @returns A boolean that represents if the user has permission to change the store's purchase policy.
+   * @throws Error if the store doesn't exist.
+   *
+   */
+  canModifyPurchasePolicy(userId: string, storeId: string): Promise<boolean>;
   /**
    * This function checks if a user has any position in the system(Owner, Manager, Founder,System Admin).
    * @param userId The id of the user that is being checked.
@@ -816,5 +825,20 @@ export class JobsController
       appointedByMe = await this.addEmailsToPositionHolderDTO(appointedByMe);
     }
     return positionHolderDTO;
+  }
+
+  async canModifyPurchasePolicy(
+    userId: string,
+    storeId: string
+  ): Promise<boolean> {
+    const ph: PositionHolder | undefined =
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+        userId,
+        storeId
+      );
+    if (ph === undefined) {
+      return false;
+    }
+    return ph.Role.hasPermission("ModifyPurchasePolicy");
   }
 }

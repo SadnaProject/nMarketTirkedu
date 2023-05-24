@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 import { RoleType } from "@prisma/client";
 import { RoleDTO, type EditablePermission, Role } from "./Role";
 import { OwnerRole } from "./OwnerRole";
@@ -69,7 +69,7 @@ export class PositionHolder {
     positionHolder: PositionHolder
   ): Promise<void> {
     // this.appointments.push(positionHolder);
-    await db.positionHolder.create({
+    await getDB().positionHolder.create({
       data: {
         storeId: positionHolder.storeId,
         userId: positionHolder.userId,
@@ -99,11 +99,11 @@ export class PositionHolder {
     );
     //TODO: find a more elegant way to do this(in founder also)
     if (
-      (await db.role.findMany({ where: { roleType: RoleType.Owner } }))
+      (await getDB().role.findMany({ where: { roleType: RoleType.Owner } }))
         .length == 0
     ) {
       console.log("creating owner role");
-      await db.role.create({
+      await getDB().role.create({
         data: {
           id: RoleType.Owner,
           roleType: positionHolder.role.getRoleType(),
@@ -111,7 +111,7 @@ export class PositionHolder {
         },
       });
     }
-    await db.positionHolder.create({
+    await getDB().positionHolder.create({
       data: {
         storeId: positionHolder.storeId,
         userId: positionHolder.userId,
@@ -144,14 +144,14 @@ export class PositionHolder {
       this.storeId,
       userId
     );
-    const role = await db.role.create({
+    const role = await getDB().role.create({
       data: {
         id: managerRole.ID,
         roleType: positionHolder.Role.getRoleType(),
         permissions: positionHolder.Role.getPermissions(),
       },
     });
-    await db.positionHolder.create({
+    await getDB().positionHolder.create({
       data: {
         storeId: positionHolder.storeId,
         userId: positionHolder.userId,
@@ -177,7 +177,7 @@ export class PositionHolder {
           this.storeId,
       });
     }
-    await db.positionHolder.delete({
+    await getDB().positionHolder.delete({
       where: { userId_storeId: { userId: userId, storeId: this.storeId } },
     });
     this.appointments.splice(index, 1);

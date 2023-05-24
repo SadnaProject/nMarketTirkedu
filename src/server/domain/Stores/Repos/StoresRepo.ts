@@ -1,4 +1,4 @@
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 import { Testable, testable } from "server/domain/_Testable";
 import { TRPCError } from "@trpc/server";
 import { type Store as DataStore } from "@prisma/client";
@@ -13,16 +13,17 @@ export class StoresRepo extends Testable {
     super();
   }
 
-  public async addStore(storeName: string) {
-    return await db.store.create({
+  public async addStore(storeName: string, storeId: string) {
+    return await getDB().store.create({
       data: {
         name: storeName,
+        id: storeId,
         isActive: true,
       },
     });
   }
   public async getAllNames() {
-    const stores = await db.store.findMany({
+    const stores = await getDB().store.findMany({
       select: {
         name: true,
       },
@@ -31,7 +32,7 @@ export class StoresRepo extends Testable {
   }
 
   public async getAllStores() {
-    const stores = await db.store.findMany();
+    const stores = await getDB().store.findMany();
     const realStores = [];
     for (const store of stores) {
       const realStore = await this.getStoreById(store.id);
@@ -41,7 +42,7 @@ export class StoresRepo extends Testable {
   }
 
   public async getActiveStores() {
-    const stores = await db.store.findMany({
+    const stores = await getDB().store.findMany({
       where: {
         isActive: true,
       },
@@ -50,7 +51,7 @@ export class StoresRepo extends Testable {
   }
 
   public async getStoreById(storeId: string) {
-    const store = await db.store.findUnique({
+    const store = await getDB().store.findUnique({
       where: {
         id: storeId,
       },
@@ -64,20 +65,33 @@ export class StoresRepo extends Testable {
     return store;
   }
   public async getConstraints(storeId: string): Promise<ConstraintPolicy> {
-    const constraints = await db.constraint.findMany({
+    const constraints = await getDB().constraint.findMany({
       where: {
         id: storeId,
       },
     });
     const constraintPolicy = new ConstraintPolicy(storeId);
     for (const constraint of constraints) {
-      const conditionArgs = await this.getCondition(constraint.conditionId);
-      constraintPolicy.addConstraint(conditionArgs, constraint.conditionId);
+      const conditionArgs = await getDB().condition.findFirst({
+        where: {
+          constraintId: constraint.id,
+        },
+      });
+      if (!conditionArgs) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Condition not found",
+        });
+      }
+      constraintPolicy.addConstraint(
+        await this.getCondition(conditionArgs.id),
+        constraint.id
+      );
     }
     return constraintPolicy;
   }
   public async getDiscounts(storeId: string): Promise<DiscountPolicy> {
-    const discounts = await db.discount.findMany({
+    const discounts = await getDB().discount.findMany({
       where: {
         id: storeId,
       },
@@ -90,7 +104,7 @@ export class StoresRepo extends Testable {
     return discountPolicy;
   }
   private async getDiscountArgs(discountId: string): Promise<DiscountArgs> {
-    const discount = await db.discount.findUnique({
+    const discount = await getDB().discount.findUnique({
       where: {
         id: discountId,
       },
@@ -114,16 +128,27 @@ export class StoresRepo extends Testable {
           message: "Discount not found",
         });
       }
+      const conditionArgs = await getDB().condition.findFirst({
+        where: {
+          discountId: discountId,
+        },
+      });
+      if (!conditionArgs) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Condition not found",
+        });
+      }
       return {
         type: "Simple",
         discountOn: discount?.simple.discountOn,
         amount: discount?.simple.amount,
-        condition: await this.getCondition(discount?.simple.conditionId),
+        condition: await this.getCondition(conditionArgs?.id),
       };
     }
   }
   private async getCondition(conditionId: string): Promise<ConditionArgs> {
-    const condition = await db.condition.findUnique({
+    const condition = await getDB().condition.findUnique({
       where: {
         id: conditionId,
       },
@@ -171,40 +196,37 @@ export class StoresRepo extends Testable {
   }
 
   public async deleteStore(storeId: string) {
-    await this.deleteConditions(storeId);
     await this.deleteDiscounts(storeId);
     await this.deleteConstraints(storeId);
-    await db.store.delete({
+    await getDB().store.delete({
       where: {
         id: storeId,
       },
     });
   }
   public async addConstraint(storeId: string, condition: ConditionArgs) {
-    return (
-      await db.constraint.create({
-        data: {
-          storeId: storeId,
-          conditionId: await this.addCondition(condition),
-        },
-      })
-    ).id;
+    const constraint = await getDB().constraint.create({
+      data: {
+        storeId: storeId,
+      },
+    });
+    await this.addCondition(condition, constraint.id, undefined);
+    return constraint.id;
   }
-  public async addDiscount(
-    storeId: string,
-    discount: DiscountArgs
+  private async addDiscountAndKeepHierarchy(
+    discount: DiscountArgs,
+    storeId?: string
   ): Promise<string> {
     if (discount.type === "Simple") {
-      const simple = await db.simpleDiscount.create({
+      const simple = await getDB().simpleDiscount.create({
         data: {
           amount: discount.amount,
           discountOn: discount.discountOn,
-          storeId: storeId,
-          conditionId: await this.addCondition(discount.condition),
         },
       });
+      await this.addCondition(discount.condition, undefined, simple.id);
       return (
-        await db.discount.create({
+        await getDB().discount.create({
           data: {
             simpleId: simple.id,
             storeId: storeId,
@@ -213,15 +235,15 @@ export class StoresRepo extends Testable {
       ).id;
     } else {
       if (discount.type === "Add" || discount.type === "Max") {
-        const composite = await db.compositeDiscount.create({
+        const composite = await getDB().compositeDiscount.create({
           data: {
-            leftId: await this.addDiscount(storeId, discount.left),
-            rightId: await this.addDiscount(storeId, discount.right),
+            leftId: await this.addDiscountAndKeepHierarchy(discount.left),
+            rightId: await this.addDiscountAndKeepHierarchy(discount.right),
             type: discount.type,
           },
         });
         return (
-          await db.discount.create({
+          await getDB().discount.create({
             data: {
               compositeId: composite.id,
               storeId: storeId,
@@ -235,49 +257,70 @@ export class StoresRepo extends Testable {
       });
     }
   }
-  public async addCondition(condition: ConditionArgs): Promise<string> {
+
+  public async addDiscount(
+    storeId: string,
+    discount: DiscountArgs
+  ): Promise<string> {
+    return await this.addDiscountAndKeepHierarchy(discount, storeId);
+  }
+  private async addConditionAndKeepHierarchy(
+    condition: ConditionArgs,
+    constraintId?: string,
+    discountId?: string
+  ): Promise<string> {
     if (condition.type === "Composite") {
+      const composite = await getDB().compositeCondition.create({
+        data: {
+          firstId: await this.addConditionAndKeepHierarchy(condition.left),
+          secondId: await this.addConditionAndKeepHierarchy(condition.right),
+          CompositeConditionType: condition.subType,
+        },
+      });
       return (
-        await db.condition.create({
+        await getDB().condition.create({
           data: {
-            compositeCondition: {
-              create: {
-                firstId: await this.addCondition(condition.left),
-                secondId: await this.addCondition(condition.right),
-                CompositeConditionType: condition.subType,
-              },
-            },
+            constraintId: constraintId,
+            discountId: discountId,
+            compositeConditionId: composite.id,
           },
         })
       ).id;
     } else if (condition.type === "Time") {
+      const dateCondition = await getDB().dateCondition.create({
+        data: {
+          timeConditionType: condition.conditionType,
+          year: condition.year ?? undefined,
+          month: condition.month ?? undefined,
+          day: condition.day ?? undefined,
+          hour: condition.hour ?? undefined,
+        },
+      });
+
       return (
-        await db.condition.create({
+        await getDB().condition.create({
           data: {
-            dateCondition: {
-              create: {
-                timeConditionType: condition.conditionType,
-                year: condition.year,
-                month: condition.month,
-                day: condition.day,
-                hour: condition.hour,
-              },
-            },
+            constraintId: constraintId,
+            discountId: discountId,
+            dateConditionId: dateCondition.id,
           },
         })
       ).id;
     } else {
       if (condition.type === "Literal") {
+        const literalCondition = await getDB().literalCondition.create({
+          data: {
+            type: condition.subType,
+            amount: condition.amount ?? undefined,
+            conditionType: condition.conditionType,
+          },
+        });
         return (
-          await db.condition.create({
+          await getDB().condition.create({
             data: {
-              LiteralCondition: {
-                create: {
-                  type: condition.subType,
-                  amount: condition.amount,
-                  conditionType: condition.conditionType,
-                },
-              },
+              constraintId: constraintId,
+              discountId: discountId,
+              LiteralConditionId: literalCondition.id,
             },
           })
         ).id;
@@ -289,14 +332,25 @@ export class StoresRepo extends Testable {
       }
     }
   }
+  public async addCondition(
+    condition: ConditionArgs,
+    constraintId?: string,
+    discountId?: string
+  ): Promise<string> {
+    return await this.addConditionAndKeepHierarchy(
+      condition,
+      constraintId,
+      discountId
+    );
+  }
   public setField<T extends keyof DataStore>(
-    productId: string,
+    id: string,
     field: T,
     value: DataStore[T]
   ) {
-    return db.store.update({
+    return getDB().store.update({
       where: {
-        id: productId,
+        id: id,
       },
       data: {
         [field]: value,
@@ -304,21 +358,22 @@ export class StoresRepo extends Testable {
     });
   }
   public async removeConstraint(constraintId: string) {
-    const constraint = await db.constraint.findUnique({
+    const conditions = await getDB().condition.findMany({
+      where: {
+        constraintId: constraintId,
+      },
+    });
+    for (const condition of conditions)
+      await this.deleteConditions(condition.id);
+
+    await getDB().constraint.delete({
       where: {
         id: constraintId,
       },
     });
-    if (!constraint) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Constraint not found",
-      });
-    }
-    return await this.deleteConditions(constraint?.conditionId);
   }
   public async removeDiscount(discountId: string) {
-    const discount = await db.discount.findUnique({
+    const discount = await getDB().discount.findUnique({
       where: {
         id: discountId,
       },
@@ -327,17 +382,35 @@ export class StoresRepo extends Testable {
         simple: true,
       },
     });
+
     if (discount?.composite) {
       await this.removeDiscount(discount?.composite.leftId);
       await this.removeDiscount(discount?.composite.rightId);
-      await db.compositeDiscount.delete({
+      await getDB().discount.delete({
+        where: {
+          id: discountId,
+        },
+      });
+      await getDB().compositeDiscount.delete({
         where: {
           id: discount?.composite.id,
         },
       });
     } else if (discount?.simple) {
-      await this.deleteConditions(discount?.simple.conditionId);
-      await db.simpleDiscount.delete({
+      const conditions = await getDB().condition.findMany({
+        where: {
+          discountId: discount?.simple.id,
+        },
+      });
+      for (const condition of conditions) {
+        await this.deleteConditions(condition.id);
+      }
+      await getDB().discount.delete({
+        where: {
+          id: discountId,
+        },
+      });
+      await getDB().simpleDiscount.delete({
         where: {
           id: discount?.simple.id,
         },
@@ -345,7 +418,7 @@ export class StoresRepo extends Testable {
     }
   }
   private async deleteConditions(conditionId: string) {
-    const condition = await db.condition.findUnique({
+    const condition = await getDB().condition.findUnique({
       where: {
         id: conditionId,
       },
@@ -355,36 +428,50 @@ export class StoresRepo extends Testable {
         LiteralCondition: true,
       },
     });
+
     if (condition?.compositeCondition) {
       await this.deleteConditions(condition?.compositeCondition.firstId);
       await this.deleteConditions(condition?.compositeCondition.secondId);
-      await db.compositeCondition.delete({
+      await getDB().condition.delete({
+        where: {
+          id: conditionId,
+        },
+      });
+      await getDB().compositeCondition.delete({
         where: {
           id: condition?.compositeCondition.id,
         },
       });
     } else if (condition?.LiteralCondition) {
-      await db.literalCondition.delete({
+      const LiteralConditionId = condition?.LiteralCondition.id;
+      await getDB().condition.delete({
         where: {
-          id: condition?.LiteralCondition.id,
+          id: conditionId,
+        },
+      });
+      await getDB().literalCondition.delete({
+        where: {
+          id: LiteralConditionId,
         },
       });
     } else if (condition?.dateCondition) {
-      await db.dateCondition.delete({
+      await getDB().condition.delete({
         where: {
-          id: condition?.dateCondition.id,
+          id: conditionId,
+        },
+      });
+      const dateConditionId = condition?.dateCondition.id;
+      await getDB().dateCondition.delete({
+        where: {
+          id: dateConditionId,
         },
       });
     }
   }
   private async deleteDiscounts(storeId: string) {
-    const discounts = await db.discount.findMany({
+    const discounts = await getDB().discount.findMany({
       where: {
         storeId: storeId,
-      },
-      include: {
-        composite: true,
-        simple: true,
       },
     });
     for (const discount of discounts) {
@@ -392,7 +479,7 @@ export class StoresRepo extends Testable {
     }
   }
   private async deleteConstraints(storeId: string) {
-    const constraints = await db.constraint.findMany({
+    const constraints = await getDB().constraint.findMany({
       where: {
         storeId: storeId,
       },

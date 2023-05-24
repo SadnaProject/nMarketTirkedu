@@ -62,6 +62,13 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     newStore.constraintPolicy = constraintPolicy;
     return newStore;
   }
+  getDAO() {
+    return {
+      id: this.id,
+      name: this.name,
+      isActive: this.isActive,
+    };
+  }
   static async fromStoreId(
     storeId: string,
     repos: Repos,
@@ -126,7 +133,11 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     const newProduct = new StoreProduct(product)
       .initControllers(this.Controllers)
       .initRepos(this.Repos);
-    const productId = await this.Repos.Products.addProduct(this.Id, product);
+    const productId = await this.Repos.Products.addProduct(
+      this.Id,
+      product,
+      newProduct.Id
+    );
     newProduct.Id = productId;
     return newProduct.Id;
   }

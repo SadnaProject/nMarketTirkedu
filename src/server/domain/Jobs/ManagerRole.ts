@@ -5,7 +5,7 @@ import {
   type EditablePermission,
   type RoleDTO,
 } from "./Role";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 import { RoleType } from "@prisma/client";
 import { randomUUID } from "crypto";
 
@@ -43,7 +43,7 @@ export class ManagerRole extends Role {
       });
     else {
       console.log(this.ID);
-      await db.role.update({
+      await getDB().role.update({
         where: { id: this.id },
         data: { permissions: { push: permission } },
       });
@@ -63,7 +63,7 @@ export class ManagerRole extends Role {
         (p) => p !== permission
       );
       //delete permission from roles permissions
-      await db.role.update({
+      await getDB().role.update({
         where: { id: this.id },
         data: { permissions: updatedPermissions },
       });

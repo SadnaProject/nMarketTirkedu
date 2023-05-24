@@ -385,6 +385,12 @@ export class Service {
   ): Promise<PositionHolderDTO> {
     return await this.facade.getJobsHierarchyOfStore(userId, storeId);
   }
+  async reConnectMember(userId: string): Promise<void> {
+    await this.facade.reConnectMember(userId);
+  }
+  async getMemberIdByEmail(email: string): Promise<string> {
+    return await this.facade.getMemberIdByEmail(email);
+  }
   // getStoreConstraints(
   //   userId: string,
   //   storeId: string

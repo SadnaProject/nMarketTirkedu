@@ -5,6 +5,9 @@ import { api } from "utils/api";
 export function useEnforceSession() {
   const { status } = useSession();
   const { mutateAsync: startSession } = api.auth.startSession.useMutation();
+  api.users.onLoginEvent.useSubscription(undefined, {
+    onData: () => console.log("onLoginEvent"),
+  });
 
   const handleUnauthenticated = useCallback(async () => {
     const userId = await startSession();

@@ -1,13 +1,13 @@
 import { z } from "zod";
 import {
   createTRPCRouter,
+  loggedInProcedure,
   publicProcedure,
   validSessionProcedure,
-  loggedInProcedure,
 } from "server/service/trpc";
 import { service } from "../_service";
-import { eventEmitter } from "server/EventEmitter";
 import { observable } from "@trpc/server/observable";
+import { eventEmitter } from "server/EventEmitter";
 
 export const UsersRouter = createTRPCRouter({
   addProductToCart: validSessionProcedure
@@ -121,12 +121,17 @@ export const UsersRouter = createTRPCRouter({
     return service.logoutMember(ctx.session.user.id);
   }),
   onLoginEvent: loggedInProcedure.subscription(({ ctx }) => {
-    return () => {
+    return observable<string>((emit) => {
       //TODO support this, I need to add some login function that receives the user id(seems a bit unsecure but ok)
       // return service.loginMember();
+      void service.reConnectMember(ctx.session.user.id);
+      console.log("login of user", ctx.session.user.id);
 
-      return () => service.logoutMember(ctx.session.user.id);
-    };
+      return () => {
+        console.log("logout of user", ctx.session.user.id);
+        void service.logoutMember(ctx.session.user.id);
+      };
+    });
   }),
 
   // onAddNotificationEvent: publicProcedure.subscription(() => {
@@ -149,4 +154,15 @@ export const UsersRouter = createTRPCRouter({
       const { memberIdToRemove } = input;
       return service.removeMember(ctx.session.user.id, memberIdToRemove);
     }),
+
+  subscribeToEvents: loggedInProcedure.subscription(({ ctx }) => {
+    return observable<unknown>((emit) => {
+      eventEmitter.subscribeToEmitter(ctx.session.user.id, (msg) => {
+        emit.next(msg);
+      });
+      return () => {
+        eventEmitter.unsubscribeFromEmitter(ctx.session.user.id);
+      };
+    });
+  }),
 });

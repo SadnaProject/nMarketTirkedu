@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { HasControllers } from "../_HasController";
 import { Mixin } from "ts-mixer";
 import { type CartDTO } from "./Cart";
@@ -5,7 +6,6 @@ import { Notification } from "./Notification";
 import { HasRepos, createRepos } from "./_HasRepos";
 import { Testable, testable } from "server/domain/_Testable";
 import { type CreditCard } from "../PurchasesHistory/PaymentAdaptor";
-import { TRPCError } from "@trpc/server";
 import { censored } from "../_Loggable";
 import { Bid, type BidArgs, type BidDTO } from "./Bid";
 import * as R from "ramda";
@@ -162,16 +162,15 @@ export class UsersController
       userId,
       productId
     );
-    if (
-      !(await this.Controllers.Stores.isProductQuantityInStock(
-        userId,
-        productId,
-        quantity
-      ))
-    ) {
+    const isInStock = await this.Controllers.Stores.isProductQuantityInStock(
+      userId,
+      productId,
+      quantity
+    );
+    if (!isInStock) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "store don't have such amount of product",
+        message: "store doesn't have such amount of product",
       });
     }
     await user.addProductToCart(productId, quantity, storeId);
@@ -202,7 +201,7 @@ export class UsersController
     ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "store don't have such amount of product",
+        message: "store doesn't have such amount of product",
       });
     }
     const storeId = await this.Controllers.Stores.getStoreIdByProductId(
@@ -266,8 +265,8 @@ export class UsersController
     return guestId;
   }
   async register(email: string, @censored password: string): Promise<string> {
-    const MemberId = this.Controllers.Auth.register(email, password);
-    await this.Repos.Users.addUser(await MemberId);
+    const MemberId = await this.Controllers.Auth.register(email, password);
+    this.Repos.Users.addUser(MemberId);
     return MemberId;
   }
   async login(
@@ -276,13 +275,17 @@ export class UsersController
     @censored password: string
   ): Promise<string> {
     await this.Repos.Users.getUser(guestId);
-    const MemberId = this.Controllers.Auth.login(guestId, email, password);
-    await this.Repos.Users.getUser(await MemberId);
+    const MemberId = await this.Controllers.Auth.login(
+      guestId,
+      email,
+      password
+    );
+    await this.Repos.Users.getUser(MemberId);
     return MemberId;
   }
   async logout(userId: string): Promise<string> {
-    const guestId = this.Controllers.Auth.logout(userId);
-    await this.Repos.Users.addUser(await guestId);
+    const guestId = await this.Controllers.Auth.logout(userId);
+    await this.Repos.Users.addUser(guestId);
     return guestId;
   }
   async disconnect(userId: string): Promise<void> {

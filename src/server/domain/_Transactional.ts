@@ -24,10 +24,15 @@ type TransactionalPrisma = Omit<
 const dbMap = new Map<string, TransactionalPrisma>();
 
 export function getDB() {
-  const id = z.string().parse(asyncLocalStorage.getStore());
-  const db = dbMap.get(id);
-  if (!db) throw new Error("No db found");
-  return db;
+  const id = z.string().safeParse(asyncLocalStorage.getStore());
+  if (id.success) {
+    const db = dbMap.get(id.data);
+    if (!db) {
+      throw new Error("No db found inside transaction");
+    }
+    return db;
+  }
+  return dbGlobal;
 }
 
 export function transactional(target: { prototype: Object }) {
@@ -53,10 +58,7 @@ export function transactional(target: { prototype: Object }) {
       //       throw error
       //     }
       //   }
-      try {
-        getDB(); // check if db exists, i.e. we are in a transaction
-        return await originalMethod.apply(this, args);
-      } catch (e) {
+      if (getDB() === dbGlobal) {
         return dbGlobal.$transaction(async (db) => {
           const id = randomUUID();
           dbMap.set(id, db);
@@ -67,6 +69,7 @@ export function transactional(target: { prototype: Object }) {
           return result;
         });
       }
+      return await originalMethod.apply(this, args);
     };
 
     Object.defineProperty(prototype, propertyName, descriptor);

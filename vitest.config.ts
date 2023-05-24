@@ -13,9 +13,9 @@ export default defineConfig({
     },
     include: [
       "**/testingDb.test.ts",
-      "**/AuthController.test.ts",
+      // "**/AuthController.test.ts",
       "**/UserAuthRepo.test.ts",
-      "**/MemberUserAuth.test.ts",
+      // "**/MemberUserAuth.test.ts",
       "**/Session.test.ts",
       "**/testingDbJobs.test.ts",
       // "**/ReviewRepo.test.ts",

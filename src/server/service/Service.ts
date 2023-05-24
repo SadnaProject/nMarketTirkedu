@@ -123,8 +123,8 @@ export class Service {
     return await this.facade.loginMember(userId, email, password);
   }
 
-  public disconnectUser(userId: string) {
-    this.facade.disconnectUser(userId);
+  public async disconnectUser(userId: string) {
+    await this.facade.disconnectUser(userId);
   }
 
   public getStoreProducts(userId: string, storeId: string) {

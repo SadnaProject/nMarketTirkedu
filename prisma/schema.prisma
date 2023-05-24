@@ -310,6 +310,7 @@ enum Permission {
     EditProductDetails
     RemoveProduct
     receivePrivateStoreData
+    ModifyPurchasePolicy
 }
 
 enum RoleType {

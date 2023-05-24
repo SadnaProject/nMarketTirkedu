@@ -11,6 +11,7 @@ export type EditablePermission =
   | "AddProduct"
   | "EditProductDetails"
   | "RemoveProduct"
+  | "ModifyPurchasePolicy"
   | "receivePrivateStoreData";
 export const roleTypeSchema = z.enum(["Owner", "Manager", "Founder"]);
 export type RoleType = z.infer<typeof roleTypeSchema>;

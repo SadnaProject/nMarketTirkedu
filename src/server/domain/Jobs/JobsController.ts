@@ -270,6 +270,15 @@ export interface IJobsController extends HasRepos {
    */
   canRemoveMember(userId: string): Promise<boolean>;
   /**
+   * This function checks if a user has permission to change the store's purchase policy.(Constraints and discounts)
+   * @param userId The id of the user that is being checked.
+   * @param storeId The id of the store that the user is being checked in.
+   * @returns A boolean that represents if the user has permission to change the store's purchase policy.
+   * @throws Error if the store doesn't exist.
+   *
+   */
+  canModifyPurchasePolicy(userId: string, storeId: string): Promise<boolean>;
+  /**
    * This function checks if a user has any position in the system(Owner, Manager, Founder,System Admin).
    * @param userId The id of the user that is being checked.
    * @returns A boolean that represents if the user has any position in the system.
@@ -816,5 +825,20 @@ export class JobsController
       appointedByMe = await this.addEmailsToPositionHolderDTO(appointedByMe);
     }
     return positionHolderDTO;
+  }
+
+  async canModifyPurchasePolicy(
+    userId: string,
+    storeId: string
+  ): Promise<boolean> {
+    const ph: PositionHolder | undefined =
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+        userId,
+        storeId
+      );
+    if (ph === undefined) {
+      return false;
+    }
+    return ph.Role.hasPermission("ModifyPurchasePolicy");
   }
 }

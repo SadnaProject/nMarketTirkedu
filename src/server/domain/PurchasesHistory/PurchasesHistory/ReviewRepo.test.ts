@@ -3,7 +3,7 @@ import { type Repos, createRepos } from "../_HasRepos";
 import { Review } from "../Review";
 import { ReviewRepo } from "./ReviewRepo";
 import { itUnitIntegration } from "server/domain/_mock";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 import { CartPurchase } from "../CartPurchaseHistory";
 import { ProductPurchase } from "../ProductPurchaseHistory";
 import { BasketPurchase } from "../BasketPurchaseHistory";
@@ -44,11 +44,11 @@ const productPurchaseData = {
 //   new Review(reviewData).initRepos(repos);
 
 beforeEach(async () => {
-  await db.productPurchase.deleteMany({});
-  await db.basketPurchase.deleteMany({});
-  await db.cartPurchase.deleteMany({});
-  await db.user.deleteMany({});
-  await db.user.create({
+  await getDB().productPurchase.deleteMany({});
+  await getDB().basketPurchase.deleteMany({});
+  await getDB().cartPurchase.deleteMany({});
+  await getDB().user.deleteMany({});
+  await getDB().user.create({
     data: {
       id: "userId",
       name: "name",

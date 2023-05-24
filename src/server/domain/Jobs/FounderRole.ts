@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { type EditablePermission, Role } from "./Role";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 import { RoleType } from "@prisma/client";
 
 export class FounderRole extends Role {

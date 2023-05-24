@@ -10,7 +10,7 @@ import { PositionHolder } from "./PositionHolder";
 import { Role } from "./Role";
 import { FounderRole } from "./FounderRole";
 import { OwnerRole } from "./OwnerRole";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 import exp from "constants";
 import { JobsRepo } from "./JobsRepo";
 import { JobsController } from "./JobsController";
@@ -35,8 +35,8 @@ const founderRole: FounderRole = FounderRole.getFounderRole();
 // let controllers: Controllers;
 beforeEach(async () => {
   //delete all data in db
-  await db.positionHolder.deleteMany({});
-  await db.role.deleteMany({});
+  await getDB().positionHolder.deleteMany({});
+  await getDB().role.deleteMany({});
   const testType = "integration";
   // controllers = createTestControllers(testType, "Users");
   // repos = createTestRepos(testType, "jobs");

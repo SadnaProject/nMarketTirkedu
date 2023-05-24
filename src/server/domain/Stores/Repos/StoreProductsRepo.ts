@@ -1,9 +1,8 @@
 import { Testable, testable } from "server/domain/_Testable";
 import { type StoreProduct as DataStoreProduct } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
-import { db } from "server/db";
-import { randomUUID } from "crypto";
-import { StoreProductArgs } from "../StoreProduct";
+import { getDB } from "server/domain/_Transactional";
+import { type StoreProductArgs } from "../StoreProduct";
 
 @testable
 export class StoreProductsRepo extends Testable {
@@ -16,7 +15,7 @@ export class StoreProductsRepo extends Testable {
     product: StoreProductArgs,
     productId: string
   ) {
-    const p = await db.storeProduct.create({
+    const p = await getDB().storeProduct.create({
       data: {
         id: productId,
         name: product.name,
@@ -34,7 +33,7 @@ export class StoreProductsRepo extends Testable {
     productId: string,
     price: number
   ) {
-    await db.specialPrice.create({
+    await getDB().specialPrice.create({
       data: {
         userId: userId,
         productId: productId,
@@ -43,7 +42,7 @@ export class StoreProductsRepo extends Testable {
     });
   }
   public async getSpecialPrice(userId: string, productId: string) {
-    const specialPrice = await db.specialPrice.findFirst({
+    const specialPrice = await getDB().specialPrice.findFirst({
       where: {
         userId: userId,
         productId: productId,
@@ -52,7 +51,7 @@ export class StoreProductsRepo extends Testable {
     return specialPrice?.price;
   }
   public async getAllProducts() {
-    const products = await db.storeProduct.findMany({
+    const products = await getDB().storeProduct.findMany({
       include: {
         store: true,
       },
@@ -61,7 +60,7 @@ export class StoreProductsRepo extends Testable {
     return products;
   }
   public async getProductById(productId: string) {
-    const product = await db.storeProduct.findUnique({
+    const product = await getDB().storeProduct.findUnique({
       where: {
         id: productId,
       },
@@ -76,7 +75,7 @@ export class StoreProductsRepo extends Testable {
   }
 
   public async getActiveProducts() {
-    const products = await db.storeProduct.findMany({
+    const products = await getDB().storeProduct.findMany({
       include: {
         store: true,
       },
@@ -90,7 +89,7 @@ export class StoreProductsRepo extends Testable {
   }
 
   public async getProductsByStoreId(storeId: string) {
-    const products = await db.storeProduct.findMany({
+    const products = await getDB().storeProduct.findMany({
       where: {
         storeId: storeId,
       },
@@ -104,7 +103,7 @@ export class StoreProductsRepo extends Testable {
   }
 
   public async getStoreIdByProductId(productId: string) {
-    const store = await db.storeProduct.findUnique({
+    const store = await getDB().storeProduct.findUnique({
       where: {
         id: productId,
       },
@@ -122,14 +121,14 @@ export class StoreProductsRepo extends Testable {
   }
 
   public async deleteProduct(productId: string) {
-    await db.storeProduct.delete({
+    await getDB().storeProduct.delete({
       where: {
         id: productId,
       },
     });
   }
   public async getSpecialPrices(productId: string) {
-    const specialPrices = await db.specialPrice.findMany({
+    const specialPrices = await getDB().specialPrice.findMany({
       where: {
         productId: productId,
       },
@@ -144,7 +143,7 @@ export class StoreProductsRepo extends Testable {
     prices: Map<string, number>,
     productId: string
   ) {
-    await db.specialPrice.createMany({
+    await getDB().specialPrice.createMany({
       data: Array.from(prices).map(([userId, price]) => {
         return {
           userId: userId,
@@ -160,7 +159,7 @@ export class StoreProductsRepo extends Testable {
     field: T,
     value: DataStoreProduct[T]
   ) {
-    return db.storeProduct.update({
+    return getDB().storeProduct.update({
       where: {
         id: productId,
       },

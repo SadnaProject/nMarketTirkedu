@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { type Repos, createMockRepos } from "./_HasRepos";
 import { MemberUserAuth } from "./MemberUserAuth";
 import { GuestUserAuth } from "./GuestUserAuth";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 
 export function createMember(name: string, password: string) {
   return MemberUserAuth.create(name, password);
@@ -19,7 +19,7 @@ function getGuestI(i: number): GuestUserAuth {
 let repos: Repos;
 beforeEach(async () => {
   repos = createMockRepos("Users");
-  await db.userAuth.deleteMany({});
+  await getDB().userAuth.deleteMany({});
 });
 describe("add user", () => {
   it("✅adds member", async () => {

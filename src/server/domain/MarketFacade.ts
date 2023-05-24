@@ -1,7 +1,5 @@
 import { type Controllers } from "./_HasController";
-import { type CartDTO } from "./Users/Cart";
 import { createControllers } from "./_createControllers";
-import { type BasketDTO } from "./Users/Basket";
 import {
   type StoreProductDTO,
   type StoreProductArgs,
@@ -13,14 +11,14 @@ import { type BasketPurchaseDTO } from "./PurchasesHistory/BasketPurchaseHistory
 import { TRPCError } from "@trpc/server";
 import { type CreditCard } from "./PurchasesHistory/PaymentAdaptor";
 import { type StoreDTO } from "./Stores/Store";
-import { IDiscount, type DiscountArgs } from "./Stores/DiscountPolicy/Discount";
-import {
-  ICondition,
-  type ConditionArgs,
-} from "./Stores/Conditions/CompositeLogicalCondition/Condition";
+import { type DiscountArgs } from "./Stores/DiscountPolicy/Discount";
+import { type ConditionArgs } from "./Stores/Conditions/CompositeLogicalCondition/Condition";
 import { type RoleType } from "./Jobs/Role";
 import { type BidArgs, type BidDTO } from "./Users/Bid";
 import { type PositionHolderDTO } from "./Jobs/PositionHolder";
+import { transactional } from "./_Transactional";
+
+@transactional
 @loggable
 export class MarketFacade extends Loggable {
   private controllers: Controllers;
@@ -35,7 +33,7 @@ export class MarketFacade extends Loggable {
       "admin@gmail.com",
       "admin"
     );
-    this.controllers.Jobs.setInitialAdmin(userId);
+    await this.controllers.Jobs.setInitialAdmin(userId);
   }
 
   private validateConnection(userId: string): void {
@@ -78,9 +76,9 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     await this.controllers.Users.addProductToCart(userId, productId, quantity);
   }
-  public removeProductFromCart(userId: string, productId: string) {
+  public async removeProductFromCart(userId: string, productId: string) {
     this.validateConnection(userId);
-    this.controllers.Users.removeProductFromCart(userId, productId);
+    await this.controllers.Users.removeProductFromCart(userId, productId);
   }
   public async editProductQuantityInCart(
     userId: string,
@@ -130,14 +128,14 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     return this.controllers.Users.getUnreadNotifications(userId);
   }
-  public reviewStore(
+  public async reviewStore(
     userId: string,
     purchaseId: string,
     storeId: string,
     review: number
   ) {
     this.validateConnection(userId);
-    this.controllers.PurchasesHistory.addStorePurchaseReview(
+    await this.controllers.PurchasesHistory.addStorePurchaseReview(
       userId,
       purchaseId,
       storeId,
@@ -145,7 +143,7 @@ export class MarketFacade extends Loggable {
     );
   }
 
-  public reviewProduct(
+  public async reviewProduct(
     userId: string,
     purchaseId: string,
     productId: string,
@@ -155,7 +153,7 @@ export class MarketFacade extends Loggable {
     storeId: string
   ) {
     this.validateConnection(userId);
-    this.controllers.PurchasesHistory.addProductPurchaseReview(
+    await this.controllers.PurchasesHistory.addProductPurchaseReview(
       userId,
       purchaseId,
       productId,
@@ -442,9 +440,9 @@ export class MarketFacade extends Loggable {
    * @throws Error if the member to remove is not a member.
    * @throws Error if the member has any position(he cant be removed if he has any position).
    */
-  removeMember(userIdOfActor: string, memberIdToRemove: string) {
+  async removeMember(userIdOfActor: string, memberIdToRemove: string) {
     this.validateConnection(userIdOfActor);
-    this.controllers.Users.removeMember(userIdOfActor, memberIdToRemove);
+    await this.controllers.Users.removeMember(userIdOfActor, memberIdToRemove);
   }
   public async loginMember(
     userId: string,
@@ -573,13 +571,13 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     return this.controllers.Users.getAllBidsSendToUser(userId);
   }
-  approveBid(userId: string, bidId: string): void {
+  async approveBid(userId: string, bidId: string): Promise<void> {
     this.validateConnection(userId);
-    this.controllers.Users.approveBid(userId, bidId);
+    await this.controllers.Users.approveBid(userId, bidId);
   }
-  rejectBid(userId: string, bidId: string): void {
+  async rejectBid(userId: string, bidId: string): Promise<void> {
     this.validateConnection(userId);
-    this.controllers.Users.rejectBid(userId, bidId);
+    await this.controllers.Users.rejectBid(userId, bidId);
   }
   removeVoteFromBid(userId: string, bidId: string): void {
     this.validateConnection(userId);

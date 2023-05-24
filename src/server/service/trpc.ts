@@ -19,7 +19,7 @@
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import { type Session } from "next-auth";
 // import { getServerAuthSession } from "server/auth";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 import type ws from "ws";
 
 type CreateContextOptions = {

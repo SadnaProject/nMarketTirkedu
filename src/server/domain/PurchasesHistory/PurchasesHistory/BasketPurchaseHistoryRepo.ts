@@ -1,6 +1,6 @@
 import { Testable, testable } from "server/domain/_Testable";
 import { BasketPurchase as RealBasketPurchase } from "../BasketPurchaseHistory";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 import { TRPCError } from "@trpc/server";
 
 @testable
@@ -12,30 +12,34 @@ export class BasketPurchaseRepo extends Testable {
     this.BasketPurchases = [];
   }
 
-  public async addBasketPurchase(basketPurchase: RealBasketPurchase) : Promise<void>{
-    await db.basketPurchase.create({
+  public async addBasketPurchase(
+    basketPurchase: RealBasketPurchase
+  ): Promise<void> {
+    await getDB().basketPurchase.create({
       data: {
         purchaseId: basketPurchase.PurchaseId,
         storeId: basketPurchase.StoreId,
         products: {
-          create: Object.values(Object.fromEntries(basketPurchase.Products)).map(
-            (product) => {
-              return {
-                purchaseId: product.PurchaseId,
-                productId: product.ProductId,
-                quantity: product.Quantity,
-                price: product.Price,
-              };
-            }
-          ),
+          create: Object.values(
+            Object.fromEntries(basketPurchase.Products)
+          ).map((product) => {
+            return {
+              purchaseId: product.PurchaseId,
+              productId: product.ProductId,
+              quantity: product.Quantity,
+              price: product.Price,
+            };
+          }),
         },
         price: basketPurchase.Price,
       },
     });
   }
 
-  public async getPurchasesByStore(storeId: string): Promise<RealBasketPurchase[]> {
-    const baskets = await db.basketPurchase.findMany({
+  public async getPurchasesByStore(
+    storeId: string
+  ): Promise<RealBasketPurchase[]> {
+    const baskets = await getDB().basketPurchase.findMany({
       where: {
         storeId: storeId,
       },
@@ -57,7 +61,7 @@ export class BasketPurchaseRepo extends Testable {
     purchaseId: string,
     storeId: string
   ): Promise<RealBasketPurchase> {
-    const purchase = await db.basketPurchase.findUnique({
+    const purchase = await getDB().basketPurchase.findUnique({
       where: {
         purchaseId_storeId: {
           purchaseId: purchaseId,
@@ -78,8 +82,11 @@ export class BasketPurchaseRepo extends Testable {
     }
     return RealBasketPurchase.fromDAO(purchase);
   }
-  public async hasPurchase(purchaseId: string, storeId: string): Promise<boolean> {
-    const purchase = await db.basketPurchase.findUnique({
+  public async hasPurchase(
+    purchaseId: string,
+    storeId: string
+  ): Promise<boolean> {
+    const purchase = await getDB().basketPurchase.findUnique({
       where: {
         purchaseId_storeId: {
           purchaseId: purchaseId,

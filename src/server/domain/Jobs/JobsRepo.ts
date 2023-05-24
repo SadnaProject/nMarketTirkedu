@@ -1,7 +1,7 @@
 import { Testable, testable } from "server/domain/_Testable";
 import { PositionHolder } from "./PositionHolder";
 import { TRPCError } from "@trpc/server";
-import { db } from "server/db";
+import { getDB } from "server/domain/_Transactional";
 import { RoleType } from "@prisma/client";
 
 @testable
@@ -14,21 +14,21 @@ export class JobsRepo extends Testable {
   }
   public async getAllStoreIds(): Promise<string[]> {
     const allStoreIds = (
-      await db.positionHolder.findMany({ select: { storeId: true } })
+      await getDB().positionHolder.findMany({ select: { storeId: true } })
     ).map((ph) => ph.storeId);
     return [...new Set(allStoreIds)];
   }
   public async addSystemAdmin(userId: string): Promise<void> {
     this.systemAdminIds.push(userId);
-    await db.admin.create({ data: { userId: userId } });
+    await getDB().admin.create({ data: { userId: userId } });
   }
   public async removeSystemAdmin(userId: string): Promise<void> {
-    await db.admin.delete({ where: { userId: userId } });
+    await getDB().admin.delete({ where: { userId: userId } });
     this.systemAdminIds = this.systemAdminIds.filter((id) => id !== userId);
   }
   public async getSystemAdmins(): Promise<string[]> {
     // return this.systemAdminIds;
-    return (await db.admin.findMany({ select: { userId: true } })).map(
+    return (await getDB().admin.findMany({ select: { userId: true } })).map(
       (admin) => admin.userId
     );
   }
@@ -38,11 +38,11 @@ export class JobsRepo extends Testable {
     // this.storeIdToFounder.set(founder.StoreId, founder);
     //todo: there needs to only one founder role in the db
     if (
-      (await db.role.findMany({ where: { roleType: RoleType.Founder } }))
+      (await getDB().role.findMany({ where: { roleType: RoleType.Founder } }))
         .length == 0
     ) {
       console.log("creating founder role");
-      await db.role.create({
+      await getDB().role.create({
         data: {
           //TODO change this to just use founderRole
           id: RoleType.Founder,
@@ -51,7 +51,7 @@ export class JobsRepo extends Testable {
         },
       });
     }
-    await db.positionHolder.create({
+    await getDB().positionHolder.create({
       data: {
         storeId: founder.StoreId,
         userId: founder.UserId,
@@ -78,7 +78,7 @@ export class JobsRepo extends Testable {
   public async GetStoreFounder(storeId: string): Promise<PositionHolder> {
     const founder = this.storeIdToFounder.get(storeId);
     if (founder === undefined) {
-      const dbPositionHolder = await db.positionHolder.findFirst({
+      const dbPositionHolder = await getDB().positionHolder.findFirst({
         include: { role: true, assignedPositionHolders: true },
         where: {
           storeId: storeId,
@@ -109,7 +109,7 @@ export class JobsRepo extends Testable {
     storeId: string,
     userId: string
   ): Promise<PositionHolder> {
-    const dbPositionHolder = await db.positionHolder.findUnique({
+    const dbPositionHolder = await getDB().positionHolder.findUnique({
       where: { userId_storeId: { storeId: storeId, userId: userId } },
       include: { role: true, assignedPositionHolders: true },
     });

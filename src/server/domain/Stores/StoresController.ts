@@ -18,7 +18,7 @@ import { type DiscountArgs } from "./DiscountPolicy/Discount";
 import { type BasketDTO } from "../Users/Basket";
 import { type RoleType } from "../Jobs/Role";
 import { type Bid, storeBidArgs } from "../Users/Bid";
-
+import { type StoreProduct as StoreProductDAO } from "@prisma/client";
 export type SearchArgs = {
   name?: string;
   category?: string;
@@ -317,45 +317,52 @@ export class StoresController
     userId: string,
     args: SearchArgs
   ): Promise<StoreProductDTO[]> {
-    const products = (await StoreProduct.getActive(this.Repos))
-      .filter(async (p) => {
-        const store = await StoreProduct.fromDAO(
+    const pro = await StoreProduct.getActive(this.Repos);
+    const fun = async (p: StoreProductDAO) => {
+      const store = await StoreProduct.fromDAO(
+        p,
+        await this.Repos.Products.getSpecialPrices(p.id)
+      )
+        .initRepos(this.Repos)
+        .initControllers(this.Controllers)
+        .getStore();
+      const productRating = (
+        await this.Controllers.PurchasesHistory.getReviewsByProduct(p.id)
+      ).avgRating;
+      const storeRating =
+        await this.Controllers.PurchasesHistory.getStoreRating(store.Id);
+      const first_bool = await this.filterProductSearch(
+        StoreProduct.fromDAO(
           p,
           await this.Repos.Products.getSpecialPrices(p.id)
-        ).getStore();
-        return await this.Controllers.Jobs.canReceivePublicDataFromStore(
+        )
+          .initRepos(this.Repos)
+          .initControllers(this.Controllers),
+        productRating,
+        storeRating,
+        args
+      );
+      const other_Bool =
+        await this.Controllers.Jobs.canReceivePublicDataFromStore(
           userId,
           store.Id
         );
-      })
-      .filter(async (p) => {
-        const store = await StoreProduct.fromDAO(
-          p,
-          await this.Repos.Products.getSpecialPrices(p.id)
-        ).getStore();
-        const productRating = (
-          await this.Controllers.PurchasesHistory.getReviewsByProduct(p.id)
-        ).avgRating;
-        const storeRating =
-          await this.Controllers.PurchasesHistory.getStoreRating(store.Id);
+      return { productData: p, bool: other_Bool && first_bool };
+    };
+    const products = (await Promise.all(pro.map(fun)))
+      .filter((x) => x.bool)
+      .map((x) => x.productData);
 
-        return this.filterProductSearch(
-          StoreProduct.fromDAO(
-            p,
-            await this.Repos.Products.getSpecialPrices(p.id)
-          ),
-          productRating,
-          storeRating,
-          args
-        );
-      });
     const productsDTO: StoreProductDTO[] = [];
     for (const product of products) {
       productsDTO.push(
         await StoreProduct.fromDAO(
           product,
           await this.Repos.Products.getSpecialPrices(product.id)
-        ).getDTO()
+        )
+          .initControllers(this.Controllers)
+          .initRepos(this.Repos)
+          .getDTO()
       );
     }
     return productsDTO;
@@ -586,8 +593,7 @@ export class StoresController
         message: "Store name already exists",
       });
 
-    const args = await this.Repos.Stores.addStore(store.Name);
-    store.Id = args.id;
+    await this.Repos.Stores.addStore(store.Name, store.Id);
     await this.Controllers.Jobs.InitializeStore(founderId, store.Id);
     // TODO needs to create here event for the store
     return store.Id;

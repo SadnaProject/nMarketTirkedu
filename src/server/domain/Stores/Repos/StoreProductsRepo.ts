@@ -11,9 +11,14 @@ export class StoreProductsRepo extends Testable {
     super();
   }
 
-  public async addProduct(storeId: string, product: StoreProductArgs) {
+  public async addProduct(
+    storeId: string,
+    product: StoreProductArgs,
+    productId: string
+  ) {
     const p = await db.storeProduct.create({
       data: {
+        id: productId,
         name: product.name,
         category: product.category,
         price: product.price,

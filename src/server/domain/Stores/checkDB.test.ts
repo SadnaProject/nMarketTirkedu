@@ -12,7 +12,7 @@ import {
   createLiteralConditionArgs,
   createSimpleDiscountArgs,
 } from "./_data";
-
+import { randomUUID } from "crypto";
 let repos: Repos;
 beforeEach(() => {
   //delete all data in db
@@ -21,10 +21,10 @@ beforeEach(() => {
   repos = createTestRepos("integration");
   // controllers.Auth.initRepos(repos);
 });
-//TODO: delete this.
 describe("trying out db", () => {
   it("✅adds store", async () => {
-    const storeDAO = await repos.Stores.addStore("name");
+    const id = randomUUID();
+    const storeDAO = await repos.Stores.addStore("name", id);
     const realStore = Store.fromDAO(
       storeDAO,
       new DiscountPolicy(storeDAO.id),
@@ -70,6 +70,7 @@ describe("trying out db", () => {
     const compose = createCompositeDiscountArgs(simple, simple1, "Add");
     await realStore.addDiscount(compose);
     expect(true).toBe(true);
-    // await repos.Stores.deleteStore(storeDAO.id);
-  });
+
+    await repos.Stores.deleteStore(realStore.Id);
+  }, 10000000);
 });

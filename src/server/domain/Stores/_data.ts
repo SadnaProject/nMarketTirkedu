@@ -24,7 +24,6 @@ import {
 import { z } from "zod";
 import {
   type CompositeDiscountArgs,
-  Discount,
   type DiscountArgs,
   type DiscountCompositeType,
   type DiscountOn,
@@ -167,4 +166,13 @@ export function createPromise<T>(value: T) {
   return new Promise<T>((resolve) => {
     resolve(value);
   });
+}
+export function productToProductData(product: StoreProduct): StoreProductArgs {
+  return {
+    category: product.Category,
+    description: product.Description,
+    name: product.Name,
+    price: product.Price,
+    quantity: product.Quantity,
+  };
 }

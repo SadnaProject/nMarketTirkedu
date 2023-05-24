@@ -21,7 +21,8 @@ export default defineConfig({
       // "**/ReviewRepo.test.ts",
       // "**/ProductPurchaseHistoryRepo.test.ts",
       // "**/checkDB.test.ts",
-      "**/StoresController.test.ts",
+      "**/Session.test.ts",
+      // "**/StoresController.test.ts",
     ],
     //make the tests run in an order and not in parallel
     threads: false,

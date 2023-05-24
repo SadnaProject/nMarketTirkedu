@@ -460,14 +460,14 @@ export class MarketFacade extends Loggable {
   }
   public async logoutMember(userId: string): Promise<string> {
     this.validateConnection(userId);
-    return this.controllers.Users.logout(userId);
+    return await this.controllers.Users.logout(userId);
   }
   //This is not called logout because it also disconnects guest users which were not logged in.
   //disconnects a user. if the user is a guest user, the user is removed from the system.
   //if the user is a member user, the users session is invalidated.
-  public disconnectUser(userId: string): void {
+  public async disconnectUser(userId: string): Promise<void> {
     this.validateConnection(userId);
-    this.controllers.Users.disconnect(userId);
+    await this.controllers.Users.disconnect(userId);
   }
 
   public async getPurchasesByUser(

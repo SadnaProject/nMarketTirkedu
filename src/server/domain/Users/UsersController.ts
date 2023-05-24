@@ -262,8 +262,8 @@ export class UsersController
     return guestId;
   }
   async register(email: string, @censored password: string): Promise<string> {
-    const MemberId = this.Controllers.Auth.register(email, password);
-    this.Repos.Users.addUser(await MemberId);
+    const MemberId = await this.Controllers.Auth.register(email, password);
+    this.Repos.Users.addUser(MemberId);
     return MemberId;
   }
   async login(
@@ -272,13 +272,17 @@ export class UsersController
     @censored password: string
   ): Promise<string> {
     this.Repos.Users.getUser(guestId);
-    const MemberId = this.Controllers.Auth.login(guestId, email, password);
-    this.Repos.Users.getUser(await MemberId);
+    const MemberId = await this.Controllers.Auth.login(
+      guestId,
+      email,
+      password
+    );
+    this.Repos.Users.getUser(MemberId);
     return MemberId;
   }
   async logout(userId: string): Promise<string> {
-    const guestId = this.Controllers.Auth.logout(userId);
-    this.Repos.Users.addUser(await guestId);
+    const guestId = await this.Controllers.Auth.logout(userId);
+    this.Repos.Users.addUser(guestId);
     return guestId;
   }
   async disconnect(userId: string): Promise<void> {

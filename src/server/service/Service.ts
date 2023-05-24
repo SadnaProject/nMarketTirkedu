@@ -40,18 +40,22 @@ export class Service {
     return await this.facade.getErrors(userId);
   }
 
-  public addProductToCart(userId: string, productId: string, quantity: number) {
-    this.facade.addProductToCart(userId, productId, quantity);
-  }
-  public removeProductFromCart(userId: string, productId: string) {
-    this.facade.removeProductFromCart(userId, productId);
-  }
-  public editProductQuantityInCart(
+  public async addProductToCart(
     userId: string,
     productId: string,
     quantity: number
   ) {
-    this.facade.editProductQuantityInCart(userId, productId, quantity);
+    await this.facade.addProductToCart(userId, productId, quantity);
+  }
+  public async removeProductFromCart(userId: string, productId: string) {
+    await this.facade.removeProductFromCart(userId, productId);
+  }
+  public async editProductQuantityInCart(
+    userId: string,
+    productId: string,
+    quantity: number
+  ) {
+    await this.facade.editProductQuantityInCart(userId, productId, quantity);
   }
   public getCart(userId: string) {
     return this.facade.getCart(userId);
@@ -62,18 +66,22 @@ export class Service {
   public purchaseCart(userId: string, creditCard: CreditCard) {
     return this.facade.purchaseCart(userId, creditCard);
   }
-  public removeUser(userId: string) {
-    this.facade.removeUser(userId);
+  public async removeUser(userId: string) {
+    await this.facade.removeUser(userId);
   }
-  public readNotification(userId: string, notificationId: string) {
-    this.facade.readNotification(userId, notificationId);
+  public async readNotification(userId: string, notificationId: string) {
+    await this.facade.readNotification(userId, notificationId);
   }
-  public addNotification(
+  public async addNotification(
     userId: string,
     notificationType: string,
     notificationMsg: string
   ) {
-    this.facade.addNotification(userId, notificationType, notificationMsg);
+    await this.facade.addNotification(
+      userId,
+      notificationType,
+      notificationMsg
+    );
   }
   public getUnreadNotifications(userId: string) {
     return this.facade.getUnreadNotifications(userId);
@@ -119,8 +127,8 @@ export class Service {
     return await this.facade.loginMember(userId, email, password);
   }
 
-  public disconnectUser(userId: string) {
-    this.facade.disconnectUser(userId);
+  public async disconnectUser(userId: string) {
+    await this.facade.disconnectUser(userId);
   }
 
   public getStoreProducts(userId: string, storeId: string) {
@@ -311,8 +319,8 @@ export class Service {
     return await this.facade.searchProducts(userId, searchArgs);
   }
   //TODO: Duplicate code from down here, be careful!
-  public startSession(): string {
-    return this.facade.startSession();
+  public async startSession(): Promise<string> {
+    return await this.facade.startSession();
   }
 
   public async registerMember(
@@ -354,8 +362,8 @@ export class Service {
   async getAllLoggedOutMembersIds(userId: string): Promise<string[]> {
     return this.facade.getAllLoggedOutMembersIds(userId);
   }
-  removeMember(userIdOfActor: string, memberIdToRemove: string) {
-    this.facade.removeMember(userIdOfActor, memberIdToRemove);
+  async removeMember(userIdOfActor: string, memberIdToRemove: string) {
+    await this.facade.removeMember(userIdOfActor, memberIdToRemove);
   }
   async getProductById(
     userId: string,

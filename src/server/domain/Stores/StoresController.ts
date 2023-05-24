@@ -610,13 +610,13 @@ export class StoresController
     const managerIds = await store.ManagersIds;
     const founderId = await store.FounderId;
     const notifiedUserIds = [founderId, ...ownerIds, ...managerIds];
-    notifiedUserIds.forEach((uid) => {
-      this.Controllers.Users.addNotification(
+    for (const uid of notifiedUserIds) {
+      await this.Controllers.Users.addNotification(
         uid,
         "Store activated 💃",
         `Store ${storeId} has been activated`
       );
-    });
+    }
     eventEmitter.emit(`store is changed ${storeId}`, {
       storeId: storeId,
       userId: userId,
@@ -647,13 +647,13 @@ export class StoresController
     const managerIds = await store.ManagersIds;
     const founderId = await store.FounderId;
     const notifiedUserIds = [founderId, ...ownerIds, ...managerIds];
-    notifiedUserIds.forEach((uid) => {
-      this.Controllers.Users.addNotification(
+    for (const uid of notifiedUserIds) {
+      await this.Controllers.Users.addNotification(
         uid,
         "Store deactivated 💤",
         `Store ${storeId} has been deactivated`
       );
-    });
+    }
     eventEmitter.emit(`store is changed ${storeId}`, {
       storeId: storeId,
       userId: userId,
@@ -707,7 +707,7 @@ export class StoresController
   }
 
   async getCartPrice(userId: string): Promise<number> {
-    const cartDTO = this.Controllers.Users.getCart(userId);
+    const cartDTO = await this.Controllers.Users.getCart(userId);
     let price = 0;
     for (const storeId of cartDTO.storeIdToBasket.keys()) {
       price += await this.getBasketPrice(userId, storeId);
@@ -722,7 +722,7 @@ export class StoresController
       this.Repos,
       this.Controllers
     );
-    const cartDTO = this.Controllers.Users.getCart(userId);
+    const cartDTO = await this.Controllers.Users.getCart(userId);
     const basketDTO = cartDTO.storeIdToBasket.get(storeId);
     if (!basketDTO)
       throw new TRPCError({

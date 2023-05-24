@@ -14,7 +14,7 @@ describe("Member Logout", () => {
   it("✅ Logout of a logged in member", async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
-    const id = service.startSession();
+    const id = await service.startSession();
     await service.registerMember(id, email, password);
     const uid = await service.loginMember(id, email, password);
     const nid = await service.logoutMember(uid);
@@ -26,7 +26,7 @@ describe("create a new store", () => {
   it("✅creates a store", async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
-    const id = service.startSession();
+    const id = await service.startSession();
     await service.registerMember(id, email, password);
     const uid = await service.loginMember(id, email, password);
     const storeName = generateStoreName();
@@ -34,7 +34,7 @@ describe("create a new store", () => {
     expect(await service.isStoreFounder(uid, storeId)).toBe(true);
   });
   it("❎user is not a member", async () => {
-    const id = service.startSession();
+    const id = await service.startSession();
     const storeName = generateStoreName();
     expect(() => service.createStore(id, storeName)).toThrow(TRPCError);
     //this store should not be added, so the following code has to work

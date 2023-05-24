@@ -10,26 +10,26 @@ beforeEach(() => {
 //Use Case 1.1
 describe("Guest Entrance", () => {
   it("✅ Guest enters the system", async () => {
-    const id = service.startSession();
+    const id = await service.startSession();
     expect(await service.isConnected(id)).toBe(true);
     expect(service.isGuest(id)).toBe(true);
-    expect(service.getCart(id).storeIdToBasket.size).toBe(0);
+    expect((await service.getCart(id)).storeIdToBasket.size).toBe(0);
   });
 });
 //Use Case 1.2
 describe("Disconnection", () => {
   it("✅ Guest disconnects the system", async () => {
-    const id = service.startSession();
-    service.disconnectUser(id);
+    const id = await service.startSession();
+    await service.disconnectUser(id);
     expect(!(await service.isConnected(id))).toBe(true);
   });
   it("✅ Member disconnects the system", async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
-    const id = service.startSession();
+    const id = await service.startSession();
     await service.registerMember(id, email, password);
     const uid = await service.loginMember(id, email, password);
-    service.disconnectUser(uid);
+    await service.disconnectUser(uid);
     // expect(!service.isConnected(uid)).toBe(true);
   });
 });
@@ -38,7 +38,7 @@ describe("Guest Registration", () => {
   it("✅ Registration of new member", async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
-    const id = service.startSession();
+    const id = await service.startSession();
     await service.registerMember(id, email, password);
     const uid = await service.loginMember(id, email, password);
     expect(service.isMember(uid)).toBe(true);
@@ -46,7 +46,7 @@ describe("Guest Registration", () => {
   it("❎ Registration of an existing member", async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
-    const id = service.startSession();
+    const id = await service.startSession();
     await service.registerMember(id, email, password);
     expect(() => service.registerMember(id, email, password)).toThrow(
       TRPCError
@@ -58,7 +58,7 @@ describe("Guest Login", () => {
   it("✅ Login of a registered member", async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
-    const id = service.startSession();
+    const id = await service.startSession();
     await service.registerMember(id, email, password);
     const uid = await service.loginMember(id, email, password);
     expect(
@@ -68,14 +68,14 @@ describe("Guest Login", () => {
   it("❎ Login using wrong email", async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
-    const id = service.startSession();
+    const id = await service.startSession();
     await service.registerMember(id, email, password);
     expect(() => service.loginMember(id, "", password)).toThrow(TRPCError);
   });
   it("❎ Login using wrong password", async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
-    const id = service.startSession();
+    const id = await service.startSession();
     await service.registerMember(id, email, password);
     expect(() => service.loginMember(id, email, "")).toThrow(TRPCError);
   });

@@ -12,56 +12,111 @@ export class UserRepo extends Testable {
     this.users = new Map();
   }
 
-  public addUser(userId: string): void {
-    if (this.users.has(userId)) {
+  public async addUser(userId: string): Promise<void> {
+    /*if (this.users.has(userId)) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "User already exists",
       });
+    }*/
+    // const user = await db.user.findUnique({ where: { id: userId } });
+    // if (user) {
+    //   throw new TRPCError({
+    //     code: "BAD_REQUEST",
+    //     message: "User already exists",
+    //   });
+    // }
+    try {
+      await db.user.create({
+        data: {
+          id: userId,
+        },
+      });
+
+      await db.cart.create({
+        data: {
+          userId: userId,
+        },
+      });
+      this.users.set(userId, new User(userId));
+    } catch (e) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "User already exists",
+        cause: e,
+      });
     }
-    this.users.set(userId, new User(userId));
   }
 
-  public getUser(id: string): User {
-    const user = this.users.get(id);
+  public async getUser(id: string): Promise<User> {
+    let user = this.users.get(id);
     if (user === undefined) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "User not found",
-      });
+      const userdb = await db.user.findUnique({ where: { id: id } });
+      if (userdb === null) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "User not found",
+        });
+      }
+      user = await User.UserFromDTO(userdb);
+      this.users.set(id, user);
     }
     return user;
   }
 
-  public getAllUsers(): User[] {
-    return Array.from(this.users.values());
+  public async getAllUsers(): Promise<User[]> {
+    // return Array.from(this.users.values());
+    const members = await db.user.findMany();
+    const ans = [];
+    for (const m of members) {
+      ans.push(await User.UserFromDTO(m));
+    }
+    return ans;
   }
 
-  public removeUser(id: string): void {
+  public async removeUser(id: string): Promise<void> {
     if (!this.users.has(id)) {
-      throw new TRPCError({
+      /*throw new TRPCError({
         code: "NOT_FOUND",
         message: "User not found",
-      });
+      });*/
+      const user = await db.user.findUnique({ where: { id: id } });
+      if (user === null) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "User does not exist",
+        });
+      }
     }
+    await db.user.delete({ where: { id: id } });
     this.users.delete(id);
   }
-  clone(userSource: string, userDest: string): void {
-    const Dest = this.users.get(userDest);
-    const Source = this.users.get(userSource);
+  async clone(userSource: string, userDest: string): Promise<void> {
+    let Dest = this.users.get(userDest);
+    let Source = this.users.get(userSource);
     if (Dest === undefined || Source === undefined) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "User not found",
-      });
+      const s = await db.user.findUnique({ where: { id: userSource } });
+      const d = await db.user.findUnique({ where: { id: userDest } });
+      if (s === null || d === null) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found",
+        });
+      }
+      if (Dest === undefined) {
+        Dest = await User.UserFromDTO(d);
+      }
+      if (Source === undefined) {
+        Source = await User.UserFromDTO(s);
+      }
     }
-    Dest.clone(Source);
+    await Dest.clone(Source);
   }
-  isUserExist(id: string): boolean {
-    return this.users.has(id);
+  async isUserExist(id: string): Promise<boolean> {
+    return (await db.user.findUnique({ where: { id: id } })) !== null;
   }
-  getUserByBidId(bidId: string): User {
-    const user = this.getAllUsers().find((user) =>
+  async getUserByBidId(bidId: string): Promise<User> {
+    const user = (await this.getAllUsers()).find((user) =>
       user.isBidExistFromMe(bidId)
     );
     if (user === undefined) {

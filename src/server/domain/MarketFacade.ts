@@ -70,21 +70,25 @@ export class MarketFacade extends Loggable {
   }
 
   //Checking if user is logged in is done here.
-  public addProductToCart(userId: string, productId: string, quantity: number) {
-    this.validateConnection(userId);
-    this.controllers.Users.addProductToCart(userId, productId, quantity);
-  }
-  public removeProductFromCart(userId: string, productId: string) {
-    this.validateConnection(userId);
-    this.controllers.Users.removeProductFromCart(userId, productId);
-  }
-  public editProductQuantityInCart(
+  public async addProductToCart(
     userId: string,
     productId: string,
     quantity: number
   ) {
     this.validateConnection(userId);
-    this.controllers.Users.editProductQuantityInCart(
+    await this.controllers.Users.addProductToCart(userId, productId, quantity);
+  }
+  public async removeProductFromCart(userId: string, productId: string) {
+    this.validateConnection(userId);
+    await this.controllers.Users.removeProductFromCart(userId, productId);
+  }
+  public async editProductQuantityInCart(
+    userId: string,
+    productId: string,
+    quantity: number
+  ) {
+    this.validateConnection(userId);
+    await this.controllers.Users.editProductQuantityInCart(
       userId,
       productId,
       quantity
@@ -104,19 +108,19 @@ export class MarketFacade extends Loggable {
     return this.controllers.Users.purchaseCart(userId, creditCard);
   }
 
-  public removeUser(userId: string) {
-    this.controllers.Users.removeUser(userId);
+  public async removeUser(userId: string) {
+    await this.controllers.Users.removeUser(userId);
   }
-  public readNotification(userId: string, notificationId: string) {
+  public async readNotification(userId: string, notificationId: string) {
     this.validateConnection(userId);
-    this.controllers.Users.readNotification(userId, notificationId);
+    await this.controllers.Users.readNotification(userId, notificationId);
   }
-  public addNotification(
+  public async addNotification(
     userId: string,
     notificationType: string,
     notificationMsg: string
   ) {
-    this.controllers.Users.addNotification(
+    await this.controllers.Users.addNotification(
       userId,
       notificationType,
       notificationMsg
@@ -417,7 +421,7 @@ export class MarketFacade extends Loggable {
     return await this.controllers.Stores.searchProducts(userId, searchArgs);
   }
   //TODO: Duplicate code from down here, be careful!
-  public startSession(): string {
+  public async startSession(): Promise<string> {
     return this.controllers.Users.startSession();
   }
 
@@ -438,9 +442,9 @@ export class MarketFacade extends Loggable {
    * @throws Error if the member to remove is not a member.
    * @throws Error if the member has any position(he cant be removed if he has any position).
    */
-  removeMember(userIdOfActor: string, memberIdToRemove: string) {
+  async removeMember(userIdOfActor: string, memberIdToRemove: string) {
     this.validateConnection(userIdOfActor);
-    this.controllers.Users.removeMember(userIdOfActor, memberIdToRemove);
+    await this.controllers.Users.removeMember(userIdOfActor, memberIdToRemove);
   }
   public async loginMember(
     userId: string,
@@ -457,9 +461,9 @@ export class MarketFacade extends Loggable {
   //This is not called logout because it also disconnects guest users which were not logged in.
   //disconnects a user. if the user is a guest user, the user is removed from the system.
   //if the user is a member user, the users session is invalidated.
-  public disconnectUser(userId: string): void {
+  public async disconnectUser(userId: string): Promise<void> {
     this.validateConnection(userId);
-    this.controllers.Users.disconnect(userId);
+    await this.controllers.Users.disconnect(userId);
   }
 
   public async getPurchasesByUser(
@@ -557,21 +561,21 @@ export class MarketFacade extends Loggable {
     this.validateConnection(bid.userId);
     await this.controllers.Users.addBid(bid);
   }
-  getBidsFromMe(userId: string): BidDTO[] {
+  async getBidsFromMe(userId: string): Promise<BidDTO[]> {
     this.validateConnection(userId);
     return this.controllers.Users.getAllBidsSendFromUser(userId);
   }
-  getBidsToMe(userId: string): BidDTO[] {
+  async getBidsToMe(userId: string): Promise<BidDTO[]> {
     this.validateConnection(userId);
     return this.controllers.Users.getAllBidsSendToUser(userId);
   }
-  approveBid(userId: string, bidId: string): void {
+  async approveBid(userId: string, bidId: string): Promise<void> {
     this.validateConnection(userId);
-    this.controllers.Users.approveBid(userId, bidId);
+    await this.controllers.Users.approveBid(userId, bidId);
   }
-  rejectBid(userId: string, bidId: string): void {
+  async rejectBid(userId: string, bidId: string): Promise<void> {
     this.validateConnection(userId);
-    this.controllers.Users.rejectBid(userId, bidId);
+    await this.controllers.Users.rejectBid(userId, bidId);
   }
   removeVoteFromBid(userId: string, bidId: string): void {
     this.validateConnection(userId);

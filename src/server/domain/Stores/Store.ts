@@ -238,11 +238,11 @@ export class Store extends Mixin(HasRepos, HasControllers) {
   public set DiscountPolicy(policy: DiscountPolicy) {
     this.discountPolicy = policy;
   }
-  private createCartDTOfromBasket(basket: BasketDTO, StoreId: string): CartDTO {
+  /*private createCartDTOfromBasket(basket: BasketDTO, StoreId: string): CartDTO {
     const storeIdToBasket: Map<string, BasketDTO> = new Map();
     storeIdToBasket.set(StoreId, basket);
     return {
       storeIdToBasket: storeIdToBasket,
     };
-  }
+  }*/
 }

@@ -79,10 +79,10 @@ describe("register member", () => {
     //   }
     // );
     const validateEmailLegality = vi
-      .spyOn(MemberUserAuth.prototype as any, "validateEmailLegality")
+      .spyOn(MemberUserAuth.prototype as any, "validateEmailLegality") // todo remove
       .mockImplementation(() => {});
     const validatePasswordLegality = vi
-      .spyOn(MemberUserAuth.prototype as any, "validatePasswordLegality")
+      .spyOn(MemberUserAuth.prototype as any, "validatePasswordLegality") // todo remove
       .mockImplementation(() => {});
     vi.spyOn(repos.Users, "doesMemberExistByEmail").mockResolvedValue(false);
     vi.spyOn(repos.Users, "addMember").mockImplementation(async () => {});

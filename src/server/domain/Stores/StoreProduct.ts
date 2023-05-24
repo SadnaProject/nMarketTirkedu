@@ -7,6 +7,7 @@ import { type Controllers, HasControllers } from "../_HasController";
 import { Mixin } from "ts-mixer";
 import { s } from "vitest/dist/env-afee91f0";
 import { type StoreProduct as StoreProductDAO } from "@prisma/client";
+import { Store } from "./Store";
 
 const nameSchema = z.string().nonempty("Name must be nonempty");
 const quantitySchema = z.number().nonnegative("Quantity must be non negative");
@@ -80,7 +81,10 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
     repos: Repos,
     controllers: Controllers
   ) {
-    const product = await repos.Products.getProductById(productId);
+    const product = StoreProduct.fromDAO(
+      await repos.Products.getProductById(productId),
+      await repos.Products.getSpecialPrices(productId)
+    );
     product.initRepos(repos).initControllers(controllers);
     return product;
   }
@@ -154,7 +158,11 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
 
   public async getStore() {
     const storeId = await this.Repos.Products.getStoreIdByProductId(this.Id);
-    return (await this.Repos.Stores.getStoreById(storeId))
+    return Store.fromDAO(
+      await this.Repos.Stores.getStoreById(storeId),
+      await this.Repos.Stores.getDiscounts(storeId),
+      await this.Repos.Stores.getConstraints(storeId)
+    )
       .initControllers(this.Controllers)
       .initRepos(this.Repos);
   }
@@ -188,10 +196,10 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
         message: "Store is not active",
       });
     }
-    if (quantity <= 0) {
+    if (quantity < 0) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Quantity must be positive",
+        message: "Quantity can't be negative",
       });
     }
     return this.Quantity >= quantity;
@@ -220,5 +228,16 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
   public getPriceForUser(userId: string): number {
     const p = this.SpecialPrices.get(userId);
     return p !== undefined ? p : this.Price;
+  }
+  public async getDAO(): Promise<StoreProductDAO> {
+    return {
+      category: this.Category,
+      description: this.Description,
+      id: this.Id,
+      name: this.Name,
+      price: this.Price,
+      quantity: this.Quantity,
+      storeId: (await this.getStore()).Id,
+    };
   }
 }

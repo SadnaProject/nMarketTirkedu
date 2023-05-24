@@ -13,7 +13,6 @@ import Href from "components/href";
 import { FormInput } from "components/form";
 import { api } from "utils/api";
 import { onError } from "utils/query";
-import { useCallback } from "react";
 
 const formSchema = z
   .object({
@@ -21,10 +20,10 @@ const formSchema = z
       .string()
       .nonempty("Email is required")
       .email("Invalid email address"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
+    password: z.string().min(5, "Password must be at least 5 characters"),
     passwordConfirm: z
       .string()
-      .min(8, "Password must be at least 8 characters"),
+      .min(5, "Password must be at least 5 characters"),
   })
   .refine((obj) => obj.password === obj.passwordConfirm, {
     message: "Passwords do not match",
@@ -98,21 +97,21 @@ export default function Home() {
               field="email"
               label="Email address"
               type="email"
-              register={register}
+              {...register("email")}
               errors={errors}
             />
             <FormInput
               field="password"
               label="Password"
               type="password"
-              register={register}
+              {...register("password")}
               errors={errors}
             />
             <FormInput
               field="passwordConfirm"
               label="Confirm Password"
               type="password"
-              register={register}
+              {...register("passwordConfirm")}
               errors={errors}
             />
 

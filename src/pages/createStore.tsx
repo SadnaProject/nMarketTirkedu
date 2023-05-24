@@ -54,8 +54,7 @@ export default function Home() {
             <FormInput
               field="name"
               label="Store Name"
-              type="text"
-              register={register}
+              {...register("name")}
               errors={errors}
             />
 

@@ -6,6 +6,7 @@ import {
   generateStoreName,
 } from "server/domain/Stores/_data";
 import { Service } from "server/service/Service";
+import { TRPCError } from "@trpc/server";
 
 let service: Service;
 beforeEach(() => {
@@ -52,24 +53,24 @@ describe("Concurrent Purchase", () => {
       const email = faker.internet.email();
       const password = faker.internet.password();
       const id = service.startSession();
-      service.registerMember(id, email, password);
-      const uid = service.loginMember(id, email, password);
+      await service.registerMember(id, email, password);
+      const uid = await service.loginMember(id, email, password);
       const storeName = generateStoreName();
-      const storeId = service.createStore(uid, storeName);
+      const storeId = await service.createStore(uid, storeName);
       const ownermail = "owner@gmail.com";
       const ownerpass = "owner123";
       const oid2 = service.startSession();
-      service.registerMember(oid2, ownermail, ownerpass);
-      const oid = service.loginMember(oid2, ownermail, ownerpass);
-      service.makeStoreOwner(uid, storeId, oid);
+      await service.registerMember(oid2, ownermail, ownerpass);
+      const oid = await service.loginMember(oid2, ownermail, ownerpass);
+      await service.makeStoreOwner(uid, storeId, oid);
       const pargs = generateProductArgs();
       pargs.quantity = 1;
-      const pid = service.createProduct(oid, storeId, pargs);
+      const pid = await service.createProduct(oid, storeId, pargs);
       const memail = "member@gmail.com";
       const mpassword = faker.internet.password();
       const mid = service.startSession();
-      service.registerMember(mid, memail, mpassword);
-      const umid = service.loginMember(mid, memail, mpassword);
+      await service.registerMember(mid, memail, mpassword);
+      const umid = await service.loginMember(mid, memail, mpassword);
       service.addProductToCart(umid, pid, 1);
       const card = faker.finance.creditCardNumber();
       const card2 = faker.finance.creditCardNumber();
@@ -85,7 +86,7 @@ describe("Concurrent Purchase", () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
         return service.purchaseCart(umid, cCard);
       }
-      const promises: Promise<void>[] = [];
+      const promises: Promise<string>[] = [];
       promises.push(purchase());
       promises.push(purchase2());
       const res = await Promise.allSettled(promises);
@@ -101,21 +102,21 @@ describe("Concurrent add manager", () => {
       const email = faker.internet.email();
       const password = faker.internet.password();
       const id = service.startSession();
-      service.registerMember(id, email, password);
-      const uid = service.loginMember(id, email, password);
+      await service.registerMember(id, email, password);
+      const uid = await service.loginMember(id, email, password);
       const storeName = generateStoreName();
-      const storeId = service.createStore(uid, storeName);
+      const storeId = await service.createStore(uid, storeName);
       const ownermail = "owner@gmail.com";
       const ownerpass = "owner123";
       const oid2 = service.startSession();
-      service.registerMember(oid2, ownermail, ownerpass);
-      const oid = service.loginMember(oid2, ownermail, ownerpass);
-      service.makeStoreOwner(uid, storeId, oid);
+      await service.registerMember(oid2, ownermail, ownerpass);
+      const oid = await service.loginMember(oid2, ownermail, ownerpass);
+      await service.makeStoreOwner(uid, storeId, oid);
       const memail = "member@gmail.com";
       const mpassword = faker.internet.password();
       const mid = service.startSession();
-      service.registerMember(mid, memail, mpassword);
-      const umid = service.loginMember(mid, memail, mpassword);
+      await service.registerMember(mid, memail, mpassword);
+      const umid = await service.loginMember(mid, memail, mpassword);
       async function addM1() {
         await new Promise((resolve) => setTimeout(resolve, 0));
         return service.makeStoreManager(uid, storeId, umid);
@@ -129,7 +130,7 @@ describe("Concurrent add manager", () => {
       promises.push(addM2());
       const res = await Promise.allSettled(promises);
       expect(res[0]?.status !== res[1]?.status).toBe(true);
-      expect(service.isStoreManager(umid, storeId)).toBe(true);
+      expect(await service.isStoreManager(umid, storeId)).toBe(true);
     }
   });
 });
@@ -141,21 +142,21 @@ describe("Concurrent add owner", () => {
       const email = faker.internet.email();
       const password = faker.internet.password();
       const id = service.startSession();
-      service.registerMember(id, email, password);
-      const uid = service.loginMember(id, email, password);
+      await service.registerMember(id, email, password);
+      const uid = await service.loginMember(id, email, password);
       const storeName = generateStoreName();
-      const storeId = service.createStore(uid, storeName);
+      const storeId = await service.createStore(uid, storeName);
       const ownermail = "owner@gmail.com";
       const ownerpass = "owner123";
       const oid2 = service.startSession();
-      service.registerMember(oid2, ownermail, ownerpass);
-      const oid = service.loginMember(oid2, ownermail, ownerpass);
-      service.makeStoreOwner(uid, storeId, oid);
+      await service.registerMember(oid2, ownermail, ownerpass);
+      const oid = await service.loginMember(oid2, ownermail, ownerpass);
+      await service.makeStoreOwner(uid, storeId, oid);
       const memail = "member@gmail.com";
       const mpassword = faker.internet.password();
       const mid = service.startSession();
-      service.registerMember(mid, memail, mpassword);
-      const umid = service.loginMember(mid, memail, mpassword);
+      await service.registerMember(mid, memail, mpassword);
+      const umid = await service.loginMember(mid, memail, mpassword);
       async function addO1() {
         await new Promise((resolve) => setTimeout(resolve, 0));
         return service.makeStoreOwner(uid, storeId, umid);
@@ -169,7 +170,7 @@ describe("Concurrent add owner", () => {
       promises.push(addO2());
       const res = await Promise.allSettled(promises);
       expect(res[0]?.status !== res[1]?.status).toBe(true);
-      expect(service.isStoreOwner(umid, storeId)).toBe(true);
+      expect(await service.isStoreOwner(umid, storeId)).toBe(true);
     }
   });
 });
@@ -181,14 +182,14 @@ describe("Concurrent store open", () => {
       const email = faker.internet.email();
       const password = faker.internet.password();
       const id = service.startSession();
-      service.registerMember(id, email, password);
-      const uid = service.loginMember(id, email, password);
+      await service.registerMember(id, email, password);
+      const uid = await service.loginMember(id, email, password);
       const storeName = generateStoreName();
       const ownermail = "owner@gmail.com";
       const ownerpass = "owner123";
       const oid2 = service.startSession();
-      service.registerMember(oid2, ownermail, ownerpass);
-      const oid = service.loginMember(oid2, ownermail, ownerpass);
+      await service.registerMember(oid2, ownermail, ownerpass);
+      const oid = await service.loginMember(oid2, ownermail, ownerpass);
       async function addS1() {
         await new Promise((resolve) => setTimeout(resolve, 0));
         return service.createStore(uid, storeName);
@@ -204,9 +205,9 @@ describe("Concurrent store open", () => {
       expect(res[0]?.status !== res[1]?.status).toBe(true);
       expect(
         (res[0]?.status === "fulfilled" &&
-          service.isStoreFounder(uid, res[0]?.value)) ||
+          (await service.isStoreFounder(uid, res[0]?.value))) ||
           (res[1]?.status === "fulfilled" &&
-            service.isStoreFounder(oid, res[1]?.value))
+            (await service.isStoreFounder(oid, res[1]?.value)))
       ).toBe(true);
     }
   });

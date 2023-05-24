@@ -7,6 +7,8 @@ import { Rating } from "components/star";
 import PATHS, { useGuestRedirect } from "utils/paths";
 import { CreateIcon } from "components/icons";
 import { api } from "utils/api";
+import { cachedQueryOptions } from "utils/query";
+import { type RoleType } from "server/domain/Jobs/Role";
 
 const stores: StoreDTO[] = [
   {
@@ -86,30 +88,24 @@ const stores: StoreDTO[] = [
 export default function Home() {
   useGuestRedirect();
 
-  // const { data: stores, refetch } = api.stores.getstoreby.useQuery(
-  //   getValues(),
-  //   {
-  //     retry: false,
-  //     onError,
-  //   }
-  // );
+  const { data: stores, refetch } = api.stores.myStores.useQuery(
+    undefined,
+    cachedQueryOptions
+  );
 
   return (
     <Layout>
       <h1>My Stores</h1>
       <Gallery
-        list={stores ? [{ id: "first" }, ...stores] : [{ id: "first" }]}
-        getId={(store) => store.id}
-        getItem={(store, index) =>
-          index === 0 ? (
-            <Link href={PATHS.createStore.path}>
-              <Card className="mt-0 flex h-full items-center justify-center">
-                <CreateIcon className="h-9 w-9" />
-              </Card>
-            </Link>
-          ) : (
-            <StoreCard store={store as StoreDTO} role="Founder" />
-          )
+        list={stores ?? []}
+        getId={(store) => store.store.id}
+        getItem={(store) => <StoreCard myStore={store} />}
+        addItemCard={
+          <Link href={PATHS.createStore.path}>
+            <Card className="mt-0 flex h-full min-h-[9rem] min-w-[14rem] items-center justify-center">
+              <CreateIcon className="h-9 w-9" />
+            </Card>
+          </Link>
         }
         className="grid-cols-1 lg:grid-cols-4"
       />
@@ -117,17 +113,20 @@ export default function Home() {
   );
 }
 
+type MyStoreDTO = { store: StoreDTO; role: RoleType };
+
 type StoreCardProps = {
-  store: StoreDTO;
-  role: string;
+  myStore: MyStoreDTO;
 };
 
-function StoreCard({ store, role }: StoreCardProps) {
+function StoreCard({ myStore }: StoreCardProps) {
   return (
-    <Link href={PATHS.store.path(store.id)}>
+    <Link href={PATHS.store.path(myStore.store.id)}>
       <Card className="mt-0 h-full">
-        <h3 className="text-lg font-bold text-slate-800">{store.name}</h3>
-        <span className="mb-2 font-bold text-slate-700">{role}</span>
+        <h3 className="text-lg font-bold text-slate-800">
+          {myStore.store.name}
+        </h3>
+        <span className="mb-2 font-bold text-slate-700">{myStore.role}</span>
         <Rating rating={3.25} votes={5} />
       </Card>
     </Link>

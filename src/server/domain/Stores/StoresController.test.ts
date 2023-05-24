@@ -10,32 +10,39 @@ import {
 } from "./_data";
 import { type Controllers } from "../_HasController";
 import { type StoreProduct } from "./StoreProduct";
-
+import { type StoreProduct as StoreProductDAO } from "@prisma/client";
+import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
+import { ConstraintPolicy } from "./PurchasePolicy/ConstraintPolicy";
 describe("search products", () => {
   let repos: Repos;
   let controllers: Controllers;
   let products: StoreProduct[];
-  beforeEach(() => {
+  beforeEach(async () => {
     repos = createMockRepos();
     controllers = createMockControllers("Stores");
     controllers.Stores.initRepos(repos);
-    products = Array.from({ length: 3 }, () =>
-      createProduct(generateProductArgs(), repos, controllers)
-    );
-
-    vi.spyOn(repos.Products, "getActiveProducts").mockReturnValue(
-      createPromise(products)
-    );
     const store = createStore(generateStoreName(), repos, controllers);
     vi.spyOn(repos.Products, "getStoreIdByProductId").mockReturnValue(
       createPromise(store.Id)
     );
+
     vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(
-      createPromise(store)
+      createPromise(store.getDAO())
     );
-    vi.spyOn(controllers.PurchasesHistory, "getStoreRating").mockReturnValue(
-      createPromise(3)
+    vi.spyOn(repos.Stores, "getDiscounts").mockReturnValue(
+      createPromise(new DiscountPolicy(store.Id))
     );
+    vi.spyOn(repos.Stores, "getConstraints").mockReturnValue(
+      createPromise(new ConstraintPolicy(store.Id))
+    );
+
+    products = Array.from({ length: 3 }, () =>
+      createProduct(generateProductArgs(), repos, controllers)
+    );
+    const ProductsDAO: StoreProductDAO[] = [];
+    for (const product of products) {
+      ProductsDAO.push(await product.getDAO());
+    }
     vi.spyOn(
       controllers.PurchasesHistory,
       "getReviewsByProduct"
@@ -45,6 +52,20 @@ describe("search products", () => {
         reviews: [],
       })
     );
+    vi.spyOn(repos.Products, "getActiveProducts").mockReturnValue(
+      createPromise(ProductsDAO)
+    );
+    vi.spyOn(repos.Products, "getSpecialPrices").mockReturnValue(
+      createPromise(new Map<string, number>())
+    );
+    vi.spyOn(controllers.PurchasesHistory, "getStoreRating").mockReturnValue(
+      createPromise(3)
+    );
+    vi.spyOn(controllers.Jobs, "makeStoreOwner").mockReturnValue(
+      new Promise(() => {
+        const x = 1;
+      })
+    );
   });
 
   it("✅should return all products", async () => {
@@ -52,7 +73,10 @@ describe("search products", () => {
       createPromise(true)
     );
     const res = await controllers.Stores.searchProducts("uid", {});
-    expect(res).toEqual(products.map((p) => p.getDTO()));
+    const realProducts = await Promise.all(
+      products.map(async (p) => await p.getDTO())
+    );
+    expect(res).toEqual(realProducts);
   });
 
   it("✅should return some products because of name filter", async () => {
@@ -62,7 +86,7 @@ describe("search products", () => {
     const res = await controllers.Stores.searchProducts("uid", {
       name: products[0]?.Name.toUpperCase().split(" ")[0],
     });
-    expect(res).toContainEqual(products[0]?.getDTO());
+    expect(res).toContainEqual(await products[0]?.getDTO());
   });
 
   it("✅should return some products because of keywords", async () => {
@@ -72,10 +96,10 @@ describe("search products", () => {
     const res = await controllers.Stores.searchProducts("uid", {
       keywords: [products[1]?.Description.toUpperCase().split(" ")[1] ?? ""],
     });
-    expect(res).toContainEqual(products[1]?.getDTO());
+    expect(res).toContainEqual(await products[1]?.getDTO());
   });
 
-  it("✅shouldn't return products because of made up name", async () => {
+  it("shouldn't return products because of made up name", async () => {
     vi.spyOn(controllers.Jobs, "canReceivePublicDataFromStore").mockReturnValue(
       createPromise(true)
     );

@@ -9,6 +9,6 @@ export const cachedQueryOptions = {
   refetchOnWindowFocus: false,
   refetchOnReconnect: false,
   retry: false,
-  staleTime: dayjs.duration({ minutes: 5 }).asMilliseconds(),
+  // staleTime: dayjs.duration({ minutes: 5 }).asMilliseconds(),
   onError,
 };

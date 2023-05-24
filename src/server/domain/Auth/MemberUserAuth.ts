@@ -6,6 +6,7 @@ import { createCipheriv, randomBytes, pbkdf2Sync } from "crypto";
 export type MemberUserAuthDTO = {
   email: string;
   password: string;
+  isLoggedIn: boolean;
   // salt: string;
 } & UserAuthDTO;
 export class MemberUserAuth extends UserAuth {
@@ -54,6 +55,7 @@ export class MemberUserAuth extends UserAuth {
     if (dto.sessions !== undefined) {
       memberUserAuth.sessions = dto.sessions;
     }
+    memberUserAuth.isLoggedIn = dto.isLoggedIn;
 
     return memberUserAuth;
   }
@@ -63,7 +65,7 @@ export class MemberUserAuth extends UserAuth {
     return;
   }
   private validateEmailLegality(email: string): void {
-    if (email === "admin") return;
+    if (email === "admin") return; // todo remove
     z.string().email().parse(email);
   }
   public isPasswordCorrect(password: string): boolean {
@@ -85,37 +87,39 @@ export class MemberUserAuth extends UserAuth {
     this.sessions.push(session);
   }
 
-  public login(): Session {
-    // if (this.isUserLoggedInAsMember()) {
-    //   throw new TRPCError({
-    //     code: "BAD_REQUEST",
-    //     message: "Member is already logged in",
-    //   });
-    // }
+  public async login(): Promise<Session> {
+    if (this.isUserLoggedInAsMember()) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Member is already logged in",
+      });
+    }
+    console.log("Member is logging in");
+    await this.setIsLoggedIn(true);
     const session = new Session(this.userId);
     this.addSession(session);
     return session;
   }
-  public logout(): void {
-    const latestSession = this.getLatestSession();
-    if (latestSession === undefined) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "No session to logout from",
-      });
-    }
-    if (latestSession.isValid() === false) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "The member is not logged in",
-      });
-    }
-    latestSession.invalidate();
+  public async reConnect(): Promise<void> {
+    await this.setIsLoggedIn(true);
   }
+  public async logout(): Promise<void> {
+    console.log("Member is logging out");
+
+    if (!this.isUserLoggedInAsMember()) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Member is not logged in",
+      });
+    } else {
+      await this.setIsLoggedIn(false);
+    }
+  }
+
   //Logged in= has a valid session as a member
   //Connected= has a valid session as a guest or a member
   public isUserLoggedInAsMember(): boolean {
-    return this.isConnectionValid();
+    return this.isLoggedIn;
   }
   public isUserLoggedInAsGuest(): boolean {
     return false;

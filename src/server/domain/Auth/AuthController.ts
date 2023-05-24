@@ -48,7 +48,10 @@ export interface IAuthController extends HasRepos {
    * @param userId The user's ID.
    * @throws Error if the user is not connected.
    */
-
+  /**
+   * reconnects a user. By its id. this allows to reconnect a user with a valid cookie.
+   */
+  reConnectMember(userId: string): Promise<void>;
   disconnect(userId: string): Promise<void>;
   /**
    * Registers a new user.
@@ -105,6 +108,18 @@ export interface IAuthController extends HasRepos {
    * @returns Array of strings.
    */
   getAllLoggedOutMembersIds(): Promise<string[]>;
+  /**
+   * @param userId The user's ID.
+   * @returns The user's email.
+   * @throws Error if the user is not a member.
+   */
+  getUserEmail(userId: string): Promise<string>;
+  /**
+   * @param email The user's email.
+   * @returns The user's ID.
+   * @throws Error if the email does not belong to a member.
+   */
+  getMemberIdByEmail(email: string): Promise<string>;
 }
 
 @testable
@@ -140,9 +155,13 @@ export class AuthController
           "Password is incorrect, please try again with a different password",
       });
     }
-    member.login();
+    await member.login();
     this.Repos.Users.removeGuest(guestId);
     return member.UserId;
+  }
+  public async reConnectMember(userId: string): Promise<void> {
+    const member: MemberUserAuth = await this.Repos.Users.getMemberById(userId);
+    await member.reConnect();
   }
   public async disconnect(userId: string): Promise<void> {
     if (this.isGuest(userId)) {
@@ -153,7 +172,7 @@ export class AuthController
         userId
       );
 
-      member.logout(); //throws error if user is not connected
+      await member.logout(); //throws error if user is not connected
     }
   }
   public async logout(userId: string): Promise<string> {
@@ -164,7 +183,7 @@ export class AuthController
       });
     }
     const member: MemberUserAuth = await this.Repos.Users.getMemberById(userId);
-    member.logout(); //throws error if user is not connected
+    await member.logout(); //throws error if user is not connected
     return this.startSession();
   }
   public async register(email: string, password: string): Promise<string> {
@@ -266,5 +285,11 @@ export class AuthController
       }
     });
     return loggedOutUsersIds;
+  }
+  async getUserEmail(userId: string): Promise<string> {
+    return (await this.Repos.Users.getMemberById(userId)).Email;
+  }
+  public async getMemberIdByEmail(email: string): Promise<string> {
+    return (await this.Repos.Users.getMemberByEmail(email)).UserId;
   }
 }

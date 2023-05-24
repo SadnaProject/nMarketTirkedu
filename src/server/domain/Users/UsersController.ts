@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { HasControllers } from "../_HasController";
 import { Mixin } from "ts-mixer";
 import { type CartDTO } from "./Cart";
@@ -5,7 +6,6 @@ import { Notification } from "./Notification";
 import { HasRepos, createRepos } from "./_HasRepos";
 import { Testable, testable } from "server/domain/_Testable";
 import { type CreditCard } from "../PurchasesHistory/PaymentAdaptor";
-import { TRPCError } from "@trpc/server";
 import { censored } from "../_Loggable";
 import { Bid, type BidArgs, type BidDTO } from "./Bid";
 import * as R from "ramda";
@@ -29,14 +29,18 @@ export interface IUsersController {
    * @param productId The id of the product that is being added to the cart.
    * @param quantity The quantity of the product that is being added to the cart.
    */
-  addProductToCart(userId: string, productId: string, quantity: number): void;
+  addProductToCart(
+    userId: string,
+    productId: string,
+    quantity: number
+  ): Promise<void>;
   /**
    * This function removes a product from a user's cart.
    * @param userId The id of the user that is currently logged in.
    * @param productId The id of the product that is being removed from the cart.
    * @throws Error if the product is not in the cart.
    */
-  removeProductFromCart(userId: string, productId: string): void;
+  removeProductFromCart(userId: string, productId: string): Promise<void>;
   /**
    * This function edits the quantity of a product in a user's cart.
    * @param userId The id of the user that is currently logged in.
@@ -49,7 +53,7 @@ export interface IUsersController {
     userId: string,
     productId: string,
     quantity: number
-  ): void;
+  ): Promise<void>;
   /**
    * This function gets the cart of a user.
    * @param userId The id of the user that is currently logged in.
@@ -60,7 +64,7 @@ export interface IUsersController {
    * This function purchases the cart of a user.
    * @param userId The id of the user that is currently logged in.
    */
-  purchaseCart(userId: string, creditCard: CreditCard): void;
+  purchaseCart(userId: string, creditCard: CreditCard): Promise<string>;
   /**
    * This function adds a user to the system.
    * @param user The user that is being added to the system.
@@ -106,7 +110,7 @@ export interface IUsersController {
    * This function will end the current session for user.
    * @param userId The id of the user that is currently logged in.
    */
-  disconnect(userId: string): void;
+  disconnect(userId: string): Promise<void>;
   /**
    * This function will logs in the member to the system.
    * @param guestId The id of the guest that is currently logged in.
@@ -126,14 +130,14 @@ export interface IUsersController {
    * @throws Error if the member to remove is not a member.
    * @throws Error if the member has any position(he cant be removed if he has any position).
    */
-  removeMember(userIdOfActor: string, memberIdToRemove: string): void;
+  removeMember(userIdOfActor: string, memberIdToRemove: string): Promise<void>;
   addBid(BidArgs: BidArgs): Promise<string>;
   getAllBidsSendFromUser(userId: string): BidDTO[];
   getAllBidsSendToUser(userId: string): BidDTO[];
   removeVoteFromBid(userId: string, bidId: string): void;
-  counterBid(userId: string, bidId: string, price: number): void;
-  approveBid(userId: string, bidId: string): void;
-  rejectBid(userId: string, bidId: string): void;
+  counterBid(userId: string, bidId: string, price: number): Promise<void>;
+  approveBid(userId: string, bidId: string): Promise<void>;
+  rejectBid(userId: string, bidId: string): Promise<void>;
 }
 
 @testable
@@ -158,16 +162,15 @@ export class UsersController
       userId,
       productId
     );
-    if (
-      !(await this.Controllers.Stores.isProductQuantityInStock(
-        userId,
-        productId,
-        quantity
-      ))
-    ) {
+    const isInStock = await this.Controllers.Stores.isProductQuantityInStock(
+      userId,
+      productId,
+      quantity
+    );
+    if (!isInStock) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "store don't have such amount of product",
+        message: "store doesn't have such amount of product",
       });
     }
     user.addProductToCart(productId, quantity, await storeId);
@@ -198,7 +201,7 @@ export class UsersController
     ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "store don't have such amount of product",
+        message: "store doesn't have such amount of product",
       });
     }
     const storeId = this.Controllers.Stores.getStoreIdByProductId(
@@ -213,11 +216,11 @@ export class UsersController
   async purchaseCart(
     userId: string,
     @censored creditCard: CreditCard
-  ): Promise<void> {
+  ): Promise<string> {
     const user = this.Repos.Users.getUser(userId);
     const cart = user.Cart;
     const price = this.Controllers.Stores.getCartPrice(userId);
-    this.Controllers.PurchasesHistory.purchaseCart(
+    const rid = await this.Controllers.PurchasesHistory.purchaseCart(
       userId,
       cart,
       await price,
@@ -227,6 +230,7 @@ export class UsersController
     const notification = new Notification("purchase", notificationMsg);
     user.addNotification(notification);
     user.clearCart(); /// notice we clear the cart in the end of the purchase.
+    return rid;
   }
   addUser(userId: string): void {
     this.Repos.Users.addUser(userId);

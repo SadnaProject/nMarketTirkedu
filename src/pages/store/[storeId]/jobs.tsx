@@ -4,58 +4,37 @@ import { z } from "zod";
 import StoreNavbar from "components/storeNavbar";
 import Input from "components/input";
 import Button from "components/button";
-import { Dropdown } from "components/dropdown";
+import { Dropdown, SmallDropdown } from "components/dropdown";
 import { toast } from "react-hot-toast";
 import { Modal } from "components/modal";
 import { api } from "utils/api";
 import { onError } from "utils/query";
 import { useGuestRedirect } from "utils/paths";
 import { RemoveIcon } from "components/icons";
+import { type PositionHolderDTO } from "server/domain/Jobs/PositionHolder";
+import { roleTypeSchema } from "server/domain/Jobs/Role";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { type RoleType } from "@prisma/client";
 
-interface Job {
-  id: string;
-  name: string;
-  title: "Founder" | "Owner" | "Manager";
-  assignments: Job[];
-}
+const formSchema = z.object({
+  role: roleTypeSchema,
+  email: z.string().email(),
+});
 
-const jobs: Job = {
-  id: "0",
-  name: "Omer Shahar",
-  title: "Founder",
-  assignments: [
-    {
-      id: "1",
-      name: "Ron Ziskind",
-      title: "Owner",
-      assignments: [
-        {
-          id: "2",
-          name: "Barman",
-          title: "Manager",
-          assignments: [],
-        },
-        {
-          id: "3",
-          name: "Ilay Zarfaty",
-          title: "Owner",
-          assignments: [],
-        },
-      ],
-    },
-    {
-      id: "4",
-      name: "Bar not man",
-      title: "Owner",
-      assignments: [],
-    },
-  ],
-};
+type FormValues = z.infer<typeof formSchema>;
 
 export default function Home() {
   useGuestRedirect();
+  const { register, handleSubmit } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+  });
   const router = useRouter();
   const storeId = z.undefined().or(z.string()).parse(router.query.storeId);
+  const { data: jobs } = api.stores.getJobsHierarchyOfStore.useQuery(
+    { storeId: storeId as string },
+    { enabled: !!storeId }
+  );
   const { mutate: makeStoreOwner } = api.stores.makeStoreOwner.useMutation({
     onError,
     onSuccess: () => {
@@ -69,25 +48,50 @@ export default function Home() {
     },
   });
 
+  const handleAssignment = handleSubmit(
+    (data) => {
+      if (data.role === "Owner") {
+        // makeStoreOwner({ storeId: storeId as string, targetUserId });
+      } else if (data.role === "Manager") {
+        // makeStoreManager({ storeId: storeId as string, email: data.email });
+      }
+    },
+    (e) => toast.error(Object.values(e)[0]?.message || "Something went wrong")
+  );
+
   return (
     <Layout>
-      <h1>The Happy Place</h1>
-      {storeId && <StoreNavbar storeId={storeId} />}
-
-      <div className="flex flex-wrap sm:flex-nowrap">
-        <Dropdown options={["Manager", "Owner"]} />
-        <Input placeholder="Email" className="rounded-none" />
+      <StoreNavbar storeId={storeId} />
+      <div className="flex w-full max-w-md flex-wrap sm:flex-nowrap">
+        <SmallDropdown
+          options={
+            [
+              { label: "Owner", value: "Owner" },
+              { label: "Manager", value: "Manager" },
+            ] satisfies {
+              label: string;
+              value: RoleType;
+            }[]
+          }
+          {...register("role")}
+          className="rounded-b-none sm:w-40 sm:rounded-b-lg sm:rounded-br-none sm:rounded-tr-none"
+        />
+        <Input
+          placeholder="Email"
+          className="rounded-none"
+          {...register("email")}
+        />
         <Button
           glowClassName="w-full"
           glowContainerClassName="w-full sm:w-auto"
           className="h-full w-full rounded-t-lg sm:rounded-lg sm:rounded-l-none"
-          // onClick={()=>}
+          onClick={() => void handleAssignment()}
         >
           Add
         </Button>
       </div>
       <div className="hs-accordion-group w-full" data-hs-accordion-always-open>
-        <Job job={jobs} />
+        {jobs && <Job job={jobs} />}
       </div>
     </Layout>
   );
@@ -194,51 +198,83 @@ function AccordionIcons() {
 }
 
 type JobProps = {
-  job: Job;
+  job: PositionHolderDTO;
 };
 
 function Job({ job }: JobProps) {
+  const { mutate: removeStoreOwner } = api.stores.removeStoreOwner.useMutation({
+    onError,
+    onSuccess: () => {
+      toast.success("Job removed successfully");
+    },
+  });
+  const { mutate: removeStoreManager } =
+    api.stores.removeStoreManager.useMutation({
+      onError,
+      onSuccess: () => {
+        toast.success("Job removed successfully");
+      },
+    });
+
+  const handleRemoval = (job: PositionHolderDTO) => {
+    if (job.role.roleType === "Owner") {
+      removeStoreOwner({
+        storeId: job.storeId,
+        targetUserId: job.userId,
+      });
+    } else if (job.role.roleType === "Manager") {
+      removeStoreManager({
+        storeId: job.storeId,
+        targetUserId: job.userId,
+      });
+    } else {
+      toast.error("User cannot be removed. Incident will be reported");
+    }
+  };
+
   return (
     <div
       className="hs-accordion active"
-      id={`hs-basic-always-open-heading-${job.id}`}
+      id={`hs-basic-always-open-heading-${job.userId}`}
     >
       <button
         className="hs-accordion-toggle peer inline-flex items-center gap-x-3 py-3 text-left font-semibold text-gray-800 transition hs-accordion-active:text-blue-600 hover:text-gray-500"
-        aria-controls={`hs-basic-always-open-collapse-${job.id}`}
+        aria-controls={`hs-basic-always-open-collapse-${job.userId}`}
       >
         {/* <AccordionIcons /> */}
-        {job.title === "Founder" && <FounderIcon />}
-        {job.title === "Owner" && <OwnerIcon />}
-        {job.title === "Manager" && <ManagerIcon />}
-        {job.name} - {job.title}
+        {job.role.roleType === "Founder" && <FounderIcon />}
+        {job.role.roleType === "Owner" && <OwnerIcon />}
+        {job.role.roleType === "Manager" && <ManagerIcon />}
+        {job.email} - {job.role.roleType}
       </button>
       <button
         className="ml-2 peer-hover:opacity-100 hover:opacity-100 sm:opacity-0"
-        data-hs-overlay={`#hs-modal-${job.id}`}
+        data-hs-overlay={`#hs-modal-${job.userId}`}
       >
         <RemoveIcon />
       </button>
       <Modal
-        id={`hs-modal-${job.id}`}
+        id={`hs-modal-${job.userId}`}
         title="Confirm deletion"
-        content={`Are you sure you want to remove ${job.name} (${job.title}) and the subordinates from the store?`}
+        content={`Are you sure you want to remove ${job.email ?? "unknown"} (${
+          job.role.roleType
+        }) and the subordinates from the store?`}
         footer={
           <Button
-            onClick={() => toast.success(job.id)}
-            data-hs-overlay={`#hs-modal-${job.id}`}
+            onClick={() => handleRemoval(job)}
+            data-hs-overlay={`#hs-modal-${job.userId}`}
           >
             Apply changes
           </Button>
         }
       />
       <div
-        id={`hs-basic-always-open-collapse-${job.id}`}
+        id={`hs-basic-always-open-collapse-${job.userId}`}
         className="hs-accordion-content w-full overflow-hidden pl-6 transition-[height] duration-300"
-        aria-labelledby={`hs-basic-always-open-heading-${job.id}`}
+        aria-labelledby={`hs-basic-always-open-heading-${job.userId}`}
       >
-        {job.assignments.map((assignment) => (
-          <Job key={assignment.id} job={assignment} />
+        {job.assignedPositionHolders.map((assignment) => (
+          <Job key={assignment.userId} job={assignment} />
         ))}
       </div>
     </div>

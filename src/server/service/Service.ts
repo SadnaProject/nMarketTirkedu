@@ -40,18 +40,22 @@ export class Service {
     return await this.facade.getErrors(userId);
   }
 
-  public addProductToCart(userId: string, productId: string, quantity: number) {
-    this.facade.addProductToCart(userId, productId, quantity);
-  }
-  public removeProductFromCart(userId: string, productId: string) {
-    this.facade.removeProductFromCart(userId, productId);
-  }
-  public editProductQuantityInCart(
+  public async addProductToCart(
     userId: string,
     productId: string,
     quantity: number
   ) {
-    this.facade.editProductQuantityInCart(userId, productId, quantity);
+    await this.facade.addProductToCart(userId, productId, quantity);
+  }
+  public removeProductFromCart(userId: string, productId: string) {
+    this.facade.removeProductFromCart(userId, productId);
+  }
+  public async editProductQuantityInCart(
+    userId: string,
+    productId: string,
+    quantity: number
+  ) {
+    await this.facade.editProductQuantityInCart(userId, productId, quantity);
   }
   public getCart(userId: string) {
     return this.facade.getCart(userId);
@@ -60,7 +64,7 @@ export class Service {
     return this.facade.getNotifications(userId);
   }
   public purchaseCart(userId: string, creditCard: CreditCard) {
-    this.facade.purchaseCart(userId, creditCard);
+    return this.facade.purchaseCart(userId, creditCard);
   }
   public removeUser(userId: string) {
     this.facade.removeUser(userId);
@@ -376,6 +380,12 @@ export class Service {
     storeId: string
   ): Promise<PositionHolderDTO> {
     return await this.facade.getJobsHierarchyOfStore(userId, storeId);
+  }
+  async reConnectMember(userId: string): Promise<void> {
+    await this.facade.reConnectMember(userId);
+  }
+  async getMemberIdByEmail(email: string): Promise<string> {
+    return await this.facade.getMemberIdByEmail(email);
   }
   // getStoreConstraints(
   //   userId: string,

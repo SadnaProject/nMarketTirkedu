@@ -4,10 +4,12 @@ import {
   loggedInProcedure,
   publicProcedure,
   validSessionProcedure,
+  loggedInProcedure,
 } from "server/service/trpc";
 import { service } from "../_service";
 import { observable } from "@trpc/server/observable";
 import { eventEmitter } from "server/EventEmitter";
+
 
 export const UsersRouter = createTRPCRouter({
   addProductToCart: validSessionProcedure
@@ -55,12 +57,13 @@ export const UsersRouter = createTRPCRouter({
   purchaseCart: validSessionProcedure
     .input(
       z.object({
-        number: z.string(), // refers to credit card number ATM
+        creditCardNumber: z.string(), // refers to credit card number ATM
       })
     )
     .mutation(({ input, ctx }) => {
-      const { number } = input;
-      return service.purchaseCart(ctx.session.user.id, { number });
+      return service.purchaseCart(ctx.session.user.id, {
+        number: input.creditCardNumber,
+      });
     }),
 
   removeUser: validSessionProcedure.mutation(({ ctx }) => {
@@ -119,6 +122,31 @@ export const UsersRouter = createTRPCRouter({
   logoutMember: validSessionProcedure.mutation(({ ctx }) => {
     return service.logoutMember(ctx.session.user.id);
   }),
+  onLoginEvent: loggedInProcedure.subscription(({ ctx }) => {
+    return observable<string>((emit) => {
+      //TODO support this, I need to add some login function that receives the user id(seems a bit unsecure but ok)
+      // return service.loginMember();
+      void service.reConnectMember(ctx.session.user.id);
+      console.log("login of user", ctx.session.user.id);
+
+      return () => {
+        console.log("logout of user", ctx.session.user.id);
+        void service.logoutMember(ctx.session.user.id);
+      };
+    });
+  }),
+
+  // onAddNotificationEvent: publicProcedure.subscription(() => {
+  //   return observable<string>((emit) => {
+  //     const onAddNotificationEvent = (message: string) => {
+  //       emit.next(message);
+  //     };
+  //     eventEmitter.on(`addNotificationEvent`, onAddNotificationEvent);
+  //     return () => {
+  //       eventEmitter.off(`addNotificationEvent`, onAddNotificationEvent);
+  //     };
+  //   });
+  // }),
   disconnectUser: validSessionProcedure.mutation(({ ctx }) => {
     return service.disconnectUser(ctx.session.user.id);
   }),

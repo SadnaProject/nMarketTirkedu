@@ -3,7 +3,7 @@ import { type StoreProduct as DataStoreProduct } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { db } from "server/db";
 import { randomUUID } from "crypto";
-import { StoreProduct } from "../StoreProduct";
+import { StoreProductArgs } from "../StoreProduct";
 
 @testable
 export class StoreProductsRepo extends Testable {
@@ -11,15 +11,20 @@ export class StoreProductsRepo extends Testable {
     super();
   }
 
-  public async addProduct(storeId: string, product: StoreProduct) {
+  public async addProduct(
+    storeId: string,
+    product: StoreProductArgs,
+    productId: string
+  ) {
     const p = await db.storeProduct.create({
       data: {
-        name: product.Name,
-        category: product.Category,
-        price: product.Price,
-        quantity: product.Quantity,
+        id: productId,
+        name: product.name,
+        category: product.category,
+        price: product.price,
+        quantity: product.quantity,
         storeId: storeId,
-        description: product.Description,
+        description: product.description,
       },
     });
     return p.id;
@@ -52,19 +57,8 @@ export class StoreProductsRepo extends Testable {
         store: true,
       },
     });
-    const realProducts: StoreProduct[] = [];
-    for (const product of products) {
-      const realProduct = new StoreProduct({
-        category: product.category,
-        description: product.description,
-        name: product.name,
-        price: product.price,
-        quantity: product.quantity,
-      });
-      realProduct.Id = product.id;
-      realProducts.push(realProduct);
-    }
-    return realProducts;
+
+    return products;
   }
   public async getProductById(productId: string) {
     const product = await db.storeProduct.findUnique({
@@ -78,10 +72,7 @@ export class StoreProductsRepo extends Testable {
         message: "Product not found",
       });
     }
-    return StoreProduct.fromDAO(
-      product,
-      await this.getSpecialPrices(productId)
-    );
+    return product;
   }
 
   public async getActiveProducts() {
@@ -90,21 +81,12 @@ export class StoreProductsRepo extends Testable {
         store: true,
       },
     });
-    const realProducts: StoreProduct[] = [];
+    const active: DataStoreProduct[] = [];
     for (const product of products) {
       if (!product.store.isActive) continue;
-      console.log(product);
-      const realProduct = new StoreProduct({
-        category: product.category,
-        description: product.description,
-        name: product.name,
-        price: product.price,
-        quantity: product.quantity,
-      });
-      realProduct.Id = product.id;
-      realProducts.push(realProduct);
+      active.push(product);
     }
-    return realProducts;
+    return active;
   }
 
   public async getProductsByStoreId(storeId: string) {
@@ -113,20 +95,12 @@ export class StoreProductsRepo extends Testable {
         storeId: storeId,
       },
     });
-    const realProducts: StoreProduct[] = [];
+    const storeProducts: DataStoreProduct[] = [];
     for (const product of products) {
       if (product.storeId !== storeId) continue;
-      const realProduct = new StoreProduct({
-        category: product.category,
-        description: product.description,
-        name: product.name,
-        price: product.price,
-        quantity: product.quantity,
-      });
-      realProduct.Id = product.id;
-      realProducts.push(realProduct);
+      storeProducts.push(product);
     }
-    return realProducts;
+    return storeProducts;
   }
 
   public async getStoreIdByProductId(productId: string) {

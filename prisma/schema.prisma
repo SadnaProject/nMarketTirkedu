@@ -15,10 +15,11 @@ datasource db {
 }
 
 model UserAuth {
-    id       String  @id //@default(cuid())
-    name     String?
-    email    String  @unique
-    password String
+    id         String  @id //@default(cuid())
+    name       String?
+    email      String  @unique
+    password   String
+    isLoggedIn Boolean @default(false)
     // user User?
 }
 
@@ -67,8 +68,12 @@ model Condition {
     compositeConditionId String?
     dateCondition        DateCondition?      @relation(fields: [dateConditionId], references: [id])
     dateConditionId      String?
-    Constraint           Constraint[]
-    SimpleDiscount       SimpleDiscount[]
+    discountId           String?
+    discount             SimpleDiscount?     @relation(fields: [discountId], references: [id])
+    constraintId         String?
+    constraint           Constraint?         @relation(fields: [constraintId], references: [id])
+    storeId              String?
+    store                Store?              @relation(fields: [storeId], references: [id])
 }
 
 model LiteralCondition {
@@ -100,8 +105,8 @@ model CompositeCondition {
 
 model Discount {
     id          String             @id @default(cuid())
-    storeId     String
-    store       Store              @relation(fields: [storeId], references: [id])
+    storeId     String?
+    store       Store?             @relation(fields: [storeId], references: [id])
     compositeId String?
     composite   CompositeDiscount? @relation(fields: [compositeId], references: [id])
     simpleId    String?
@@ -117,28 +122,27 @@ model CompositeDiscount {
 }
 
 model SimpleDiscount {
-    id          String     @id @default(cuid())
-    amount      Int
-    storeId     String
-    conditionId String
-    condition   Condition  @relation(fields: [conditionId], references: [id])
-    discountOn  DiscountOn
-    Discount    Discount[]
+    id         String      @id @default(cuid())
+    amount     Int
+    discountOn DiscountOn
+    Condition  Condition[]
+    Discount   Discount[]
 }
 
 model Store {
-    id          String         @id @default(cuid())
+    id          String         @id
     name        String
     isActive    Boolean
     products    StoreProduct[]
     discounts   Discount[]
     Constraints Constraint[]
+    Condition   Condition[]
 }
 
 model StoreProduct {
     id           String         @id @default(cuid())
     storeId      String
-    store        Store          @relation(fields: [storeId], references: [id])
+    store        Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
     name         String
     price        Int
     category     String
@@ -156,42 +160,43 @@ model SpecialPrice {
 }
 
 model Constraint {
-    id          String    @id @default(cuid())
-    storeId     String
-    store       Store     @relation(fields: [storeId], references: [id])
-    conditionId String
-    condition   Condition @relation(fields: [conditionId], references: [id])
+    id        String      @id @default(cuid())
+    storeId   String
+    store     Store       @relation(fields: [storeId], references: [id])
+    Condition Condition[]
 }
-
 
 model Notification {
-    id String   @id @default(cuid())
-    userId String
-    user User @relation(fields: [userId], references: [id])
-    type String
+    id      String  @id @default(cuid())
+    userId  String
+    user    User    @relation(fields: [userId], references: [id])
+    type    String
     message String
-    isRead Boolean
+    isRead  Boolean
 }
-model BasketProduct{
+
+model BasketProduct {
     storeProductId String @id @default(cuid())
-    quantity Float
-    basket Basket @relation(fields: [userId,storeId], references: [userId,storeId])
-    storeId String
-    userId String
+    quantity       Float
+    basket         Basket @relation(fields: [userId, storeId], references: [userId, storeId])
+    storeId        String
+    userId         String
 }
 
-model Basket{
-    userId String 
-    storeId String
+model Basket {
+    userId   String
+    storeId  String
     products BasketProduct[]
+    cart     Cart            @relation(fields: [userId], references: [userId])
+
     @@unique([userId, storeId])
-    cart Cart @relation(fields: [userId], references: [userId])
 }
 
-model Cart{
-    userId String 
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Cart {
+    userId  String
+    user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
     baskets Basket[]
+
     @@unique([userId])
 }
 
@@ -218,71 +223,74 @@ model Cart{
 // }
 
 model User {
-    id    String  @id @default(cuid())
+    id             String          @id @default(cuid())
     productReviews ProductReview[]
-    cartPurchases CartPurchase[]
-    reviews Review[]
+    cartPurchases  CartPurchase[]
+    reviews        Review[]
     // auth UserAuth @relation(fields: [id], references: [id])
-    cart Cart?
-    notifications Notification[]
+    cart           Cart?
+    notifications  Notification[]
 }
 
-model ProductReview{
-    title      String
-    description String
-    userId     String
-    user       User     @relation(fields: [userId], references: [id])
-    rating     Int
-    productId  String
-    purchaseId String
-    storeId    String
-    createdAt  DateTime @default(now())
-    productPurchase ProductPurchase? 
-    @@unique([purchaseId, productId])
+model ProductReview {
+    title           String
+    description     String
+    userId          String
+    user            User             @relation(fields: [userId], references: [id])
+    rating          Int
+    productId       String
+    purchaseId      String
+    storeId         String
+    createdAt       DateTime         @default(now())
+    productPurchase ProductPurchase?
+
     @@id([userId, productId])
+    @@unique([purchaseId, productId])
 }
 
-model Review{
-    rating     Int
-    createdAt  DateTime @default(now())
-    userId     String
-    purchaseId String
-    user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-    storeId    String
-    @@id([purchaseId, storeId])
+model Review {
+    rating         Int
+    createdAt      DateTime       @default(now())
+    userId         String
+    purchaseId     String
+    user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+    storeId        String
     basketPurchase BasketPurchase @relation(fields: [purchaseId, storeId], references: [purchaseId, storeId])
+
+    @@id([purchaseId, storeId])
 }
 
-model ProductPurchase{
-    purchaseId  String 
-    productId   String 
-    quantity    Int
-    createdAt  DateTime @default(now())
-    price       Float
-    review     ProductReview? @relation(fields: [purchaseId, productId], references: [purchaseId, productId])
-    storeId     String
+model ProductPurchase {
+    purchaseId     String
+    productId      String
+    quantity       Int
+    createdAt      DateTime       @default(now())
+    price          Float
+    review         ProductReview? @relation(fields: [purchaseId, productId], references: [purchaseId, productId])
+    storeId        String
     BasketPurchase BasketPurchase @relation(fields: [purchaseId, storeId], references: [purchaseId, storeId])
+
     @@id([purchaseId, productId])
 }
 
-model BasketPurchase{
-    purchaseId  String 
-    storeId     String
-    products   ProductPurchase[]
-    review Review?
-    price       Float
-    cartPurchase CartPurchase @relation(fields: [purchaseId], references: [purchaseId])
+model BasketPurchase {
+    purchaseId   String
+    storeId      String
+    products     ProductPurchase[]
+    review       Review?
+    price        Float
+    cartPurchase CartPurchase      @relation(fields: [purchaseId], references: [purchaseId])
+
     @@id([purchaseId, storeId])
 }
 
-model CartPurchase{
-    purchaseId  String @id @default(cuid())
-    userId      String
-    user        User     @relation(fields: [userId], references: [id])
-    baskets     BasketPurchase[]
-    totalPrice  Float
+model CartPurchase {
+    purchaseId String           @id @default(cuid())
+    userId     String
+    user       User             @relation(fields: [userId], references: [id])
+    baskets    BasketPurchase[]
+    totalPrice Float
 }
-
 
 // model Cart {
 //     id            String    @id @default(cuid())
@@ -303,36 +311,39 @@ enum Permission {
     RemoveProduct
     receivePrivateStoreData
 }
+
 enum RoleType {
     Founder
     Owner
     Manager
+}
 
-}
 model Role {
-    id          String      @id// @default(cuid())
-    roleType    RoleType
-    permissions Permission[]
-    positionHolders       PositionHolder[]
+    id              String           @id // @default(cuid())
+    roleType        RoleType
+    permissions     Permission[]
+    positionHolders PositionHolder[]
 }
+
 model PositionHolder {
     // id          String      @id @default(cuid())
     //TODO make this two ids below a foreign key to relavent tables
-    userId      String
+    userId  String
     //   user        User        @relation(fields: [userId], references: [id])
-    storeId     String
+    storeId String
     //   store       Store       @relation(fields: [storeId], references: [id])
-    role        Role        @relation(fields: [roleId], references: [id])
-    roleId      String
+    role    Role   @relation(fields: [roleId], references: [id])
+    roleId  String
     //todo, add my assigned position holders
 
     assignedPositionHolders PositionHolder[] @relation("PositionHolderToAssignees")
     assignerId              String?
-    assignedBy              PositionHolder? @relation("PositionHolderToAssignees", fields: [assignerId,storeId], references: [userId, storeId])
+    assignedBy              PositionHolder?  @relation("PositionHolderToAssignees", fields: [assignerId, storeId], references: [userId, storeId])
 
     @@id([userId, storeId])
 }
+
 //TODO maybe better to just save a field in the users table.
 model Admin {
-    userId      String     @id
+    userId String @id
 }

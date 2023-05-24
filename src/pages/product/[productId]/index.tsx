@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import Layout from "pages/_layout";
 import { Rating } from "components/star";
-import { useState } from "react";
+import { useEffect } from "react";
 import Button from "components/button";
 import Card from "components/card";
 import Price from "components/price";
@@ -10,32 +10,87 @@ import Gallery from "components/gallery";
 import Collapse from "components/collapse";
 import Link from "next/link";
 import PATHS from "utils/paths";
-import { RightIcon } from "components/icons";
+import { CartIcon, RightIcon } from "components/icons";
 import { api } from "utils/api";
-import { cachedQueryOptions, onError } from "utils/query";
+import { cachedQueryOptions } from "utils/query";
+import { onCartChangeEvent } from "utils/events";
+import Input from "components/input";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "react-hot-toast";
 
-const product = {
-  id: "6e259065-7899-4667-bbd0-b9366443896d",
-  name: "Recycled Frozen Pizza",
-  quantity: 5,
-  price: 77987,
-  category: "Electronics",
-  description:
-    "New range of formal shirts are designed keeping you in mind. With fits and styling that will make you stand apart",
-};
+const formSchema = z.object({
+  quantity: z.number().int().nonnegative(),
+});
+type FormValues = z.infer<typeof formSchema>;
 
 export default function Home() {
-  const [quantity, setQuantity] = useState(0);
+  const {
+    register,
+    handleSubmit: handleSubmitChangeCartQuantity,
+    formState: { isSubmitting: isSubmittingChangeCartQuantity },
+    setValue,
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { quantity: 0 },
+  });
   const router = useRouter();
   const { productId } = router.query;
   const { data: storeId } = api.stores.getStoreIdByProductId.useQuery(
     { productId: productId as string },
     { ...cachedQueryOptions, enabled: !!productId }
   );
+  const { data: product } = api.stores.getProductById.useQuery(
+    { productId: productId as string },
+    { ...cachedQueryOptions, enabled: !!productId }
+  );
+  const { mutate: addToCart } = api.users.addProductToCart.useMutation({
+    ...cachedQueryOptions,
+    onSuccess: () => {
+      // await new Promise((resolve) => setTimeout(resolve, 1000)); // todo delete
+      document.dispatchEvent(new Event(onCartChangeEvent));
+      void refetchCart();
+    },
+  });
+  const { data: cart, refetch: refetchCart } = api.users.getCart.useQuery(
+    undefined,
+    cachedQueryOptions
+  );
+  const { data: canEditProductInStore } =
+    api.stores.canEditProductInStore.useQuery(
+      { storeId: storeId as string },
+      { ...cachedQueryOptions, enabled: !!storeId }
+    );
 
-  return (
+  useEffect(() => {
+    if (cart) {
+      const product = cart.storeIdToBasket
+        .get(storeId as string)
+        ?.products.find((product) => product.storeProductId === productId);
+      if (product) {
+        setValue("quantity", product.quantity);
+      }
+    }
+  }, [cart, productId, storeId, setValue]);
+
+  const handleChangeCartQuantity = handleSubmitChangeCartQuantity(
+    (data) => {
+      addToCart({
+        productId: productId as string,
+        amount: data.quantity,
+      });
+    },
+    (e) => {
+      toast.error(Object.values(e)[0]?.message || "Something went wrong");
+    }
+  );
+
+  return !product ? (
+    <></>
+  ) : (
     <Layout>
-      <div className="flex max-w-xl flex-col gap-4">
+      <div className="flex w-full max-w-xl flex-col gap-4">
         {storeId && (
           <Link
             href={PATHS.store.path(storeId)}
@@ -48,8 +103,8 @@ export default function Home() {
         <Card className="relative mt-0">
           <div className="flex justify-between">
             <h1>{product.name}</h1>
-            {storeId && (
-              <Link href={PATHS.editProduct.path(storeId, productId as string)}>
+            {storeId && canEditProductInStore && (
+              <Link href={PATHS.editProduct.path(productId as string)}>
                 <EditIcon />
               </Link>
             )}
@@ -58,22 +113,22 @@ export default function Home() {
           <Collapse id={`desc`}>{product.description}</Collapse>
           <div className="flex flex-col items-center justify-between md:flex-row">
             <Price price={product.price} />
-            <Rating rating={3.24} votes={5} />
+            <Rating rating={product.rating} />
           </div>
         </Card>
         <div className="flex items-center justify-center gap-3">
+          <Input
+            className="max-w-[5rem] text-center"
+            {...register("quantity", {
+              setValueAs: (v: string) => (v ? parseInt(v) : 0),
+            })}
+          />
           <Button
-            onClick={() => setQuantity(quantity - 1)}
-            disabled={quantity === 0}
+            onClick={() => void handleChangeCartQuantity()}
+            disabled={isSubmittingChangeCartQuantity}
           >
-            <MinusIcon />
-          </Button>
-          <span className="text-2xl font-bold text-slate-800">{quantity}</span>
-          <Button
-            onClick={() => setQuantity(quantity + 1)}
-            disabled={quantity === product.quantity}
-          >
-            <PlusIcon />
+            <CartIcon className="h-4 w-4" />
+            Change Cart Quantity
           </Button>
         </div>
         <Gallery

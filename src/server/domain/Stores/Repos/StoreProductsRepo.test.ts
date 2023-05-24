@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { type Repos, createMockRepos } from "../_HasRepos";
-import { createProduct, createPromise, generateProductArgs } from "../_data";
+import {
+  createProduct,
+  createPromise,
+  generateProductArgs,
+  productToProductData,
+} from "../_data";
 import { type Controllers } from "server/domain/_HasController";
 import { createMockControllers } from "server/domain/_createControllers";
 
@@ -18,7 +23,12 @@ describe("add product", () => {
   it("✅adds product", async () => {
     const product = createProduct(generateProductArgs(), repos, controllers);
     expect(
-      async () => await repos.Products.addProduct("store id", product)
+      async () =>
+        await repos.Products.addProduct(
+          "store id",
+          productToProductData(product),
+          product.Id
+        )
     ).not.toThrow();
     expect(await repos.Products.getProductsByStoreId("store id")).toEqual([
       product,
@@ -28,11 +38,21 @@ describe("add product", () => {
   it("✅adds multiple products to one store", async () => {
     const product1 = createProduct(generateProductArgs(), repos, controllers);
     expect(
-      async () => await repos.Products.addProduct("store id", product1)
+      async () =>
+        await repos.Products.addProduct(
+          "store id",
+          productToProductData(product1),
+          product1.Id
+        )
     ).not.toThrow();
     const product2 = createProduct(generateProductArgs(), repos, controllers);
     expect(
-      async () => await repos.Products.addProduct("store id", product2)
+      async () =>
+        await repos.Products.addProduct(
+          "store id",
+          productToProductData(product2),
+          product2.Id
+        )
     ).not.toThrow();
     expect(await repos.Products.getProductsByStoreId("store id")).toEqual([
       product1,
@@ -48,11 +68,24 @@ describe("get all products", () => {
 
   it("✅returns some products", async () => {
     const product1 = createProduct(generateProductArgs(), repos, controllers);
-    await repos.Products.addProduct("store id 1", product1);
+    await repos.Products.addProduct(
+      "store id 1",
+      productToProductData(product1),
+      product1.Id
+    );
     const product2 = createProduct(generateProductArgs(), repos, controllers);
-    await repos.Products.addProduct("store id 1", product2);
+    await repos.Products.addProduct(
+      "store id 1",
+      productToProductData(product2),
+      product2.Id
+    );
     const product3 = createProduct(generateProductArgs(), repos, controllers);
-    await repos.Products.addProduct("store id 2", product3);
+
+    await repos.Products.addProduct(
+      "store id 2",
+      productToProductData(product3),
+      product3.Id
+    );
     expect(await repos.Products.getAllProducts()).toEqual([
       product1,
       product2,
@@ -64,7 +97,11 @@ describe("get all products", () => {
 describe("get product by id", () => {
   it("✅returns product", async () => {
     const product = createProduct(generateProductArgs(), repos, controllers);
-    await repos.Products.addProduct("store id 1", product);
+    await repos.Products.addProduct(
+      "store id 1",
+      productToProductData(product),
+      product.Id
+    );
     expect(await repos.Products.getProductById(product.Id)).toEqual(product);
   });
 
@@ -82,7 +119,11 @@ describe("get products by store id", () => {
 
   it("✅returns no products but store exists", async () => {
     const product = createProduct(generateProductArgs(), repos, controllers);
-    await repos.Products.addProduct("store id 1", product);
+    await repos.Products.addProduct(
+      "store id 1",
+      productToProductData(product),
+      product.Id
+    );
     await repos.Products.deleteProduct(product.Id);
     expect(await repos.Products.getProductsByStoreId("store id 1")).toEqual([]);
   });
@@ -91,16 +132,22 @@ describe("get products by store id", () => {
 describe("get store id by product id", () => {
   it("✅returns store id", async () => {
     const product = createProduct(generateProductArgs(), repos, controllers);
-    await repos.Products.addProduct("store id 1", product);
+    await repos.Products.addProduct(
+      "store id 1",
+      productToProductData(product),
+      product.Id
+    );
     expect(await repos.Products.getStoreIdByProductId(product.Id)).toEqual(
       "store id 1"
     );
   });
 
   it("❎doesn't find product but there are other products", async () => {
+    const product = createProduct(generateProductArgs(), repos, controllers);
     await repos.Products.addProduct(
       "store id 1",
-      createProduct(generateProductArgs(), repos, controllers)
+      productToProductData(product),
+      product.Id
     );
     expect(
       async () => await repos.Products.getStoreIdByProductId("made up id")

@@ -65,7 +65,7 @@ export const SmallDropdown = forwardRef(function SmallDropdown(
   return (
     <select
       className={twMerge(
-        "w-full rounded-lg border border-gray-300 bg-white py-1 text-center align-middle text-sm font-medium text-slate-700 shadow-sm transition-all hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white",
+        "w-full rounded-lg border border-gray-300 bg-white py-1 text-center align-middle text-sm font-medium text-slate-700 shadow-sm transition-all hover:bg-slate-50 focus:z-10 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white",
         className
       )}
       {...props}

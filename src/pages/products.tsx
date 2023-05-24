@@ -99,22 +99,20 @@ export default function Home() {
       <Button onClick={() => void handleSearch()}>
         {isSubmitting && <Spinner />} Search
       </Button>
-      {products &&
-        (products.length > 0 ? (
-          <Gallery
-            list={products}
-            getId={(product) => product.id}
-            getItem={(product) => (
-              <Link href={PATHS.product.path(product.id)}>
-                <ProductCard product={product} />
-              </Link>
-            )}
-          />
-        ) : (
+      <Gallery
+        list={products ?? []}
+        getId={(product) => product.id}
+        getItem={(product) => (
+          <Link href={PATHS.product.path(product.id)}>
+            <ProductCard product={product} />
+          </Link>
+        )}
+        noItemsCard={
           <Card className="mt-0 flex h-full w-full max-w-md items-center justify-center">
             No products found
           </Card>
-        ))}
+        }
+      />
     </Layout>
   );
 }

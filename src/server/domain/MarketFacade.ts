@@ -19,8 +19,8 @@ import {
   type ConditionArgs,
 } from "./Stores/Conditions/CompositeLogicalCondition/Condition";
 import { type RoleType } from "./Jobs/Role";
-import { BidArgs, BidDTO } from "./Users/Bid";
-import { PositionHolderDTO } from "./Jobs/PositionHolder";
+import { type BidArgs, type BidDTO } from "./Users/Bid";
+import { type PositionHolderDTO } from "./Jobs/PositionHolder";
 @loggable
 export class MarketFacade extends Loggable {
   private controllers: Controllers;
@@ -70,21 +70,25 @@ export class MarketFacade extends Loggable {
   }
 
   //Checking if user is logged in is done here.
-  public addProductToCart(userId: string, productId: string, quantity: number) {
-    this.validateConnection(userId);
-    this.controllers.Users.addProductToCart(userId, productId, quantity);
-  }
-  public removeProductFromCart(userId: string, productId: string) {
-    this.validateConnection(userId);
-    this.controllers.Users.removeProductFromCart(userId, productId);
-  }
-  public editProductQuantityInCart(
+  public async addProductToCart(
     userId: string,
     productId: string,
     quantity: number
   ) {
     this.validateConnection(userId);
-    this.controllers.Users.editProductQuantityInCart(
+    await this.controllers.Users.addProductToCart(userId, productId, quantity);
+  }
+  public removeProductFromCart(userId: string, productId: string) {
+    this.validateConnection(userId);
+    this.controllers.Users.removeProductFromCart(userId, productId);
+  }
+  public async editProductQuantityInCart(
+    userId: string,
+    productId: string,
+    quantity: number
+  ) {
+    this.validateConnection(userId);
+    await this.controllers.Users.editProductQuantityInCart(
       userId,
       productId,
       quantity
@@ -101,7 +105,7 @@ export class MarketFacade extends Loggable {
 
   public purchaseCart(userId: string, @censored creditCard: CreditCard) {
     this.validateConnection(userId);
-    this.controllers.Users.purchaseCart(userId, creditCard);
+    return this.controllers.Users.purchaseCart(userId, creditCard);
   }
 
   public removeUser(userId: string) {
@@ -450,6 +454,10 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     return this.controllers.Users.login(userId, email, password);
   }
+  public async reConnectMember(userId: string): Promise<void> {
+    // this.validateConnection(userId);
+    return await this.controllers.Auth.reConnectMember(userId);
+  }
   public async logoutMember(userId: string): Promise<string> {
     this.validateConnection(userId);
     return this.controllers.Users.logout(userId);
@@ -582,7 +590,11 @@ export class MarketFacade extends Loggable {
     storeId: string
   ): Promise<PositionHolderDTO> {
     this.validateConnection(userId);
+    // console.log("getJobsHierarchyOfStore");
     return await this.controllers.Jobs.getJobsHierarchyOfStore(storeId);
+  }
+  async getMemberIdByEmail(email: string): Promise<string> {
+    return await this.controllers.Auth.getMemberIdByEmail(email);
   }
   // getStoreDiscounts(userId: string, storeId: string): Map<string, IDiscount> {
   //   this.validateConnection(userId);

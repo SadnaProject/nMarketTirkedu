@@ -129,17 +129,14 @@ export const UsersRouter = createTRPCRouter({
       return service.removeMember(ctx.session.user.id, memberIdToRemove);
     }),
 
-    subscribeToEvents: loggedInProcedure.subscription(({ctx}) => {
-      return observable<unknown>((emit) => {
-        eventEmitter.subscribeToEmitter(ctx.session.user.id, (msg) => {
-          emit.next(msg);
-        });
-        return () => {
-          eventEmitter.unsubscribeFromEmitter(`userId`);
-        };
+  subscribeToEvents: loggedInProcedure.subscription(({ ctx }) => {
+    return observable<unknown>((emit) => {
+      eventEmitter.subscribeToEmitter(ctx.session.user.id, (msg) => {
+        emit.next(msg);
       });
-    }),
+      return () => {
+        eventEmitter.unsubscribeFromEmitter(ctx.session.user.id);
+      };
+    });
+  }),
 });
-
-
-

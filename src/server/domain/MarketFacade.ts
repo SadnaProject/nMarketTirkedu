@@ -454,6 +454,10 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     return this.controllers.Users.login(userId, email, password);
   }
+  public async reConnectMember(userId: string): Promise<void> {
+    // this.validateConnection(userId);
+    return await this.controllers.Auth.reConnectMember(userId);
+  }
   public async logoutMember(userId: string): Promise<string> {
     this.validateConnection(userId);
     return this.controllers.Users.logout(userId);

@@ -48,7 +48,10 @@ export interface IAuthController extends HasRepos {
    * @param userId The user's ID.
    * @throws Error if the user is not connected.
    */
-
+  /**
+   * reconnects a user. By its id. this allows to reconnect a user with a valid cookie.
+   */
+  reConnectMember(userId: string): Promise<void>;
   disconnect(userId: string): Promise<void>;
   /**
    * Registers a new user.
@@ -149,6 +152,10 @@ export class AuthController
     await member.login();
     this.Repos.Users.removeGuest(guestId);
     return member.UserId;
+  }
+  public async reConnectMember(userId: string): Promise<void> {
+    const member: MemberUserAuth = await this.Repos.Users.getMemberById(userId);
+    await member.reConnect();
   }
   public async disconnect(userId: string): Promise<void> {
     if (this.isGuest(userId)) {

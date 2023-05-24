@@ -5,6 +5,10 @@ import {
   validSessionProcedure,
 } from "server/service/trpc";
 import { service } from "../_service";
+import { observable } from "@trpc/server/observable";
+import { eventEmitter } from "server/EventEmitter";
+
+
 
 export const AuthRouter = createTRPCRouter({
   startSession: publicProcedure.mutation(() => {
@@ -46,4 +50,5 @@ export const AuthRouter = createTRPCRouter({
   getAllLoggedOutMembersIds: validSessionProcedure.query(({ ctx }) => {
     return service.getAllLoggedOutMembersIds(ctx.session.user.id);
   }),
+  
 });

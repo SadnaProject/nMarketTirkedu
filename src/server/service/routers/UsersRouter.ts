@@ -123,6 +123,7 @@ export const UsersRouter = createTRPCRouter({
     return observable<string>((emit) => {
       //TODO support this, I need to add some login function that receives the user id(seems a bit unsecure but ok)
       // return service.loginMember();
+      void service.reConnectMember(ctx.session.user.id);
       console.log("login of user", ctx.session.user.id);
 
       return () => {

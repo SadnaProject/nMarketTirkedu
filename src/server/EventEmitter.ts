@@ -1,3 +1,3 @@
-import { EventEmitter } from "events";
+import { EventManager } from "./domain/EventsManager";
 
-export const eventEmitter = new EventEmitter();
+export const eventEmitter = new EventManager();

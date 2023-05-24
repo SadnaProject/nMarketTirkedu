@@ -21,6 +21,8 @@ import { eventEmitter } from "server/EventEmitter";
 import { censored } from "../_Loggable";
 import { type BasketDTO } from "../Users/Basket";
 import { type BasketProductDTO } from "../Users/BasketProduct";
+import { EventManager } from "../EventsManager";
+import { EventEmitter } from "stream";
 
 export interface IPurchasesHistoryController extends HasRepos {
   getPurchase(purchaseId: string): Promise<CartPurchaseDTO>;
@@ -175,13 +177,6 @@ export class PurchasesHistoryController
       price
     );
     await this.addPurchase(CartPurchase.fromDTO(cartPurchase));
-    for (const [storeId, basket] of cart.storeIdToBasket) {
-      eventEmitter.emit(`purchase store ${storeId}`, {
-        purchaseId: cartPurchase.purchaseId,
-        userId: userId,
-        storeId: storeId,
-      });
-    }
     return cartPurchase.purchaseId;
   }
 
@@ -198,6 +193,10 @@ export class PurchasesHistoryController
       });
     }
     await this.Repos.CartPurchases.addCartPurchase(cartPurchase);
+    // for each basket in cartPurchase do addBasketPurchase
+    for (const basket of cartPurchase.StoreIdToBasketPurchases.values()) {
+      eventEmitter.emitEvent(eventEmitter.getStorePurchaseEventString(basket.StoreId))
+    }
     // for each <string, basket> in cart do addBasketPurchase
     // cartPurchase.StoreIdToBasketPurchases.forEach((basket, storeId) => {
     //   this.addBasketPurchase(basket);

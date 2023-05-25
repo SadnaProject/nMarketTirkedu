@@ -1,12 +1,12 @@
 import dayjs from "dayjs";
-import { db } from "../db";
 import { appRouter } from "server/service/root";
 import { type User } from "next-auth";
+import { dbGlobal } from "server/db";
 
 function createTestContext(user: User) {
   return {
-    db: db,
-    prisma: db,
+    db: dbGlobal,
+    prisma: dbGlobal,
     session: {
       expires: dayjs().toISOString(),
       user,

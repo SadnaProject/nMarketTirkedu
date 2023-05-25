@@ -36,31 +36,10 @@ export default function Home() {
   useMemberRedirect();
   const router = useRouter();
   const { data: session } = useSession();
-  const { mutate: loginMember } = api.users.loginMember.useMutation({
-    onError,
-    onSuccess: async (userId) => {
-      const values = getValues();
-      const res = await signIn("credentials", {
-        id: userId,
-        email: values.email,
-        password: values.password,
-        session: JSON.stringify(session),
-        redirect: false,
-      });
-      if (res?.ok) {
-        router.reload();
-      } else {
-        toast.error(res?.error || "Something went wrong");
-      }
-    },
-  });
   const { mutate: registerMember } = api.users.registerMember.useMutation({
-    onSuccess: () => {
+    onSuccess: (userId) => {
       // toast.success("Account created successfully");
-      loginMember({
-        email: getValues().email,
-        password: getValues().password,
-      });
+      loginMember(userId);
     },
     onError,
   });
@@ -77,6 +56,22 @@ export default function Home() {
       password: data.password,
     });
   });
+
+  const loginMember = async (userId: string) => {
+    const values = getValues();
+    const res = await signIn("credentials", {
+      id: userId,
+      email: values.email,
+      password: values.password,
+      session: JSON.stringify(session),
+      redirect: false,
+    });
+    if (res?.ok) {
+      router.reload();
+    } else {
+      toast.error(res?.error || "Something went wrong");
+    }
+  };
 
   return (
     <Layout>

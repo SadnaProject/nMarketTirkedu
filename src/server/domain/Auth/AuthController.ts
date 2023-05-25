@@ -3,9 +3,8 @@ import { HasControllers } from "../_HasController";
 import { Testable, testable } from "server/domain/_Testable";
 import { HasRepos } from "./_HasRepos";
 import { createRepos } from "./_HasRepos";
-import { UserAuth } from "./UserAuth";
-import { GuestUserAuth, GuestUserAuthDTO } from "./GuestUserAuth";
-import { MemberUserAuth, MemberUserAuthDTO } from "./MemberUserAuth";
+import { GuestUserAuth } from "./GuestUserAuth";
+import { MemberUserAuth } from "./MemberUserAuth";
 import { TRPCError } from "@trpc/server";
 
 export interface IAuthController extends HasRepos {
@@ -182,7 +181,7 @@ export class AuthController
         message: "User is not a member, please try again with a different user",
       });
     }
-    const member: MemberUserAuth = await this.Repos.Users.getMemberById(userId);
+    const member = await this.Repos.Users.getMemberById(userId);
     await member.logout(); //throws error if user is not connected
     return this.startSession();
   }
@@ -235,11 +234,8 @@ export class AuthController
   public isGuest(userId: string): boolean {
     return this.Repos.Users.doesGuestExistById(userId);
   }
-  public async isMember(userId: string): Promise<boolean> {
-    if (await this.Repos.Users.doesMemberExistById(userId)) {
-      return true;
-    }
-    return false;
+  public isMember(userId: string): Promise<boolean> {
+    return this.Repos.Users.doesMemberExistById(userId);
   }
 
   public async isConnected(userId: string): Promise<boolean> {
@@ -249,7 +245,6 @@ export class AuthController
     if (!(await this.Repos.Users.doesMemberExistById(userId))) return false;
     const member: MemberUserAuth = await this.Repos.Users.getMemberById(userId);
     return member.isUserLoggedInAsMember();
-    return true;
   }
   public async removeMember(
     userIdOfActor: string,

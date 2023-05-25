@@ -1,7 +1,7 @@
+import { getDB } from "../_Transactional";
 import { type BasketDTO, Basket } from "./Basket";
 import { TRPCError } from "@trpc/server";
-import { throws } from "assert";
-import { db } from "server/db";
+
 export type CartDTO = {
   storeIdToBasket: Map<string, BasketDTO>;
   userId: string;
@@ -20,11 +20,11 @@ export class Cart {
     storeId: string,
     quantity: number
   ): Promise<void> {
-    const b = await db.basket.findUnique({
+    const b = await getDB().basket.findUnique({
       where: { userId_storeId: { storeId: storeId, userId: this.userId } },
     });
     if (b == null) {
-      await db.basket.create({
+      await getDB().basket.create({
         data: {
           storeId: storeId,
           userId: this.userId,
@@ -38,7 +38,7 @@ export class Cart {
     if (basket === undefined) {
       let new_basket = new Basket(storeId, this.userId);
       if (b != null) {
-        const products = await db.basketProduct.findMany({
+        const products = await getDB().basketProduct.findMany({
           where: { storeId: storeId, userId: this.userId },
         });
         new_basket = Basket.createFromDTO({
@@ -57,7 +57,7 @@ export class Cart {
     productId: string,
     storeId: string
   ): Promise<void> {
-    const b = await db.basket.findUnique({
+    const b = await getDB().basket.findUnique({
       where: { userId_storeId: { storeId: storeId, userId: this.userId } },
     });
     if (b == null) {
@@ -70,7 +70,7 @@ export class Cart {
     if (basket === undefined) {
       let new_basket = new Basket(storeId, this.userId);
       if (b != null) {
-        const products = await db.basketProduct.findMany({
+        const products = await getDB().basketProduct.findMany({
           where: { storeId: storeId, userId: this.userId },
         });
         new_basket = Basket.createFromDTO({
@@ -101,7 +101,7 @@ export class Cart {
     storeId: string,
     quantity: number
   ): Promise<void> {
-    const b = await db.basket.findUnique({
+    const b = await getDB().basket.findUnique({
       where: { userId_storeId: { storeId: storeId, userId: this.userId } },
     });
     if (b == null) {
@@ -114,7 +114,7 @@ export class Cart {
     if (basket === undefined) {
       let new_basket = new Basket(storeId, this.userId);
       if (b != null) {
-        const products = await db.basketProduct.findMany({
+        const products = await getDB().basketProduct.findMany({
           where: { storeId: storeId, userId: this.userId },
         });
         new_basket = Basket.createFromDTO({

@@ -34,6 +34,7 @@ export class MarketFacade extends Loggable {
       "admin"
     );
     await this.controllers.Jobs.setInitialAdmin(userId);
+    return userId;
   }
 
   private validateConnection(userId: string): void {
@@ -427,9 +428,9 @@ export class MarketFacade extends Loggable {
     userId: string,
     email: string,
     @censored password: string
-  ): Promise<void> {
+  ): Promise<string> {
     this.validateConnection(userId);
-    await this.controllers.Users.register(email, password);
+    return this.controllers.Users.register(email, password);
   }
   // eslint-disable-next-line jsdoc/require-description
   /**
@@ -456,9 +457,9 @@ export class MarketFacade extends Loggable {
     // this.validateConnection(userId);
     return await this.controllers.Auth.reConnectMember(userId);
   }
-  public async logoutMember(userId: string): Promise<string> {
+  public logoutMember(userId: string): Promise<string> {
     this.validateConnection(userId);
-    return await this.controllers.Users.logout(userId);
+    return this.controllers.Users.logout(userId);
   }
   //This is not called logout because it also disconnects guest users which were not logged in.
   //disconnects a user. if the user is a guest user, the user is removed from the system.

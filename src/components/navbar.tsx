@@ -38,12 +38,6 @@ export default function Navbar() {
     undefined,
     cachedQueryOptions
   );
-  const { mutate: serverSignOut } = api.users.logoutMember.useMutation({
-    onSuccess: async () => {
-      await signOut();
-    },
-    onError,
-  });
   const { data: session } = useSession();
   const { data: notifications, refetch: refetchNotifications } =
     api.users.getNotifications.useQuery();
@@ -177,10 +171,7 @@ export default function Navbar() {
                     </div>
                   </div>
                 </div>
-                <Profile
-                  id={session.user.id}
-                  onClick={() => void serverSignOut()}
-                />
+                <Profile id={session.user.id} onClick={() => signOut()} />
               </>
             ) : (
               <Link href={PATHS.login.path} passHref legacyBehavior>

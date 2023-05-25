@@ -1,7 +1,8 @@
+import { getDB } from "../_Transactional";
 import { Cart, type CartDTO } from "./Cart";
 import { Notification } from "./Notification";
 import { TRPCError } from "@trpc/server";
-import { db } from "server/db";
+
 export class User {
   private id: string;
   private notifications: Notification[];
@@ -22,7 +23,7 @@ export class User {
     return this.notifications;
   }
   public async getUpdatedNotifications(): Promise<Notification[]> {
-    const dtos = db.notification.findMany({
+    const dtos = getDB().notification.findMany({
       where: { userId: this.id },
     });
     this.notifications = (await dtos).map((dto) =>
@@ -32,7 +33,7 @@ export class User {
   }
   public async addNotification(notification: Notification): Promise<void> {
     this.notifications.push(notification);
-    await db.notification.create({
+    await getDB().notification.create({
       data: {
         userId: this.id,
         id: notification.Id,
@@ -70,7 +71,7 @@ export class User {
       (notification) => notification.Id === notificationId
     );
     if (notification === undefined) {
-      const n = await db.notification.findUnique({
+      const n = await getDB().notification.findUnique({
         where: { id: notificationId },
       });
       if (n == null) {
@@ -86,8 +87,8 @@ export class User {
   }
   public async clearCart(): Promise<void> {
     this.cart = new Cart(this.id);
-    await db.cart.delete({ where: { userId: this.id } });
-    await db.cart.create({
+    await getDB().cart.delete({ where: { userId: this.id } });
+    await getDB().cart.create({
       data: {
         userId: this.id,
       },
@@ -131,7 +132,7 @@ export class User {
   }
   static async UserFromDTO(dto: { id: string }): Promise<User> {
     const u = new User(dto.id);
-    const products = await db.basketProduct.findMany({
+    const products = await getDB().basketProduct.findMany({
       where: { userId: dto.id },
     });
     //fix bids later

@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { db } from "server/db";
+import { getDB } from "../_Transactional";
 
 export class Notification {
   private id: string;
@@ -31,7 +31,7 @@ export class Notification {
 
   public async read() {
     this.isRead = true;
-    await db.notification.update({
+    await getDB().notification.update({
       where: { id: this.id },
       data: { isRead: true },
     });

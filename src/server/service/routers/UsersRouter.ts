@@ -129,7 +129,7 @@ export const UsersRouter = createTRPCRouter({
 
       return () => {
         console.log("logout of user", ctx.session.user.id);
-        void service.logoutMember(ctx.session.user.id);
+        service.logoutMember(ctx.session.user.id);
       };
     });
   }),

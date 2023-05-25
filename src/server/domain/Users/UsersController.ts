@@ -266,7 +266,7 @@ export class UsersController
   }
   async register(email: string, @censored password: string): Promise<string> {
     const MemberId = await this.Controllers.Auth.register(email, password);
-    this.Repos.Users.addUser(MemberId);
+    await this.Repos.Users.addUser(MemberId);
     return MemberId;
   }
   async login(

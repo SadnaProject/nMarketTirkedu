@@ -27,13 +27,13 @@ export class UserRepo extends Testable {
     //   });
     // }
     try {
-      await db.user.create({
+      await getDB().user.create({
         data: {
           id: userId,
         },
       });
 
-      await db.cart.create({
+      await getDB().cart.create({
         data: {
           userId: userId,
         },
@@ -51,7 +51,7 @@ export class UserRepo extends Testable {
   public async getUser(id: string): Promise<User> {
     let user = this.users.get(id);
     if (user === undefined) {
-      const userdb = await db.user.findUnique({ where: { id: id } });
+      const userdb = await getDB().user.findUnique({ where: { id: id } });
       if (userdb === null) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -66,7 +66,7 @@ export class UserRepo extends Testable {
 
   public async getAllUsers(): Promise<User[]> {
     // return Array.from(this.users.values());
-    const members = await db.user.findMany();
+    const members = await getDB().user.findMany();
     const ans = [];
     for (const m of members) {
       ans.push(await User.UserFromDTO(m));
@@ -80,7 +80,7 @@ export class UserRepo extends Testable {
         code: "NOT_FOUND",
         message: "User not found",
       });*/
-      const user = await db.user.findUnique({ where: { id: id } });
+      const user = await getDB().user.findUnique({ where: { id: id } });
       if (user === null) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -88,15 +88,15 @@ export class UserRepo extends Testable {
         });
       }
     }
-    await db.user.delete({ where: { id: id } });
+    await getDB().user.delete({ where: { id: id } });
     this.users.delete(id);
   }
   async clone(userSource: string, userDest: string): Promise<void> {
     let Dest = this.users.get(userDest);
     let Source = this.users.get(userSource);
     if (Dest === undefined || Source === undefined) {
-      const s = await db.user.findUnique({ where: { id: userSource } });
-      const d = await db.user.findUnique({ where: { id: userDest } });
+      const s = await getDB().user.findUnique({ where: { id: userSource } });
+      const d = await getDB().user.findUnique({ where: { id: userDest } });
       if (s === null || d === null) {
         throw new TRPCError({
           code: "NOT_FOUND",
@@ -113,7 +113,7 @@ export class UserRepo extends Testable {
     await Dest.clone(Source);
   }
   async isUserExist(id: string): Promise<boolean> {
-    return (await db.user.findUnique({ where: { id: id } })) !== null;
+    return (await getDB().user.findUnique({ where: { id: id } })) !== null;
   }
   async getUserByBidId(bidId: string): Promise<User> {
     const user = (await this.getAllUsers()).find((user) =>

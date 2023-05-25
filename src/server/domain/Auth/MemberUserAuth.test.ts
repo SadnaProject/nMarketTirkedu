@@ -51,13 +51,13 @@ describe("login member", () => {
 });
 
 describe("logout member", () => {
-  it("✅logs out member", (testType) => {
+  it("✅logs out member", async (testType) => {
     const member = getMemberI(1);
     vi.spyOn(member, "isConnectionValid").mockReturnValue(false);
-    member.login();
+    await member.login();
     vi.spyOn(member, "isConnectionValid").mockReturnValue(true);
     expect(member.isUserLoggedInAsMember()).toBeTruthy();
-    member.logout();
+    await member.logout();
     vi.spyOn(member, "isConnectionValid").mockReturnValue(false);
     expect(member.isUserLoggedInAsMember()).toBeFalsy();
   });

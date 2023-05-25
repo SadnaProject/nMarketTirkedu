@@ -1,7 +1,7 @@
-import { z } from "zod";
+import { getDB } from "../_Transactional";
 import { type BasketProductDTO, BasketProduct } from "./BasketProduct";
 import { TRPCError } from "@trpc/server";
-import { db } from "server/db";
+
 export type BasketDTO = {
   storeId: string;
   products: BasketProductDTO[];
@@ -28,11 +28,11 @@ export class Basket {
         message: "Quantity cannot be negative",
       });
     }
-    const pdb = await db.basketProduct.findUnique({
+    const pdb = await getDB().basketProduct.findUnique({
       where: { storeProductId: productId },
     });
     if (pdb === null) {
-      await db.basketProduct.create({
+      await getDB().basketProduct.create({
         data: {
           storeProductId: productId,
           quantity: quantity,
@@ -41,7 +41,7 @@ export class Basket {
         },
       });
     } else {
-      await db.basketProduct.update({
+      await getDB().basketProduct.update({
         where: { storeProductId: productId },
         data: { quantity: quantity },
       });
@@ -60,14 +60,16 @@ export class Basket {
     }
   }
   public async removeProduct(productId: string): Promise<void> {
-    const pdb = await db.basketProduct.findUnique({
+    const pdb = await getDB().basketProduct.findUnique({
       where: { storeProductId: productId },
     });
     if (pdb === null) {
       throw new TRPCError({ code: "NOT_FOUND", message: "Product not found" });
     } else {
       this.products = this.products.filter((p) => p.ProductId !== productId);
-      await db.basketProduct.delete({ where: { storeProductId: productId } });
+      await getDB().basketProduct.delete({
+        where: { storeProductId: productId },
+      });
     }
   }
   public get DTO(): BasketDTO {
@@ -88,7 +90,7 @@ export class Basket {
         message: "Quantity cannot be negative",
       });
     }
-    const pdb = await db.basketProduct.findUnique({
+    const pdb = await getDB().basketProduct.findUnique({
       where: { storeProductId: productId },
     });
     if (pdb === null) {
@@ -96,9 +98,11 @@ export class Basket {
     } else {
       if (quantity === 0) {
         this.products = this.products.filter((p) => p.ProductId !== productId);
-        await db.basketProduct.delete({ where: { storeProductId: productId } });
+        await getDB().basketProduct.delete({
+          where: { storeProductId: productId },
+        });
       } else {
-        await db.basketProduct.update({
+        await getDB().basketProduct.update({
           where: { storeProductId: productId },
           data: { quantity: quantity },
         });
@@ -129,7 +133,7 @@ export class Basket {
     storeId: string
   ): Promise<Basket> {
     const b = new Basket(storeId, userId);
-    const products = await db.basketProduct.findMany({
+    const products = await getDB().basketProduct.findMany({
       where: { userId: userId, storeId: storeId },
     });
     b.products = products.map((p) => BasketProduct.createFromDTO(p));

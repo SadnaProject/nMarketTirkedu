@@ -101,20 +101,17 @@ export class MemberUserAuth extends UserAuth {
     this.addSession(session);
     return session;
   }
-  public async reConnect(): Promise<void> {
-    await this.setIsLoggedIn(true);
+  public reConnect(): Promise<void> {
+    return this.setIsLoggedIn(true);
   }
-  public async logout(): Promise<void> {
-    console.log("Member is logging out");
-
+  public logout(): Promise<void> {
     if (!this.isUserLoggedInAsMember()) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Member is not logged in",
       });
-    } else {
-      await this.setIsLoggedIn(false);
     }
+    return this.setIsLoggedIn(false);
   }
 
   //Logged in= has a valid session as a member

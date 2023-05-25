@@ -5,6 +5,7 @@ import { TRPCError } from "@trpc/server";
 import { Mixin } from "ts-mixer";
 import { HasControllers } from "../_HasController";
 import { z } from "zod";
+import { db } from "server/db";
 import exp from "constants";
 const bidStateSchema = z.enum(["APPROVED", "WAITING", "REJECTED"]);
 export type BidState = z.infer<typeof bidStateSchema>;

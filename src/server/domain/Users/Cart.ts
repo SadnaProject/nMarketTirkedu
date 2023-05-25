@@ -1,37 +1,88 @@
 import { type BasketDTO, Basket } from "./Basket";
 import { TRPCError } from "@trpc/server";
+import { throws } from "assert";
+import { db } from "server/db";
 export type CartDTO = {
   storeIdToBasket: Map<string, BasketDTO>;
+  userId: string;
 };
 export class Cart {
   private storeIdToBasket: Map<string, Basket>;
+  //new
+  private userId: string;
 
-  constructor() {
+  constructor(userId: string) {
     this.storeIdToBasket = new Map();
+    this.userId = userId;
   }
-  public addProduct(
+  public async addProduct(
     productId: string,
     storeId: string,
     quantity: number
-  ): void {
+  ): Promise<void> {
+    const b = await db.basket.findUnique({
+      where: { userId_storeId: { storeId: storeId, userId: this.userId } },
+    });
+    if (b == null) {
+      await db.basket.create({
+        data: {
+          storeId: storeId,
+          userId: this.userId,
+        },
+      });
+      const new_basket = new Basket(storeId, this.userId);
+      await new_basket.addProduct(productId, quantity);
+      this.storeIdToBasket.set(storeId, new_basket);
+    }
     const basket = this.storeIdToBasket.get(storeId);
     if (basket === undefined) {
-      const new_basket = new Basket(storeId);
-      new_basket.addProduct(productId, quantity);
+      let new_basket = new Basket(storeId, this.userId);
+      if (b != null) {
+        const products = await db.basketProduct.findMany({
+          where: { storeId: storeId, userId: this.userId },
+        });
+        new_basket = Basket.createFromDTO({
+          storeId: storeId,
+          products: products,
+          userId: this.userId,
+        });
+      }
+      await new_basket.addProduct(productId, quantity);
       this.storeIdToBasket.set(storeId, new_basket);
     } else {
-      basket.addProduct(productId, quantity);
+      await basket.addProduct(productId, quantity);
     }
   }
-  public removeProduct(productId: string, storeId: string): void {
-    const basket = this.storeIdToBasket.get(storeId);
-    if (basket === undefined) {
+  public async removeProduct(
+    productId: string,
+    storeId: string
+  ): Promise<void> {
+    const b = await db.basket.findUnique({
+      where: { userId_storeId: { storeId: storeId, userId: this.userId } },
+    });
+    if (b == null) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "The requested basket not found",
       });
+    }
+    const basket = this.storeIdToBasket.get(storeId);
+    if (basket === undefined) {
+      let new_basket = new Basket(storeId, this.userId);
+      if (b != null) {
+        const products = await db.basketProduct.findMany({
+          where: { storeId: storeId, userId: this.userId },
+        });
+        new_basket = Basket.createFromDTO({
+          storeId: storeId,
+          products: products,
+          userId: this.userId,
+        });
+      }
+      await new_basket.removeProduct(productId);
+      this.storeIdToBasket.set(storeId, new_basket);
     } else {
-      basket.removeProduct(productId);
+      await basket.removeProduct(productId);
     }
   }
 
@@ -42,21 +93,40 @@ export class Cart {
     });
     return {
       storeIdToBasket: storeIdToBasketDTO,
+      userId: this.userId,
     };
   }
-  public editProductQuantity(
+  public async editProductQuantity(
     productId: string,
     storeId: string,
     quantity: number
-  ): void {
-    const basket = this.storeIdToBasket.get(storeId);
-    if (basket === undefined) {
+  ): Promise<void> {
+    const b = await db.basket.findUnique({
+      where: { userId_storeId: { storeId: storeId, userId: this.userId } },
+    });
+    if (b == null) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "The requested basket not found",
       });
+    }
+    const basket = this.storeIdToBasket.get(storeId);
+    if (basket === undefined) {
+      let new_basket = new Basket(storeId, this.userId);
+      if (b != null) {
+        const products = await db.basketProduct.findMany({
+          where: { storeId: storeId, userId: this.userId },
+        });
+        new_basket = Basket.createFromDTO({
+          storeId: storeId,
+          products: products,
+          userId: this.userId,
+        });
+      }
+      await new_basket.editProductQuantity(productId, quantity);
+      this.storeIdToBasket.set(storeId, new_basket);
     } else {
-      basket.editProductQuantity(productId, quantity);
+      await basket.editProductQuantity(productId, quantity);
     }
   }
   public toString(): string {
@@ -65,5 +135,22 @@ export class Cart {
       str += "StoreId: " + storeId + " Basket: \n" + basket.toString() + "\n";
     });
     return str;
+  }
+  static createFromDTO(dto: CartDTO): Cart {
+    const c = new Cart(dto.userId);
+    for (const b of dto.storeIdToBasket) {
+      c.storeIdToBasket.set(b[0], Basket.createFromDTO(b[1]));
+    }
+    return c;
+  }
+  static async createFromArgs(
+    userId: string,
+    storenames: string[]
+  ): Promise<Cart> {
+    const c = new Cart(userId);
+    for (const s of storenames) {
+      c.storeIdToBasket.set(s, await Basket.createFromArgs(userId, s));
+    }
+    return c;
   }
 }

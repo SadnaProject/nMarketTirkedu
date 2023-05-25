@@ -16,13 +16,13 @@ export interface IUsersController {
    * @param userId The id of the user that is currently logged in.
    * @returns True if the user exists, false otherwise.
    */
-  isUserExist(userId: string): boolean;
+  isUserExist(userId: string): Promise<boolean>;
   /**
    * This function gets the notifications of a user.
    * @param userId The id of the user that is currently logged in.
    * @returns The notifications of the user.
    */
-  getNotifications(userId: string): Notification[];
+  getNotifications(userId: string): Promise<Notification[]>;
   /**
    * This function adds a product to a user's cart.
    * @param userId The id of the user that is currently logged in.
@@ -59,7 +59,7 @@ export interface IUsersController {
    * @param userId The id of the user that is currently logged in.
    * @returns The cart of the user.
    */
-  getCart(userId: string): CartDTO;
+  getCart(userId: string): Promise<CartDTO>;
   /**
    * This function purchases the cart of a user.
    * @param userId The id of the user that is currently logged in.
@@ -69,26 +69,26 @@ export interface IUsersController {
    * This function adds a user to the system.
    * @param user The user that is being added to the system.
    */
-  addUser(userId: string, userName: string): void;
+  addUser(userId: string, userName: string): Promise<void>;
   /**
    * This function removes a user from the system.
    * @param userId The id of the user that is being removed from the system.
    */
-  removeUser(userId: string): void;
+  removeUser(userId: string): Promise<void>;
   /**
    * This function will mark notifications as read.
    * @param userId The id of the user that is currently logged in.
    * @param notificationId The id of the notification that is being marked as read.
    * @throws Error if the notification is not in the user's notifications.
    */
-  readNotification(userId: string, notificationId: string): void;
+  readNotification(userId: string, notificationId: string): Promise<void>;
   /**
    * This function will return the user's unread notifications.
    * @param userId The id of the user that is currently logged in.
    * @returns The user's unread notifications.
    * @throws Error if the user is not in the system.
    */
-  getUnreadNotifications(userId: string): Notification[];
+  getUnreadNotifications(userId: string): Promise<Notification[]>;
   /**
    * This function will add notifications to the user's notifications.
    * @param userId The id of the user that is currently logged in.
@@ -100,12 +100,12 @@ export interface IUsersController {
     userId: string,
     notificationType: string,
     notificationMsg: string
-  ): string;
+  ): Promise<string>;
   register(email: string, password: string): Promise<string>;
   /**
    * This function will start new session for user.
    */
-  startSession(): string;
+  startSession(): Promise<string>;
   /**
    * This function will end the current session for user.
    * @param userId The id of the user that is currently logged in.
@@ -132,8 +132,8 @@ export interface IUsersController {
    */
   removeMember(userIdOfActor: string, memberIdToRemove: string): Promise<void>;
   addBid(BidArgs: BidArgs): Promise<string>;
-  getAllBidsSendFromUser(userId: string): BidDTO[];
-  getAllBidsSendToUser(userId: string): BidDTO[];
+  getAllBidsSendFromUser(userId: string): Promise<BidDTO[]>;
+  getAllBidsSendToUser(userId: string): Promise<BidDTO[]>;
   removeVoteFromBid(userId: string, bidId: string): void;
   counterBid(userId: string, bidId: string, price: number): Promise<void>;
   approveBid(userId: string, bidId: string): Promise<void>;
@@ -149,16 +149,16 @@ export class UsersController
     super();
     this.initRepos(createRepos());
   }
-  getNotifications(userId: string): Notification[] {
-    return this.Repos.Users.getUser(userId).Notifications;
+  async getNotifications(userId: string): Promise<Notification[]> {
+    return (await this.Repos.Users.getUser(userId)).Notifications;
   }
   async addProductToCart(
     userId: string,
     productId: string,
     quantity: number
   ): Promise<void> {
-    const user = this.Repos.Users.getUser(userId); // notice that we get the user from the repo and not from the system
-    const storeId = this.Controllers.Stores.getStoreIdByProductId(
+    const user = await this.Repos.Users.getUser(userId); // notice that we get the user from the repo and not from the system
+    const storeId = await this.Controllers.Stores.getStoreIdByProductId(
       userId,
       productId
     );
@@ -173,25 +173,25 @@ export class UsersController
         message: "store doesn't have such amount of product",
       });
     }
-    user.addProductToCart(productId, quantity, await storeId);
+    await user.addProductToCart(productId, quantity, storeId);
   }
   async removeProductFromCart(
     userId: string,
     productId: string
   ): Promise<void> {
-    const user = this.Repos.Users.getUser(userId);
-    const storeId = this.Controllers.Stores.getStoreIdByProductId(
+    const user = await this.Repos.Users.getUser(userId);
+    const storeId = await this.Controllers.Stores.getStoreIdByProductId(
       userId,
       productId
     );
-    user.removeProductFromCart(productId, await storeId);
+    await user.removeProductFromCart(productId, storeId);
   }
   async editProductQuantityInCart(
     userId: string,
     productId: string,
     quantity: number
   ): Promise<void> {
-    const user = this.Repos.Users.getUser(userId);
+    const user = await this.Repos.Users.getUser(userId);
     if (
       !(await this.Controllers.Stores.isProductQuantityInStock(
         userId,
@@ -204,20 +204,20 @@ export class UsersController
         message: "store doesn't have such amount of product",
       });
     }
-    const storeId = this.Controllers.Stores.getStoreIdByProductId(
+    const storeId = await this.Controllers.Stores.getStoreIdByProductId(
       userId,
       productId
     );
-    user.editProductQuantityInCart(productId, await storeId, quantity);
+    await user.editProductQuantityInCart(productId, storeId, quantity);
   }
-  getCart(userId: string): CartDTO {
-    return this.Repos.Users.getUser(userId).Cart;
+  async getCart(userId: string): Promise<CartDTO> {
+    return (await this.Repos.Users.getUser(userId)).Cart;
   }
   async purchaseCart(
     userId: string,
     @censored creditCard: CreditCard
   ): Promise<string> {
-    const user = this.Repos.Users.getUser(userId);
+    const user = await this.Repos.Users.getUser(userId);
     const cart = user.Cart;
     const price = this.Controllers.Stores.getCartPrice(userId);
     const rid = await this.Controllers.PurchasesHistory.purchaseCart(
@@ -228,37 +228,40 @@ export class UsersController
     );
     const notificationMsg = `The cart ${cart.toString()} has been purchased for ${await price}.`;
     const notification = new Notification("purchase", notificationMsg);
-    user.addNotification(notification);
-    user.clearCart(); /// notice we clear the cart in the end of the purchase.
+    await user.addNotification(notification);
+    await user.clearCart(); /// notice we clear the cart in the end of the purchase.
     return rid;
   }
-  addUser(userId: string): void {
-    this.Repos.Users.addUser(userId);
+  async addUser(userId: string): Promise<void> {
+    await this.Repos.Users.addUser(userId);
   }
-  removeUser(userId: string): void {
-    this.Repos.Users.removeUser(userId);
+  async removeUser(userId: string): Promise<void> {
+    await this.Repos.Users.removeUser(userId);
   }
-  readNotification(userId: string, notificationId: string): void {
-    const user = this.Repos.Users.getUser(userId);
-    user.readNotification(notificationId);
+  async readNotification(
+    userId: string,
+    notificationId: string
+  ): Promise<void> {
+    const user = await this.Repos.Users.getUser(userId);
+    await user.readNotification(notificationId);
   }
-  getUnreadNotifications(userId: string): Notification[] {
-    const user = this.Repos.Users.getUser(userId);
+  async getUnreadNotifications(userId: string): Promise<Notification[]> {
+    const user = await this.Repos.Users.getUser(userId);
     return user.Notifications.filter((notification) => !notification.IsRead);
   }
-  addNotification(
+  async addNotification(
     userId: string,
     notificationType: string,
     notificationMsg: string
-  ): string {
-    const user = this.Repos.Users.getUser(userId);
+  ): Promise<string> {
+    const user = await this.Repos.Users.getUser(userId);
     const notification = new Notification(notificationType, notificationMsg);
-    user.addNotification(notification);
+    await user.addNotification(notification);
     return notification.Id;
   }
-  startSession(): string {
+  async startSession(): Promise<string> {
     const guestId = this.Controllers.Auth.startSession();
-    this.addUser(guestId);
+    await this.addUser(guestId);
     return guestId;
   }
   async register(email: string, @censored password: string): Promise<string> {
@@ -271,31 +274,31 @@ export class UsersController
     email: string,
     @censored password: string
   ): Promise<string> {
-    this.Repos.Users.getUser(guestId);
+    await this.Repos.Users.getUser(guestId);
     const MemberId = await this.Controllers.Auth.login(
       guestId,
       email,
       password
     );
-    this.Repos.Users.getUser(MemberId);
+    await this.Repos.Users.getUser(MemberId);
     return MemberId;
   }
   async logout(userId: string): Promise<string> {
     const guestId = await this.Controllers.Auth.logout(userId);
-    this.Repos.Users.addUser(guestId);
+    await this.Repos.Users.addUser(guestId);
     return guestId;
   }
   async disconnect(userId: string): Promise<void> {
     if (this.Controllers.Auth.isGuest(userId)) {
-      this.Repos.Users.removeUser(userId);
+      await this.Repos.Users.removeUser(userId);
     }
     await this.Controllers.Auth.disconnect(userId);
   }
-  isUserExist(userId: string): boolean {
+  async isUserExist(userId: string): Promise<boolean> {
     return this.Repos.Users.isUserExist(userId);
   }
   async removeMember(userIdOfActor: string, memberIdToRemove: string) {
-    if (!this.isUserExist(memberIdToRemove)) {
+    if (!(await this.isUserExist(memberIdToRemove))) {
       throw new TRPCError({
         code: "NOT_FOUND",
         message: "Given user id doesn't belong to a member",
@@ -315,21 +318,21 @@ export class UsersController
       });
     }
     await this.Controllers.Auth.removeMember(userIdOfActor, memberIdToRemove);
-    this.removeUser(memberIdToRemove);
+    await this.removeUser(memberIdToRemove);
   }
   async addBid(bidArgs: BidArgs): Promise<string> {
     const bid = new Bid(bidArgs);
     this.Repos.Bids.addBid(bid);
     if (bidArgs.type === "Store") {
-      await this.Controllers.Jobs.getStoreOwnersIds(
+      const oids = await this.Controllers.Jobs.getStoreOwnersIds(
         await this.Controllers.Stores.getStoreIdByProductId(
           bid.UserId,
           bid.ProductId
         )
-      ) /*.forEach((ownerId) =>
-        this.Repos.Users.getUser(ownerId).addBidToMe(bid.Id)
-      )*/;
-      this.Repos.Users.getUser(bid.UserId).addBidFromMe(bid.Id);
+      );
+      for (const oid of oids) {
+        (await this.Repos.Users.getUser(oid)).addBidFromMe(bid.Id);
+      }
       bid.Owners = R.clone(
         await this.Controllers.Jobs.getStoreOwnersIds(
           await this.Controllers.Stores.getStoreIdByProductId(
@@ -339,8 +342,10 @@ export class UsersController
         )
       );
     } else {
-      this.Repos.Users.getUser(bid.UserId).addBidFromMe(bid.Id);
-      const targetUser = this.Repos.Users.getUserByBidId(bidArgs.previousBidId);
+      (await this.Repos.Users.getUser(bid.UserId)).addBidFromMe(bid.Id);
+      const targetUser = await this.Repos.Users.getUserByBidId(
+        bidArgs.previousBidId
+      );
       bid.Owners = [targetUser.Id];
       targetUser.addBidToMe(bid.Id);
     }
@@ -363,7 +368,7 @@ export class UsersController
         message: "User doesn't have permission to approve bid",
       });
     }
-    if (!this.Repos.Users.getUser(userId).isBidExistToMe(bidId)) {
+    if (!(await this.Repos.Users.getUser(userId)).isBidExistToMe(bidId)) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "User doesn't have this bid",
@@ -437,16 +442,16 @@ export class UsersController
     const bid = this.Repos.Bids.getBid(bidId);
     bid.removeVote(userId);
   }
-  getAllBidsSendToUser(userId: string): BidDTO[] {
+  async getAllBidsSendToUser(userId: string): Promise<BidDTO[]> {
     const bids: BidDTO[] = [];
-    this.Repos.Users.getUser(userId).BidsToMe.forEach((bidId) =>
+    (await this.Repos.Users.getUser(userId)).BidsToMe.forEach((bidId) =>
       bids.push(this.Repos.Bids.getBid(bidId).DTO)
     );
     return bids;
   }
-  getAllBidsSendFromUser(userId: string): BidDTO[] {
+  async getAllBidsSendFromUser(userId: string): Promise<BidDTO[]> {
     const bids: BidDTO[] = [];
-    this.Repos.Users.getUser(userId).BidsFromMe.forEach((bidId) =>
+    (await this.Repos.Users.getUser(userId)).BidsFromMe.forEach((bidId) =>
       bids.push(this.Repos.Bids.getBid(bidId).DTO)
     );
     return bids;

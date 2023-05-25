@@ -39,20 +39,20 @@ describe("Homework Scenario", () => {
   beforeEach(async () => {
     email = faker.internet.email();
     password = faker.internet.password();
-    id = service.startSession();
+    id = await service.startSession();
     await service.registerMember(id, email, password);
     u1 = await service.loginMember(id, email, password);
     storeName = generateStoreName();
     storeId = await service.createStore(u1, storeName);
     ownermail = "owner@gmail.com";
     ownerpass = "owner123";
-    oid2 = service.startSession();
+    oid2 = await service.startSession();
     await service.registerMember(oid2, ownermail, ownerpass);
     u2 = await service.loginMember(oid2, ownermail, ownerpass);
     await service.makeStoreOwner(u1, storeId, u2);
     owner3mail = "owner3@gmail.com";
     owner3pass = "owner123";
-    oid3 = service.startSession();
+    oid3 = await service.startSession();
     await service.registerMember(oid3, owner3mail, owner3pass);
     u3 = await service.loginMember(oid3, owner3mail, owner3pass);
     await service.makeStoreOwner(u2, storeId, u3);
@@ -74,17 +74,17 @@ describe("Homework Scenario", () => {
  */
 describe("Remove Member", () => {
   it("Scenario 2", async () => {
-    const id = service.startSession();
+    const id = await service.startSession();
     const uid = await service.loginMember(id, "admin@gmail.com", "admin");
     const ownermail = "owner@gmail.com";
     const ownerpass = "owner123";
-    const oid2 = service.startSession();
+    const oid2 = await service.startSession();
     await service.registerMember(oid2, ownermail, ownerpass);
     const oid = await service.loginMember(oid2, ownermail, ownerpass);
     expect((await service.getAllLoggedInMembersIds(uid)).includes(oid)).toBe(
       true
     );
-    service.removeMember(uid, oid);
+    await service.removeMember(uid, oid);
     expect(await service.isMember(oid)).toBe(false);
     expect((await service.getAllLoggedInMembersIds(uid)).includes(oid)).toBe(
       false

@@ -17,14 +17,14 @@ describe("Get information about stores and products", () => {
   it("✅ Get information about stores and products", async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
-    const id = service.startSession();
+    const id = await service.startSession();
     await service.registerMember(id, email, password);
     const uid = await service.loginMember(id, email, password);
     const storeName = generateStoreName();
     const storeId = await service.createStore(uid, storeName);
     const ownermail = "owner@gmail.com";
     const ownerpass = "owner123";
-    const oid2 = service.startSession();
+    const oid2 = await service.startSession();
     await service.registerMember(oid2, ownermail, ownerpass);
     const oid = await service.loginMember(oid2, ownermail, ownerpass);
     await service.makeStoreOwner(uid, storeId, oid);
@@ -32,7 +32,7 @@ describe("Get information about stores and products", () => {
     const pid = await service.createProduct(oid, storeId, pargs);
     const memail = "member@gmail.com";
     const mpassword = faker.internet.password();
-    const mid = service.startSession();
+    const mid = await service.startSession();
     await service.registerMember(mid, memail, mpassword);
     const umid = await service.loginMember(mid, memail, mpassword);
     const products = await service.getStoreProducts(uid, storeId);
@@ -44,14 +44,14 @@ describe("Get information about stores and products", () => {
   it("❎ Information of non existing store", async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
-    const id = service.startSession();
+    const id = await service.startSession();
     await service.registerMember(id, email, password);
     const uid = await service.loginMember(id, email, password);
     const storeName = generateStoreName();
     const storeId = await service.createStore(uid, storeName);
     const ownermail = "owner@gmail.com";
     const ownerpass = "owner123";
-    const oid2 = service.startSession();
+    const oid2 = await service.startSession();
     await service.registerMember(oid2, ownermail, ownerpass);
     const oid = await service.loginMember(oid2, ownermail, ownerpass);
     await service.makeStoreOwner(uid, storeId, oid);
@@ -59,7 +59,7 @@ describe("Get information about stores and products", () => {
     const pid = await service.createProduct(oid, storeId, pargs);
     const memail = "member@gmail.com";
     const mpassword = faker.internet.password();
-    const mid = service.startSession();
+    const mid = await service.startSession();
     await service.registerMember(mid, memail, mpassword);
     const umid = await service.loginMember(mid, memail, mpassword);
     expect(() => service.getStoreFounder("ashaleee")).toThrow(TRPCError);
@@ -76,14 +76,14 @@ describe("Search Products", () => {
     pargs1 = generateProductArgs();
     const email = faker.internet.email();
     const password = faker.internet.password();
-    const id = service.startSession();
+    const id = await service.startSession();
     await service.registerMember(id, email, password);
     const uid = await service.loginMember(id, email, password);
     const storeName = generateStoreName();
     storeId = await service.createStore(uid, storeName);
     const ownermail = "owner@gmail.com";
     const ownerpass = "owner123";
-    const oid2 = service.startSession();
+    const oid2 = await service.startSession();
     await service.registerMember(oid2, ownermail, ownerpass);
     const oid = await service.loginMember(oid2, ownermail, ownerpass);
     await service.makeStoreOwner(uid, storeId, oid);
@@ -96,7 +96,7 @@ describe("Search Products", () => {
     const pid3 = await service.createProduct(oid, storeId, pargs3);
     const memail = "member@gmail.com";
     const mpassword = faker.internet.password();
-    const mid = service.startSession();
+    const mid = await service.startSession();
     await service.registerMember(mid, memail, mpassword);
     umid = await service.loginMember(mid, memail, mpassword);
     const products = [
@@ -172,14 +172,14 @@ describe("Keep an Item in the cart", () => {
   it("✅ Add item to cart and keep it after disconnecting", async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
-    const id = service.startSession();
+    const id = await service.startSession();
     await service.registerMember(id, email, password);
     const uid = await service.loginMember(id, email, password);
     const storeName = generateStoreName();
     const storeId = await service.createStore(uid, storeName);
     const ownermail = "owner@gmail.com";
     const ownerpass = "owner123";
-    const oid2 = service.startSession();
+    const oid2 = await service.startSession();
     await service.registerMember(oid2, ownermail, ownerpass);
     const oid = await service.loginMember(oid2, ownermail, ownerpass);
     await service.makeStoreOwner(uid, storeId, oid);
@@ -188,17 +188,17 @@ describe("Keep an Item in the cart", () => {
     const pid = await service.createProduct(oid, storeId, pargs);
     const memail = "member@gmail.com";
     const mpassword = faker.internet.password();
-    const mid = service.startSession();
+    const mid = await service.startSession();
     await service.registerMember(mid, memail, mpassword);
     const umid = await service.loginMember(mid, memail, mpassword);
-    service.addProductToCart(umid, pid, 1);
-    const cart = service.getCart(umid);
+    await service.addProductToCart(umid, pid, 1);
+    const cart = await service.getCart(umid);
     expect(
       cart.storeIdToBasket.get(storeId)?.products.at(0)?.storeProductId === pid
     ).toBe(true);
     const mid2 = await service.logoutMember(umid);
     const umid2 = await service.loginMember(mid2, memail, mpassword);
-    const cart2 = service.getCart(umid2);
+    const cart2 = await service.getCart(umid2);
     expect(
       cart2.storeIdToBasket.get(storeId)?.products.at(0)?.storeProductId === pid
     ).toBe(true);
@@ -231,14 +231,14 @@ describe("Edit cart contents", () => {
   beforeEach(async () => {
     email = faker.internet.email();
     password = faker.internet.password();
-    id = service.startSession();
+    id = await service.startSession();
     await service.registerMember(id, email, password);
     uid = await service.loginMember(id, email, password);
     storeName = generateStoreName();
     storeId = await service.createStore(uid, storeName);
     ownermail = "owner@gmail.com";
     ownerpass = "owner123";
-    oid2 = service.startSession();
+    oid2 = await service.startSession();
     await service.registerMember(oid2, ownermail, ownerpass);
     oid = await service.loginMember(oid2, ownermail, ownerpass);
     await service.makeStoreOwner(uid, storeId, oid);
@@ -247,7 +247,7 @@ describe("Edit cart contents", () => {
     pid = await service.createProduct(oid, storeId, pargs);
     memail = "member@gmail.com";
     mpassword = faker.internet.password();
-    mid = service.startSession();
+    mid = await service.startSession();
     await service.registerMember(mid, memail, mpassword);
     umid = await service.loginMember(mid, memail, mpassword);
   });
@@ -255,10 +255,10 @@ describe("Edit cart contents", () => {
     const pargs2 = generateProductArgs();
     pargs2.quantity = 5;
     const pid2 = await service.createProduct(oid, storeId, pargs2);
-    service.addProductToCart(umid, pid, 1);
-    const cart = service.getCart(umid);
-    service.addProductToCart(umid, pid2, 3);
-    const cart2 = service.getCart(umid);
+    await service.addProductToCart(umid, pid, 1);
+    const cart = await service.getCart(umid);
+    await service.addProductToCart(umid, pid2, 3);
+    const cart2 = await service.getCart(umid);
     expect(
       cart2.storeIdToBasket.get(storeId)?.products[0]?.storeProductId === pid &&
         cart2.storeIdToBasket.get(storeId)?.products[1]?.storeProductId ==
@@ -268,26 +268,27 @@ describe("Edit cart contents", () => {
         cart.storeIdToBasket.get(storeId)?.products[0]?.storeProductId === pid
     ).toBe(true);
   });
-  it("✅ Edit quantity", () => {
-    service.addProductToCart(umid, pid, 7);
-    const q1 = service.getCart(umid).storeIdToBasket.get(storeId)
+  it("✅ Edit quantity", async () => {
+    await service.addProductToCart(umid, pid, 7);
+    const q1 = (await service.getCart(umid)).storeIdToBasket.get(storeId)
       ?.products[0]?.quantity;
-    service.editProductQuantityInCart(umid, pid, 4);
-    const q2 = service.getCart(umid).storeIdToBasket.get(storeId)
+    await service.editProductQuantityInCart(umid, pid, 4);
+    const q2 = (await service.getCart(umid)).storeIdToBasket.get(storeId)
       ?.products[0]?.quantity;
     expect(q1 === 7 && q2 === 4).toBe(true);
   });
-  it("✅ Remove existing item", () => {
-    service.addProductToCart(umid, pid, 7);
-    const q1 = service.getCart(umid).storeIdToBasket.get(storeId)
+  it("✅ Remove existing item", async () => {
+    await service.addProductToCart(umid, pid, 7);
+    const q1 = (await service.getCart(umid)).storeIdToBasket.get(storeId)
       ?.products[0]?.quantity;
-    service.removeProductFromCart(umid, pid);
+    await service.removeProductFromCart(umid, pid);
     expect(
-      service.getCart(umid).storeIdToBasket.get(storeId)?.products.length === 0
+      (await service.getCart(umid)).storeIdToBasket.get(storeId)?.products
+        .length === 0
     ).toBe(true);
   });
   it("❎ Remove non-existing item", () => {
-    expect(() => service.removeProductFromCart(umid, pid)).toThrow();
+    expect(() => service.removeProductFromCart(umid, pid)).toThrow(TRPCError);
   });
 });
 //Use Case 2.5
@@ -312,14 +313,14 @@ describe("Purchase Cart", () => {
   beforeEach(async () => {
     email = faker.internet.email();
     password = faker.internet.password();
-    id = service.startSession();
+    id = await service.startSession();
     await service.registerMember(id, email, password);
     uid = await service.loginMember(id, email, password);
     storeName = generateStoreName();
     storeId = await service.createStore(uid, storeName);
     ownermail = "owner@gmail.com";
     ownerpass = "owner123";
-    oid2 = service.startSession();
+    oid2 = await service.startSession();
     await service.registerMember(oid2, ownermail, ownerpass);
     oid = await service.loginMember(oid2, ownermail, ownerpass);
     await service.makeStoreOwner(uid, storeId, oid);
@@ -333,15 +334,15 @@ describe("Purchase Cart", () => {
     const pid2 = await service.createProduct(oid, storeId, pargs2);
     const memail = "member@gmail.com";
     const mpassword = faker.internet.password();
-    const mid = service.startSession();
+    const mid = await service.startSession();
     await service.registerMember(mid, memail, mpassword);
     const umid = await service.loginMember(mid, memail, mpassword);
-    service.addProductToCart(umid, pid, 1);
-    service.addProductToCart(umid, pid2, 3);
+    await service.addProductToCart(umid, pid, 1);
+    await service.addProductToCart(umid, pid2, 3);
     const card = faker.finance.creditCardNumber();
     const cCard = { number: card };
     await service.purchaseCart(umid, cCard);
-    const cart = service.getCart(umid).storeIdToBasket;
+    const cart = (await service.getCart(umid)).storeIdToBasket;
     const b = await service.isProductQuantityInStock(umid, pid, 7);
     expect(
       !(await service.isProductQuantityInStock(umid, pid, 7)) &&
@@ -357,10 +358,10 @@ describe("Purchase Cart", () => {
     const pid2 = await service.createProduct(oid, storeId, pargs2);
     const memail = "member@gmail.com";
     const mpassword = faker.internet.password();
-    const mid = service.startSession();
+    const mid = await service.startSession();
     await service.registerMember(mid, memail, mpassword);
     const umid = await service.loginMember(mid, memail, mpassword);
-    service.addProductToCart(umid, pid, 4);
+    await service.addProductToCart(umid, pid, 4);
     expect(() => service.addProductToCart(umid, pid2, 3)).toThrow(TRPCError);
     const card = faker.finance.creditCardNumber();
     const cCard = { number: card };
@@ -374,16 +375,16 @@ describe("Purchase Cart", () => {
     const pid2 = await service.createProduct(oid, storeId, pargs2);
     const memail = "member@gmail.com";
     const mpassword = faker.internet.password();
-    const mid = service.startSession();
+    const mid = await service.startSession();
     await service.registerMember(mid, memail, mpassword);
     const umid = await service.loginMember(mid, memail, mpassword);
-    service.addProductToCart(umid, pid, 1);
-    service.addProductToCart(umid, pid2, 3);
+    await service.addProductToCart(umid, pid, 1);
+    await service.addProductToCart(umid, pid2, 3);
     const card = faker.finance.creditCardNumber();
     const card2 = faker.finance.creditCardNumber();
-    const mid2 = service.startSession();
-    service.addProductToCart(mid2, pid, 7);
-    service.addProductToCart(mid2, pid2, 5);
+    const mid2 = await service.startSession();
+    await service.addProductToCart(mid2, pid, 7);
+    await service.addProductToCart(mid2, pid2, 5);
     const cCard = { number: card };
     const cCard2 = { number: card2 };
     await service.purchaseCart(umid, cCard);
@@ -396,7 +397,7 @@ describe("Purchase Cart", () => {
     const pid2 = await service.createProduct(oid, storeId, pargs2);
     const memail = "member@gmail.com";
     const mpassword = faker.internet.password();
-    const mid = service.startSession();
+    const mid = await service.startSession();
     await service.registerMember(mid, memail, mpassword);
     const umid = await service.loginMember(mid, memail, mpassword);
     const card = faker.finance.creditCardNumber();

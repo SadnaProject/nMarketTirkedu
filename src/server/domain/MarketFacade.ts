@@ -106,19 +106,19 @@ export class MarketFacade extends Loggable {
     return this.controllers.Users.purchaseCart(userId, creditCard);
   }
 
-  public removeUser(userId: string) {
-    this.controllers.Users.removeUser(userId);
+  public async removeUser(userId: string) {
+    await this.controllers.Users.removeUser(userId);
   }
-  public readNotification(userId: string, notificationId: string) {
+  public async readNotification(userId: string, notificationId: string) {
     this.validateConnection(userId);
-    this.controllers.Users.readNotification(userId, notificationId);
+    await this.controllers.Users.readNotification(userId, notificationId);
   }
-  public addNotification(
+  public async addNotification(
     userId: string,
     notificationType: string,
     notificationMsg: string
   ) {
-    this.controllers.Users.addNotification(
+    await this.controllers.Users.addNotification(
       userId,
       notificationType,
       notificationMsg
@@ -419,7 +419,7 @@ export class MarketFacade extends Loggable {
     return await this.controllers.Stores.searchProducts(userId, searchArgs);
   }
   //TODO: Duplicate code from down here, be careful!
-  public startSession(): string {
+  public async startSession(): Promise<string> {
     return this.controllers.Users.startSession();
   }
 
@@ -563,11 +563,11 @@ export class MarketFacade extends Loggable {
     this.validateConnection(bid.userId);
     await this.controllers.Users.addBid(bid);
   }
-  getBidsFromMe(userId: string): BidDTO[] {
+  async getBidsFromMe(userId: string): Promise<BidDTO[]> {
     this.validateConnection(userId);
     return this.controllers.Users.getAllBidsSendFromUser(userId);
   }
-  getBidsToMe(userId: string): BidDTO[] {
+  async getBidsToMe(userId: string): Promise<BidDTO[]> {
     this.validateConnection(userId);
     return this.controllers.Users.getAllBidsSendToUser(userId);
   }

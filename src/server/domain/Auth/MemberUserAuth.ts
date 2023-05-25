@@ -79,6 +79,7 @@ export class MemberUserAuth extends UserAuth {
       password: this.password,
       type: this.type,
       sessions: this.sessions,
+      isLoggedIn: this.isLoggedIn,
       // salt: this.salt,
     };
   }

@@ -13,7 +13,7 @@ describe("create a new store", () => {
   it("✅creates a store", async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
-    const id = service.startSession();
+    const id = await service.startSession();
     await service.registerMember(id, email, password);
     const uid = await service.loginMember(id, email, password);
     const storeName = generateStoreName();

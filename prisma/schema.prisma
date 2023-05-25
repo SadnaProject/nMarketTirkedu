@@ -169,7 +169,7 @@ model Constraint {
 model Notification {
     id      String  @id @default(cuid())
     userId  String
-    user    User    @relation(fields: [userId], references: [id])
+    user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
     type    String
     message String
     isRead  Boolean
@@ -178,16 +178,17 @@ model Notification {
 model BasketProduct {
     storeProductId String @id @default(cuid())
     quantity       Float
-    basket         Basket @relation(fields: [userId, storeId], references: [userId, storeId])
+    basket         Basket @relation(fields: [userId, storeId], references: [userId, storeId], onDelete: Cascade)
     storeId        String
     userId         String
+    bids Bid[]
 }
 
 model Basket {
     userId   String
     storeId  String
     products BasketProduct[]
-    cart     Cart            @relation(fields: [userId], references: [userId])
+    cart     Cart            @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
     @@unique([userId, storeId])
 }
@@ -200,27 +201,29 @@ model Cart {
     @@unique([userId])
 }
 
-// enum BidType {
-//     Store
-//     Counter
-// }
+enum BidType {
+    Store
+    Counter
+}
 
-// enum BidState{
-//     APPROVED
-//     WAITING
-//     REJECTED
-// }
+enum BidState{
+    APPROVED
+    WAITING
+    REJECTED
+}
 
-// model Bid{
-//     id String @id @default(cuid())
-//     user User
-//     product BasketProduct
-//     price Float
-//     approvedBy User[]
-//     rejectedBy User []
-//     state BidState
-//     type BidType
-// }
+model Bid{
+    id String @id @default(cuid())
+    userId String
+    user User @relation(fields: [userId], references: [id])
+    productId String
+    product BasketProduct @relation(fields: [productId], references: [storeProductId])
+    price Float
+    approvedBy String[]
+    rejectedBy String []
+    state BidState
+    type BidType
+}
 
 model User {
     id             String          @id @default(cuid())
@@ -230,6 +233,7 @@ model User {
     // auth UserAuth @relation(fields: [id], references: [id])
     cart           Cart?
     notifications  Notification[]
+    bids Bid[]
 }
 
 model ProductReview {

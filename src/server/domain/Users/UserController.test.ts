@@ -73,7 +73,7 @@ describe("add product", () => {
     ).mockResolvedValueOnce(false);
     await expect(() =>
       controllers.Users.addProductToCart(userId, productId, 100)
-    ).rejects.toThrow("store don't have such amount of product");
+    ).rejects.toThrow("store doesn't have such amount of product");
     vi.spyOn(
       controllers.Stores,
       "isProductQuantityInStock"
@@ -194,7 +194,7 @@ describe("edit product quantity", () => {
     ).mockResolvedValueOnce(false);
     await expect(() =>
       controllers.Users.editProductQuantityInCart(userId, productId, 100)
-    ).rejects.toThrow("store don't have such amount of product");
+    ).rejects.toThrow("store doesn't have such amount of product");
     vi.spyOn(
       controllers.Stores,
       "isProductQuantityInStock"

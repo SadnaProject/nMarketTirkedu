@@ -4,13 +4,7 @@ import { type Repos, createMockRepos, createTestRepos } from "./_HasRepos";
 import { MemberUserAuth } from "./MemberUserAuth";
 import { GuestUserAuth } from "./GuestUserAuth";
 import { itUnitIntegration } from "../_mock";
-import {
-  createMockControllers,
-  createTestControllers,
-} from "../_createControllers";
-import { type Controllers } from "../_HasController";
 import { AuthController } from "./AuthController";
-import { getDB } from "server/domain/_Transactional";
 
 export function createMember(name: string, password: string) {
   return MemberUserAuth.create(name, password);
@@ -41,7 +35,6 @@ describe("starts session", () => {
   itUnitIntegration("✅starts session", async (testType) => {
     repos = createTestRepos(testType);
     controllers.Auth.initRepos(repos);
-    await getDB().userAuth.deleteMany({});
     vi.spyOn(repos.Users, "doesMemberExistById").mockResolvedValue(false);
     vi.spyOn(repos.Users, "getGuestById").mockReturnValue(getGuestI(1));
     vi.spyOn(repos.Users, "addGuest").mockImplementation(() => {});
@@ -67,7 +60,6 @@ describe("register member", () => {
   itUnitIntegration("✅registers member", async (testType) => {
     repos = createTestRepos(testType);
     controllers.Auth.initRepos(repos);
-    await getDB().userAuth.deleteMany({});
     // vi.spyOn(MemberUserAuth, "create").mockImplementation(
     //   (email: string, password: string) => {
     //     const mockUser: MemberUserAuth = new (
@@ -104,7 +96,6 @@ describe("register member", () => {
   itUnitIntegration(
     "❎fails to register member with existing email",
     async (testType) => {
-      await getDB().userAuth.deleteMany({});
       repos = createTestRepos(testType);
       controllers.Auth.initRepos(repos);
       const validateEmailLegality = vi
@@ -136,7 +127,6 @@ describe("login member", () => {
   itUnitIntegration("✅logs in member", async (testType) => {
     repos = createTestRepos(testType);
     controllers.Auth.initRepos(repos);
-    await getDB().userAuth.deleteMany({});
     vi.spyOn(MemberUserAuth.prototype, "isPasswordCorrect").mockReturnValue(
       true
     );

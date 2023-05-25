@@ -1,12 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import {
-  Role,
-  Permission,
-  type EditablePermission,
-  type RoleDTO,
-} from "./Role";
+import { Role, type EditablePermission, type RoleDTO } from "./Role";
 import { getDB } from "server/domain/_Transactional";
-import { RoleType } from "@prisma/client";
 import { randomUUID } from "crypto";
 
 export class ManagerRole extends Role {

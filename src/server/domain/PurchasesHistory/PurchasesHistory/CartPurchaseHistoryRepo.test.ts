@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect } from "vitest";
+import { describe, expect } from "vitest";
 import { CartPurchase } from "../CartPurchaseHistory";
 import { CartPurchaseRepo } from "./CartPurchaseHistoryRepo";
 import { type BasketPurchase } from "../BasketPurchaseHistory";
@@ -23,13 +23,6 @@ const CartPurchaseData2 = {
   quantity: 1,
   price: 1,
 };
-
-beforeEach(async () => {
-  await getDB().productPurchase.deleteMany({});
-  await getDB().basketPurchase.deleteMany({});
-  await getDB().cartPurchase.deleteMany({});
-  await getDB().user.deleteMany({});
-});
 
 describe("addCartPurchase", () => {
   const storeIdToBasket = new Map<string, BasketPurchase>();

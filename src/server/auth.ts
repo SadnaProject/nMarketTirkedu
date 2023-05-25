@@ -4,17 +4,13 @@ import {
   type NextAuthOptions,
   type DefaultSession,
   type DefaultUser,
-  User,
 } from "next-auth";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { getDB } from "server/domain/_Transactional";
 import { env } from "env.mjs";
 import Credentials from "next-auth/providers/credentials";
-import { appRouter } from "./service/root";
 import zConvert from "./helpers/zConvert";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { service } from "./service/_service";
 import { dbGlobal } from "./db";
 
 /**

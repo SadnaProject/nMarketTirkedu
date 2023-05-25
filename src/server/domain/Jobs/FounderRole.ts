@@ -1,7 +1,5 @@
 import { TRPCError } from "@trpc/server";
 import { type EditablePermission, Role } from "./Role";
-import { getDB } from "server/domain/_Transactional";
-import { RoleType } from "@prisma/client";
 
 export class FounderRole extends Role {
   //TODO maybe its better to extend OwnerRole

@@ -88,7 +88,7 @@ export const exampleRouter = createTRPCRouter({
   notifyAll: publicProcedure
     .input(z.object({ message: z.string() }))
     .mutation(({ input }) => {
-      eventEmitter.emit("notifyAll", input.message);
+      // eventEmitter.emit("notifyAll", input.message);
       return "ok";
     }),
 
@@ -97,15 +97,15 @@ export const exampleRouter = createTRPCRouter({
       const onNotifyAll = (message: string) => {
         emit.next(message);
       };
-      eventEmitter.on(`notifyAll`, onNotifyAll);
+      // eventEmitter.on(`notifyAll`, onNotifyAll);
       return () => {
-        eventEmitter.off(`notifyAll`, onNotifyAll);
+        // eventEmitter.off(`notifyAll`, onNotifyAll);
       };
     });
   }),
 
   addNotificationEvent: publicProcedure.mutation(() => {
-    eventEmitter.emit(`addNotificationEvent`);
+    // eventEmitter.emit(`addNotificationEvent`);
   }),
 
   onAddNotificationEvent: publicProcedure.subscription(() => {
@@ -113,9 +113,9 @@ export const exampleRouter = createTRPCRouter({
       const onAddNotificationEvent = (message: string) => {
         emit.next(message);
       };
-      eventEmitter.on(`addNotificationEvent`, onAddNotificationEvent);
+      // eventEmitter.on(`addNotificationEvent`, onAddNotificationEvent);
       return () => {
-        eventEmitter.off(`addNotificationEvent`, onAddNotificationEvent);
+        // eventEmitter.off(`addNotificationEvent`, onAddNotificationEvent);
       };
     });
   }),

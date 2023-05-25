@@ -2,10 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { type Repos, createTestRepos } from "./_HasRepos";
 import { MemberUserAuth } from "./MemberUserAuth";
 import { GuestUserAuth } from "./GuestUserAuth";
-import { itUnitIntegration } from "../_mock";
-import { createTestControllers } from "../_createControllers";
 import { type Controllers } from "../_HasController";
-import { getDB } from "server/domain/_Transactional";
 
 export function createMember(name: string, password: string) {
   return MemberUserAuth.create(name, password);
@@ -22,8 +19,6 @@ function getGuestI(i: number): GuestUserAuth {
 let repos: Repos;
 let controllers: Controllers;
 beforeEach(async () => {
-  //delete all data in db
-  await getDB().userAuth.deleteMany({});
   const testType = "integration";
   // controllers = createTestControllers(testType, "Users");
   repos = createTestRepos(testType);

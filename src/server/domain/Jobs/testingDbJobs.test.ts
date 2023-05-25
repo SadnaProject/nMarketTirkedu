@@ -1,18 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { type Repos, createTestRepos } from "./_HasRepos";
-
-import { itUnitIntegration } from "../_mock";
-import { createTestControllers } from "../_createControllers";
-import { type Controllers } from "../_HasController";
 import { GuestUserAuth } from "../Auth/GuestUserAuth";
 import { MemberUserAuth } from "../Auth/MemberUserAuth";
 import { PositionHolder } from "./PositionHolder";
-import { Role } from "./Role";
 import { FounderRole } from "./FounderRole";
 import { OwnerRole } from "./OwnerRole";
-import { getDB } from "server/domain/_Transactional";
-import exp from "constants";
-import { JobsRepo } from "./JobsRepo";
 import { JobsController } from "./JobsController";
 import { AuthController } from "../Auth/AuthController";
 
@@ -34,9 +26,6 @@ const ownerRole: OwnerRole = OwnerRole.getOwnerRole();
 const founderRole: FounderRole = FounderRole.getFounderRole();
 // let controllers: Controllers;
 beforeEach(async () => {
-  //delete all data in db
-  await getDB().positionHolder.deleteMany({});
-  await getDB().role.deleteMany({});
   const testType = "integration";
   // controllers = createTestControllers(testType, "Users");
   // repos = createTestRepos(testType, "jobs");

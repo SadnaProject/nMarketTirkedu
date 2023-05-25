@@ -1,5 +1,4 @@
 import { expect, describe, beforeEach } from "vitest";
-import { type Repos, createRepos } from "../_HasRepos";
 import { Review } from "../Review";
 import { ReviewRepo } from "./ReviewRepo";
 import { itUnitIntegration } from "server/domain/_mock";
@@ -44,10 +43,6 @@ const productPurchaseData = {
 //   new Review(reviewData).initRepos(repos);
 
 beforeEach(async () => {
-  await getDB().productPurchase.deleteMany({});
-  await getDB().basketPurchase.deleteMany({});
-  await getDB().cartPurchase.deleteMany({});
-  await getDB().user.deleteMany({});
   await getDB().user.create({
     data: {
       id: "userId",

@@ -1,9 +1,11 @@
+import { BasketProductRepo } from "./Repos/BasketProductRepo";
 import { BidRepo } from "./Repos/BidRepo";
 import { UserRepo } from "./Repos/UserRepo";
 import { TRPCError } from "@trpc/server";
 export const reposMapping = {
   Users: UserRepo,
   Bids: BidRepo,
+  BasketProducts: BasketProductRepo,
 };
 
 // NO TOUCHY BELOW THIS LINE 😉

@@ -9,7 +9,6 @@ import { type CreditCard } from "server/domain/PurchasesHistory/PaymentAdaptor";
 import { type StoreDTO } from "server/domain/Stores/Store";
 import { type RoleType } from "server/domain/Jobs/Role";
 import { type PositionHolderDTO } from "server/domain/Jobs/PositionHolder";
-import { TRPCError } from "@trpc/server";
 
 export type SearchArgs = {
   name?: string;
@@ -97,7 +96,7 @@ export class Service {
     reviewDescription: string,
     storeId: string
   ) {
-    this.facade.reviewProduct(
+    return this.facade.reviewProduct(
       userId,
       purchaseId,
       productId,

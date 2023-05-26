@@ -9,8 +9,7 @@ import { AsyncLocalStorage } from "async_hooks";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import { type Prisma, type PrismaClient } from "@prisma/client";
-
-const asyncLocalStorage = new AsyncLocalStorage();
+import { getContext, runWithContext } from "./_Context";
 
 type TransactionalPrisma = Omit<
   PrismaClient<
@@ -24,9 +23,9 @@ type TransactionalPrisma = Omit<
 const dbMap = new Map<string, TransactionalPrisma>();
 
 export function getDB() {
-  const id = z.string().safeParse(asyncLocalStorage.getStore());
-  if (id.success) {
-    const db = dbMap.get(id.data);
+  const context = z.object({ dbId: z.string() }).safeParse(getContext());
+  if (context.success) {
+    const db = dbMap.get(context.data.dbId);
     if (!db) {
       throw new Error("No db found inside transaction");
     }
@@ -62,7 +61,7 @@ export function transactional(target: { prototype: Object }) {
         return dbGlobal.$transaction(async (db) => {
           const id = randomUUID();
           dbMap.set(id, db);
-          const result = await asyncLocalStorage.run(id, async () => {
+          const result = await runWithContext({ dbId: id }, async () => {
             return await originalMethod.apply(this, args);
           });
           dbMap.delete(id);

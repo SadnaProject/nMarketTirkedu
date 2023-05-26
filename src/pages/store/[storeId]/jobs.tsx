@@ -43,7 +43,7 @@ export default function Home() {
   const { data: jobs, refetch: refetchJobsHierarchy } =
     api.stores.getJobsHierarchyOfStore.useQuery(
       { storeId: storeId as string },
-      { enabled: !!storeId }
+      { ...cachedQueryOptions, enabled: !!storeId }
     );
   const { mutate: makeStoreOwner } = api.stores.makeStoreOwner.useMutation({
     ...cachedQueryOptions,

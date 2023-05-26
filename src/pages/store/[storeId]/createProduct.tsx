@@ -19,7 +19,7 @@ const formSchema = z.object({
     .string()
     .min(3, "Name must be at least 3 characters")
     .max(50, "Name must be at most 50 characters"),
-  price: z.preprocess(Number, z.number().min(0, "Price must be positive")),
+  price: z.preprocess(Number, z.number().positive("Price must be positive")),
   category: z
     .string()
     .min(3, "Category must be at least 3 characters")

@@ -144,7 +144,7 @@ model StoreProduct {
     storeId      String
     store        Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
     name         String
-    price        Int
+    price        Float
     category     String
     quantity     Int
     description  String
@@ -154,7 +154,7 @@ model StoreProduct {
 model SpecialPrice {
     id        String       @id @default(cuid())
     userId    String
-    price     Int
+    price     Float
     product   StoreProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
     productId String
 }
@@ -181,7 +181,7 @@ model BasketProduct {
     basket         Basket @relation(fields: [userId, storeId], references: [userId, storeId], onDelete: Cascade)
     storeId        String
     userId         String
-    bids Bid[]
+    bids           Bid[]
 }
 
 model Basket {
@@ -206,23 +206,23 @@ enum BidType {
     Counter
 }
 
-enum BidState{
+enum BidState {
     APPROVED
     WAITING
     REJECTED
 }
 
-model Bid{
-    id String @id @default(cuid())
-    userId String
-    user User @relation(fields: [userId], references: [id])
-    productId String
-    product BasketProduct @relation(fields: [productId], references: [storeProductId])
-    price Float
+model Bid {
+    id         String        @id @default(cuid())
+    userId     String
+    user       User          @relation(fields: [userId], references: [id])
+    productId  String
+    product    BasketProduct @relation(fields: [productId], references: [storeProductId])
+    price      Float
     approvedBy String[]
-    rejectedBy String []
-    state BidState
-    type BidType
+    rejectedBy String[]
+    state      BidState
+    type       BidType
 }
 
 model User {
@@ -233,7 +233,7 @@ model User {
     // auth UserAuth @relation(fields: [id], references: [id])
     cart           Cart?
     notifications  Notification[]
-    bids Bid[]
+    bids           Bid[]
 }
 
 model ProductReview {

@@ -2,7 +2,6 @@ import { faker } from "@faker-js/faker/locale/en";
 import { generateStoreName } from "server/domain/Stores/_data";
 import { Service } from "server/service/Service";
 import { describe, expect, it, beforeEach } from "vitest";
-import { TRPCError } from "@trpc/server";
 
 let service: Service;
 beforeEach(() => {
@@ -20,7 +19,4 @@ describe("create a new store", () => {
     const storeId = await service.createStore(uid, storeName);
     expect(await service.isStoreFounder(uid, storeId)).toBe(true);
   });
-  /* it("❎user is not a member", () => {
-     expect(() => new Store("")).toThrow(ZodError);
-   });*/
 });

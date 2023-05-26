@@ -38,14 +38,12 @@ export default function Home() {
     formState: { errors, isSubmitting },
     getValues,
   } = useForm<FormValues>({ resolver: zodResolver(formSchema) });
-  const { data: products } = api.stores.searchProducts.useQuery(
-    getValues(),
-    cachedQueryOptions
-  );
+  const { data: products, refetch: refetchProducts } =
+    api.stores.searchProducts.useQuery(getValues(), cachedQueryOptions);
 
   const handleSearch = handleSubmit(
-    async (data) => {
-      // do nothing
+    (data) => {
+      void refetchProducts();
     },
     (e) => {
       toast.error(Object.values(e)[0]?.message || "Something went wrong");

@@ -1,7 +1,9 @@
+import { getContext } from "../_Context";
 import { BasketProductRepo } from "./Repos/BasketProductRepo";
 import { BidRepo } from "./Repos/BidRepo";
 import { UserRepo } from "./Repos/UserRepo";
 import { TRPCError } from "@trpc/server";
+
 export const reposMapping = {
   Users: UserRepo,
   Bids: BidRepo,
@@ -9,6 +11,14 @@ export const reposMapping = {
 };
 
 // NO TOUCHY BELOW THIS LINE 😉
+
+export async function getRepos() {
+  const context = await getContext();
+  if (!("repos" in context)) {
+    throw new Error("Repos not provided");
+  }
+  return context.repos as Repos;
+}
 
 export class HasRepos {
   private repos?: Repos;

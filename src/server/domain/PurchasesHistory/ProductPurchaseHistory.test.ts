@@ -1,17 +1,13 @@
 import { expect, vi, describe, it } from "vitest";
-import { BasketPurchase, BasketPurchaseDTO } from "./BasketPurchaseHistory";
-import { ProductPurchase, ProductPurchaseDTO } from "./ProductPurchaseHistory";
-import { BasketProduct } from "../Users/BasketProduct";
-import { StoresController } from "../Stores/StoresController";
-import { CartPurchase } from "./CartPurchaseHistory";
-import { BasketDTO } from "../Users/Basket";
+import { ProductPurchase } from "./ProductPurchaseHistory";
 import { ProductReview } from "./ProductReview";
 import { itUnitIntegration } from "../_mock";
 import {
-  createControllers,
   createMockControllers,
   type createTestControllers,
 } from "../_createControllers";
+import { createPromise } from "../Stores/_data";
+
 let controllers: ReturnType<typeof createTestControllers>;
 const productPurchaseData = {
   id: "id",
@@ -36,15 +32,19 @@ describe("constructor", () => {
 });
 
 describe("ProductPurchaseDTOFromBasketProductDTO", () => {
-  it("should create a product purchase DTO from a basket product DTO", () => {
+  it("should create a product purchase DTO from a basket product DTO", async () => {
     // add product to store
-    // controllers = createMockControllers("PurchasesHistory");
-    vi.spyOn(controllers.Stores, "getProductPrice").mockReturnValue(1);
+    controllers = createMockControllers("PurchasesHistory");
+    vi.spyOn(controllers.Stores, "getProductPrice").mockReturnValue(
+      createPromise(1)
+    );
     const productPurchaseDTO =
-      controllers.PurchasesHistory.ProductPurchaseDTOFromBasketProductDTO(
+      await controllers.PurchasesHistory.ProductPurchaseDTOFromBasketProductDTO(
         {
           storeProductId: "productId",
           quantity: 1,
+          storeId: "storeId",
+          userId: "userId",
         },
         "purchaseId",
         "userId"

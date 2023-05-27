@@ -13,12 +13,17 @@ import { type BasketPurchaseDTO } from "../PurchasesHistory/BasketPurchaseHistor
 import { TRPCError } from "@trpc/server";
 import { eventEmitter } from "server/EventEmitter";
 import { CartPurchaseDTO } from "../PurchasesHistory/CartPurchaseHistory";
-import { type ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condition";
-import { type DiscountArgs } from "./DiscountPolicy/Discount";
+import {
+  ICondition,
+  type ConditionArgs,
+} from "./Conditions/CompositeLogicalCondition/Condition";
+import { IDiscount, type DiscountArgs } from "./DiscountPolicy/Discount";
 import { type BasketDTO } from "../Users/Basket";
 import { type RoleType } from "../Jobs/Role";
 import { type Bid, storeBidArgs } from "../Users/Bid";
 import { type StoreProduct as StoreProductDAO } from "@prisma/client";
+import { ConstraintPolicy } from "./PurchasePolicy/ConstraintPolicy";
+import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
 
 export type SearchArgs = {
   name?: string;
@@ -303,6 +308,15 @@ export interface IStoresController extends HasRepos {
 
   myStores(userId: string): Promise<{ store: StoreDTO; role: RoleType }[]>;
   addSpecialPriceToProduct(bid: Bid): Promise<void>;
+  getDiscountPolicy(
+    userId: string,
+    storeId: string
+  ): Promise<Map<string, IDiscount>>;
+  getConstraintPolicy(
+    userId: string,
+    storeId: string
+  ): Promise<Map<string, ICondition>>;
+  getStoreNameById(userId: string, storeId: string): Promise<string>;
 }
 
 @testable
@@ -1012,5 +1026,25 @@ export class StoresController
     );
     product.initControllers(this.Controllers).initRepos(this.Repos);
     await product.addSpecialPrice(bid.UserId, bid.Price);
+  }
+  async getConstraintPolicy(
+    userId: string,
+    storeId: string
+  ): Promise<Map<string, ICondition>> {
+    return (
+      await Store.fromStoreId(storeId, this.Repos, this.Controllers)
+    ).ConstraintPolicy.getConstraints();
+  }
+  async getDiscountPolicy(
+    userId: string,
+    storeId: string
+  ): Promise<Map<string, IDiscount>> {
+    return (
+      await Store.fromStoreId(storeId, this.Repos, this.Controllers)
+    ).DiscountPolicy.getDiscounts();
+  }
+  async getStoreNameById(userId: string, storeId: string): Promise<string> {
+    return (await Store.fromStoreId(storeId, this.Repos, this.Controllers))
+      .Name;
   }
 }

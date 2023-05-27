@@ -366,12 +366,12 @@ export const StoresRouter = createTRPCRouter({
         const changeStoreState = (msg: string) => {
           emit.next(msg);
         };
-        eventEmitter.on(`store is changed ${input.storeId}`, changeStoreState);
+        // eventEmitter.on(`store is changed ${input.storeId}`, changeStoreState);//TODO FIX
         return () => {
-          eventEmitter.off(
-            `store is changed ${input.storeId}`,
-            changeStoreState
-          );
+          // eventEmitter.off(
+          //   `store is changed ${input.storeId}`,
+          //   changeStoreState
+          // );//TODO FIX
         };
       });
     }),
@@ -383,15 +383,15 @@ export const StoresRouter = createTRPCRouter({
         const changeMemberState = (msg: string) => {
           emit.next(msg);
         };
-        eventEmitter.on(
-          `member is changed ${input.memberId}`,
-          changeMemberState
-        );
+        // eventEmitter.on(
+        //   `member is changed ${input.memberId}`,
+        //   changeMemberState
+        // );//TODO FIX
         return () => {
-          eventEmitter.off(
-            `member is changed ${input.memberId}`,
-            changeMemberState
-          );
+          // eventEmitter.off(
+          //   `member is changed ${input.memberId}`,
+          //   changeMemberState
+          // ); //TODO FIX
         };
       });
     }),
@@ -407,10 +407,10 @@ export const StoresRouter = createTRPCRouter({
           emit.next(msg);
         };
         // we listen to the event emitter for the store id
-        eventEmitter.on(`purchase store ${input.storeId}`, onStorePurchase);
+        // eventEmitter.on(`purchase store ${input.storeId}`, onStorePurchase); //TODO FIX
         // when the observable is unsubscribed, we remove the listener
         return () => {
-          eventEmitter.off(`purchase store ${input.storeId}`, onStorePurchase);
+          // eventEmitter.off(`purchase store ${input.storeId}`, onStorePurchase);//TODO FIX
         };
         // in the purchase function, we will call eventEmitter.emit(`purchase store ${storeId}`, purchaseId)
         // (I need to add dependency injection for eventEmitter through HasEventEmitter class)
@@ -423,5 +423,20 @@ export const StoresRouter = createTRPCRouter({
         ctx.session.user.id,
         input.storeId
       );
+    }),
+  getStoreDiscounts: validSessionProcedure
+    .input(z.object({ storeId: z.string() }))
+    .query(({ input, ctx }) => {
+      return service.getStoreDiscounts(ctx.session.user.id, input.storeId);
+    }),
+  getStoreConstraints: validSessionProcedure
+    .input(z.object({ storeId: z.string() }))
+    .query(({ input, ctx }) => {
+      return service.getStoreConstraints(ctx.session.user.id, input.storeId);
+    }),
+  getStoreNameById: validSessionProcedure
+    .input(z.object({ storeId: z.string() }))
+    .query(({ input, ctx }) => {
+      return service.getStoreNameById(ctx.session.user.id, input.storeId);
     }),
 });

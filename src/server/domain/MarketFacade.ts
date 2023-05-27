@@ -11,8 +11,11 @@ import { type BasketPurchaseDTO } from "./PurchasesHistory/BasketPurchaseHistory
 import { TRPCError } from "@trpc/server";
 import { type CreditCard } from "./PurchasesHistory/PaymentAdaptor";
 import { type StoreDTO } from "./Stores/Store";
-import { type DiscountArgs } from "./Stores/DiscountPolicy/Discount";
-import { type ConditionArgs } from "./Stores/Conditions/CompositeLogicalCondition/Condition";
+import { IDiscount, type DiscountArgs } from "./Stores/DiscountPolicy/Discount";
+import {
+  ICondition,
+  type ConditionArgs,
+} from "./Stores/Conditions/CompositeLogicalCondition/Condition";
 import { type RoleType } from "./Jobs/Role";
 import { type BidArgs, type BidDTO } from "./Users/Bid";
 import { type PositionHolderDTO } from "./Jobs/PositionHolder";
@@ -595,12 +598,22 @@ export class MarketFacade extends Loggable {
   async getMemberIdByEmail(email: string): Promise<string> {
     return await this.controllers.Auth.getMemberIdByEmail(email);
   }
-  // getStoreDiscounts(userId: string, storeId: string): Map<string, IDiscount> {
-  //   this.validateConnection(userId);
-  //   return this.controllers.Stores.getDiscountsByStoreId (userId, storeId);
-  // }
-  // getStoreConstraints(userId: string, storeId: string): Map<string, ICondition> {
-  //   this.validateConnection(userId);
-  //   return this.controllers.Stores.getConstraintsByStoreId (userId, storeId);
-  // }
+  async getStoreDiscounts(
+    userId: string,
+    storeId: string
+  ): Promise<Map<string, IDiscount>> {
+    this.validateConnection(userId);
+    return await this.controllers.Stores.getDiscountPolicy(userId, storeId);
+  }
+  async getStoreConstraints(
+    userId: string,
+    storeId: string
+  ): Promise<Map<string, ICondition>> {
+    this.validateConnection(userId);
+    return await this.controllers.Stores.getConstraintPolicy(userId, storeId);
+  }
+  async getStoreNameById(userId: string, storeId: string): Promise<string> {
+    this.validateConnection(userId);
+    return await this.controllers.Stores.getStoreNameById(userId, storeId);
+  }
 }

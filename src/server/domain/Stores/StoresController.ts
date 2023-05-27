@@ -624,11 +624,11 @@ export class StoresController
         `Store ${storeId} has been activated`
       );
     }
-    eventEmitter.emit(`store is changed ${storeId}`, {
-      storeId: storeId,
-      userId: userId,
-      state: "activated",
-    });
+    // eventEmitter.emit(`store is changed ${storeId}`, {
+    //   storeId: storeId,
+    //   userId: userId,
+    //   state: "activated",
+    // });
   }
 
   async deactivateStore(userId: string, storeId: string): Promise<void> {
@@ -661,11 +661,11 @@ export class StoresController
         `Store ${storeId} has been deactivated`
       );
     }
-    eventEmitter.emit(`store is changed ${storeId}`, {
-      storeId: storeId,
-      userId: userId,
-      state: "decativated",
-    });
+    // eventEmitter.emit(`store is changed ${storeId}`, {
+    //   storeId: storeId,
+    //   userId: userId,
+    //   state: "decativated",
+    // });
   }
 
   async closeStorePermanently(userId: string, storeId: string): Promise<void> {
@@ -680,11 +680,11 @@ export class StoresController
     await (
       await Store.fromStoreId(storeId, this.Repos, this.Controllers)
     ).delete();
-    eventEmitter.emit(`store is changed ${storeId}`, {
-      storeId: storeId,
-      userId: userId,
-      state: "closed",
-    });
+    // eventEmitter.emit(`store is changed ${storeId}`, {
+    //   storeId: storeId,
+    //   userId: userId,
+    //   state: "closed",
+    // });
   }
 
   async getProductPrice(userId: string, productId: string): Promise<number> {
@@ -749,10 +749,10 @@ export class StoresController
       storeId,
       targetUserId
     );
-    eventEmitter.emit(`receive bid for store ${storeId}`, {
-      storeId: storeId,
-      userId: targetUserId,
-    });
+    // eventEmitter.emit(`receive bid for store ${storeId}`, {
+    //   storeId: storeId,
+    //   userId: targetUserId,
+    // });
   }
   async makeStoreManager(
     currentId: string,
@@ -775,11 +775,11 @@ export class StoresController
       storeId,
       targetUserId
     );
-    eventEmitter.emit(`member is changed ${targetUserId}`, {
-      changerId: currentId,
-      changeeId: targetUserId,
-      state: "removed as owner",
-    });
+    // eventEmitter.emit(`member is changed ${targetUserId}`, {
+    //   changerId: currentId,
+    //   changeeId: targetUserId,
+    //   state: "removed as owner",
+    // });
   }
   async removeStoreManager(
     currentId: string,
@@ -791,11 +791,11 @@ export class StoresController
       storeId,
       targetUserId
     );
-    eventEmitter.emit(`member is changed ${targetUserId}`, {
-      changerId: currentId,
-      changeeId: targetUserId,
-      state: "removed as manager",
-    });
+    // eventEmitter.emit(`member is changed ${targetUserId}`, {
+    //   changerId: currentId,
+    //   changeeId: targetUserId,
+    //   state: "removed as manager",
+    // });
   }
   async setAddingProductToStorePermission(
     currentId: string,
@@ -976,6 +976,7 @@ export class StoresController
     const owners = realStores.filter((store) => store.isOwner(userId));
     for (const store of owners) {
       const storeDTO = await store.getDTO();
+      if (myStores.find((store) => store.store.id === storeDTO.id)) continue; // if already added as founder
       myStores.push({
         store: storeDTO,
         role: "Owner" as RoleType satisfies RoleType,
@@ -984,6 +985,7 @@ export class StoresController
     const managers = realStores.filter((store) => store.isManager(userId));
     for (const store of managers) {
       const storeDTO = await store.getDTO();
+      if (myStores.find((store) => store.store.id === storeDTO.id)) continue; // if already added as founder
       myStores.push({
         store: storeDTO,
         role: "Manager" as RoleType satisfies RoleType,

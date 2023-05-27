@@ -638,7 +638,7 @@ export class StoresController
         `Store ${storeId} has been activated`
       );
     }
-    // eventEmitter.emit(`store is changed ${storeId}`, {
+    // eventEmitter.emitEvent(`store is changed ${storeId}`, {
     //   storeId: storeId,
     //   userId: userId,
     //   state: "activated",
@@ -1046,5 +1046,14 @@ export class StoresController
   async getStoreNameById(userId: string, storeId: string): Promise<string> {
     return (await Store.fromStoreId(storeId, this.Repos, this.Controllers))
       .Name;
+  }
+  async subscribeToStoreEvents(userId: string): Promise<void> {
+    const myStores = await this.myStores(userId);
+    for (const store of myStores) {
+      eventEmitter.subscribeToEvent(
+        eventEmitter.getStoreChangedEventString(store.store.id),
+        userId
+      );
+    }
   }
 }

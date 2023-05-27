@@ -71,4 +71,7 @@ export class EventManager {
   public getStorePurchaseEventString(storeId: string): string {
     return `storePurchase_${storeId}`;
   }
+  public getStoreChangedEventString(storeId: string): string {
+    return `storeChanged_${storeId}`;
+  }
 }

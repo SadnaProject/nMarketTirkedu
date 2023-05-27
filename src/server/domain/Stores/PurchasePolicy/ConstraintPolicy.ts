@@ -31,4 +31,7 @@ export class ConstraintPolicy {
       });
     this.constraints.delete(constraintID);
   }
+  public getConstraints() {
+    return this.constraints;
+  }
 }

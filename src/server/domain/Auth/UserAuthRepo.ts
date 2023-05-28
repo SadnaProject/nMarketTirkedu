@@ -46,18 +46,18 @@ export class UserAuthRepo extends Testable {
 
   public async getMemberById(userId: string): Promise<MemberUserAuth> {
     const user = this.members.find((user) => user.UserId === userId);
-    if (user === undefined) {
-      //look in db
-      const user = await getDB().userAuth.findUnique({ where: { id: userId } });
-      if (user === null)
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "user with id: " + userId + " not found",
-        });
-      else return MemberUserAuth.createFromDTO(user);
+    if (user) {
+      return user;
     }
-
-    return user;
+    //look in db
+    const dbUser = await getDB().userAuth.findUnique({ where: { id: userId } });
+    if (dbUser) {
+      return MemberUserAuth.createFromDTO(dbUser);
+    }
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "user with id: " + userId + " not found",
+    });
   }
   public async doesMemberExistByEmail(email: string): Promise<boolean> {
     if (this.members.some((user) => user.Email === email)) return true;

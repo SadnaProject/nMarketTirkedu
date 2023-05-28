@@ -39,7 +39,7 @@ export default function Home() {
   const { mutate: registerMember } = api.users.registerMember.useMutation({
     onSuccess: (userId) => {
       // toast.success("Account created successfully");
-      loginMember(userId);
+      void loginMember(userId);
     },
     onError,
   });

@@ -121,15 +121,17 @@ export const UsersRouter = createTRPCRouter({
     return service.logoutMember(ctx.session.user.id);
   }),
   onLoginEvent: loggedInProcedure.subscription(({ ctx }) => {
-    return observable<string>((emit) => {
-      //TODO support this, I need to add some login function that receives the user id(seems a bit unsecure but ok)
-      // return service.loginMember();
-      void service.reConnectMember(ctx.session.user.id);
+    return observable<void>((emit) => {
       console.log("login of user", ctx.session.user.id);
+      service.reConnectMember(ctx.session.user.id).catch((err) => {
+        console.log("reconnect failed", err);
+      });
 
       return () => {
         console.log("logout of user", ctx.session.user.id);
-        service.logoutMember(ctx.session.user.id);
+        service.logoutMember(ctx.session.user.id).catch((err) => {
+          console.log("logout failed", err);
+        });
       };
     });
   }),

@@ -16,6 +16,8 @@ import { roleTypeSchema } from "server/domain/Jobs/Role";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type RoleType } from "@prisma/client";
+import { onJobChangeEvent } from "utils/events";
+import { useEffect } from "react";
 
 const formSchema = z.object({
   role: roleTypeSchema,
@@ -47,25 +49,41 @@ export default function Home() {
     );
   const { mutate: makeStoreOwner } = api.stores.makeStoreOwner.useMutation({
     ...cachedQueryOptions,
-    onSuccess: async () => {
-      await refetchJobsHierarchy();
+    onSuccess: () => {
+      document.dispatchEvent(new Event(onJobChangeEvent));
       toast.success("Job added successfully");
     },
   });
   const { mutate: makeStoreManager } = api.stores.makeStoreManager.useMutation({
     ...cachedQueryOptions,
-    onSuccess: async () => {
-      await refetchJobsHierarchy();
+    onSuccess: () => {
+      document.dispatchEvent(new Event(onJobChangeEvent));
       toast.success("Job added successfully");
     },
   });
   const { refetch: getAssignmentId } = api.auth.getMemberIdByEmail.useQuery(
     { email: getValues("email") },
-    { ...cachedQueryOptions, enabled: !!storeId }
+    { ...cachedQueryOptions, enabled: false }
   );
+
+  useEffect(() => {
+    const refetchJobsHierarchyCallback = () => {
+      console.log("hi");
+      void refetchJobsHierarchy();
+    };
+    document.addEventListener(onJobChangeEvent, refetchJobsHierarchyCallback);
+    return () => {
+      document.removeEventListener(
+        onJobChangeEvent,
+        refetchJobsHierarchyCallback
+      );
+    };
+  }, [refetchJobsHierarchy]);
 
   const handleAssignment = handleSubmit(
     async (data) => {
+      console.log(data);
+
       const { data: assignmentId } = await getAssignmentId();
       if (!assignmentId) {
         return;
@@ -231,6 +249,7 @@ function Job({ job }: JobProps) {
   const { mutate: removeStoreOwner } = api.stores.removeStoreOwner.useMutation({
     onError,
     onSuccess: () => {
+      document.dispatchEvent(new Event(onJobChangeEvent));
       toast.success("Job removed successfully");
     },
   });
@@ -238,6 +257,7 @@ function Job({ job }: JobProps) {
     api.stores.removeStoreManager.useMutation({
       onError,
       onSuccess: () => {
+        document.dispatchEvent(new Event(onJobChangeEvent));
         toast.success("Job removed successfully");
       },
     });

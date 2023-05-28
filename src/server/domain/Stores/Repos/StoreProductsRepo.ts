@@ -154,12 +154,12 @@ export class StoreProductsRepo extends Testable {
       skipDuplicates: true,
     });
   }
-  public setField<T extends keyof DataStoreProduct>(
+  public async setField<T extends keyof DataStoreProduct>(
     productId: string,
     field: T,
     value: DataStoreProduct[T]
   ) {
-    return getDB().storeProduct.update({
+    await getDB().storeProduct.update({
       where: {
         id: productId,
       },

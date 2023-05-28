@@ -14,10 +14,7 @@ beforeEach(() => {
 
 describe("add store", () => {
   it("✅adds store", async () => {
-    const store = createStore(generateStoreName(), repos, controllers);
-    expect(
-      async () => await repos.Stores.addStore(store.Name, store.Id)
-    ).not.toThrow();
+    const store = await createStore(generateStoreName(), repos, controllers);
     const stores = await repos.Stores.getAllStores();
     expect(stores).toHaveLength(1);
     expect(stores[0]?.id).toEqual(store.Id);
@@ -38,18 +35,15 @@ describe("get all names", () => {
   it("✅returns some names", async () => {
     const name1 = generateStoreName();
     const name2 = generateStoreName();
-    const store1 = createStore(name1, repos, controllers);
-    const store2 = createStore(name2, repos, controllers);
-    await repos.Stores.addStore(store1.Name, store1.Id);
-    await repos.Stores.addStore(store2.Name, store2.Id);
+    const store1 = await createStore(name1, repos, controllers);
+    const store2 = await createStore(name2, repos, controllers);
     expect(await repos.Stores.getAllNames()).toEqual(new Set([name1, name2]));
   });
 });
 
 describe("get store by id", () => {
   it("✅returns store", async () => {
-    const store = createStore(generateStoreName(), repos, controllers);
-    await repos.Stores.addStore(store.Name, store.Id);
+    const store = await createStore(generateStoreName(), repos, controllers);
     const storeDAO = await repos.Stores.getStoreById(store.Id);
     expect(storeDAO.id).toEqual(store.Id);
     expect(storeDAO.name).toEqual(store.Name);
@@ -65,8 +59,7 @@ describe("get store by id", () => {
 
 describe("delete store", () => {
   it("✅deletes store", async () => {
-    const store = createStore(generateStoreName(), repos, controllers);
-    await repos.Stores.addStore(store.Name, store.Id);
+    const store = await createStore(generateStoreName(), repos, controllers);
     expect(async () => await repos.Stores.deleteStore(store.Id)).not.toThrow();
     expect(await repos.Stores.getAllStores()).toEqual([]);
   });

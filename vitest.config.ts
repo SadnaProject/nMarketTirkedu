@@ -29,6 +29,7 @@ export default defineConfig({
       //   "**/UserController.test.ts",
       // "**/StoresController.test.ts",
       // "**/Store.test.ts",
+      "**/StoresRepo.test.ts",
       "**/StoreProduct.test.ts",
       // "**/StoresController.test.ts",
     ],

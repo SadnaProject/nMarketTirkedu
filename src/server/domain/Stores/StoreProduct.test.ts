@@ -1,10 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { StoreProduct } from "./StoreProduct";
 import { createMockRepos, createTestRepos } from "./_HasRepos";
 import {
   createProduct,
+  createPromise,
+  createStore,
   createStoreWithProduct,
   generateProductArgs,
+  generateStoreName,
 } from "./_data";
 import { ZodError } from "zod";
 import { itUnitIntegration } from "../_mock";
@@ -14,14 +17,26 @@ import {
 } from "../_createControllers";
 
 describe("constructor", () => {
-  itUnitIntegration("✅creates a product", (testType) => {
+  itUnitIntegration("✅creates a product", async (testType) => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
-    const product = createProduct(productData, repos, controllers);
+    const store = await createStore(generateStoreName(), repos, controllers);
+
+    const product = await createProduct(
+      productData,
+      repos,
+      controllers,
+      store.Id
+    );
     expect(product.Name).toBe(productData.name);
     expect(product.Quantity).toBe(productData.quantity);
     expect(product.Price).toBe(productData.price);
+    vi.spyOn(repos.Products, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
   });
 
   itUnitIntegration("❎gets empty name", () => {
@@ -51,20 +66,42 @@ describe("set name", () => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
-    const store = createProduct(productData, repos, controllers);
-    await store.setName("new name");
-    expect(store.Name).toBe("new name");
+    const store = await createStore(generateStoreName(), repos, controllers);
+    const product = await createProduct(
+      productData,
+      repos,
+      controllers,
+      store.Id
+    );
+    vi.spyOn(repos.Products, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
+    await product.setName("new name");
+    expect(product.Name).toBe("new name");
   });
 
-  itUnitIntegration("❎gets empty name", (testType) => {
+  itUnitIntegration("❎gets empty name", async (testType) => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
-    const store = createProduct(productData, repos, controllers);
-    expect(async () => {
-      await store.setName("");
-    }).toThrow(ZodError);
-    expect(store.Name).toBe(productData.name);
+    const store = await createStore(generateStoreName(), repos, controllers);
+    const product = await createProduct(
+      productData,
+      repos,
+      controllers,
+      store.Id
+    );
+    vi.spyOn(repos.Products, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
+    await expect(async () => {
+      await product.setName("");
+    }).rejects.toThrow(ZodError);
+    expect(product.Name).toBe(productData.name);
   });
 });
 
@@ -73,20 +110,42 @@ describe("set quantity", () => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
-    const store = createProduct(productData, repos, controllers);
-    await store.setQuantity(2);
-    expect(store.Quantity).toBe(2);
+    const store = await createStore(generateStoreName(), repos, controllers);
+    const product = await createProduct(
+      productData,
+      repos,
+      controllers,
+      store.Id
+    );
+    vi.spyOn(repos.Products, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
+    await product.setQuantity(2);
+    expect(product.Quantity).toBe(2);
   });
 
-  itUnitIntegration("❎gets negative quantity", (testType) => {
+  itUnitIntegration("❎gets negative quantity", async (testType) => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
-    const store = createProduct(productData, repos, controllers);
-    expect(async () => {
-      await store.setQuantity(-1);
-    }).toThrow(ZodError);
-    expect(store.Quantity).toBe(productData.quantity);
+    const store = await createStore(generateStoreName(), repos, controllers);
+    const product = await createProduct(
+      productData,
+      repos,
+      controllers,
+      store.Id
+    );
+    vi.spyOn(repos.Products, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
+    await expect(async () => {
+      await product.setQuantity(-1);
+    }).rejects.rejects.toThrow(ZodError);
+    expect(product.Quantity).toBe(productData.quantity);
   });
 });
 
@@ -95,20 +154,42 @@ describe("set price", () => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
-    const store = createProduct(productData, repos, controllers);
-    await store.setPrice(2);
-    expect(store.Price).toBe(2);
+    const store = await createStore(generateStoreName(), repos, controllers);
+    const product = await createProduct(
+      productData,
+      repos,
+      controllers,
+      store.Id
+    );
+    vi.spyOn(repos.Products, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
+    await product.setPrice(2);
+    expect(product.Price).toBe(2);
   });
 
-  itUnitIntegration("❎gets negative price", (testType) => {
+  itUnitIntegration("❎gets negative price", async (testType) => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
-    const store = createProduct(productData, repos, controllers);
-    expect(async () => {
-      await store.setPrice(-1);
-    }).toThrow(ZodError);
-    expect(store.Price).toBe(productData.price);
+    const store = await createStore(generateStoreName(), repos, controllers);
+    const product = await createProduct(
+      productData,
+      repos,
+      controllers,
+      store.Id
+    );
+    vi.spyOn(repos.Products, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
+    await expect(async () => {
+      await product.setPrice(-1);
+    }).rejects.toThrow(ZodError);
+    expect(product.Price).toBe(productData.price);
   });
 });
 
@@ -117,20 +198,42 @@ describe("set category", () => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
-    const store = createProduct(productData, repos, controllers);
-    await store.setCategory("new category");
-    expect(store.Category).toBe("new category");
+    const store = await createStore(generateStoreName(), repos, controllers);
+    const product = await createProduct(
+      productData,
+      repos,
+      controllers,
+      store.Id
+    );
+    vi.spyOn(repos.Products, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
+    await product.setCategory("new category");
+    expect(product.Category).toBe("new category");
   });
 
-  itUnitIntegration("❎gets empty category", (testType) => {
+  itUnitIntegration("❎gets empty category", async (testType) => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
-    const store = createProduct(productData, repos, controllers);
-    expect(async () => {
-      await store.setCategory("");
-    }).toThrow(ZodError);
-    expect(store.Category).toBe(productData.category);
+    const store = await createStore(generateStoreName(), repos, controllers);
+    const product = await createProduct(
+      productData,
+      repos,
+      controllers,
+      store.Id
+    );
+    vi.spyOn(repos.Products, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
+    await expect(async () => {
+      await product.setCategory("");
+    }).rejects.toThrow(ZodError);
+    expect(product.Category).toBe(productData.category);
   });
 });
 
@@ -139,20 +242,42 @@ describe("set description", () => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
-    const store = createProduct(productData, repos, controllers);
-    await store.setDescription("new description");
-    expect(store.Description).toBe("new description");
+    const store = await createStore(generateStoreName(), repos, controllers);
+    const product = await createProduct(
+      productData,
+      repos,
+      controllers,
+      store.Id
+    );
+    vi.spyOn(repos.Products, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
+    await product.setDescription("new description");
+    expect(product.Description).toBe("new description");
   });
 
-  itUnitIntegration("❎gets empty description", (testType) => {
+  itUnitIntegration("❎gets empty description", async (testType) => {
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
-    const store = createProduct(productData, repos, controllers);
-    expect(async () => {
-      await store.setDescription("");
-    }).toThrow(ZodError);
-    expect(store.Description).toBe(productData.description);
+    const store = await createStore(generateStoreName(), repos, controllers);
+    const product = await createProduct(
+      productData,
+      repos,
+      controllers,
+      store.Id
+    );
+    vi.spyOn(repos.Products, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
+    await expect(async () => {
+      await product.setDescription("");
+    }).rejects.toThrow(ZodError);
+    expect(product.Description).toBe(productData.description);
   });
 });
 
@@ -166,6 +291,11 @@ describe("is quantity in stock", () => {
       repos,
       controllers
     );
+    vi.spyOn(repos.Products, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
     expect(await product.isQuantityInStock(productData.quantity)).toBe(true);
   });
 
@@ -177,6 +307,11 @@ describe("is quantity in stock", () => {
       productData,
       repos,
       controllers
+    );
+    vi.spyOn(repos.Products, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
     );
     expect(await product.isQuantityInStock(productData.quantity + 1)).toBe(
       false
@@ -192,10 +327,20 @@ describe("is quantity in stock", () => {
       repos,
       controllers
     );
-    await store.setActive(false);
-    expect(async () => await product.isQuantityInStock(1)).toThrow(
-      "Store is not active"
+    vi.spyOn(repos.Products, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
     );
+    vi.spyOn(repos.Stores, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
+    await store.setActive(false);
+    await expect(
+      async () => await product.isQuantityInStock(1)
+    ).rejects.toThrow("Store is not active");
   });
 });
 
@@ -209,6 +354,12 @@ describe("get price", () => {
       repos,
       controllers
     );
+    vi.spyOn(repos.Products, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
+
     expect(product.getPriceByQuantity(1)).toBe(productData.price);
     expect(product.getPriceByQuantity(2)).toBe(2 * productData.price);
   });
@@ -224,6 +375,11 @@ describe("decrease quantity", () => {
       repos,
       controllers
     );
+    vi.spyOn(repos.Products, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
     await product.decreaseQuantity(1);
     expect(product.Quantity).toBe(productData.quantity - 1);
   });
@@ -237,9 +393,15 @@ describe("decrease quantity", () => {
       repos,
       controllers
     );
-    expect(async () => await product.decreaseQuantity(-1)).toThrow(
-      "Quantity can't be negative"
+    vi.spyOn(repos.Products, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
     );
+
+    await expect(
+      async () => await product.decreaseQuantity(-1)
+    ).rejects.toThrow("Quantity can't be negative");
     expect(product.Quantity).toBe(productData.quantity);
   });
 
@@ -252,8 +414,18 @@ describe("decrease quantity", () => {
       repos,
       controllers
     );
+    vi.spyOn(repos.Products, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
+    vi.spyOn(repos.Stores, "setField").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
     await store.setActive(false);
-    expect(async () => await product.decreaseQuantity(1)).toThrow(
+    await expect(async () => await product.decreaseQuantity(1)).rejects.toThrow(
       "Store is not active"
     );
     expect(product.Quantity).toBe(productData.quantity);

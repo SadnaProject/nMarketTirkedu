@@ -92,7 +92,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install Dependencies
-        run: pnpm install && pnpm run postinstall
+        run: pnpm install && pnpm run db-push && pnpm run postinstall
 
       - name: Install Chromium
         run: pnpm playwright install chromium

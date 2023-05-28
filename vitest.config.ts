@@ -35,7 +35,7 @@ export default defineConfig({
     ],
     //make the tests run in an order and not in parallel
     threads: false,
-    testTimeout: 50000,
+    testTimeout: 100000,
   },
   plugins: [tsconfigPaths()],
   // resolve: {

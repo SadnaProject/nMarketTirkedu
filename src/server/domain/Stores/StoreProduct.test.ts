@@ -144,7 +144,7 @@ describe("set quantity", () => {
     );
     await expect(async () => {
       await product.setQuantity(-1);
-    }).rejects.rejects.toThrow(ZodError);
+    }).rejects.toThrow(ZodError);
     expect(product.Quantity).toBe(productData.quantity);
   });
 });

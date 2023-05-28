@@ -40,11 +40,11 @@ describe("get all names", () => {
     const name1 = generateStoreName();
     const name2 = generateStoreName();
     const store1 = new Store(name1)
-    .initRepos(repos)
-    .initControllers(controllers);
+      .initRepos(repos)
+      .initControllers(controllers);
     const store2 = new Store(name2)
-    .initRepos(repos)
-    .initControllers(controllers);
+      .initRepos(repos)
+      .initControllers(controllers);
     await repos.Stores.addStore(name1, store1.Id);
     await repos.Stores.addStore(name2, store2.Id);
     const names = await repos.Stores.getAllNames();
@@ -82,8 +82,8 @@ describe("delete store", () => {
   });
 
   it("❎doesn't find store", async () => {
-    await expect(
-      async () => await repos.Stores.deleteStore("made up id")
+    await expect(() =>
+      repos.Stores.deleteStore("made up id")
     ).rejects.toThrow();
   });
 });

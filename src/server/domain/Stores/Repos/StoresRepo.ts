@@ -33,12 +33,7 @@ export class StoresRepo extends Testable {
 
   public async getAllStores() {
     const stores = await getDB().store.findMany();
-    const realStores = [];
-    for (const store of stores) {
-      const realStore = await this.getStoreById(store.id);
-      realStores.push(realStore);
-    }
-    return realStores;
+    return stores;
   }
 
   public async getActiveStores() {
@@ -343,12 +338,12 @@ export class StoresRepo extends Testable {
       discountId
     );
   }
-  public setField<T extends keyof DataStore>(
+  public async setField<T extends keyof DataStore>(
     id: string,
     field: T,
     value: DataStore[T]
   ) {
-    return getDB().store.update({
+    await getDB().store.update({
       where: {
         id: id,
       },

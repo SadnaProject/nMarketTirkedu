@@ -36,8 +36,15 @@ describe("search products", () => {
       createPromise(new ConstraintPolicy(store.Id))
     );
 
-    products = Array.from({ length: 3 }, () =>
-      createProduct(generateProductArgs(), repos, controllers)
+    products = [];
+    products.push(
+      await createProduct(generateProductArgs(), repos, controllers, store.Id)
+    );
+    products.push(
+      await createProduct(generateProductArgs(), repos, controllers, store.Id)
+    );
+    products.push(
+      await createProduct(generateProductArgs(), repos, controllers, store.Id)
     );
     const ProductsDAO: StoreProductDAO[] = [];
     for (const product of products) {

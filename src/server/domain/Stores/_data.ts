@@ -76,15 +76,21 @@ export async function createStore(
   return store;
 }
 
-export function createProduct(
+export async function createProduct(
   args: StoreProductArgs,
   repos: Repos,
-  controllers: Controllers
+  controllers: Controllers,
+  storeId: string
 ) {
   vi.spyOn(controllers.PurchasesHistory, "getReviewsByProduct").mockReturnValue(
     createPromise({ avgRating: 0, reviews: [] })
   );
-  return new StoreProduct(args).initControllers(controllers).initRepos(repos);
+  const product = new StoreProduct(args)
+    .initControllers(controllers)
+    .initRepos(repos);
+  vi.spyOn(repos.Products, "addProduct").mockReturnValue(createPromise("AAA"));
+  await repos.Products.addProduct(storeId, args, product.Id);
+  return product;
 }
 
 export async function createStoreWithProduct(

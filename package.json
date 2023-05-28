@@ -8,7 +8,7 @@
     "test:client": "playwright test",
     "dev": "pnpm db-push && run-p dev:*",
     "typecheck": "tsc --noEmit",
-    "db-push": "prisma db push --force-reset && prisma generate",
+    "db-push": "prisma db push --force-reset --accept-data-loss && prisma generate",
     "db-seed": "cross-env PORT=3002 NODE_ENV=development tsx prisma/seed.ts --tsconfig tsconfig.json",
     "studio": "prisma studio",
     "lint-fix": "eslint --fix ./src && prettier --write ./src",

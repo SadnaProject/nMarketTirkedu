@@ -5,7 +5,7 @@ import {
   type StoreProductArgs,
   StoreProductDTOSchema,
   storeProductArgsSchema,
-  type StoreProductDTO,
+  StoreProductDTO,
 } from "./StoreProduct";
 import { type Repos, createMockRepos } from "./_HasRepos";
 import { createMockControllers } from "../_createControllers";
@@ -40,23 +40,25 @@ export function generateStoreName() {
 }
 
 export function generateProductArgs(): StoreProductArgs {
-  return generateMock(storeProductArgsSchema, {
-    stringMap: {
-      name: () => faker.commerce.productName(),
-      category: () => faker.commerce.department(),
-      description: () => faker.commerce.productDescription(),
-    },
-  });
+  return {
+    name: faker.commerce.productName(),
+    category: faker.commerce.department(),
+    description: faker.commerce.productDescription(),
+    price: faker.datatype.number({ min: 0, max: 1000 }),
+    quantity: faker.datatype.number({ min: 0, max: 1000 }),
+  };
 }
 
 export function generateProductDTO(): StoreProductDTO {
-  return generateMock(StoreProductDTOSchema, {
-    stringMap: {
-      name: () => faker.commerce.productName(),
-      category: () => faker.commerce.department(),
-      description: () => faker.commerce.productDescription(),
-    },
-  });
+  return {
+    id: faker.datatype.uuid(),
+    name: faker.commerce.productName(),
+    category: faker.commerce.department(),
+    description: faker.commerce.productDescription(),
+    price: faker.datatype.number({ min: 0, max: 1000 }),
+    quantity: faker.datatype.number({ min: 0, max: 1000 }),
+    rating: faker.datatype.number({ min: 0, max: 5 }),
+  };
 }
 
 export async function createStore(

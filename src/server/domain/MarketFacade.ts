@@ -11,9 +11,12 @@ import { type BasketPurchaseDTO } from "./PurchasesHistory/BasketPurchaseHistory
 import { TRPCError } from "@trpc/server";
 import { type CreditCard } from "./PurchasesHistory/PaymentAdaptor";
 import { type StoreDTO } from "./Stores/Store";
-import { IDiscount, type DiscountArgs } from "./Stores/DiscountPolicy/Discount";
 import {
-  ICondition,
+  type IDiscount,
+  type DiscountArgs,
+} from "./Stores/DiscountPolicy/Discount";
+import {
+  type ICondition,
   type ConditionArgs,
 } from "./Stores/Conditions/CompositeLogicalCondition/Condition";
 import { type RoleType } from "./Jobs/Role";
@@ -21,7 +24,7 @@ import { type BidArgs, type BidDTO } from "./Users/Bid";
 import { type PositionHolderDTO } from "./Jobs/PositionHolder";
 import { transactional } from "./_Transactional";
 
-@transactional
+// @transactional
 @loggable
 export class MarketFacade extends Loggable {
   private controllers: Controllers;
@@ -456,9 +459,9 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     return this.controllers.Users.login(userId, email, password);
   }
-  public async reConnectMember(userId: string): Promise<void> {
+  public reConnectMember(userId: string): Promise<void> {
     // this.validateConnection(userId);
-    return await this.controllers.Auth.reConnectMember(userId);
+    return this.controllers.Auth.reConnectMember(userId);
   }
   public logoutMember(userId: string): Promise<string> {
     this.validateConnection(userId);

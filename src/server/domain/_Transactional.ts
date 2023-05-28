@@ -43,7 +43,7 @@ export function transactional(target: { prototype: Object }) {
     if (!isMethod) continue;
 
     const originalMethod = descriptor.value as { apply: Function };
-    descriptor.value = async function (...args: unknown[]) {
+    descriptor.value = function (...args: unknown[]) {
       //  const MAX_RETRIES = 5
       //   let retries = 0
       //   while (retries < MAX_RETRIES) {
@@ -61,14 +61,14 @@ export function transactional(target: { prototype: Object }) {
         return dbGlobal.$transaction(async (db) => {
           const id = randomUUID();
           dbMap.set(id, db);
-          const result = await runWithContext({ dbId: id }, async () => {
-            return await originalMethod.apply(this, args);
+          const result = await runWithContext({ dbId: id }, () => {
+            return originalMethod.apply(this, args);
           });
           dbMap.delete(id);
           return result;
         });
       }
-      return await originalMethod.apply(this, args);
+      return originalMethod.apply(this, args);
     };
 
     Object.defineProperty(prototype, propertyName, descriptor);

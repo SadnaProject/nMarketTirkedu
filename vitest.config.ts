@@ -22,11 +22,12 @@ export default defineConfig({
       //   "**/testingDbJobs.test.ts",
       //   // "**/ReviewRepo.test.ts",
       //   // "**/ProductPurchaseHistoryRepo.test.ts",
-      "**/checkDB.test.ts",
+      // "**/checkDB.test.ts",
       //   // "**/User.test.ts",
       //   // "**/Basket.test.ts",
       //   "**/UserRepo.test.ts",
       //   "**/UserController.test.ts",
+      "**/StoresController.test.ts",
     ],
     //make the tests run in an order and not in parallel
     threads: false,

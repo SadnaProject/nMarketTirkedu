@@ -1,6 +1,6 @@
 name: CI
 
-on: [push, pull_request]
+on: [pull_request]
 
 env:
   DATABASE_URL: "postgresql://postgres:9YEtyU8rREfAyroV@db.lbwnlnoxzclizasvfeaj.supabase.co:5432/postgres"

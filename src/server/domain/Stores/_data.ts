@@ -5,6 +5,7 @@ import {
   type StoreProductArgs,
   StoreProductDTOSchema,
   storeProductArgsSchema,
+  StoreProductDTO,
 } from "./StoreProduct";
 import { type Repos, createMockRepos } from "./_HasRepos";
 import { createMockControllers } from "../_createControllers";
@@ -29,6 +30,8 @@ import {
   type DiscountOn,
   type SimpleDiscountArgs,
 } from "./DiscountPolicy/Discount";
+import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
+import { ConstraintPolicy } from "./PurchasePolicy/ConstraintPolicy";
 
 const subTypeLiteralSchema = z.enum(["Product", "Category", "Store", "Price"]);
 export type subTypeLiteral = z.infer<typeof subTypeLiteralSchema>;
@@ -36,32 +39,43 @@ export function generateStoreName() {
   return faker.company.name();
 }
 
-export function generateProductArgs() {
-  return generateMock(storeProductArgsSchema, {
-    stringMap: {
-      name: () => faker.commerce.productName(),
-      category: () => faker.commerce.department(),
-      description: () => faker.commerce.productDescription(),
-    },
-  });
+export function generateProductArgs(): StoreProductArgs {
+  return {
+    name: faker.commerce.productName(),
+    category: faker.commerce.department(),
+    description: faker.commerce.productDescription(),
+    price: faker.datatype.number({ min: 0 }),
+    quantity: faker.datatype.number({ min: 0 }),
+  };
 }
 
-export function generateProductDTO() {
-  return generateMock(StoreProductDTOSchema, {
-    stringMap: {
-      name: () => faker.commerce.productName(),
-      category: () => faker.commerce.department(),
-      description: () => faker.commerce.productDescription(),
-    },
-  });
+export function generateProductDTO(): StoreProductDTO {
+  return {
+    id: faker.datatype.uuid(),
+    name: faker.commerce.productName(),
+    category: faker.commerce.department(),
+    description: faker.commerce.productDescription(),
+    price: faker.datatype.number({ min: 0 }),
+    quantity: faker.datatype.number({ min: 0 }),
+    rating: faker.datatype.number({ min: 0, max: 5 }),
+  };
 }
 
-export function createStore(
+export async function createStore(
   storeName: string,
   repos: Repos,
   controllers: Controllers
 ) {
-  return new Store(storeName).initRepos(repos).initControllers(controllers);
+  const store = new Store(storeName)
+    .initRepos(repos)
+    .initControllers(controllers);
+  vi.spyOn(repos.Stores, "addStore").mockReturnValue(
+    new Promise((resolve) => {
+      resolve();
+    })
+  );
+  await repos.Stores.addStore(storeName, store.Id);
+  return store;
 }
 
 export function createProduct(
@@ -83,8 +97,24 @@ export async function createStoreWithProduct(
   vi.spyOn(controllers.PurchasesHistory, "getReviewsByProduct").mockReturnValue(
     createPromise({ avgRating: 0, reviews: [] })
   );
-  const store = createStore(generateStoreName(), repos, controllers);
+  const store = await createStore(generateStoreName(), repos, controllers);
   vi.spyOn(repos.Products, "addProduct").mockReturnValue(createPromise("AAA"));
+  vi.spyOn(repos.Stores, "getDiscounts").mockReturnValue(
+    createPromise(new DiscountPolicy(store.Id))
+  );
+  vi.spyOn(repos.Stores, "getConstraints").mockReturnValue(
+    createPromise(new ConstraintPolicy(store.Id))
+  );
+  vi.spyOn(repos.Products, "getSpecialPrices").mockReturnValue(
+    createPromise(new Map<string, number>())
+  );
+  vi.spyOn(repos.Products, "getStoreIdByProductId").mockReturnValue(
+    createPromise(store.Id)
+  );
+  vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(
+    createPromise({ id: store.Id, name: store.Name, isActive: true })
+  );
+
   const productId = await store.createProduct(productData);
   const product = StoreProduct.fromDTO(
     { ...productData, id: productId, rating: 0 },

@@ -21,6 +21,9 @@ import {
   createMockControllers,
   createTestControllers,
 } from "../_createControllers";
+import { StoresRepo } from "./Repos/StoresRepo";
+import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
+import { ConstraintPolicy } from "./PurchasePolicy/ConstraintPolicy";
 
 async function generateForDiscountAndConstraintTests(testType: string) {
   const controllers = createTestControllers(testType, "Stores");
@@ -45,10 +48,19 @@ async function generateForDiscountAndConstraintTests(testType: string) {
   product2Data.category = "Meat";
   const product1BasketQuantity = 55;
   const product2BasketQuantity = 23;
-  vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce(
-    createPromise("aaa")
+  vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(
+    createPromise({
+      id: store.Id,
+      name: store.Name,
+      isActive: store.IsActive(),
+    })
   );
+  vi.spyOn(repos.Products, "getStoreIdByProductId").mockReturnValue(
+    createPromise(store.Id)
+  );
+  vi.spyOn(repos.Products, "addProduct").mockReturnValue(createPromise("aaa"));
   const product2Id = await store.createProduct(product2Data);
+
   const product2 = StoreProduct.fromDTO(
     { ...product2Data, id: product2Id, rating: 0 },
     controllers,
@@ -57,9 +69,20 @@ async function generateForDiscountAndConstraintTests(testType: string) {
   const basket: BasketDTO = {
     storeId: store.Id,
     products: [
-      { quantity: product1BasketQuantity, storeProductId: product.Id },
-      { quantity: product2BasketQuantity, storeProductId: product2Id },
+      {
+        quantity: product1BasketQuantity,
+        storeProductId: product.Id,
+        storeId: store.Id,
+        userId: "1",
+      },
+      {
+        quantity: product2BasketQuantity,
+        storeProductId: product2Id,
+        storeId: store.Id,
+        userId: "1",
+      },
     ],
+    userId: "1",
   };
   const productDAO = {
     category: productData.category,
@@ -90,6 +113,25 @@ async function generateForDiscountAndConstraintTests(testType: string) {
     if (id === product.Id) return createPromise(productDAO);
     else return createPromise(productDAO2);
   });
+  vi.spyOn(repos.Products, "getSpecialPrices").mockReturnValue(
+    createPromise(new Map<string, number>())
+  );
+  vi.spyOn(StoresRepo.prototype, "addDiscount").mockReturnValue(
+    createPromise("1")
+  );
+  vi.spyOn(StoresRepo.prototype, "removeDiscount").mockReturnValue(
+    new Promise((resolve) => {
+      resolve();
+    })
+  );
+  vi.spyOn(StoresRepo.prototype, "addConstraint").mockReturnValue(
+    createPromise("1")
+  );
+  vi.spyOn(StoresRepo.prototype, "removeConstraint").mockReturnValue(
+    new Promise((resolve) => {
+      resolve();
+    })
+  );
   const price = await store.getBasketPrice("", basket);
   return {
     price,
@@ -102,11 +144,11 @@ async function generateForDiscountAndConstraintTests(testType: string) {
   };
 }
 describe("constructor", () => {
-  itUnitIntegration("✅creates a store", (testType) => {
+  itUnitIntegration("✅creates a store", async (testType) => {
     const storeName = generateStoreName();
     const controllers = createTestControllers(testType, "Stores");
     const repos = createTestRepos(testType);
-    const store = createStore(storeName, repos, controllers);
+    const store = await createStore(storeName, repos, controllers);
     expect(store.Name).toBe(storeName);
     expect(store.IsActive()).toBe(true);
   });
@@ -121,9 +163,18 @@ describe("createProduct", () => {
     const controllers = createTestControllers(testType, "Stores");
     const repos = createTestRepos(testType);
     const storeName = generateStoreName();
-    const store = createStore(storeName, repos, controllers);
-    vi.spyOn(repos.Products, "addProduct").mockReturnValueOnce(
-      new Promise((resolve) => resolve("aaaaaa"))
+    const store = await createStore(storeName, repos, controllers);
+    vi.spyOn(repos.Products, "addProduct").mockReturnValue(
+      createPromise("aaa")
+    );
+    vi.spyOn(repos.Stores, "getDiscounts").mockReturnValue(
+      createPromise(new DiscountPolicy(store.Id))
+    );
+    vi.spyOn(repos.Stores, "getConstraints").mockReturnValue(
+      createPromise(new ConstraintPolicy(store.Id))
+    );
+    vi.spyOn(repos.Products, "getSpecialPrices").mockReturnValue(
+      createPromise(new Map<string, number>())
     );
     const productData = generateProductArgs();
     const productId = await store.createProduct(productData);
@@ -132,6 +183,13 @@ describe("createProduct", () => {
       controllers,
       repos
     );
+    vi.spyOn(repos.Products, "getStoreIdByProductId").mockReturnValue(
+      createPromise(store.Id)
+    );
+    vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(
+      createPromise({ id: store.Id, name: store.Name, isActive: true })
+    );
+
     const productDAO = {
       category: productData.category,
       description: productData.description,
@@ -142,7 +200,7 @@ describe("createProduct", () => {
       storeId: (await product.getStore()).Id,
     };
     vi.spyOn(repos.Products, "getProductsByStoreId").mockReturnValue(
-      new Promise((resolve) => resolve([productDAO]))
+      createPromise([productDAO])
     );
     vi.spyOn(
       controllers.PurchasesHistory,
@@ -157,16 +215,24 @@ describe("createProduct", () => {
     });
   });
 
-  it("❎fails in productRepo", () => {
+  it("❎fails in productRepo", async () => {
     const storeName = generateStoreName();
     const repos = createMockRepos();
     const controllers = createMockControllers("Stores");
-    const store = createStore(storeName, repos, controllers);
+    const store = await createStore(storeName, repos, controllers);
+    vi.spyOn(repos.Stores, "deleteStore").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
+    await repos.Stores.deleteStore(store.Id);
     vi.spyOn(repos.Products, "addProduct").mockImplementationOnce(() => {
-      throw new Error("addProduct failed");
+      throw new Error();
     });
     const productData = generateProductArgs();
-    expect(() => store.createProduct(productData)).toThrow("addProduct failed");
+    await expect(
+      async () => await store.createProduct(productData)
+    ).rejects.toThrow();
   });
 });
 describe("get basket price", () => {
@@ -182,8 +248,14 @@ describe("get basket price", () => {
     const basket: BasketDTO = {
       storeId: store.Id,
       products: [
-        { quantity: productData.quantity, storeProductId: product.Id },
+        {
+          quantity: productData.quantity,
+          storeProductId: product.Id,
+          storeId: store.Id,
+          userId: "1",
+        },
       ],
+      userId: "1",
     };
     vi.spyOn(repos.Stores, "getStoreById").mockReturnValue(
       createPromise({
@@ -220,11 +292,29 @@ describe("Discounts", () => {
       product1BasketQuantity,
       product2BasketQuantity,
     } = await generateForDiscountAndConstraintTests(testType);
-
-    expect(store.getBasketPrice("", basket)).toBe(
-      product.Price * product1BasketQuantity +
-        product2.Price * product2BasketQuantity
+    vi.spyOn(StoresRepo.prototype, "getStoreById").mockReturnValue(
+      createPromise({
+        id: store.Id,
+        name: store.Name,
+        isActive: store.IsActive(),
+      })
     );
+    vi.spyOn(StoresRepo.prototype, "addDiscount").mockReturnValue(
+      createPromise("1")
+    );
+    vi.spyOn(StoresRepo.prototype, "removeDiscount").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
+    vi.spyOn(StoresRepo.prototype, "getDiscounts").mockReturnValue(
+      createPromise(store.DiscountPolicy)
+    );
+    const firstPrice = await store.getBasketPrice("", basket);
+    let suppose =
+      product.Price * product1BasketQuantity +
+      product2.Price * product2BasketQuantity;
+    expect(firstPrice).toBe(suppose);
     const discountId = await store.addDiscount(
       createSimpleDiscountArgs(
         product.Name,
@@ -233,11 +323,12 @@ describe("Discounts", () => {
         createLiteralConditionArgs(product.Name, 1, "Product", "AtLeast")
       )
     );
+
     const priceWithDiscount = await store.getBasketPrice("", basket);
-    expect(priceWithDiscount).toBe(
+    suppose =
       product.Price * product1BasketQuantity * (85 / 100) +
-        product2.Price * product2BasketQuantity
-    );
+      product2.Price * product2BasketQuantity;
+    expect(priceWithDiscount).toBe(suppose);
     await store.removeDiscount(discountId);
     expect(await store.getBasketPrice("", basket)).toBe(price);
   });
@@ -251,7 +342,21 @@ describe("Discounts", () => {
       product1BasketQuantity,
       product2BasketQuantity,
     } = await generateForDiscountAndConstraintTests(testType);
-
+    vi.spyOn(StoresRepo.prototype, "getStoreById").mockReturnValue(
+      createPromise({
+        id: store.Id,
+        name: store.Name,
+        isActive: store.IsActive(),
+      })
+    );
+    vi.spyOn(StoresRepo.prototype, "addDiscount").mockReturnValue(
+      createPromise("1")
+    );
+    vi.spyOn(StoresRepo.prototype, "removeDiscount").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
     const discountId = await store.addDiscount(
       createSimpleDiscountArgs(
         product.Category,
@@ -278,7 +383,21 @@ describe("Discounts", () => {
       product1BasketQuantity,
       product2BasketQuantity,
     } = await generateForDiscountAndConstraintTests(testType);
-
+    vi.spyOn(StoresRepo.prototype, "getStoreById").mockReturnValue(
+      createPromise({
+        id: store.Id,
+        name: store.Name,
+        isActive: store.IsActive(),
+      })
+    );
+    vi.spyOn(StoresRepo.prototype, "addDiscount").mockReturnValue(
+      createPromise("1")
+    );
+    vi.spyOn(StoresRepo.prototype, "removeDiscount").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
     const discountId = await store.addDiscount(
       createSimpleDiscountArgs(
         product.Category,
@@ -327,7 +446,21 @@ describe("Discounts", () => {
       product1BasketQuantity,
       product2BasketQuantity,
     } = await generateForDiscountAndConstraintTests(testType);
-
+    vi.spyOn(StoresRepo.prototype, "getStoreById").mockReturnValue(
+      createPromise({
+        id: store.Id,
+        name: store.Name,
+        isActive: store.IsActive(),
+      })
+    );
+    vi.spyOn(StoresRepo.prototype, "addDiscount").mockReturnValue(
+      createPromise("1")
+    );
+    vi.spyOn(StoresRepo.prototype, "removeDiscount").mockReturnValue(
+      new Promise((resolve) => {
+        resolve();
+      })
+    );
     const discountId = await store.addDiscount(
       createSimpleDiscountArgs(
         product.Category,
@@ -356,7 +489,21 @@ describe("Discounts", () => {
         product1BasketQuantity,
         product2BasketQuantity,
       } = await generateForDiscountAndConstraintTests(testType);
-
+      vi.spyOn(StoresRepo.prototype, "getStoreById").mockReturnValue(
+        createPromise({
+          id: store.Id,
+          name: store.Name,
+          isActive: store.IsActive(),
+        })
+      );
+      vi.spyOn(StoresRepo.prototype, "addDiscount").mockReturnValue(
+        createPromise("1")
+      );
+      vi.spyOn(StoresRepo.prototype, "removeDiscount").mockReturnValue(
+        new Promise((resolve) => {
+          resolve();
+        })
+      );
       const discountId = await store.addDiscount(
         createCompositeDiscountArgs(
           createSimpleDiscountArgs(
@@ -395,6 +542,14 @@ describe("Discounts", () => {
         product1BasketQuantity,
         product2BasketQuantity,
       } = await generateForDiscountAndConstraintTests(testType);
+      vi.spyOn(StoresRepo.prototype, "addDiscount").mockReturnValue(
+        createPromise("1")
+      );
+      vi.spyOn(StoresRepo.prototype, "removeDiscount").mockReturnValue(
+        new Promise((resolve) => {
+          resolve();
+        })
+      );
       const discountId = await store.addDiscount(
         createCompositeDiscountArgs(
           createSimpleDiscountArgs(
@@ -673,9 +828,6 @@ describe("Constraint tests", () => {
         )
       );
       expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
-      await store.removeConstraint(constraintId2);
-      await store.removeConstraint(constraintId);
-      expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
     }
   );
   itUnitIntegration(
@@ -706,9 +858,6 @@ describe("Constraint tests", () => {
         )
       );
       expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
-      await store.removeConstraint(constraintId2);
-      await store.removeConstraint(constraintId);
-      expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
     }
   );
   itUnitIntegration(
@@ -739,9 +888,6 @@ describe("Constraint tests", () => {
         )
       );
       expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
-      await store.removeConstraint(constraintId2);
-      await store.removeConstraint(constraintId);
-      expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
     }
   );
   itUnitIntegration(

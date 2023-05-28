@@ -14,7 +14,7 @@ export class StoresRepo extends Testable {
   }
 
   public async addStore(storeName: string, storeId: string) {
-    return await getDB().store.create({
+    await getDB().store.create({
       data: {
         name: storeName,
         id: storeId,

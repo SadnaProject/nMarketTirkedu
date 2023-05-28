@@ -7,7 +7,7 @@ import { OwnerRole } from "./OwnerRole";
 import { HasRepos, createRepos } from "./_HasRepos";
 import { PositionHolder, type PositionHolderDTO } from "./PositionHolder";
 import { FounderRole } from "./FounderRole";
-import { type EditablePermission } from "./Role";
+import { Permission, type EditablePermission } from "./Role";
 import { TRPCError } from "@trpc/server";
 
 export interface IJobsController extends HasRepos {
@@ -293,8 +293,13 @@ export interface IJobsController extends HasRepos {
    * @throws Error if the store doesn't exist.
    */
   getJobsHierarchyOfStore(storeId: string): Promise<PositionHolderDTO>;
+  /**
+   * This function returns the permissions of a user given a store.
+   * @param userId The id of the user.
+   * @param storeId The id of the store.
+   */
+  getPermissionsOfUser(userId: string, storeId: string): Promise<Permission[]>;
 }
-
 @testable
 export class JobsController
   extends Mixin(Testable, HasControllers, HasRepos)
@@ -840,5 +845,22 @@ export class JobsController
       return false;
     }
     return ph.Role.hasPermission("ModifyPurchasePolicy");
+  }
+  async getPermissionsOfUser(
+    userId: string,
+    storeId: string
+  ): Promise<Permission[]> {
+    const ph: PositionHolder | undefined =
+      await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
+        userId,
+        storeId
+      );
+    if (ph === undefined) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "User not found",
+      });
+    }
+    return ph.Role.getPermissions();
   }
 }

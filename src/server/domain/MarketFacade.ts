@@ -19,7 +19,7 @@ import {
   type ICondition,
   type ConditionArgs,
 } from "./Stores/Conditions/CompositeLogicalCondition/Condition";
-import { type RoleType } from "./Jobs/Role";
+import { Permission, type RoleType } from "./Jobs/Role";
 import { type BidArgs, type BidDTO } from "./Users/Bid";
 import { type PositionHolderDTO } from "./Jobs/PositionHolder";
 import { transactional } from "./_Transactional";
@@ -618,5 +618,12 @@ export class MarketFacade extends Loggable {
   async getStoreNameById(userId: string, storeId: string): Promise<string> {
     this.validateConnection(userId);
     return await this.controllers.Stores.getStoreNameById(userId, storeId);
+  }
+  async getPermissionsOfUser(
+    userId: string,
+    storeId: string
+  ): Promise<Permission[]> {
+    this.validateConnection(userId);
+    return await this.controllers.Jobs.getPermissionsOfUser(userId, storeId);
   }
 }

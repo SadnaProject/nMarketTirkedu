@@ -9,8 +9,8 @@ import { type CreditCard } from "server/domain/PurchasesHistory/PaymentAdaptor";
 import { type StoreDTO } from "server/domain/Stores/Store";
 import { type RoleType } from "server/domain/Jobs/Role";
 import { type PositionHolderDTO } from "server/domain/Jobs/PositionHolder";
-import { ICondition } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
-import { IDiscount } from "server/domain/Stores/DiscountPolicy/Discount";
+import { type ICondition } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
+import { type IDiscount } from "server/domain/Stores/DiscountPolicy/Discount";
 
 export type SearchArgs = {
   name?: string;

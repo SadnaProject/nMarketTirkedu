@@ -29,7 +29,7 @@
     "test": "run-p test:*",
     "test:server": "vitest run",
     "prebuild": "prisma generate && prisma migrate deploy",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma db push --force-reset && prisma generate"
   },
   "dependencies": {
     "@anatine/zod-mock": "^3.12.0",

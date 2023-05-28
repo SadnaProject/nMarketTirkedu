@@ -21,7 +21,7 @@ describe("search products", () => {
     repos = createMockRepos();
     controllers = createMockControllers("Stores");
     controllers.Stores.initRepos(repos);
-    const store = createStore(generateStoreName(), repos, controllers);
+    const store = await createStore(generateStoreName(), repos, controllers);
     vi.spyOn(repos.Products, "getStoreIdByProductId").mockReturnValue(
       createPromise(store.Id)
     );
@@ -62,8 +62,8 @@ describe("search products", () => {
       createPromise(3)
     );
     vi.spyOn(controllers.Jobs, "makeStoreOwner").mockReturnValue(
-      new Promise(() => {
-        const x = 1;
+      new Promise((resolve) => {
+        resolve();
       })
     );
   });

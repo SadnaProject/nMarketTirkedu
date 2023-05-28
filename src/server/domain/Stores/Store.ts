@@ -155,7 +155,8 @@ export class Store extends Mixin(HasRepos, HasControllers) {
         StoreProduct.fromDAO(
           await this.Repos.Products.getProductById(product.product.id),
           await this.Repos.Products.getSpecialPrices(product.product.id)
-        ).getPriceForUser(userId);
+        ).getPriceForUser(userId) *
+        (1 - product.Discount / 100);
     }
     return price;
   }
@@ -196,13 +197,15 @@ export class Store extends Mixin(HasRepos, HasControllers) {
   }
   async BasketDTOToFullBasketDTO(basket: BasketDTO): Promise<FullBasketDTO> {
     const storeId = basket.storeId;
-    const productsPromises = basket.products.map((product) =>
-      this.BasketProductDTOToProductWithQuantityDTO(product)
-    );
-    const products = await Promise.all(productsPromises);
+    const productsPromises = [];
+    for (const basketProduct of basket.products) {
+      productsPromises.push(
+        await this.BasketProductDTOToProductWithQuantityDTO(basketProduct)
+      );
+    }
     return {
       storeId: storeId,
-      products: products,
+      products: productsPromises,
     };
   }
   async BasketProductDTOToProductWithQuantityDTO(

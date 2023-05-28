@@ -979,30 +979,45 @@ export class StoresController
       );
     }
     const myStores: { store: StoreDTO; role: RoleType }[] = [];
-    const founders = realStores.filter((store) => store.isFounder(userId));
+    const founders = [];
+    for (const store of realStores) {
+      if (await store.isFounder(userId)) {
+        founders.push(store);
+      }
+    }
     for (const store of founders) {
       const storeDTO = await store.getDTO();
       myStores.push({
         store: storeDTO,
-        role: "Founder" as RoleType satisfies RoleType,
+        role: "Founder",
       });
     }
-    const owners = realStores.filter((store) => store.isOwner(userId));
+    const owners = [];
+    for (const store of realStores) {
+      if (await store.isOwner(userId)) {
+        owners.push(store);
+      }
+    }
     for (const store of owners) {
       const storeDTO = await store.getDTO();
       if (myStores.find((store) => store.store.id === storeDTO.id)) continue; // if already added as founder
       myStores.push({
         store: storeDTO,
-        role: "Owner" as RoleType satisfies RoleType,
+        role: "Owner",
       });
     }
-    const managers = realStores.filter((store) => store.isManager(userId));
+    const managers = [];
+    for (const store of realStores) {
+      if (await store.isManager(userId)) {
+        managers.push(store);
+      }
+    }
     for (const store of managers) {
       const storeDTO = await store.getDTO();
       if (myStores.find((store) => store.store.id === storeDTO.id)) continue; // if already added as founder
       myStores.push({
         store: storeDTO,
-        role: "Manager" as RoleType satisfies RoleType,
+        role: "Manager",
       });
     }
     return myStores;

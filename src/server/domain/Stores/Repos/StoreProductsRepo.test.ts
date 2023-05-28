@@ -11,6 +11,7 @@ import {
 import { type Controllers } from "server/domain/_HasController";
 import { createMockControllers } from "server/domain/_createControllers";
 import { Store } from "../Store";
+import { StoreProduct } from "../StoreProduct";
 
 let repos: Repos;
 let controllers: Controllers;
@@ -26,54 +27,46 @@ beforeEach(async () => {
 
 describe("add product", () => {
   it("✅adds product", async () => {
-    const product = await createProduct(
-      generateProductArgs(),
-      repos,
-      controllers,
-      store.Id
-    );
-    expect(
+    const product = new StoreProduct(generateProductArgs())
+      .initControllers(controllers)
+      .initRepos(repos);
+    await expect(
       async () =>
         await repos.Products.addProduct(
           "store id",
           productToProductData(product),
           product.Id
         )
-    ).not.toThrow();
+    ).resolves.not.toThrow();
     expect(await repos.Products.getProductsByStoreId("store id")).toEqual([
       product,
     ]);
   });
 
   it("✅adds multiple products to one store", async () => {
-    const product1 = await createProduct(
-      generateProductArgs(),
-      repos,
-      controllers,
-      store.Id
-    );
-    expect(
+    const product1 = new StoreProduct(generateProductArgs())
+      .initControllers(controllers)
+      .initRepos(repos);
+    const product2 = new StoreProduct(generateProductArgs())
+      .initControllers(controllers)
+      .initRepos(repos);
+    await expect(
       async () =>
         await repos.Products.addProduct(
           "store id",
           productToProductData(product1),
           product1.Id
         )
-    ).not.toThrow();
-    const product2 = await createProduct(
-      generateProductArgs(),
-      repos,
-      controllers,
-      store.Id
-    );
-    expect(
+    ).resolves.not.toThrow();
+
+    await expect(
       async () =>
         await repos.Products.addProduct(
           "store id",
           productToProductData(product2),
           product2.Id
         )
-    ).not.toThrow();
+    ).resolves.not.toThrow();
     expect(await repos.Products.getProductsByStoreId("store id")).toEqual([
       product1,
       product2,
@@ -87,33 +80,26 @@ describe("get all products", () => {
   });
 
   it("✅returns some products", async () => {
-    const product1 = await createProduct(
-      generateProductArgs(),
-      repos,
-      controllers,
-      store.Id
-    );
+    const product1 = new StoreProduct(generateProductArgs())
+      .initControllers(controllers)
+      .initRepos(repos);
+    const product2 = new StoreProduct(generateProductArgs())
+      .initControllers(controllers)
+      .initRepos(repos);
+    const product3 = new StoreProduct(generateProductArgs())
+      .initControllers(controllers)
+      .initRepos(repos);
+
     await repos.Products.addProduct(
       "store id 1",
       productToProductData(product1),
       product1.Id
     );
-    const product2 = await createProduct(
-      generateProductArgs(),
-      repos,
-      controllers,
-      store.Id
-    );
+
     await repos.Products.addProduct(
       "store id 1",
       productToProductData(product2),
       product2.Id
-    );
-    const product3 = await createProduct(
-      generateProductArgs(),
-      repos,
-      controllers,
-      store.Id
     );
 
     await repos.Products.addProduct(
@@ -131,12 +117,9 @@ describe("get all products", () => {
 
 describe("get product by id", () => {
   it("✅returns product", async () => {
-    const product = await createProduct(
-      generateProductArgs(),
-      repos,
-      controllers,
-      store.Id
-    );
+    const product = new StoreProduct(generateProductArgs())
+      .initControllers(controllers)
+      .initRepos(repos);
     await repos.Products.addProduct(
       "store id 1",
       productToProductData(product),
@@ -158,12 +141,9 @@ describe("get products by store id", () => {
   });
 
   it("✅returns no products but store exists", async () => {
-    const product = await createProduct(
-      generateProductArgs(),
-      repos,
-      controllers,
-      store.Id
-    );
+    const product = new StoreProduct(generateProductArgs())
+      .initControllers(controllers)
+      .initRepos(repos);
     await repos.Products.addProduct(
       "store id 1",
       productToProductData(product),
@@ -176,12 +156,9 @@ describe("get products by store id", () => {
 
 describe("get store id by product id", () => {
   it("✅returns store id", async () => {
-    const product = await createProduct(
-      generateProductArgs(),
-      repos,
-      controllers,
-      store.Id
-    );
+    const product = new StoreProduct(generateProductArgs())
+      .initControllers(controllers)
+      .initRepos(repos);
     await repos.Products.addProduct(
       "store id 1",
       productToProductData(product),
@@ -193,12 +170,9 @@ describe("get store id by product id", () => {
   });
 
   it("❎doesn't find product but there are other products", async () => {
-    const product = await createProduct(
-      generateProductArgs(),
-      repos,
-      controllers,
-      store.Id
-    );
+    const product = new StoreProduct(generateProductArgs())
+      .initControllers(controllers)
+      .initRepos(repos);
     await repos.Products.addProduct(
       "store id 1",
       productToProductData(product),

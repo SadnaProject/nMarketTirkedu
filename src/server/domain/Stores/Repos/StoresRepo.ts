@@ -33,12 +33,7 @@ export class StoresRepo extends Testable {
 
   public async getAllStores() {
     const stores = await getDB().store.findMany();
-    const realStores = [];
-    for (const store of stores) {
-      const realStore = await this.getStoreById(store.id);
-      realStores.push(realStore);
-    }
-    return realStores;
+    return stores;
   }
 
   public async getActiveStores() {

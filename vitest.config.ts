@@ -29,7 +29,9 @@ export default defineConfig({
       //   "**/UserController.test.ts",
       // "**/StoresController.test.ts",
       "**/Store.test.ts",
-      "**/StoreProduct.test.ts",
+      //"**/StoreProduct.test.ts",
+      "**/StoresController.test.ts",
+
     ],
     //make the tests run in an order and not in parallel
     threads: false,

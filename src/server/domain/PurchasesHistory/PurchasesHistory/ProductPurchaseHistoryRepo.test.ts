@@ -5,7 +5,7 @@ import { itUnitIntegration } from "server/domain/_mock";
 import { BasketPurchase } from "../BasketPurchaseHistory";
 import { CartPurchase } from "../CartPurchaseHistory";
 import { CartPurchaseRepo } from "./CartPurchaseHistoryRepo";
-import { getDB } from "server/domain/_Transactional";
+import { getDB, resetDB } from "server/domain/_Transactional";
 
 const productPurchase = new ProductPurchase({
   productId: "productId",
@@ -64,6 +64,7 @@ const productPurchaseData = {
 };
 
 beforeEach(async () => {
+  await resetDB();
   await getDB().user.create({
     data: {
       id: "userId",

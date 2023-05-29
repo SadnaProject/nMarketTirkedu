@@ -165,7 +165,9 @@ export class PurchasesHistoryController
       });
     }
     await PaymentAdapter.handShake();
+    console.log("before pay");
     const payTransID = await PaymentAdapter.pay(creditCard, price);
+    console.log("after pay");
     if (payTransID == -1) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -284,7 +286,10 @@ export class PurchasesHistoryController
     storeId: string
   ): Promise<void> {
     if (
-      this.Repos.ProductReviews.doesProductReviewExist(purchaseId, productId)
+      await this.Repos.ProductReviews.doesProductReviewExist(
+        purchaseId,
+        productId
+      )
     ) {
       throw new TRPCError({
         code: "BAD_REQUEST",

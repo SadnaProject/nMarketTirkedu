@@ -7,10 +7,14 @@ export class PaymentAdapter {
   static async handShake() {
     const response = await fetch("https://php-server-try.000webhostapp.com/", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         action_type: "handshake",
       }),
     });
+    console.log(await response.text()); // supposed to return OK, clearly doesn't
     if (!response.ok)
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -21,6 +25,9 @@ export class PaymentAdapter {
   static async pay(@censored paymentDetails: PaymentDetails, price: number) {
     const response = await fetch("https://php-server-try.000webhostapp.com/", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         action_type: "pay",
         card_number: paymentDetails.number,
@@ -31,6 +38,7 @@ export class PaymentAdapter {
         id: paymentDetails.id,
       }),
     });
+    console.log(await response.text());
     if (!response.ok)
       throw new TRPCError({
         code: "BAD_REQUEST",

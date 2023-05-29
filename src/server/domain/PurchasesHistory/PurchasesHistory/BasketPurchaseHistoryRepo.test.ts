@@ -26,11 +26,15 @@ const CartPurchaseData = {
 };
 
 beforeEach(async () => {
+  await getDB().basketPurchase.deleteMany({});
+  await getDB().cartPurchase.deleteMany({});
+  await getDB().productPurchase.deleteMany({});
+  await getDB().store.deleteMany({});
+  await getDB().user.deleteMany({});
+  // add the user
   await getDB().user.create({
     data: {
       id: CartPurchaseData.userId,
-      name: "name",
-      email: "email",
     },
   });
 });

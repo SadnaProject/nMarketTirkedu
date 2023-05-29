@@ -51,6 +51,7 @@
     "fuzzysearch-ts": "^1.0.3",
     "next": "^13.4.4",
     "next-auth": "^4.22.1",
+    "node-fetch": "^3.3.1",
     "preline": "^1.8.0",
     "ramda": "^0.29.0",
     "rc-slider": "10.1.1",

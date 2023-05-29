@@ -56,11 +56,11 @@ export const exampleRouter = createTRPCRouter({
 
   onStorePurchase: publicProcedure.subscription(() => {
     return observable<unknown>((emit) => {
-      eventEmitter.subscribeToEmitter(`userId`, (msg) => {
+      eventEmitter.subscribeUser(`userId`, (msg) => {
         emit.next(msg);
       });
       return () => {
-        eventEmitter.unsubscribeFromEmitter(`userId`);
+        // eventEmitter.unsubscribeUser(`userId`);
       };
     });
   }),

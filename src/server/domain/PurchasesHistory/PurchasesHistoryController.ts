@@ -216,9 +216,11 @@ export class PurchasesHistoryController
     await this.Repos.CartPurchases.addCartPurchase(cartPurchase);
     // for each basket in cartPurchase do addBasketPurchase
     for (const basket of cartPurchase.StoreIdToBasketPurchases.values()) {
-      eventEmitter.emitEvent(
-        eventEmitter.getStorePurchaseEventString(basket.StoreId)
-      );
+      eventEmitter.emitEvent({
+        type: "storePurchase",
+        channel: `storePurchase_${basket.StoreId}`,
+        storeId: basket.StoreId,
+      });
     }
     // for each <string, basket> in cart do addBasketPurchase
     // cartPurchase.StoreIdToBasketPurchases.forEach((basket, storeId) => {
@@ -284,7 +286,10 @@ export class PurchasesHistoryController
     storeId: string
   ): Promise<void> {
     if (
-      this.Repos.ProductReviews.doesProductReviewExist(purchaseId, productId)
+      await this.Repos.ProductReviews.doesProductReviewExist(
+        purchaseId,
+        productId
+      )
     ) {
       throw new TRPCError({
         code: "BAD_REQUEST",

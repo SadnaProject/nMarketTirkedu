@@ -5,7 +5,6 @@ export default defineConfig({
   test: {
     dir: "src/server",
     restoreMocks: true,
-    setupFiles: "vitest.setup.ts",
     reporters: ["default", "html"],
     outputFile: "./test-results/index.html",
     coverage: {

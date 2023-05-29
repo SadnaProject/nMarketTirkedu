@@ -5,7 +5,7 @@ import {
   type StoreProductArgs,
   type StoreProductDTO,
 } from "server/domain/Stores/StoreProduct";
-import { type CreditCard } from "server/domain/PurchasesHistory/PaymentAdaptor";
+import { type PaymentDetails } from "server/domain/PurchasesHistory/PaymentAdaptor";
 import { type StoreDTO } from "server/domain/Stores/Store";
 import { Permission, type RoleType } from "server/domain/Jobs/Role";
 import { type PositionHolderDTO } from "server/domain/Jobs/PositionHolder";
@@ -57,7 +57,7 @@ export class Service {
   public getNotifications(userId: string) {
     return this.facade.getNotifications(userId);
   }
-  public purchaseCart(userId: string, creditCard: CreditCard) {
+  public purchaseCart(userId: string, creditCard: PaymentDetails) {
     return this.facade.purchaseCart(userId, creditCard);
   }
   public removeUser(userId: string) {

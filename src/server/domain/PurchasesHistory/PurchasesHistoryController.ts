@@ -11,7 +11,7 @@ import { randomUUID } from "crypto";
 import { Mixin } from "ts-mixer";
 import { Testable, testable } from "server/domain/_Testable";
 import { HasRepos, type Repos, createRepos } from "./_HasRepos";
-import { type CreditCard, PaymentAdapter } from "./PaymentAdaptor";
+import { type PaymentDetails, PaymentAdapter } from "./PaymentAdaptor";
 import {
   type ProductPurchase,
   type ProductPurchaseDTO,
@@ -23,6 +23,7 @@ import { type BasketDTO } from "../Users/Basket";
 import { type BasketProductDTO } from "../Users/BasketProduct";
 import { EventManager } from "../EventsManager";
 import { EventEmitter } from "stream";
+import { DeliveryAdaptor, type DeliveryDetails } from "./DeliveryAdaptor";
 
 export interface IPurchasesHistoryController extends HasRepos {
   getPurchase(purchaseId: string): Promise<CartPurchaseDTO>;
@@ -30,8 +31,12 @@ export interface IPurchasesHistoryController extends HasRepos {
     userId: string,
     cart: CartDTO,
     price: number,
-    creditCard: CreditCard
-  ): Promise<string>;
+    creditCard: PaymentDetails,
+    deliveryDetails: DeliveryDetails
+  ): Promise<{
+    paymentTransactionId: number;
+    deliveryTransactionId: number;
+  }>;
   addStorePurchaseReview(
     userId: string,
     purchaseId: string,
@@ -116,8 +121,12 @@ export class PurchasesHistoryController
     userId: string,
     cart: CartDTO,
     price: number,
-    @censored creditCard: CreditCard
-  ): Promise<string> {
+    @censored creditCard: PaymentDetails,
+    @censored deliveryDetails: DeliveryDetails
+  ): Promise<{
+    paymentTransactionId: number;
+    deliveryTransactionId: number;
+  }> {
     // for each basket run StoresController.checkIfBasketSatisfiesStoreConstraints
     for (const [storeId, basket] of cart.storeIdToBasket) {
       if (
@@ -155,11 +164,20 @@ export class PurchasesHistoryController
         message: "Cart is empty, please add products to cart before purchasing",
       });
     }
-    if (PaymentAdapter.pay(creditCard, price) === false) {
+    await PaymentAdapter.handShake();
+    const payTransID = await PaymentAdapter.pay(creditCard, price);
+    if (payTransID == -1) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message:
-          "Payment failed, please check your credit card details and try again",
+        message: "Payment failed",
+      });
+    }
+    await DeliveryAdaptor.handShake();
+    const deliveryTransId = await DeliveryAdaptor.supply(deliveryDetails);
+    if (deliveryTransId == -1) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Delivery failed",
       });
     }
     for (const basket of cart.storeIdToBasket.values()) {
@@ -177,7 +195,10 @@ export class PurchasesHistoryController
       price
     );
     await this.addPurchase(CartPurchase.fromDTO(cartPurchase));
-    return cartPurchase.purchaseId;
+    return {
+      paymentTransactionId: payTransID,
+      deliveryTransactionId: deliveryTransId,
+    };
   }
 
   async addPurchase(cartPurchase: CartPurchase): Promise<void> {
@@ -195,7 +216,9 @@ export class PurchasesHistoryController
     await this.Repos.CartPurchases.addCartPurchase(cartPurchase);
     // for each basket in cartPurchase do addBasketPurchase
     for (const basket of cartPurchase.StoreIdToBasketPurchases.values()) {
-      eventEmitter.emitEvent(eventEmitter.getStorePurchaseEventString(basket.StoreId))
+      eventEmitter.emitEvent(
+        eventEmitter.getStorePurchaseEventString(basket.StoreId)
+      );
     }
     // for each <string, basket> in cart do addBasketPurchase
     // cartPurchase.StoreIdToBasketPurchases.forEach((basket, storeId) => {

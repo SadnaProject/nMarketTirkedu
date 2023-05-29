@@ -5,7 +5,7 @@ import { type CartDTO } from "./Cart";
 import { Notification } from "./Notification";
 import { HasRepos, createRepos } from "./_HasRepos";
 import { Testable, testable } from "server/domain/_Testable";
-import { type CreditCard } from "../PurchasesHistory/PaymentAdaptor";
+import { type PaymentDetails } from "../PurchasesHistory/PaymentAdaptor";
 import { censored } from "../_Loggable";
 import { Bid, type BidArgs, type BidDTO } from "./Bid";
 import * as R from "ramda";
@@ -64,7 +64,7 @@ export interface IUsersController {
    * This function purchases the cart of a user.
    * @param userId The id of the user that is currently logged in.
    */
-  purchaseCart(userId: string, creditCard: CreditCard): Promise<string>;
+  purchaseCart(userId: string, creditCard: PaymentDetails): Promise<string>;
   /**
    * This function adds a user to the system.
    * @param user The user that is being added to the system.
@@ -215,7 +215,7 @@ export class UsersController
   }
   async purchaseCart(
     userId: string,
-    @censored creditCard: CreditCard
+    @censored creditCard: PaymentDetails
   ): Promise<string> {
     const user = await this.Repos.Users.getUser(userId);
     const cart = user.Cart;

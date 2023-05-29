@@ -6,6 +6,7 @@ import { itUnitIntegration } from "server/domain/_mock";
 import { getDB } from "server/domain/_Transactional";
 import { CartPurchase } from "../CartPurchaseHistory";
 import { CartPurchaseRepo } from "./CartPurchaseHistoryRepo";
+import { get } from "http";
 
 const products = new Map<string, ProductPurchase>();
 const products2 = new Map<string, ProductPurchase>();
@@ -26,11 +27,15 @@ const CartPurchaseData = {
 };
 
 beforeEach(async () => {
+  await getDB().basketPurchase.deleteMany({});
+  await getDB().cartPurchase.deleteMany({});
+  await getDB().productPurchase.deleteMany({});
+  await getDB().store.deleteMany({});
+  await getDB().user.deleteMany({});
+  // add the user
   await getDB().user.create({
     data: {
       id: CartPurchaseData.userId,
-      name: "name",
-      email: "email",
     },
   });
 });

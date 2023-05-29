@@ -9,7 +9,7 @@ import { type SearchArgs } from "./Stores/StoresController";
 import { type CartPurchaseDTO } from "./PurchasesHistory/CartPurchaseHistory";
 import { type BasketPurchaseDTO } from "./PurchasesHistory/BasketPurchaseHistory";
 import { TRPCError } from "@trpc/server";
-import { type CreditCard } from "./PurchasesHistory/PaymentAdaptor";
+import { type PaymentDetails } from "./PurchasesHistory/PaymentAdaptor";
 import { type StoreDTO } from "./Stores/Store";
 import {
   type IDiscount,
@@ -108,7 +108,7 @@ export class MarketFacade extends Loggable {
     return this.controllers.Users.getNotifications(userId);
   }
 
-  public purchaseCart(userId: string, @censored creditCard: CreditCard) {
+  public purchaseCart(userId: string, @censored creditCard: PaymentDetails) {
     this.validateConnection(userId);
     return this.controllers.Users.purchaseCart(userId, creditCard);
   }

@@ -8,6 +8,3 @@ describe("handShake", () => {
     }).not.toThrow();
   });
 });
-
-describe("pay", () => {
-    

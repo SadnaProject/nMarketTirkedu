@@ -27,7 +27,7 @@ export default defineConfig({
       //   // "**/Basket.test.ts",
       //   "**/UserRepo.test.ts",
       //   "**/UserController.test.ts",
-      "**/PaymentAdaptorTests.test.ts",
+      "**/BasketPurchaseHistoryRepo.test.ts",
     ],
     //make the tests run in an order and not in parallel
     threads: false,

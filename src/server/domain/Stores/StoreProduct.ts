@@ -8,8 +8,14 @@ import { type StoreProduct as StoreProductDAO } from "@prisma/client";
 import { Store } from "./Store";
 
 const nameSchema = z.string().nonempty("Name must be nonempty");
-const quantitySchema = z.number().nonnegative("Quantity must be non negative");
-const priceSchema = z.number().positive("Price must be positive");
+const quantitySchema = z
+  .number()
+  .nonnegative("Quantity must be non negative")
+  .max(1000000, "Quantity must be less than 1,000,000");
+const priceSchema = z
+  .number()
+  .positive("Price must be positive")
+  .max(1000000, "Price must be less than 1,000,000");
 const categorySchema = z.string().nonempty("Category must be nonempty");
 const descriptionSchema = z.string().nonempty("Description must be nonempty");
 
@@ -30,7 +36,7 @@ export const StoreProductDTOSchema = z.object({
   price: priceSchema,
   category: categorySchema,
   description: descriptionSchema,
-  rating: z.number().nonnegative(),
+  rating: z.number().min(0).max(5),
 });
 
 export type StoreProductDTO = z.infer<typeof StoreProductDTOSchema>;

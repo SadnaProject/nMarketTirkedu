@@ -7,7 +7,7 @@ import {
 } from "server/domain/Stores/StoreProduct";
 import { type PaymentDetails } from "server/domain/PurchasesHistory/PaymentAdaptor";
 import { type StoreDTO } from "server/domain/Stores/Store";
-import { type RoleType } from "server/domain/Jobs/Role";
+import { Permission, type RoleType } from "server/domain/Jobs/Role";
 import { type PositionHolderDTO } from "server/domain/Jobs/PositionHolder";
 import { type ICondition } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
 import { type IDiscount } from "server/domain/Stores/DiscountPolicy/Discount";
@@ -377,5 +377,11 @@ export class Service {
   }
   getStoreNameById(userId: string, storeId: string): Promise<string> {
     return this.facade.getStoreNameById(userId, storeId);
+  }
+  async getPermissionsOfUser(
+    userId: string,
+    storeId: string
+  ): Promise<Permission[]> {
+    return await this.facade.getPermissionsOfUser(userId, storeId);
   }
 }

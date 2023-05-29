@@ -8,6 +8,7 @@ import {
 import { service } from "../_service";
 import { observable } from "@trpc/server/observable";
 import { eventEmitter } from "server/EventEmitter";
+import { type Event } from "server/domain/EventsManager";
 
 export const UsersRouter = createTRPCRouter({
   addProductToCart: validSessionProcedure
@@ -158,12 +159,12 @@ export const UsersRouter = createTRPCRouter({
     }),
 
   subscribeToEvents: loggedInProcedure.subscription(({ ctx }) => {
-    return observable<unknown>((emit) => {
-      eventEmitter.subscribeToEmitter(ctx.session.user.id, (msg) => {
-        emit.next(msg);
+    return observable<Event>((emit) => {
+      eventEmitter.subscribeUser(ctx.session.user.id, (event) => {
+        emit.next(event);
       });
       return () => {
-        eventEmitter.unsubscribeFromEmitter(ctx.session.user.id);
+        eventEmitter.unsubscribeUser(ctx.session.user.id);
       };
     });
   }),

@@ -219,11 +219,11 @@ export class UsersController
   ): Promise<string> {
     const user = await this.Repos.Users.getUser(userId);
     const cart = user.Cart;
-    const price = this.Controllers.Stores.getCartPrice(userId);
+    const price = await this.Controllers.Stores.getCartPrice(userId);
     const rid = await this.Controllers.PurchasesHistory.purchaseCart(
       userId,
       cart,
-      await price,
+      price,
       creditCard
     );
     const notificationMsg = `The cart ${cart.toString()} has been purchased for ${await price}.`;

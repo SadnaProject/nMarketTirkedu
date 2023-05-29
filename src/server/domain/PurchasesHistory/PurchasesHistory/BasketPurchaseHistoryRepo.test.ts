@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { ProductPurchase } from "../ProductPurchaseHistory";
+import { type ProductPurchase } from "../ProductPurchaseHistory";
 import { BasketPurchase } from "../BasketPurchaseHistory";
 import { BasketPurchaseRepo } from "./BasketPurchaseHistoryRepo";
 import { itUnitIntegration } from "server/domain/_mock";
-import { getDB } from "server/domain/_Transactional";
+import { getDB, resetDB } from "server/domain/_Transactional";
 import { CartPurchase } from "../CartPurchaseHistory";
 import { CartPurchaseRepo } from "./CartPurchaseHistoryRepo";
 import { get } from "http";
@@ -27,11 +27,7 @@ const CartPurchaseData = {
 };
 
 beforeEach(async () => {
-  await getDB().basketPurchase.deleteMany({});
-  await getDB().cartPurchase.deleteMany({});
-  await getDB().productPurchase.deleteMany({});
-  await getDB().store.deleteMany({});
-  await getDB().user.deleteMany({});
+  await resetDB();
   // add the user
   await getDB().user.create({
     data: {

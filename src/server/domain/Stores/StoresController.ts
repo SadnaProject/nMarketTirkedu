@@ -14,10 +14,10 @@ import { TRPCError } from "@trpc/server";
 import { eventEmitter } from "server/EventEmitter";
 import { CartPurchaseDTO } from "../PurchasesHistory/CartPurchaseHistory";
 import {
-  ICondition,
+  type ICondition,
   type ConditionArgs,
 } from "./Conditions/CompositeLogicalCondition/Condition";
-import { IDiscount, type DiscountArgs } from "./DiscountPolicy/Discount";
+import { type IDiscount, type DiscountArgs } from "./DiscountPolicy/Discount";
 import { type BasketDTO } from "../Users/Basket";
 import { type RoleType } from "../Jobs/Role";
 import { type Bid, storeBidArgs } from "../Users/Bid";
@@ -1065,10 +1065,7 @@ export class StoresController
   async subscribeToStoreEvents(userId: string): Promise<void> {
     const myStores = await this.myStores(userId);
     for (const store of myStores) {
-      eventEmitter.subscribeToEvent(
-        eventEmitter.getStoreChangedEventString(store.store.id),
-        userId
-      );
+      eventEmitter.subscribeChannel(`storeChanged_${store.store.id}`, userId);
     }
   }
 }

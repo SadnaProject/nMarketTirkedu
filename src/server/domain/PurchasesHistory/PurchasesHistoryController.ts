@@ -218,9 +218,11 @@ export class PurchasesHistoryController
     await this.Repos.CartPurchases.addCartPurchase(cartPurchase);
     // for each basket in cartPurchase do addBasketPurchase
     for (const basket of cartPurchase.StoreIdToBasketPurchases.values()) {
-      eventEmitter.emitEvent(
-        eventEmitter.getStorePurchaseEventString(basket.StoreId)
-      );
+      eventEmitter.emitEvent({
+        type: "storePurchase",
+        channel: `storePurchase_${basket.StoreId}`,
+        storeId: basket.StoreId,
+      });
     }
     // for each <string, basket> in cart do addBasketPurchase
     // cartPurchase.StoreIdToBasketPurchases.forEach((basket, storeId) => {

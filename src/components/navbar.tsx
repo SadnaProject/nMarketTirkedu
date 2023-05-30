@@ -8,7 +8,7 @@ import ButtonLight from "./buttonLight";
 import { twMerge } from "tailwind-merge";
 import Profile from "./profile";
 import Price from "./price";
-import { api } from "utils/api";
+import { api } from "server/communication/api";
 import { cachedQueryOptions, onError } from "utils/query";
 import Badge from "./Badge";
 import { useEffect } from "react";

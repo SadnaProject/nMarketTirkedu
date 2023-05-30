@@ -1,4 +1,4 @@
-import { api } from "utils/api";
+import { api } from "server/communication/api";
 import { useState } from "react";
 import Button from "components/button";
 import { toast } from "react-hot-toast";

@@ -1,12 +1,11 @@
 import { describe, afterEach, expect, it, vi } from "vitest";
 import { randomUUID } from "crypto";
+import { TRPCError } from "@trpc/server";
 import {
   createMockControllers,
   createTestControllers,
-} from "../_createControllers";
-
-import { itUnitIntegration } from "../_mock";
-import { TRPCError } from "@trpc/server";
+} from "../helpers/_createControllers";
+import { itUnitIntegration } from "../helpers/_mock";
 //* Vitest Docs: https://vitest.dev/api
 // userController.addUser({id: "123456", name: "username"});
 // const storeId = storeController.createStore("123456", "storeName");

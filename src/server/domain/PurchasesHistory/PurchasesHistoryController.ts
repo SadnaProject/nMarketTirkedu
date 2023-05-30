@@ -1,4 +1,4 @@
-import { HasControllers } from "../_HasController";
+import { HasControllers } from "../helpers/_HasController";
 import { type CartDTO } from "../Users/Cart";
 import {
   type BasketPurchase,
@@ -9,19 +9,19 @@ import { type ProductReviewDTO, ProductReview } from "./ProductReview";
 import { Review } from "./Review";
 import { randomUUID } from "crypto";
 import { Mixin } from "ts-mixer";
-import { Testable, testable } from "server/domain/_Testable";
-import { HasRepos, type Repos, createRepos } from "./_HasRepos";
+import { Testable, testable } from "server/helpers/_Testable";
+import { HasRepos, type Repos, createRepos } from "./helpers/_HasRepos";
 import { type PaymentDetails, PaymentAdapter } from "./PaymentAdaptor";
 import {
   type ProductPurchase,
   type ProductPurchaseDTO,
 } from "./ProductPurchaseHistory";
 import { TRPCError } from "@trpc/server";
-import { eventEmitter } from "server/EventEmitter";
-import { censored } from "../_Loggable";
+import { eventEmitter } from "server/domain/helpers/_EventEmitter";
+import { censored } from "../helpers/_Loggable";
 import { type BasketDTO } from "../Users/Basket";
 import { type BasketProductDTO } from "../Users/BasketProduct";
-import { EventManager } from "../EventsManager";
+import { EventManager } from "../Notifications/EventsManager";
 import { EventEmitter } from "stream";
 import { DeliveryAdaptor, type DeliveryDetails } from "./DeliveryAdaptor";
 

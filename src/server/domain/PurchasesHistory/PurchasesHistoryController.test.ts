@@ -1,26 +1,24 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { PurchasesHistoryController } from "./PurchasesHistoryController";
 import { ProductReview } from "./ProductReview";
-import { type Repos, createRepos, createMockRepos } from "./_HasRepos";
+import { type Repos, createMockRepos } from "./helpers/_HasRepos";
 import { ProductPurchase } from "./ProductPurchaseHistory";
 import { BasketPurchase } from "./BasketPurchaseHistory";
 import { CartPurchase } from "./CartPurchaseHistory";
-import { ProductPurchaseRepo } from "./PurchasesHistory/ProductPurchaseHistoryRepo";
-import { CartPurchaseRepo } from "./PurchasesHistory/CartPurchaseHistoryRepo";
-import { ProductReviewRepo } from "./PurchasesHistory/ProductReviewsRepo";
-import { itUnitIntegration } from "../_mock";
-import { type Controllers } from "../_HasController";
-import { createMockControllers } from "../_createControllers";
-import { getDB, resetDB } from "../_Transactional";
-import { ReviewRepo } from "./PurchasesHistory/ReviewRepo";
-import { BasketPurchaseRepo } from "./PurchasesHistory/BasketPurchaseHistoryRepo";
+import { ProductPurchaseRepo } from "server/data/PurchasesHistory/ProductPurchaseHistoryRepo";
+import { CartPurchaseRepo } from "server/data/PurchasesHistory/CartPurchaseHistoryRepo";
+import { ProductReviewRepo } from "server/data/PurchasesHistory/ProductReviewsRepo";
+import { getDB, resetDB } from "server/helpers/_Transactional";
+import { createMockControllers } from "../helpers/_createControllers";
+import { itUnitIntegration } from "../helpers/_mock";
+import { BasketPurchaseRepo } from "../../data/PurchasesHistory/BasketPurchaseHistoryRepo";
 import { JobsController } from "../Jobs/JobsController";
-import { fa, tr } from "@faker-js/faker";
+import { type Controllers } from "../helpers/_HasController";
+import { ReviewRepo } from "server/data/PurchasesHistory/ReviewRepo";
 import { Review } from "./Review";
-import { BasketDTO } from "../Users/Basket";
-import { PaymentAdapter, PaymentDetails } from "./PaymentAdaptor";
-import { DeliveryDetails } from "./DeliveryAdaptor";
+import { PaymentAdapter, type PaymentDetails } from "./PaymentAdaptor";
 import { TRPCError } from "@trpc/server";
+import { type BasketDTO } from "../Users/Basket";
+import { type DeliveryDetails } from "./DeliveryAdaptor";
 
 const reviewData = {
   rating: 5,

@@ -1,7 +1,6 @@
 import { TRPCError } from "@trpc/server";
-import { censored } from "../_Loggable";
 import fetch from "node-fetch";
-import { getHost } from "server/helpers/hostname";
+import { getHost } from "../helpers/hostname";
 import { z } from "zod";
 
 export class PaymentAdapter {
@@ -26,7 +25,7 @@ export class PaymentAdapter {
   }
 
   static async pay(
-    @censored paymentDetails: PaymentDetails,
+    paymentDetails: PaymentDetails,
     price: number
   ): Promise<number> {
     const res = await fetch(

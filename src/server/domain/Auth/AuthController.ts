@@ -1,11 +1,11 @@
 import { Mixin } from "ts-mixer";
-import { HasControllers } from "../_HasController";
-import { Testable, testable } from "server/domain/_Testable";
-import { HasRepos } from "./_HasRepos";
-import { createRepos } from "./_HasRepos";
+import { HasRepos } from "./helpers/_HasRepos";
+import { createRepos } from "./helpers/_HasRepos";
 import { GuestUserAuth } from "./GuestUserAuth";
 import { MemberUserAuth } from "./MemberUserAuth";
 import { TRPCError } from "@trpc/server";
+import { HasControllers } from "../helpers/_HasController";
+import { Testable, testable } from "server/helpers/_Testable";
 
 export interface IAuthController extends HasRepos {
   /**

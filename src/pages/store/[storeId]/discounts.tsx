@@ -6,8 +6,8 @@ import Button from "components/button";
 import { SmallDropdown } from "components/dropdown";
 import { toast } from "react-hot-toast";
 import { Modal } from "components/modal";
-import { api } from "utils/api";
-import { onError } from "utils/query";
+import { api } from "server/communication/api";
+import { cachedQueryOptions, onError } from "utils/query";
 import { useGuestRedirect } from "utils/paths";
 import {
   ChartDocumentIcon,
@@ -59,13 +59,19 @@ export default function Home() {
     criteriaMode: "all",
     reValidateMode: "onChange",
   });
-  // api.stores.
+  const { data: discounts } = api.stores.getStoreDiscounts.useQuery(
+    { storeId: storeId as string },
+    cachedQueryOptions
+  );
 
   const handleCreateStore = formMethods.handleSubmit(
     (data) => {
       console.log(data);
     },
-    () => toast.error("Discount is invalid")
+    () => {
+      toast.error("Discount is invalid");
+      console.log(formMethods.getValues());
+    }
   );
 
   return (
@@ -76,7 +82,10 @@ export default function Home() {
         data-hs-accordion-always-open
       >
         <FormProvider {...formMethods}>
-          <Discount discount={formMethods.getValues()} />
+          {discounts &&
+            Object.values(Object.fromEntries(discounts)).map((discount, i) => (
+              <Discount key={"todo"} discount={formMethods.getValues()} />
+            ))}
         </FormProvider>
       </div>
 

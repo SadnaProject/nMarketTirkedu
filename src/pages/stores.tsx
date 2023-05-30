@@ -12,7 +12,7 @@ import Spinner from "components/spinner";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { api } from "utils/api";
+import { api } from "server/communication/api";
 import { toast } from "react-hot-toast";
 import { cachedQueryOptions } from "utils/query";
 

@@ -6,7 +6,7 @@ import Collapse from "components/collapse";
 import Link from "next/link";
 import PATHS from "utils/paths";
 import { RemoveIcon, RightIcon } from "components/icons";
-import { api } from "utils/api";
+import { api } from "server/communication/api";
 import { cachedQueryOptions } from "utils/query";
 import { z } from "zod";
 import { useForm } from "react-hook-form";

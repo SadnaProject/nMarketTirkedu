@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect } from "vitest";
-import { type Repos, createTestRepos } from "./_HasRepos";
-import { itUnitIntegration } from "../_mock";
+import { type Repos, createTestRepos } from "./helpers/_HasRepos";
+import { itUnitIntegration } from "../helpers/_mock";
 import { GuestUserAuth } from "../Auth/GuestUserAuth";
 import { MemberUserAuth } from "../Auth/MemberUserAuth";
 import { JobsController } from "./JobsController";
 import { AuthController } from "../Auth/AuthController";
-import { getDB, resetDB } from "server/domain/_Transactional";
+import { getDB, resetDB } from "server/helpers/_Transactional";
+
 export function createMember(name: string, password: string) {
   return MemberUserAuth.create(name, password);
 }

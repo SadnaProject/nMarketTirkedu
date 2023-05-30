@@ -11,7 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Button from "components/button";
 import Href from "components/href";
 import { FormInput } from "components/form";
-import { api } from "utils/api";
+import { api } from "server/communication/api";
 import { onError } from "utils/query";
 
 const formSchema = z.object({

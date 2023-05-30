@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { type Session } from "./Session";
 import { z } from "zod";
-import { getDB } from "server/domain/_Transactional";
+import { getDB } from "server/helpers/_Transactional";
 
 export type UserType = "GUEST" | "MEMBER";
 
@@ -67,7 +67,7 @@ export abstract class UserAuth {
     if (this.sessions.length === 0) {
       return undefined;
     }
-    return this.sessions[this.sessions.length - 1];
+    return this.sessions.at(-1);
   }
   //Logged in= has a valid session as a member
   //Connected= has a valid session as a guest or a member

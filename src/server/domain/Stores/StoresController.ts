@@ -1,4 +1,4 @@
-import { HasControllers } from "../_HasController";
+import { HasControllers } from "../helpers/_HasController";
 import { Mixin } from "ts-mixer";
 import { Store, type StoreDTO } from "./Store";
 import {
@@ -6,12 +6,12 @@ import {
   type StoreProductDTO,
   type StoreProductArgs,
 } from "./StoreProduct";
-import { HasRepos, createRepos } from "./_HasRepos";
-import { Testable, testable } from "server/domain/_Testable";
+import { HasRepos, createRepos } from "./helpers/_HasRepos";
+import { Testable, testable } from "server/helpers/_Testable";
 import fuzzysearch from "fuzzysearch-ts";
 import { type BasketPurchaseDTO } from "../PurchasesHistory/BasketPurchaseHistory";
 import { TRPCError } from "@trpc/server";
-import { eventEmitter } from "server/EventEmitter";
+import { eventEmitter } from "server/domain/helpers/_EventEmitter";
 import { CartPurchaseDTO } from "../PurchasesHistory/CartPurchaseHistory";
 import {
   type ICondition,

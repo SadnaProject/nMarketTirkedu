@@ -2,7 +2,6 @@ import { z } from "zod";
 import { StoreProduct, type StoreProductArgs } from "./StoreProduct";
 import { type BasketDTO } from "../Users/Basket";
 import { Mixin } from "ts-mixer";
-import { type Controllers, HasControllers } from "../_HasController";
 import { randomUUID } from "crypto";
 import {
   type ProductWithQuantityDTO,
@@ -13,9 +12,9 @@ import { type BasketProductDTO } from "../Users/BasketProduct";
 import { type DiscountArgs } from "./DiscountPolicy/Discount";
 import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
 import { type ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condition";
-import { type CartDTO } from "../Users/Cart";
-import { HasRepos, type Repos } from "./_HasRepos";
+import { HasRepos, type Repos } from "./helpers/_HasRepos";
 import { type Store as StoreDAO } from "@prisma/client";
+import { type Controllers, HasControllers } from "../helpers/_HasController";
 export const nameSchema = z.string().nonempty();
 
 export type StoreDTO = {

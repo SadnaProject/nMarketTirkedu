@@ -7,15 +7,13 @@ import {
   ProductPurchase,
   type ProductPurchaseDTO,
 } from "./ProductPurchaseHistory";
-import { BasketProduct } from "../Users/BasketProduct";
 import { StoresController } from "../Stores/StoresController";
-import { itUnitIntegration } from "../_mock";
-import { PurchasesHistoryController } from "./PurchasesHistoryController";
+import { itUnitIntegration } from "../helpers/_mock";
+import { createPromise } from "../../data/Stores/helpers/_data";
 import {
   createMockControllers,
   type createTestControllers,
-} from "../_createControllers";
-import { createPromise } from "../Stores/_data";
+} from "../helpers/_createControllers";
 
 let controllers: ReturnType<typeof createTestControllers>;
 const productPurchaseData = {

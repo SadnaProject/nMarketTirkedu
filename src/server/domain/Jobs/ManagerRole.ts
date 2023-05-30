@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { Role, type EditablePermission, type RoleDTO } from "./Role";
-import { getDB } from "server/domain/_Transactional";
+import { getDB } from "server/helpers/_Transactional";
 import { randomUUID } from "crypto";
 
 export class ManagerRole extends Role {

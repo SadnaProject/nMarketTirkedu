@@ -1,7 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { censored } from "../_Loggable";
-import { type } from "os";
-import { getHost } from "server/helpers/hostname";
+import { getHost } from "../helpers/hostname";
 import { z } from "zod";
 
 export class DeliveryAdaptor {
@@ -24,9 +22,7 @@ export class DeliveryAdaptor {
     return data;
   }
 
-  static async supply(
-    @censored deliveryDetails: DeliveryDetails
-  ): Promise<number> {
+  static async supply(deliveryDetails: DeliveryDetails): Promise<number> {
     const res = await fetch(
       `${getHost()}/api/external?method=POST&body=action_type=supply&name=${
         deliveryDetails.name

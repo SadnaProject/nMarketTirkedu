@@ -11,7 +11,7 @@ import { BasketProduct } from "../Users/BasketProduct";
 import { StoresController } from "../Stores/StoresController";
 import { CartPurchase } from "./CartPurchaseHistory";
 import { BasketDTO } from "../Users/Basket";
-import { itUnitIntegration } from "../_mock";
+import { itUnitIntegration } from "../helpers/_mock";
 
 const productPurchaseData = {
   purchaseId: "purchaseId",

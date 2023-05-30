@@ -1,10 +1,10 @@
-import { HasRepos } from "./_HasRepos";
+import { HasRepos } from "./helpers/_HasRepos";
 import {
   type ProductPurchaseDTO,
   ProductPurchase,
 } from "./ProductPurchaseHistory";
 import { type ReviewDTO, Review } from "./Review";
-import { BasketPurchaseDAO } from "./TypeHelper";
+import { BasketPurchaseDAO } from "./helpers/TypeHelper";
 
 export type BasketPurchaseDTO = {
   purchaseId: string;

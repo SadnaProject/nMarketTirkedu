@@ -1,8 +1,8 @@
 import { randomUUID } from "crypto";
 import { z } from "zod";
-import { HasRepos, type Repos } from "./_HasRepos";
+import { HasRepos, type Repos } from "./helpers/_HasRepos";
 import { TRPCError } from "@trpc/server";
-import { type Controllers, HasControllers } from "../_HasController";
+import { type Controllers, HasControllers } from "../helpers/_HasController";
 import { Mixin } from "ts-mixer";
 import { type StoreProduct as StoreProductDAO } from "@prisma/client";
 import { Store } from "./Store";

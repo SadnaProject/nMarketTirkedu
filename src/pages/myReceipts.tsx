@@ -7,7 +7,7 @@ import { Rating } from "components/star";
 import PATHS, { useGuestRedirect } from "utils/paths";
 import Price from "components/price";
 import { TimeIcon } from "components/icons";
-import { api } from "utils/api";
+import { api } from "server/communication/api";
 import { cachedQueryOptions } from "utils/query";
 
 const receipts = [

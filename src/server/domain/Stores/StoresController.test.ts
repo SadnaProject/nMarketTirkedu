@@ -1,18 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { createMockControllers } from "../_createControllers";
-import { type Repos, createMockRepos } from "./_HasRepos";
+import { type Repos, createMockRepos } from "./helpers/_HasRepos";
 import {
   createProduct,
   createPromise,
   createStore,
   generateProductArgs,
   generateStoreName,
-} from "./_data";
-import { type Controllers } from "../_HasController";
+} from "../../data/Stores/helpers/_data";
+import { type Controllers } from "../helpers/_HasController";
 import { type StoreProduct } from "./StoreProduct";
 import { type StoreProduct as StoreProductDAO } from "@prisma/client";
 import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
 import { ConstraintPolicy } from "./PurchasePolicy/ConstraintPolicy";
+import { createMockControllers } from "../helpers/_createControllers";
+
 describe("search products", () => {
   let repos: Repos;
   let controllers: Controllers;

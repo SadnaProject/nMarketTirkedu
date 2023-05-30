@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { Store } from "./Store";
-import { createMockRepos, createTestRepos } from "./_HasRepos";
+import { createMockRepos, createTestRepos } from "./helpers/_HasRepos";
 import { type BasketDTO } from "../Users/Basket";
 import { ZodError } from "zod";
 import { StoreProduct } from "./StoreProduct";
@@ -15,13 +15,13 @@ import {
   createTimeConditionArgs,
   generateProductArgs,
   generateStoreName,
-} from "./_data";
-import { itUnitIntegration } from "../_mock";
+} from "../../data/Stores/helpers/_data";
+import { itUnitIntegration } from "../helpers/_mock";
 import {
   createMockControllers,
   createTestControllers,
-} from "../_createControllers";
-import { StoresRepo } from "./Repos/StoresRepo";
+} from "../helpers/_createControllers";
+import { StoresRepo } from "server/data/Stores/StoresRepo";
 import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
 import { ConstraintPolicy } from "./PurchasePolicy/ConstraintPolicy";
 

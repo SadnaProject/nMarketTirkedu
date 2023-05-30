@@ -3,7 +3,7 @@ import { TRPCError } from "@trpc/server";
 import {
   generateProductArgs,
   generateStoreName,
-} from "server/domain/Stores/_data";
+} from "server/data/Stores/helpers/_data";
 import { Service } from "server/service/Service";
 import { describe, expect, it, beforeEach } from "vitest";
 

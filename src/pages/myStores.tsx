@@ -6,7 +6,7 @@ import Card from "components/card";
 import { Rating } from "components/star";
 import PATHS, { useGuestRedirect } from "utils/paths";
 import { CreateIcon } from "components/icons";
-import { api } from "utils/api";
+import { api } from "server/communication/api";
 import { cachedQueryOptions } from "utils/query";
 import { type RoleType } from "server/domain/Jobs/Role";
 

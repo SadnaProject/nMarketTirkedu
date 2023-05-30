@@ -1,20 +1,19 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { StoreProduct } from "./StoreProduct";
-import { createMockRepos, createTestRepos } from "./_HasRepos";
+import { createMockRepos, createTestRepos } from "./helpers/_HasRepos";
 import {
   createProduct,
-  createPromise,
   createStore,
   createStoreWithProduct,
   generateProductArgs,
   generateStoreName,
-} from "./_data";
+} from "../../data/Stores/helpers/_data";
 import { ZodError } from "zod";
-import { itUnitIntegration } from "../_mock";
+import { itUnitIntegration } from "../helpers/_mock";
 import {
   createMockControllers,
   createTestControllers,
-} from "../_createControllers";
+} from "../helpers/_createControllers";
 
 describe("constructor", () => {
   itUnitIntegration("✅creates a product", async (testType) => {

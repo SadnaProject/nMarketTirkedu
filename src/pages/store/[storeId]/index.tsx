@@ -6,7 +6,7 @@ import { ProductCard } from "components/productCard";
 import { useRouter } from "next/router";
 import { z } from "zod";
 import StoreNavbar from "components/storeNavbar";
-import { api } from "utils/api";
+import { api } from "server/communication/api";
 import Card from "components/card";
 import { CreateIcon } from "components/icons";
 import { cachedQueryOptions } from "utils/query";

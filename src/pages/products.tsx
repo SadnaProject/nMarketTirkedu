@@ -5,7 +5,7 @@ import Layout from "./_layout";
 import PATHS from "utils/paths";
 import Link from "next/link";
 import { ProductCard } from "components/productCard";
-import { api } from "utils/api";
+import { api } from "server/communication/api";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type UseFormRegister, useForm } from "react-hook-form";

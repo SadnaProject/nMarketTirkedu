@@ -11,7 +11,7 @@ import Collapse from "components/collapse";
 import Link from "next/link";
 import PATHS from "utils/paths";
 import { CartIcon, RightIcon } from "components/icons";
-import { api } from "utils/api";
+import { api } from "server/communication/api";
 import { cachedQueryOptions } from "utils/query";
 import { onCartChangeEvent } from "utils/events";
 import Input from "components/input";

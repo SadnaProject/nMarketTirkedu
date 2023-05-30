@@ -3,8 +3,8 @@ import http from "http";
 import next from "next";
 import { parse } from "url";
 import ws from "ws";
-import { appRouter } from "./root";
-import { createTRPCContext } from "./trpc";
+import { appRouter } from "../communication/root";
+import { createTRPCContext } from "../communication/trpc";
 
 const port = parseInt(process.env.PORT || "3000", 10);
 const dev = process.env.NODE_ENV !== "production";

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { type Repos, createTestRepos } from "./_HasRepos";
+import { type Repos, createTestRepos } from "./helpers/_HasRepos";
 import { GuestUserAuth } from "../Auth/GuestUserAuth";
 import { MemberUserAuth } from "../Auth/MemberUserAuth";
 import { PositionHolder } from "./PositionHolder";

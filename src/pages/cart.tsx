@@ -7,7 +7,7 @@ import Link from "next/link";
 import PATHS from "utils/paths";
 import Button from "components/button";
 import { ItemsIcon, RightIcon } from "components/icons";
-import { api } from "utils/api";
+import { api } from "server/communication/api";
 import { cachedQueryOptions } from "utils/query";
 import { FormInput } from "components/form";
 import { z } from "zod";

@@ -1,14 +1,14 @@
 import { TRPCError } from "@trpc/server";
-import { HasControllers } from "../_HasController";
 import { Mixin } from "ts-mixer";
 import { type CartDTO } from "./Cart";
 import { Notification } from "./Notification";
-import { HasRepos, createRepos } from "./_HasRepos";
-import { Testable, testable } from "server/domain/_Testable";
+import { HasRepos, createRepos } from "./helpers/_HasRepos";
 import { type PaymentDetails } from "../PurchasesHistory/PaymentAdaptor";
-import { censored } from "../_Loggable";
 import { Bid, type BidArgs, type BidDTO } from "./Bid";
 import * as R from "ramda";
+import { Testable, testable } from "server/helpers/_Testable";
+import { HasControllers } from "../helpers/_HasController";
+import { censored } from "../helpers/_Loggable";
 
 export interface IUsersController {
   /**
@@ -226,7 +226,7 @@ export class UsersController
       price,
       creditCard
     );
-    const notificationMsg = `The cart ${cart.toString()} has been purchased for ${await price}.`;
+    const notificationMsg = `The cart ${cart.toString()} has been purchased for ${price}.`;
     const notification = new Notification("purchase", notificationMsg);
     await user.addNotification(notification);
     await user.clearCart(); /// notice we clear the cart in the end of the purchase.

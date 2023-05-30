@@ -3,7 +3,7 @@ import { useRouter } from "next/router";
 import { twMerge } from "tailwind-merge";
 import PATHS from "utils/paths";
 import { BookIcon, TrashIcon } from "./icons";
-import { api } from "utils/api";
+import { api } from "server/communication/api";
 import { useEffect, useState } from "react";
 import { cachedQueryOptions } from "utils/query";
 import Button from "./button";
@@ -18,6 +18,10 @@ export default function StoreNavbar({ storeId }: Props) {
   const { data: isSystemAdmin } = api.jobs.isSystemAdmin.useQuery(
     undefined,
     cachedQueryOptions
+  );
+  const { data: storeName } = api.stores.getStoreNameById.useQuery(
+    { storeId: storeId as string },
+    { ...cachedQueryOptions, enabled: !!storeId }
   );
   const { mutate: closeStorePermanently } =
     api.stores.closeStorePermanently.useMutation({
@@ -68,7 +72,7 @@ export default function StoreNavbar({ storeId }: Props) {
       {storeId && (
         <>
           <div className="flex items-center gap-2">
-            <h1>The Happy TODO</h1>
+            <h1>{storeName}</h1>
             {isSystemAdmin && (
               <button data-hs-overlay={"#hs-modal-perm-close"}>
                 <TrashIcon />

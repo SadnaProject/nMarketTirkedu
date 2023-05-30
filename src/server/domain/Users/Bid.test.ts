@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
-import { itUnitIntegration } from "../_mock";
 import { Bid, type BidArgs, BidState } from "./Bid";
 import { beforeEach, describe, expect, it } from "vitest";
+import { itUnitIntegration } from "../helpers/_mock";
 describe("Bid", () => {
   const userId = "user123";
   const price = 100;

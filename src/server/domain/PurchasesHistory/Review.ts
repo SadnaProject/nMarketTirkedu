@@ -1,5 +1,5 @@
-import { ReviewDAO } from "./TypeHelper";
-import { HasRepos } from "./_HasRepos";
+import { ReviewDAO } from "./helpers/TypeHelper";
+import { HasRepos } from "./helpers/_HasRepos";
 import { TRPCError } from "@trpc/server";
 
 export type ReviewDTO = {

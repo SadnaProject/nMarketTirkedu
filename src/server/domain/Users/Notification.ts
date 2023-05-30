@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { getDB } from "../_Transactional";
+import { getDB } from "server/helpers/_Transactional";
 
 export class Notification {
   private id: string;

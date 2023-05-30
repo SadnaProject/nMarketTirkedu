@@ -4,9 +4,8 @@ import { faker } from "@faker-js/faker/locale/en";
 import {
   generateProductArgs,
   generateStoreName,
-} from "server/domain/Stores/_data";
+} from "server/data/Stores/helpers/_data";
 import { Service } from "server/service/Service";
-import { TRPCError } from "@trpc/server";
 
 let service: Service;
 beforeEach(() => {

@@ -1,12 +1,12 @@
 import { expect, vi, describe, it } from "vitest";
 import { ProductPurchase } from "./ProductPurchaseHistory";
 import { ProductReview } from "./ProductReview";
-import { itUnitIntegration } from "../_mock";
+import { itUnitIntegration } from "../helpers/_mock";
 import {
   createMockControllers,
   type createTestControllers,
-} from "../_createControllers";
-import { createPromise } from "../Stores/_data";
+} from "../helpers/_createControllers";
+import { createPromise } from "../../data/Stores/helpers/_data";
 
 let controllers: ReturnType<typeof createTestControllers>;
 const productPurchaseData = {

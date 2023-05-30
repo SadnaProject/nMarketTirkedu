@@ -1,7 +1,7 @@
 import { applyWSSHandler } from "@trpc/server/adapters/ws";
 import ws from "ws";
-import { createTRPCContext } from "./trpc";
-import { appRouter } from "./root";
+import { createTRPCContext } from "../communication/trpc";
+import { appRouter } from "../communication/root";
 
 const dev = process.env.NODE_ENV !== "production";
 

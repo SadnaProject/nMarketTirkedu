@@ -1,9 +1,3 @@
-// import { beforeEach, describe, expect, it } from "vitest";
-// import { type Repos, createTestRepos } from "./_HasRepos";
-// import { MemberUserAuth } from "./MemberUserAuth";
-// import { GuestUserAuth } from "./GuestUserAuth";
-// import { type Controllers } from "../_HasController";
-
 // export function createMember(name: string, password: string) {
 //   return MemberUserAuth.create(name, password);
 // }

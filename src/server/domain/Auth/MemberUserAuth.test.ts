@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { MemberUserAuth } from "./MemberUserAuth";
 import { GuestUserAuth } from "./GuestUserAuth";
-import { itUnitIntegration } from "../_mock";
+import { itUnitIntegration } from "../helpers/_mock";
 
 export function createMember(name: string, password: string) {
   return MemberUserAuth.create(name, password);

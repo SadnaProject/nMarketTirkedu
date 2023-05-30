@@ -1,6 +1,6 @@
 import { signIn, useSession } from "next-auth/react";
 import { useCallback, useEffect } from "react";
-import { api } from "utils/api";
+import { api } from "server/communication/api";
 
 export function useEnforceSession() {
   const { status } = useSession();

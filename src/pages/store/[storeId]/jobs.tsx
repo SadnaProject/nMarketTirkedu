@@ -7,7 +7,7 @@ import Button from "components/button";
 import { Dropdown, SmallDropdown } from "components/dropdown";
 import { toast } from "react-hot-toast";
 import { Modal } from "components/modal";
-import { api } from "utils/api";
+import { api } from "server/communication/api";
 import { cachedQueryOptions, onError } from "utils/query";
 import { useGuestRedirect } from "utils/paths";
 import { RemoveIcon } from "components/icons";

@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { getDB } from "server/domain/_Transactional";
+import { getDB } from "server/helpers/_Transactional";
 import { RoleType } from "@prisma/client";
 import { RoleDTO, type EditablePermission, Role } from "./Role";
 import { OwnerRole } from "./OwnerRole";

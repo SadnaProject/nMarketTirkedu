@@ -1,66 +1,64 @@
 import { TRPCError } from "@trpc/server";
 import { censored } from "../_Loggable";
 import fetch from "node-fetch";
+import { getHost } from "server/helpers/hostname";
+import { z } from "zod";
 
 export class PaymentAdapter {
   //send HTTP post request to the payment service at https://php-server-try.000webhostapp.com/
   static async handShake() {
-    const response = await fetch("https://php-server-try.000webhostapp.com/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        action_type: "handshake",
-      }),
-    });
-    console.log(await response.text()); // supposed to return OK, clearly doesn't
-    if (!response.ok)
+    const res = await fetch(
+      `${getHost()}/api/external?method=POST&body=action_type=handshake`
+    );
+    const txt = await res.text();
+    const data = this.parseStringFromPaymentService(txt);
+    if (data !== "OK") {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Payment service is not available",
+        message: "handshake failed",
       });
+    }
   }
 
-  static async pay(@censored paymentDetails: PaymentDetails, price: number) {
-    const response = await fetch("https://php-server-try.000webhostapp.com/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        action_type: "pay",
-        card_number: paymentDetails.number,
-        month: paymentDetails.month,
-        year: paymentDetails.year,
-        holder: paymentDetails.holder,
-        ccv: paymentDetails.ccv,
-        id: paymentDetails.id,
-      }),
-    });
-    console.log(await response.text());
-    if (!response.ok)
+  static parseStringFromPaymentService(str: string) {
+    const data = z.object({ data: z.string() }).parse(JSON.parse(str)).data;
+    return data;
+  }
+
+  static async pay(
+    @censored paymentDetails: PaymentDetails,
+    price: number
+  ): Promise<number> {
+    const res = await fetch(
+      `${getHost()}/api/external?method=POST&body=action_type=pay&card_number=${
+        paymentDetails.number
+      }&month=${paymentDetails.month}&year=${paymentDetails.year}&holder=${
+        paymentDetails.holder
+      }&ccv=${paymentDetails.ccv}&id=${paymentDetails.id}`
+    );
+    const txt = await res.text();
+    const data = this.parseStringFromPaymentService(txt);
+    if (data === "-1") {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Payment service is not available",
+        message: "payment failed",
       });
-    return response.json() as Promise<number>;
+    }
+    return Number(data);
   }
 
   static async cancelPayment(transactionId: string) {
-    const response = await fetch("https://php-server-try.000webhostapp.com/", {
-      method: "POST",
-      body: JSON.stringify({
-        action_type: "cancel_pay",
-        transaction_id: transactionId,
-      }),
-    });
-    if (!response.ok)
+    const res = await fetch(
+      `${getHost()}/api/external?method=POST&body=action_type=cancel_pay&transaction_id=${transactionId}`
+    );
+    const txt = await res.text();
+    const data = this.parseStringFromPaymentService(txt);
+    if (data !== "1") {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Payment service is not available",
+        message: "cancel payment failed",
       });
-    return response.json();
+    }
   }
 }
 export type PaymentDetails = {

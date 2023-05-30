@@ -165,23 +165,9 @@ export class PurchasesHistoryController
       });
     }
     await PaymentAdapter.handShake();
-    console.log("before pay");
     const payTransID = await PaymentAdapter.pay(creditCard, price);
-    console.log("after pay");
-    if (payTransID == -1) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Payment failed",
-      });
-    }
     await DeliveryAdaptor.handShake();
     const deliveryTransId = await DeliveryAdaptor.supply(deliveryDetails);
-    if (deliveryTransId == -1) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Delivery failed",
-      });
-    }
     for (const basket of cart.storeIdToBasket.values()) {
       for (const product of basket.products.values()) {
         await this.Controllers.Stores.decreaseProductQuantity(

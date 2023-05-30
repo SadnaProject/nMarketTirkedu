@@ -14,9 +14,33 @@ export class UserAuthRepo extends Testable {
     this.members = [];
     this.guests = [];
   }
-  //member related methods
+  private addToCache(user: MemberUserAuth) {
+    const cacheSize = 10;
+    const index = this.members.findIndex(
+      (member) => member.UserId === user.UserId
+    );
+
+    if (index !== -1) {
+      // If the user is already in the cache, move it to the end of the queue
+      this.members.splice(index, 1);
+    } else if (this.members.length >= cacheSize) {
+      // If the cache is full, remove the oldest user from the queue
+      this.members.shift();
+    }
+
+    // Add the user to the end of the queue
+    this.members.push(user);
+  }
+  public removeFromCache(user: MemberUserAuth) {
+    const index = this.members.findIndex(
+      (member) => member.UserId === user.UserId
+    );
+    if (index !== -1) {
+      this.members.splice(index, 1);
+    }
+  }
+
   public async addMember(user: MemberUserAuth): Promise<void> {
-    // this.members.push(user);
     //add to db
     // console.log("password: " + user.Password);
     await getDB().userAuth.create({
@@ -26,6 +50,7 @@ export class UserAuthRepo extends Testable {
         password: user.Password,
       },
     });
+    this.addToCache(user);
   }
   public async getMemberByEmail(email: string): Promise<MemberUserAuth> {
     const user = this.members.find((user) => user.Email === email);
@@ -39,7 +64,12 @@ export class UserAuthRepo extends Testable {
           code: "BAD_REQUEST",
           message: "user with email: " + email + " not found",
         });
-      else return MemberUserAuth.createFromDTO(user);
+      else {
+        const member = MemberUserAuth.createFromDTO(user);
+        // return MemberUserAuth.createFromDTO(user);
+        this.addToCache(member);
+        return member;
+      }
     }
     return user;
   }
@@ -52,7 +82,10 @@ export class UserAuthRepo extends Testable {
     //look in db
     const dbUser = await getDB().userAuth.findUnique({ where: { id: userId } });
     if (dbUser) {
-      return MemberUserAuth.createFromDTO(dbUser);
+      const member = MemberUserAuth.createFromDTO(dbUser);
+      // return MemberUserAuth.createFromDTO(dbUser);
+      this.addToCache(member);
+      return member;
     }
     throw new TRPCError({
       code: "BAD_REQUEST",
@@ -67,7 +100,10 @@ export class UserAuthRepo extends Testable {
         where: { email: email },
       });
       if (user === null) return false;
-      else return true;
+      else {
+        this.addToCache(MemberUserAuth.createFromDTO(user));
+        return true;
+      }
     }
   }
   public async doesMemberExistById(userId: string): Promise<boolean> {
@@ -76,7 +112,10 @@ export class UserAuthRepo extends Testable {
     else {
       const user = await getDB().userAuth.findUnique({ where: { id: userId } });
       if (user === null) return false;
-      else return true;
+      else {
+        this.addToCache(MemberUserAuth.createFromDTO(user));
+        return true;
+      }
     }
   }
 
@@ -88,17 +127,18 @@ export class UserAuthRepo extends Testable {
       });
     //remove from db
     await getDB().userAuth.delete({ where: { id: userId } });
-    this.members = this.members.filter((user) => user.UserId !== userId);
+    //remove from cache
+    this.removeFromCache(await this.getMemberById(userId));
   }
   public async getAllMembers(): Promise<MemberUserAuth[]> {
     //get from db
-    const members = await getDB().userAuth.findMany();
-    return members.map((member) => MemberUserAuth.createFromDTO(member));
+    const allMembers = await getDB().userAuth.findMany();
+    return allMembers.map((member) => MemberUserAuth.createFromDTO(member));
   }
   public async getAllMemberEmails(): Promise<string[]> {
     //get from db
-    const members = await getDB().userAuth.findMany();
-    return members.map((member) => member.email);
+    const allMembers = await getDB().userAuth.findMany();
+    return allMembers.map((member) => member.email);
   }
   //guest related methods
   public addGuest(user: GuestUserAuth): void {

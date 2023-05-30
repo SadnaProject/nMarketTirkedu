@@ -5,44 +5,13 @@ import { CartPurchase as RealCartPurchase } from "server/domain/PurchasesHistory
 
 @testable
 export class CartPurchaseRepo extends Testable {
-  private CartPurchase: RealCartPurchase[];
+  private cartPurchasesCache: RealCartPurchase[];
 
   constructor() {
     super();
-    this.CartPurchase = [];
+    this.cartPurchasesCache = [];
   }
   public async addCartPurchase(CartPurchase: RealCartPurchase) {
-    // await db.cartPurchase.create({
-    //   data: {
-    //     purchaseId: CartPurchase.PurchaseId,
-    //     userId: CartPurchase.UserId,
-    //     baskets: {
-    //       create: Object.values(
-    //         Object.fromEntries(CartPurchase.StoreIdToBasketPurchases)
-    //       ).map((basket) => {
-    //         return {
-    //           purchaseId: basket.PurchaseId,
-    //           storeId: basket.StoreId,
-    //           products: {
-    //             create: Object.values(Object.fromEntries(basket.Products)).map(
-    //               (product) => {
-    //                 return {
-    //                   purchaseId: product.PurchaseId,
-    //                   productId: product.ProductId,
-    //                   quantity: product.Quantity,
-    //                   price: product.Price,
-    //                   storeId: basket.StoreId,
-    //                 };
-    //               }
-    //             ),
-    //           },
-    //           price: basket.Price,
-    //         };
-    //       }),
-    //     },
-    //     totalPrice: CartPurchase.TotalPrice,
-    //   },
-    // }); TODO consider promiseall/waitall whatever
     await getDB().cartPurchase.create({
       data: {
         purchaseId: CartPurchase.PurchaseId,
@@ -95,6 +64,15 @@ export class CartPurchaseRepo extends Testable {
     });
   }
   public async getPurchaseById(purchaseId: string): Promise<RealCartPurchase> {
+    for (const purchase of this.cartPurchasesCache) {
+      if (purchase.PurchaseId === purchaseId) {
+        this.cartPurchasesCache = this.cartPurchasesCache.filter(
+          (e) => e.PurchaseId !== purchaseId
+        );
+        this.cartPurchasesCache.push(purchase);
+        return purchase;
+      }
+    }
     const purchase = await getDB().cartPurchase.findUnique({
       where: {
         purchaseId: purchaseId,
@@ -115,9 +93,22 @@ export class CartPurchaseRepo extends Testable {
     if (!purchase) {
       throw new TRPCError({ code: "NOT_FOUND", message: "Purchase not found" });
     }
+    this.cartPurchasesCache.push(RealCartPurchase.fromDAO(purchase));
+    if (this.cartPurchasesCache.length > 10) {
+      this.cartPurchasesCache.shift();
+    }
     return RealCartPurchase.fromDAO(purchase);
   }
   public async doesPurchaseExist(purchaseId: string): Promise<boolean> {
+    for (const purchase of this.cartPurchasesCache) {
+      if (purchase.PurchaseId === purchaseId) {
+        this.cartPurchasesCache = this.cartPurchasesCache.filter(
+          (e) => e.PurchaseId !== purchaseId
+        );
+        this.cartPurchasesCache.push(purchase);
+        return true;
+      }
+    }
     const purchase = await getDB().cartPurchase.findUnique({
       where: {
         purchaseId: purchaseId,

@@ -1,7 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { MemberUserAuth } from "./MemberUserAuth";
 import { GuestUserAuth } from "./GuestUserAuth";
 import { itUnitIntegration } from "../helpers/_mock";
+import { resetDB } from "server/helpers/_Transactional";
 
 export function createMember(name: string, password: string) {
   return MemberUserAuth.create(name, password);
@@ -12,6 +13,9 @@ function getMemberI(i: number): MemberUserAuth {
     "password" + i.toString()
   );
 }
+beforeEach(async () => {
+  await resetDB();
+});
 function getGuestI(i: number): GuestUserAuth {
   return GuestUserAuth.create();
 }

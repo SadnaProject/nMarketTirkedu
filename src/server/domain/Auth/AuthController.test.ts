@@ -9,7 +9,7 @@ import { MemberUserAuth } from "./MemberUserAuth";
 import { GuestUserAuth } from "./GuestUserAuth";
 import { itUnitIntegration } from "../helpers/_mock";
 import { AuthController } from "./AuthController";
-import { resetDB } from "../_Transactional";
+import { resetDB } from "server/helpers/_Transactional";
 
 export function createMember(name: string, password: string) {
   return MemberUserAuth.create(name, password);

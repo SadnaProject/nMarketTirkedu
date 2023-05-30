@@ -4,16 +4,27 @@ import { getDB } from "server/helpers/_Transactional";
 
 @testable
 export class ReviewRepo extends Testable {
-  private Reviews: Review[];
+  private reviewsCache: Review[];
 
   constructor() {
     super();
-    this.Reviews = [];
+    this.reviewsCache = [];
   }
   public async getStoreReview(
     purchaseId: string,
     storeId: string
   ): Promise<Review> {
+    const cachedReview = this.reviewsCache.find(
+      (review) => review.PurchaseId === purchaseId && review.StoreId === storeId
+    );
+    if (cachedReview) {
+      this.reviewsCache = this.reviewsCache.filter(
+        (review) =>
+          review.PurchaseId !== purchaseId || review.StoreId !== storeId
+      );
+      this.reviewsCache.push(cachedReview);
+      return cachedReview;
+    }
     const review = await getDB().review.findUnique({
       where: {
         purchaseId_storeId: {
@@ -24,6 +35,10 @@ export class ReviewRepo extends Testable {
     });
     if (!review) {
       throw new Error("No review found");
+    }
+    this.reviewsCache.push(Review.fromDAO(review));
+    if (this.reviewsCache.length > 10) {
+      this.reviewsCache.shift();
     }
     return Review.fromDAO(review);
   }
@@ -50,6 +65,18 @@ export class ReviewRepo extends Testable {
     purchaseId: string,
     storeId: string
   ): Promise<boolean> {
+    // check cache first
+    const cachedReview = this.reviewsCache.find(
+      (review) => review.PurchaseId === purchaseId && review.StoreId === storeId
+    );
+    if (cachedReview) {
+      this.reviewsCache = this.reviewsCache.filter(
+        (review) =>
+          review.PurchaseId !== purchaseId || review.StoreId !== storeId
+      );
+      this.reviewsCache.push(cachedReview);
+      return true;
+    }
     const review = await getDB().review.findUnique({
       where: {
         purchaseId_storeId: {
@@ -58,6 +85,13 @@ export class ReviewRepo extends Testable {
         },
       },
     });
-    return review !== null;
+    if (review) {
+      this.reviewsCache.push(Review.fromDAO(review));
+      if (this.reviewsCache.length > 10) {
+        this.reviewsCache.shift();
+      }
+      return true;
+    }
+    return false;
   }
 }

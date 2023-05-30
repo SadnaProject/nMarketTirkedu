@@ -5,11 +5,11 @@ import { TRPCError } from "@trpc/server";
 
 @testable
 export class ProductReviewRepo extends Testable {
-  private ProductReviews: ProductReview[];
+  private productReviewsCache: ProductReview[];
 
   constructor() {
     super();
-    this.ProductReviews = [];
+    this.productReviewsCache = [];
   }
   public async addProductReview(ProductReview: ProductReview) {
     await getDB().productReview.create({
@@ -29,6 +29,20 @@ export class ProductReviewRepo extends Testable {
     purchaseId: string,
     productId: string
   ): Promise<ProductReview> {
+    const cachedProductReview = this.productReviewsCache.find(
+      (productReview) =>
+        productReview.PurchaseId === purchaseId &&
+        productReview.ProductId === productId
+    );
+    if (cachedProductReview) {
+      this.productReviewsCache = this.productReviewsCache.filter(
+        (productReview) =>
+          productReview.PurchaseId !== purchaseId ||
+          productReview.ProductId !== productId
+      );
+      this.productReviewsCache.push(cachedProductReview);
+      return cachedProductReview;
+    }
     const productReview = await getDB().productReview.findUnique({
       where: {
         purchaseId_productId: {
@@ -39,6 +53,10 @@ export class ProductReviewRepo extends Testable {
     });
     if (!productReview) {
       throw new TRPCError({ code: "BAD_REQUEST", message: "No review found" });
+    }
+    this.productReviewsCache.push(ProductReview.fromDAO(productReview));
+    if (this.productReviewsCache.length > 10) {
+      this.productReviewsCache.shift();
     }
     return ProductReview.fromDAO(productReview);
   }
@@ -60,6 +78,20 @@ export class ProductReviewRepo extends Testable {
     purchaseId: string,
     productId: string
   ): Promise<boolean> {
+    const cachedProductReview = this.productReviewsCache.find(
+      (productReview) =>
+        productReview.PurchaseId === purchaseId &&
+        productReview.ProductId === productId
+    );
+    if (cachedProductReview) {
+      this.productReviewsCache = this.productReviewsCache.filter(
+        (productReview) =>
+          productReview.PurchaseId !== purchaseId ||
+          productReview.ProductId !== productId
+      );
+      this.productReviewsCache.push(cachedProductReview);
+      return true;
+    }
     const productReview = await getDB().productReview.findUnique({
       where: {
         purchaseId_productId: {
@@ -68,6 +100,12 @@ export class ProductReviewRepo extends Testable {
         },
       },
     });
+    if (productReview) {
+      this.productReviewsCache.push(ProductReview.fromDAO(productReview));
+      if (this.productReviewsCache.length > 10) {
+        this.productReviewsCache.shift();
+      }
+    }
     return productReview !== null;
   }
 }

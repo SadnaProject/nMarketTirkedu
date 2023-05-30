@@ -56,11 +56,11 @@ export class ProductReviewRepo extends Testable {
     );
   }
 
-  public doesProductReviewExist(
+  public async doesProductReviewExist(
     purchaseId: string,
     productId: string
-  ): boolean {
-    const productReview = getDB().productReview.findUnique({
+  ): Promise<boolean> {
+    const productReview = await getDB().productReview.findUnique({
       where: {
         purchaseId_productId: {
           purchaseId: purchaseId,

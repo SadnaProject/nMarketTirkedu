@@ -6,7 +6,6 @@ import { itUnitIntegration } from "server/domain/_mock";
 import { getDB, resetDB } from "server/domain/_Transactional";
 import { CartPurchase } from "../CartPurchaseHistory";
 import { CartPurchaseRepo } from "./CartPurchaseHistoryRepo";
-import { get } from "http";
 
 const products = new Map<string, ProductPurchase>();
 const products2 = new Map<string, ProductPurchase>();

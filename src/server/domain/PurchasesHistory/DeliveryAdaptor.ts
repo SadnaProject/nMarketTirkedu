@@ -1,54 +1,61 @@
 import { TRPCError } from "@trpc/server";
 import { censored } from "../_Loggable";
 import { type } from "os";
+import { getHost } from "server/helpers/hostname";
+import { z } from "zod";
 
 export class DeliveryAdaptor {
   static async handShake() {
-    const response = await fetch("https://php-server-try.000webhostapp.com/", {
-      method: "POST",
-      body: JSON.stringify({
-        action_type: "handshake",
-      }),
-    });
-    if (!response.ok)
+    const res = await fetch(
+      `${getHost()}/api/external?method=POST&body=action_type=handshake`
+    );
+    const txt = await res.text();
+    const data = this.parseStringFromPaymentService(txt);
+    if (data !== "OK") {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Payment service is not available",
+        message: "handshake failed",
       });
+    }
   }
-  static async supply(@censored deliveryDetails: DeliveryDetails) {
-    const response = await fetch("https://php-server-try.000webhostapp.com/", {
-      method: "POST",
-      body: JSON.stringify({
-        action_type: "supply",
-        name: deliveryDetails.name,
-        address: deliveryDetails.address,
-        city: deliveryDetails.city,
-        country: deliveryDetails.country,
-        zip: deliveryDetails.zip,
-      }),
-    });
-    if (!response.ok)
+
+  static parseStringFromPaymentService(str: string) {
+    const data = z.object({ data: z.string() }).parse(JSON.parse(str)).data;
+    return data;
+  }
+
+  static async supply(
+    @censored deliveryDetails: DeliveryDetails
+  ): Promise<number> {
+    const res = await fetch(
+      `${getHost()}/api/external?method=POST&body=action_type=supply&name=${
+        deliveryDetails.name
+      }&address=${deliveryDetails.address}&city=${
+        deliveryDetails.city
+      }&country=${deliveryDetails.country}&zip=${deliveryDetails.zip}`
+    );
+    const txt = await res.text();
+    const data = this.parseStringFromPaymentService(txt);
+    if (data === "-1") {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Delivery service is not available",
+        message: "supply failed",
       });
-    return response.json() as Promise<number>;
+    }
+    return Number(data);
   }
   static async cancelSupply(transactionId: string) {
-    const response = await fetch("https://php-server-try.000webhostapp.com/", {
-      method: "POST",
-      body: JSON.stringify({
-        action_type: "cancel_supply",
-        transaction_id: transactionId,
-      }),
-    });
-    if (!response.ok)
+    const res = await fetch(
+      `${getHost()}/api/external?method=POST&body=action_type=cancel_supply&transaction_id=${transactionId}`
+    );
+    const txt = await res.text();
+    const data = this.parseStringFromPaymentService(txt);
+    if (data !== "1") {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Delivery service is not available",
+        message: "cancel supply failed",
       });
-    return response.json();
+    }
   }
 }
 

@@ -1,9 +1,9 @@
-import { describe, expect } from "vitest";
+import { describe, expect, beforeEach } from "vitest";
 import { CartPurchase } from "../CartPurchaseHistory";
 import { CartPurchaseRepo } from "./CartPurchaseHistoryRepo";
 import { type BasketPurchase } from "../BasketPurchaseHistory";
 import { itUnitIntegration } from "server/domain/_mock";
-import { getDB } from "server/domain/_Transactional";
+import { getDB, resetDB } from "server/domain/_Transactional";
 
 const CartPurchaseData = {
   createdAt: new Date(),
@@ -23,18 +23,19 @@ const CartPurchaseData2 = {
   quantity: 1,
   price: 1,
 };
+beforeEach(async () => {
+  await resetDB();
+  await getDB().user.create({
+    data: {
+      id: CartPurchaseData.userId,
+    },
+  });
+});
 
 describe("addCartPurchase", () => {
   const storeIdToBasket = new Map<string, BasketPurchase>();
 
   itUnitIntegration("should add a cart purchase", async () => {
-    await getDB().user.create({
-      data: {
-        id: CartPurchaseData.userId,
-        name: "name",
-        email: "email",
-      },
-    });
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
@@ -52,13 +53,6 @@ describe("getPurchaseById", () => {
   const storeIdToBasket = new Map<string, BasketPurchase>();
 
   itUnitIntegration("should return the cart purchase", async () => {
-    await getDB().user.create({
-      data: {
-        id: CartPurchaseData.userId,
-        name: "name",
-        email: "email",
-      },
-    });
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
@@ -72,13 +66,6 @@ describe("getPurchaseById", () => {
     ).resolves.toEqual(cartPurchase);
   });
   itUnitIntegration("should throw if purchase not found", async () => {
-    await getDB().user.create({
-      data: {
-        id: CartPurchaseData.userId,
-        name: "name",
-        email: "email",
-      },
-    });
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
@@ -96,13 +83,6 @@ describe("getPurchasesByUser", () => {
   const storeIdToBasket = new Map<string, BasketPurchase>();
 
   itUnitIntegration("should return the cart purchase", async () => {
-    await getDB().user.create({
-      data: {
-        id: CartPurchaseData.userId,
-        name: "name",
-        email: "email",
-      },
-    });
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
@@ -116,13 +96,6 @@ describe("getPurchasesByUser", () => {
     ).resolves.toEqual([cartPurchase]);
   });
   itUnitIntegration("should return two cart purchases", async () => {
-    await getDB().user.create({
-      data: {
-        id: CartPurchaseData.userId,
-        name: "name",
-        email: "email",
-      },
-    });
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,
@@ -147,13 +120,6 @@ describe("doesPurchaseExist", () => {
   const storeIdToBasket = new Map<string, BasketPurchase>();
 
   itUnitIntegration("should return true if purchase exists", async () => {
-    await getDB().user.create({
-      data: {
-        id: CartPurchaseData.userId,
-        name: "name",
-        email: "email",
-      },
-    });
     const cartPurchase = new CartPurchase(
       CartPurchaseData.userId,
       CartPurchaseData.purchaseId,

@@ -2,7 +2,7 @@ import { expect, describe, beforeEach } from "vitest";
 import { Review } from "../Review";
 import { ReviewRepo } from "./ReviewRepo";
 import { itUnitIntegration } from "server/domain/_mock";
-import { getDB } from "server/domain/_Transactional";
+import { getDB, resetDB } from "server/domain/_Transactional";
 import { CartPurchase } from "../CartPurchaseHistory";
 import { ProductPurchase } from "../ProductPurchaseHistory";
 import { BasketPurchase } from "../BasketPurchaseHistory";
@@ -29,27 +29,41 @@ const cartPurchase = new CartPurchase(
   1
 );
 
-const productPurchaseData = {
-  id: "id",
-  createdAt: new Date(),
-  userId: "userId",
-  purchaseId: "purchaseId",
+const productPurchase2 = new ProductPurchase({
   productId: "productId",
   quantity: 1,
-  storeId: "storeId",
   price: 1,
-};
+  purchaseId: "purchaseId2",
+});
+
+const basketPurchase2 = new BasketPurchase(
+  "storeId",
+  new Map<string, ProductPurchase>([["productId", productPurchase2]]),
+  1,
+  "purchaseId2"
+);
+
+const cartPurchase2 = new CartPurchase(
+  "userId",
+  "purchaseId2",
+  new Map<string, BasketPurchase>([["storeId", basketPurchase2]]),
+  1
+);
+
+
 // const createReview = (repos: Repos = createRepos()) =>
 //   new Review(reviewData).initRepos(repos);
 
 beforeEach(async () => {
+  await resetDB();
   await getDB().user.create({
     data: {
       id: "userId",
-      name: "name",
-      email: "email",
     },
   });
+  const cartPurchaseRepo = new CartPurchaseRepo();
+  await cartPurchaseRepo.addCartPurchase(cartPurchase);
+  await cartPurchaseRepo.addCartPurchase(cartPurchase2);
 });
 
 const reviewData = {
@@ -83,7 +97,7 @@ describe("getStoreReview", () => {
     await reviewRepo.addStoreReview(review);
     await expect(
       reviewRepo.getStoreReview(review.PurchaseId, review.StoreId)
-    ).resolves.toBe(review);
+    ).resolves.toStrictEqual(review);
   });
 });
 
@@ -100,11 +114,15 @@ describe("getAllStoreReviews", () => {
   itUnitIntegration(
     "✅gets all store reviews when there are more than one",
     async () => {
-      const cartPurchaseRepo = new CartPurchaseRepo();
       const reviewRepo = new ReviewRepo();
-      await cartPurchaseRepo.addCartPurchase(cartPurchase);
       const review = createReview();
-      const review2 = createReview();
+      const review2 = new Review({
+        rating: 5,
+        createdAt: new Date(),
+        userId: "userId",
+        purchaseId: "purchaseId2",
+        storeId: "storeId",
+      });
       await reviewRepo.addStoreReview(review);
       await reviewRepo.addStoreReview(review2);
       await expect(

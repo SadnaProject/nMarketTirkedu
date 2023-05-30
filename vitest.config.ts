@@ -18,7 +18,8 @@ export default defineConfig({
       // "**/UserAuthRepo.test.ts",
       // "**/MemberUserAuth.test.ts",
       // "**/Session.test.ts",
-      "**/JobsController.test.ts",
+      // "**/JobsController.test.ts",
+      "**/EventsManager.test.ts",
 
       //   // "**/ReviewRepo.test.ts",
       //   // "**/ProductPurchaseHistoryRepo.test.ts",
@@ -31,7 +32,6 @@ export default defineConfig({
       // "**/BasketPurchaseHistoryRepo.test.ts",
 
       //"**/PurchasesHistoryController.test.ts",
-
     ],
     //make the tests run in an order and not in parallel
     threads: false,

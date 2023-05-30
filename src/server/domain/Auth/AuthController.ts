@@ -99,14 +99,16 @@ export interface IAuthController extends HasRepos {
   removeMember(userIdOfActor: string, memberIdToRemove: string): Promise<void>;
   /**
    * Returns all the logged in members ids.
+   * @param userId The user's ID asking for the list.
    * @returns Array of strings.
    */
-  getAllLoggedInMembersIds(): Promise<string[]>;
+  getAllLoggedInMembersIds(userId: string): Promise<string[]>;
   /**
    * Returns all the logged out members ids.
+   * @param userId The user's ID asking for the list.
    * @returns Array of strings.
    */
-  getAllLoggedOutMembersIds(): Promise<string[]>;
+  getAllLoggedOutMembersIds(userId: string): Promise<string[]>;
   /**
    * @param userId The user's ID.
    * @returns The user's email.
@@ -259,8 +261,14 @@ export class AuthController
 
     await this.Repos.Users.removeMember(memberIdToRemove);
   }
-  public async getAllLoggedInMembersIds(): Promise<string[]> {
+  public async getAllLoggedInMembersIds(userId: string): Promise<string[]> {
     // throw new Error("Method not implemented.");
+    if (!(await this.Controllers.Jobs.canGetMembersData(userId))) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "User is not allowed to get members data",
+      });
+    }
     const loggedInUsersIds: string[] = [];
     const members = await this.Repos.Users.getAllMembers();
     members.forEach((member) => {
@@ -270,8 +278,14 @@ export class AuthController
     });
     return loggedInUsersIds;
   }
-  public async getAllLoggedOutMembersIds(): Promise<string[]> {
+  public async getAllLoggedOutMembersIds(userId: string): Promise<string[]> {
     // throw new Error("Method not implemented.");
+    if (!(await this.Controllers.Jobs.canGetMembersData(userId))) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "User is not allowed to get members data",
+      });
+    }
     const loggedOutUsersIds: string[] = [];
     const members = await this.Repos.Users.getAllMembers();
     members.forEach((member) => {

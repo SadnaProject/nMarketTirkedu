@@ -496,7 +496,7 @@ export class MarketFacade extends Loggable {
    */
   async getAllLoggedInMembersIds(userId: string): Promise<string[]> {
     this.validateConnection(userId);
-    return await this.controllers.Auth.getAllLoggedInMembersIds();
+    return await this.controllers.Auth.getAllLoggedInMembersIds(userId);
   }
   // eslint-disable-next-line jsdoc/require-param
   /**
@@ -505,7 +505,7 @@ export class MarketFacade extends Loggable {
    */
   async getAllLoggedOutMembersIds(userId: string): Promise<string[]> {
     this.validateConnection(userId);
-    return await this.controllers.Auth.getAllLoggedOutMembersIds();
+    return await this.controllers.Auth.getAllLoggedOutMembersIds(userId);
   }
   async searchStores(userId: string, storeName: string): Promise<StoreDTO[]> {
     this.validateConnection(userId);

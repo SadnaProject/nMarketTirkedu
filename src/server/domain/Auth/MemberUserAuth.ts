@@ -65,8 +65,15 @@ export class MemberUserAuth extends UserAuth {
     return;
   }
   private validateEmailLegality(email: string): void {
-    if (email === "admin") return; // todo remove
-    z.string().email().parse(email);
+    if (email === "admin") return;
+    try {
+      z.string().email().parse(email);
+    } catch (e) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Email is not valid",
+      });
+    }
   }
   public isPasswordCorrect(password: string): boolean {
     return this.password === this.encryptPassword(password);

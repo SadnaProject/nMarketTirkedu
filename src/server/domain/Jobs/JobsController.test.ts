@@ -5,7 +5,7 @@ import { GuestUserAuth } from "../Auth/GuestUserAuth";
 import { MemberUserAuth } from "../Auth/MemberUserAuth";
 import { JobsController } from "./JobsController";
 import { AuthController } from "../Auth/AuthController";
-import { getDB } from "server/domain/_Transactional";
+import { getDB, resetDB } from "server/domain/_Transactional";
 export function createMember(name: string, password: string) {
   return MemberUserAuth.create(name, password);
 }
@@ -29,6 +29,7 @@ function generatePasswordI(i: number): string {
   return "password" + i.toString();
 }
 beforeEach(async () => {
+  await resetDB();
   await getDB().positionHolder.deleteMany({});
   await getDB().role.deleteMany({});
   await getDB().admin.deleteMany({});
@@ -44,7 +45,9 @@ describe("InitializeStore", () => {
     const storeId = "store1";
     const founderId = "founder1";
 
-    await expect(controllers.Jobs.getStoreFounderId(storeId)).rejects.toThrow();
+    await expect(controllers.Jobs.getStoreFounderId(storeId)).rejects.toThrow(
+      "aaaaaaa"
+    );
 
     await expect(
       controllers.Jobs.InitializeStore(founderId, storeId)
@@ -91,7 +94,7 @@ describe("Make position holder", () => {
       ).resolves.toEqual(false);
       await expect(() =>
         controllers.Jobs.makeStoreOwner(owner2Id, storeId, owner1Id)
-      ).rejects.toThrow();
+      ).rejects.toThrow("bbbbbbbbbbb");
       await expect(
         controllers.Jobs.isStoreOwner(owner1Id, storeId)
       ).resolves.toEqual(false);
@@ -138,7 +141,7 @@ describe("Make position holder", () => {
       ).resolves.toEqual(false);
       await expect(
         controllers.Jobs.makeStoreManager(manager2Id, storeId, manager1Id)
-      ).rejects.toThrow();
+      ).rejects.toThrow("cccccccc");
       await expect(
         controllers.Jobs.isStoreManager(manager1Id, storeId)
       ).resolves.toEqual(false);
@@ -148,7 +151,7 @@ describe("Make position holder", () => {
       ).resolves.toEqual(true);
       await expect(
         controllers.Jobs.makeStoreManager(manager1Id, storeId, manager2Id)
-      ).rejects.toThrow();
+      ).rejects.toThrow("ddddddddddd");
     }
   );
 });
@@ -211,10 +214,10 @@ describe("Remove position holder", () => {
       ).resolves.toEqual(true);
       await expect(() =>
         controllers.Jobs.removeStoreOwner(owner2Id, storeId, owner1Id)
-      ).rejects.toThrow();
+      ).rejects.toThrow("eeeeeeeee");
       await expect(() =>
         controllers.Jobs.removeStoreOwner(founderId, storeId, owner2Id)
-      ).rejects.toThrow();
+      ).rejects.toThrow("fffffffff");
       await expect(
         controllers.Jobs.isStoreOwner(owner2Id, storeId)
       ).resolves.toEqual(true);
@@ -244,7 +247,7 @@ describe("Remove position holder", () => {
       ).resolves.toEqual(false);
       await expect(() =>
         controllers.Jobs.removeStoreOwner(founderId, storeId, owner2Id)
-      ).rejects.toThrow();
+      ).rejects.toThrow("ggggggggggg");
       await expect(
         controllers.Jobs.isStoreOwner(owner2Id, storeId)
       ).resolves.toEqual(false);
@@ -294,7 +297,7 @@ describe("Remove position holder", () => {
       ).resolves.toEqual(true);
       await expect(
         controllers.Jobs.removeStoreManager(owner1Id, storeId, manager1Id)
-      ).rejects.toThrow();
+      ).rejects.toThrow("hhhhhhhhhhhh");
     }
   );
 });
@@ -529,7 +532,7 @@ describe("permissions", () => {
           manager1Id,
           true
         )
-      ).rejects.toThrow();
+      ).rejects.toThrow("jjjjjjjjjjjjj");
       await expect(
         controllers.Jobs.setRemovingProductFromStorePermission(
           owner1Id,
@@ -537,7 +540,7 @@ describe("permissions", () => {
           manager1Id,
           true
         )
-      ).rejects.toThrow();
+      ).rejects.toThrow("hhhhhhhhhhhhhhhhh");
       await expect(
         controllers.Jobs.setEditingProductInStorePermission(
           owner1Id,
@@ -545,7 +548,7 @@ describe("permissions", () => {
           manager1Id,
           true
         )
-      ).rejects.toThrow();
+      ).rejects.toThrow("kkkkkkkkkkkkkkkkk");
     }
   );
 });

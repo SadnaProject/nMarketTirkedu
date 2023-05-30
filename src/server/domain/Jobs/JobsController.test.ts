@@ -47,7 +47,7 @@ describe("InitializeStore", () => {
     const founderId = "founder1";
 
     await expect(controllers.Jobs.getStoreFounderId(storeId)).rejects.toThrow(
-      "aaaaaaa"
+      "store founder not found for store with id: store1 not found"
     );
 
     await expect(
@@ -95,7 +95,7 @@ describe("Make position holder", () => {
       ).resolves.toEqual(false);
       await expect(() =>
         controllers.Jobs.makeStoreOwner(owner2Id, storeId, owner1Id)
-      ).rejects.toThrow("bbbbbbbbbbb");
+      ).rejects.toThrow("This user cannot appoint");
       await expect(
         controllers.Jobs.isStoreOwner(owner1Id, storeId)
       ).resolves.toEqual(false);
@@ -142,7 +142,7 @@ describe("Make position holder", () => {
       ).resolves.toEqual(false);
       await expect(
         controllers.Jobs.makeStoreManager(manager2Id, storeId, manager1Id)
-      ).rejects.toThrow("cccccccc");
+      ).rejects.toThrow("This user cannot appoint");
       await expect(
         controllers.Jobs.isStoreManager(manager1Id, storeId)
       ).resolves.toEqual(false);
@@ -152,7 +152,9 @@ describe("Make position holder", () => {
       ).resolves.toEqual(true);
       await expect(
         controllers.Jobs.makeStoreManager(manager1Id, storeId, manager2Id)
-      ).rejects.toThrow("ddddddddddd");
+      ).rejects.toThrow(
+        "User does not have permission to appoint store manager for store with id: store1"
+      );
     }
   );
 });
@@ -215,10 +217,14 @@ describe("Remove position holder", () => {
       ).resolves.toEqual(true);
       await expect(() =>
         controllers.Jobs.removeStoreOwner(owner2Id, storeId, owner1Id)
-      ).rejects.toThrow("eeeeeeeee");
+      ).rejects.toThrow(
+        "User is not appointed by this position holder for store with id: store1"
+      );
       await expect(() =>
         controllers.Jobs.removeStoreOwner(founderId, storeId, owner2Id)
-      ).rejects.toThrow("fffffffff");
+      ).rejects.toThrow(
+        "User is not appointed by this position holder for store with id: store1"
+      );
       await expect(
         controllers.Jobs.isStoreOwner(owner2Id, storeId)
       ).resolves.toEqual(true);
@@ -248,7 +254,9 @@ describe("Remove position holder", () => {
       ).resolves.toEqual(false);
       await expect(() =>
         controllers.Jobs.removeStoreOwner(founderId, storeId, owner2Id)
-      ).rejects.toThrow("ggggggggggg");
+      ).rejects.toThrow(
+        "The user requested to be removed is not a store owner"
+      );
       await expect(
         controllers.Jobs.isStoreOwner(owner2Id, storeId)
       ).resolves.toEqual(false);
@@ -298,7 +306,9 @@ describe("Remove position holder", () => {
       ).resolves.toEqual(true);
       await expect(
         controllers.Jobs.removeStoreManager(owner1Id, storeId, manager1Id)
-      ).rejects.toThrow("hhhhhhhhhhhh");
+      ).rejects.toThrow(
+        "User is not appointed by this position holder for store with id: store1"
+      );
     }
   );
 });
@@ -533,7 +543,9 @@ describe("permissions", () => {
           manager1Id,
           true
         )
-      ).rejects.toThrow("jjjjjjjjjjjjj");
+      ).rejects.toThrow(
+        "User is not appointed by this position holder for store with id: store1"
+      );
       await expect(
         controllers.Jobs.setRemovingProductFromStorePermission(
           owner1Id,
@@ -541,7 +553,9 @@ describe("permissions", () => {
           manager1Id,
           true
         )
-      ).rejects.toThrow("hhhhhhhhhhhhhhhhh");
+      ).rejects.toThrow(
+        "User is not appointed by this position holder for store with id: store1"
+      );
       await expect(
         controllers.Jobs.setEditingProductInStorePermission(
           owner1Id,
@@ -549,7 +563,9 @@ describe("permissions", () => {
           manager1Id,
           true
         )
-      ).rejects.toThrow("kkkkkkkkkkkkkkkkk");
+      ).rejects.toThrow(
+        "User is not appointed by this position holder for store with id: store1"
+      );
     }
   );
 });

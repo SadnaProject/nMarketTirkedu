@@ -186,7 +186,7 @@ describe("addProductPurchaseReview", () => {
           "description",
           "storeId"
         )
-      ).rejects.toThrow("a");
+      ).rejects.toThrow("Product not found in purchase");
     }
   );
 
@@ -267,7 +267,9 @@ describe("addStorePurchaseReview", () => {
         "storeId",
         5
       )
-    ).rejects.toThrow("c");
+    ).rejects.toThrow(
+      "Store already reviewed, please try again with a different purchase"
+    );
   });
   itUnitIntegration("❎No such store", async () => {
     vi.spyOn(BasketPurchaseRepo.prototype, "hasPurchase").mockReturnValue(
@@ -280,7 +282,7 @@ describe("addStorePurchaseReview", () => {
         "purchaseId",
         5
       )
-    ).rejects.toThrow("d");
+    ).rejects.toThrow("Purchase not found");
   });
 });
 
@@ -293,6 +295,7 @@ describe("getCartPurchaseByUserId", () => {
       cartPurchaseData.storeIdToBasketPurchases,
       cartPurchaseData.totalPrice
     );
+    // mock isSystemAdmin
     vi.spyOn(controllers.Auth, "register").mockReturnValue(
       Promise.resolve("admin")
     );
@@ -356,7 +359,9 @@ describe("getCartPurchaseByUserId", () => {
     );
     await expect(() =>
       controllers.PurchasesHistory.getPurchasesByUser("admin", "admin")
-    ).rejects.toThrow("e");
+    ).rejects.toThrow(
+      "User is not a system admin, and therefore cannot view other users' purchases"
+    );
   });
 });
 
@@ -380,7 +385,7 @@ describe("getCartPurchaseByPurchaseId", () => {
   itUnitIntegration("❎gets undefined cart purchase", async () => {
     await expect(() =>
       controllers.PurchasesHistory.getPurchase("purchaseId")
-    ).rejects.toThrow("f");
+    ).rejects.toThrow("Purchase not found");
   });
 });
 
@@ -416,7 +421,9 @@ describe("addPurchase", () => {
     );
     await expect(() =>
       controllers.PurchasesHistory.addPurchase(cartPurchase)
-    ).rejects.toThrow("h");
+    ).rejects.toThrow(
+      "Purchase with same id already exists, please try again with a different cart"
+    );
   });
 });
 
@@ -510,7 +517,9 @@ describe("getReviewsByStore", () => {
         "storeId",
         5
       )
-    ).rejects.toThrow("g");
+    ).rejects.toThrow(
+      "Store already reviewed, please try again with a different purchase"
+    );
   });
 });
 

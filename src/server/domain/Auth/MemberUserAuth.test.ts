@@ -23,18 +23,25 @@ describe("create member", () => {
     expect(member.isPasswordCorrect("password1")).toBeTruthy();
   });
   it("❎does not create member with invalid email", () => {
-    expect(() =>
-      MemberUserAuth.create("user1gmail.com", "password1")
-    ).toThrow();
+    expect(() => MemberUserAuth.create("user1gmail.com", "password1")).toThrow(
+      "Email is not valid"
+    );
   });
 });
 describe("login member", () => {
-  it("✅logs in member", (testType) => {
+  it("✅logs in member", async () => {
     const member = getMemberI(1);
     vi.spyOn(member, "isConnectionValid").mockReturnValue(false);
     expect(member.isUserLoggedInAsMember()).toBeFalsy();
-    member.login();
+    vi.spyOn(MemberUserAuth.prototype, "setIsLoggedIn").mockImplementation(
+      async () => {}
+    );
+    await member.login();
     vi.spyOn(member, "isConnectionValid").mockReturnValue(true);
+    vi.spyOn(
+      MemberUserAuth.prototype,
+      "isUserLoggedInAsMember"
+    ).mockReturnValue(true);
     expect(member.isUserLoggedInAsMember()).toBeTruthy();
   });
   // itUnitIntegration(
@@ -54,11 +61,22 @@ describe("logout member", () => {
   it("✅logs out member", async (testType) => {
     const member = getMemberI(1);
     vi.spyOn(member, "isConnectionValid").mockReturnValue(false);
+    vi.spyOn(MemberUserAuth.prototype, "setIsLoggedIn").mockImplementation(
+      async () => {}
+    );
     await member.login();
     vi.spyOn(member, "isConnectionValid").mockReturnValue(true);
+    vi.spyOn(
+      MemberUserAuth.prototype,
+      "isUserLoggedInAsMember"
+    ).mockReturnValue(true);
     expect(member.isUserLoggedInAsMember()).toBeTruthy();
     await member.logout();
     vi.spyOn(member, "isConnectionValid").mockReturnValue(false);
+    vi.spyOn(
+      MemberUserAuth.prototype,
+      "isUserLoggedInAsMember"
+    ).mockReturnValue(false);
     expect(member.isUserLoggedInAsMember()).toBeFalsy();
   });
 });

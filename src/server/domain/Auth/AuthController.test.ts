@@ -5,6 +5,7 @@ import { MemberUserAuth } from "./MemberUserAuth";
 import { GuestUserAuth } from "./GuestUserAuth";
 import { itUnitIntegration } from "../_mock";
 import { AuthController } from "./AuthController";
+import { resetDB } from "../_Transactional";
 
 export function createMember(name: string, password: string) {
   return MemberUserAuth.create(name, password);
@@ -27,8 +28,9 @@ function generateEmailI(i: number): string {
 function generatePasswordI(i: number): string {
   return "password" + i.toString();
 }
-beforeEach(() => {
+beforeEach(async () => {
   repos = createMockRepos();
+  await resetDB();
   controllers = { Auth: new AuthController() };
 });
 describe("starts session", () => {
@@ -113,7 +115,7 @@ describe("register member", () => {
       // ).toThrow();
       await expect(
         controllers.Auth.register("user1@gmail.com", "password2")
-      ).rejects.toThrow();
+      ).rejects.toThrow("Email already in use, please try again");
       // expect(repos.Users.doesMemberExistByEmail("user1@gmail.com")).toEqual(
       //   true
       // );
@@ -160,7 +162,9 @@ describe("login member", () => {
       Promise.resolve(getMemberI(1))
     );
     vi.spyOn(repos.Users, "doesGuestExistById").mockReturnValue(true);
-
+    vi.spyOn(MemberUserAuth.prototype, "setIsLoggedIn").mockImplementation(
+      async () => {}
+    );
     const memberId = await controllers.Auth.login(
       guestId,
       generateEmailI(1),

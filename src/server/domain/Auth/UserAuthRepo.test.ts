@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { type Repos, createMockRepos } from "./_HasRepos";
 import { MemberUserAuth } from "./MemberUserAuth";
 import { GuestUserAuth } from "./GuestUserAuth";
+import { resetDB } from "../_Transactional";
 
 export function createMember(name: string, password: string) {
   return MemberUserAuth.create(name, password);
@@ -18,6 +19,7 @@ function getGuestI(i: number): GuestUserAuth {
 let repos: Repos;
 beforeEach(async () => {
   repos = createMockRepos("Users");
+  await resetDB();
 });
 describe("add user", () => {
   it("✅adds member", async () => {
@@ -76,7 +78,9 @@ describe("get member by id", () => {
   });
   it("❎doesn't find member", async () => {
     // expect(() => repos.Users.getMemberById("made up id")).toThrow();
-    await expect(repos.Users.getMemberById("made up id")).rejects.toThrow();
+    await expect(repos.Users.getMemberById("made up id")).rejects.toThrow(
+      "user with id: made up id not found"
+    );
   });
 });
 describe("get guest by id", () => {
@@ -86,7 +90,9 @@ describe("get guest by id", () => {
     expect(repos.Users.getGuestById(guest.UserId)).toEqual(guest);
   });
   it("❎doesn't find guest", () => {
-    expect(() => repos.Users.getGuestById("made up id")).toThrow();
+    expect(() => repos.Users.getGuestById("made up id")).toThrow(
+      "User with id: made up id not found"
+    );
   });
 });
 describe("remove member", () => {
@@ -94,18 +100,19 @@ describe("remove member", () => {
     const member = getMemberI(1);
     await repos.Users.addMember(member);
     // expect(() => repos.Users.removeMember(member.UserId)).not.toThrow();
-    await expect(
-      repos.Users.removeMember(member.UserId)
-    ).resolves.not.toThrow();
+    await expect(repos.Users.removeMember(member.UserId)).resolves.not.toThrow(
+      "User with id: made up id not found"
+    );
     // expect(repos.Users.getAllMembers()).toEqual([]);
     await expect(repos.Users.getAllMembers()).resolves.toEqual([]);
   });
   it("❎doesn't find member", async () => {
     const members = await repos.Users.getAllMembers();
     // expect(() => repos.Users.removeMember(getMemberI(1).UserId)).toThrow();
-    await expect(
-      repos.Users.removeMember(getMemberI(1).UserId)
-    ).rejects.toThrow();
+    const memberId = getMemberI(1).UserId;
+    await expect(repos.Users.removeMember(memberId)).rejects.toThrow(
+      "user with id: " + memberId + " not found"
+    );
     // expect(repos.Users.getAllMembers()).toEqual(members);
     await expect(repos.Users.getAllMembers()).resolves.toEqual(members);
   });
@@ -119,15 +126,12 @@ describe("remove guest", () => {
   });
   it("❎doesn't find guest", () => {
     const guests = repos.Users.getAllGuests();
-    expect(() => repos.Users.removeGuest(getGuestI(1).UserId)).toThrow();
+    const guestId = getGuestI(1).UserId;
+    expect(() => repos.Users.removeGuest(guestId)).toThrow(
+      "User with id: " +
+        guestId +
+        " is not a guest, please try again with a different user"
+    );
     expect(repos.Users.getAllGuests()).toEqual(guests);
-  });
-});
-
-//TODO: delete this.
-describe("trying out db", () => {
-  it("✅adds member", () => {
-    expect(true);
-    const member = getMemberI(1);
   });
 });

@@ -15,11 +15,12 @@ import { getDB, resetDB } from "../_Transactional";
 import { ReviewRepo } from "./PurchasesHistory/ReviewRepo";
 import { BasketPurchaseRepo } from "./PurchasesHistory/BasketPurchaseHistoryRepo";
 import { JobsController } from "../Jobs/JobsController";
-import { fa } from "@faker-js/faker";
+import { fa, tr } from "@faker-js/faker";
 import { Review } from "./Review";
 import { BasketDTO } from "../Users/Basket";
-import { PaymentDetails } from "./PaymentAdaptor";
+import { PaymentAdapter, PaymentDetails } from "./PaymentAdaptor";
 import { DeliveryDetails } from "./DeliveryAdaptor";
+import { TRPCError } from "@trpc/server";
 
 const reviewData = {
   rating: 5,
@@ -357,6 +358,9 @@ describe("getCartPurchaseByUserId", () => {
     vi.spyOn(JobsController.prototype, "isSystemAdmin").mockReturnValue(
       Promise.resolve(false)
     );
+    vi.spyOn(controllers.Jobs, "isSystemAdmin").mockReturnValue(
+      Promise.resolve(false)
+    );
     await expect(() =>
       controllers.PurchasesHistory.getPurchasesByUser("admin", "admin")
     ).rejects.toThrow(
@@ -579,152 +583,227 @@ describe("getStoreRating", () => {
   });
 });
 
-// describe("PurchaseCart", () => {
-//   it("✅purchase cart", async () => {
-//     const cartPurchase = new CartPurchase(
-//       "userId",
-//       "purchaseId",
-//       new Map<string, BasketPurchase>(),
-//       1
-//     );
-//     const basketDTO = {
-//       storeId: "storeId",
-//       products: [
-//         {
-//           storeProductId: "productId",
-//           quantity: 1,
-//           storeId: "storeId",
-//           userId: "userId",
-//         },
-//       ],
-//       userId: "userId",
-//     };
-//     const StoreIDToBasketMap = new Map<string, BasketDTO>();
-//     StoreIDToBasketMap.set("storeId", basketDTO);
+describe("PurchaseCart", () => {
+  it("✅purchase cart", async () => {
+    const cartPurchase = new CartPurchase(
+      "userId",
+      "purchaseId",
+      new Map<string, BasketPurchase>(),
+      1
+    );
+    const basketDTO = {
+      storeId: "storeId",
+      products: [
+        {
+          storeProductId: "productId",
+          quantity: 1,
+          storeId: "storeId",
+          userId: "userId",
+        },
+      ],
+      userId: "userId",
+    };
+    const StoreIDToBasketMap = new Map<string, BasketDTO>();
+    StoreIDToBasketMap.set("storeId", basketDTO);
 
-//     // spy on storeproductrepo getProductById
-//     vi.spyOn(
-//       controllers.PurchasesHistory,
-//       "CartPurchaseDTOfromCartDTO"
-//     ).mockReturnValue(Promise.resolve(cartPurchase.ToDTO()));
-//     vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
-//     vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockReturnValue(
-//       Promise.resolve(true)
-//     );
-//     vi.spyOn(controllers.Stores, "decreaseProductQuantity").mockReturnValue(
-//       Promise.resolve()
-//     );
-//     vi.spyOn(
-//       controllers.Stores,
-//       "checkIfBasketSatisfiesStoreConstraints"
-//     ).mockReturnValue(Promise.resolve(true));
-//     const paymentDetails: PaymentDetails = {
-//       number: "123",
-//       month: "3",
-//       year: "2023",
-//       holder: "admin",
-//       ccv: "986",
-//       id: "123456789",
-//     };
+    // spy on storeproductrepo getProductById
+    vi.spyOn(
+      controllers.PurchasesHistory,
+      "CartPurchaseDTOfromCartDTO"
+    ).mockReturnValue(Promise.resolve(cartPurchase.ToDTO()));
+    vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
+    vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockReturnValue(
+      Promise.resolve(true)
+    );
+    vi.spyOn(controllers.Stores, "decreaseProductQuantity").mockReturnValue(
+      Promise.resolve()
+    );
+    vi.spyOn(
+      controllers.Stores,
+      "checkIfBasketSatisfiesStoreConstraints"
+    ).mockReturnValue(Promise.resolve(true));
+    const paymentDetails: PaymentDetails = {
+      number: "123",
+      month: "3",
+      year: "2023",
+      holder: "admin",
+      ccv: "986",
+      id: "123456789",
+    };
 
-//     const deliveryDetails: DeliveryDetails = {
-//       name: "admin",
-//       address: "admin",
-//       city: "admin",
-//       country: "admin",
-//       zip: "admin",
-//     };
-//     const cartDTO = {
-//       purchaseId: "purchaseId",
-//       userId: "userId",
-//       storeIdToBasket: StoreIDToBasketMap,
-//       totalPrice: 1,
-//     };
+    const deliveryDetails: DeliveryDetails = {
+      name: "admin",
+      address: "admin",
+      city: "admin",
+      country: "admin",
+      zip: "admin",
+    };
+    const cartDTO = {
+      purchaseId: "purchaseId",
+      userId: "userId",
+      storeIdToBasket: StoreIDToBasketMap,
+      totalPrice: 1,
+    };
 
-//     await controllers.PurchasesHistory.purchaseCart(
-//       "admin",
-//       cartDTO,
-//       1,
-//       paymentDetails,
-//       deliveryDetails
-//     );
+    await controllers.PurchasesHistory.purchaseCart(
+      "admin",
+      cartDTO,
+      1,
+      paymentDetails,
+      deliveryDetails
+    );
 
-//     expect(
-//       controllers.PurchasesHistory.getPurchase(cartPurchase.PurchaseId)
-//     ).toStrictEqual(cartPurchase.ToDTO());
-//   });
+    expect(
+      controllers.PurchasesHistory.getPurchase(cartPurchase.PurchaseId)
+    ).toStrictEqual(cartPurchase.ToDTO());
+  });
 
-// it("❎purchase adaptor returns false", () => {
-//   const cartPurchase = new CartPurchase(
-//     "userId",
-//     "purchaseId",
-//     new Map<string, BasketPurchase>(),
-//     1
-//   );
-//   const basketDTO = {
-//     storeId: "storeId",
-//     products: [
-//       {
-//         storeProductId: "productId",
-//         quantity: 1,
-//       },
-//     ],
-//   };
-//   const StoreIDToBasketMap = new Map<string, BasketDTO>();
-//   StoreIDToBasketMap.set("storeId", basketDTO);
-//   const cartDTO = {
-//     storeIdToBasket: StoreIDToBasketMap,
-//   };
-//   // spy on storeproductrepo getProductById
-//   vi.spyOn(PaymentAdapter, "pay").mockReturnValue(false);
-//   vi.spyOn(
-//     controllers.PurchasesHistory,
-//     "CartPurchaseDTOfromCartDTO"
-//   ).mockReturnValue(cartPurchase.ToDTO());
-//   vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
-//   vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockReturnValue(
-//     true
-//   );
-//   vi.spyOn(controllers.Stores, "decreaseProductQuantity").mockReturnValue();
-//   expect(() =>
-//     controllers.PurchasesHistory.purchaseCart("admin", cartDTO, 1, {
-//       number: "316586",
-//     })
-//   ).toThrow();
-// });
-// it("❎purchase cart with no cart", () => {
-//   const cartPurchase = createCartPurchase();
-//   const basketDTO = {
-//     storeId: "storeId",
-//     products: [
-//       {
-//         storeProductId: "productId",
-//         quantity: 1,
-//       },
-//     ],
-//   };
-//   const StoreIDToBasketMap = new Map<string, BasketDTO>();
-//   StoreIDToBasketMap.set("storeId", basketDTO);
-//   const cartDTO = {
-//     storeIdToBasket: StoreIDToBasketMap,
-//   };
-//   vi.spyOn(
-//     controllers.PurchasesHistory,
-//     "CartPurchaseDTOfromCartDTO"
-//   ).mockReturnValue(Promise.resolve(cartPurchase.ToDTO()));
-//   vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
-//   vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockReturnValue(
-//     true
-//   );
-//   vi.spyOn(controllers.Stores, "decreaseProductQuantity").mockReturnValue();
-//   controllers.PurchasesHistory.purchaseCart("admin", cartDTO, 1, {
-//     number: "316586",
-//   });
+  it("❎purchase adaptor returns false", async () => {
+    const cartPurchase = new CartPurchase(
+      "userId",
+      "purchaseId",
+      new Map<string, BasketPurchase>(),
+      1
+    );
+    const basketDTO = {
+      storeId: "storeId",
+      products: [
+        {
+          storeProductId: "productId",
+          quantity: 1,
+          storeId: "storeId",
+          userId: "userId",
+        },
+      ],
+      userId: "userId",
+    };
+    const StoreIDToBasketMap = new Map<string, BasketDTO>();
+    StoreIDToBasketMap.set("storeId", basketDTO);
+    const cartDTO = {
+      purchaseId: "purchaseId",
+      userId: "userId",
+      storeIdToBasket: StoreIDToBasketMap,
+      totalPrice: 1,
+    };
+    // spy on storeproductrepo getProductById
+    vi.spyOn(
+      controllers.PurchasesHistory,
+      "CartPurchaseDTOfromCartDTO"
+    ).mockReturnValue(Promise.resolve(cartPurchase.ToDTO()));
+    vi.spyOn(PaymentAdapter, "pay").mockImplementation(() => {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "cancel supply failed",
+      });
+    });
 
-//   expect(() =>
-//     controllers.PurchasesHistory.purchaseCart("admin", cartDTO, 1, {
-//       number: "316586",
-//     })
-//   ).toThrow();
-// });
-// });
+    vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
+    vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockReturnValue(
+      Promise.resolve(true)
+    );
+    const paymentDetails: PaymentDetails = {
+      number: "123",
+      month: "3",
+      year: "2023",
+      holder: "admin",
+      ccv: "986",
+      id: "123456789",
+    };
+
+    const deliveryDetails: DeliveryDetails = {
+      name: "admin",
+      address: "admin",
+      city: "admin",
+      country: "admin",
+      zip: "admin",
+    };
+    vi.spyOn(controllers.Stores, "decreaseProductQuantity").mockReturnValue(
+      Promise.resolve()
+    );
+    await expect(() =>
+      controllers.PurchasesHistory.purchaseCart(
+        "admin",
+        cartDTO,
+        1,
+        paymentDetails,
+        deliveryDetails
+      )
+    ).rejects.toThrow();
+  });
+  it("❎purchase cart with no cart", async () => {
+    const cartPurchase = new CartPurchase(
+      "userId",
+      "purchaseId",
+      new Map<string, BasketPurchase>(),
+      1
+    );
+    const basketDTO = {
+      storeId: "storeId",
+      products: [
+        {
+          storeProductId: "productId",
+          quantity: 1,
+          storeId: "storeId",
+          userId: "userId",
+        },
+      ],
+      userId: "userId",
+    };
+    const StoreIDToBasketMap = new Map<string, BasketDTO>();
+    StoreIDToBasketMap.set("storeId", basketDTO);
+    const cartDTO = {
+      purchaseId: "purchaseId",
+      userId: "userId",
+      storeIdToBasket: StoreIDToBasketMap,
+      totalPrice: 1,
+    };
+    vi.spyOn(
+      controllers.Stores,
+      "checkIfBasketSatisfiesStoreConstraints"
+    ).mockReturnValue(Promise.resolve(true));
+    vi.spyOn(
+      controllers.PurchasesHistory,
+      "CartPurchaseDTOfromCartDTO"
+    ).mockReturnValue(Promise.resolve(cartPurchase.ToDTO()));
+    vi.spyOn(CartPurchase, "fromDTO").mockReturnValue(cartPurchase);
+    vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockReturnValue(
+      Promise.resolve(true)
+    );
+    const paymentDetails: PaymentDetails = {
+      number: "123",
+      month: "3",
+      year: "2023",
+      holder: "admin",
+      ccv: "986",
+      id: "123456789",
+    };
+
+    const deliveryDetails: DeliveryDetails = {
+      name: "admin",
+      address: "admin",
+      city: "admin",
+      country: "admin",
+      zip: "admin",
+    };
+    vi.spyOn(controllers.Stores, "decreaseProductQuantity").mockReturnValue(
+      Promise.resolve()
+    );
+    await controllers.PurchasesHistory.purchaseCart(
+      "admin",
+      cartDTO,
+      1,
+      paymentDetails,
+      deliveryDetails
+    );
+
+    await expect(() =>
+      controllers.PurchasesHistory.purchaseCart(
+        "admin",
+        cartDTO,
+        1,
+        paymentDetails,
+        deliveryDetails
+      )
+    ).rejects.toThrow();
+  });
+});

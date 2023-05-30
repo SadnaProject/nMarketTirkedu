@@ -19,6 +19,7 @@ export default defineConfig({
       "**/MemberUserAuth.test.ts",
       // "**/Session.test.ts",
       // "**/JobsController.test.ts",
+      "**/EventsManager.test.ts",
 
       //   // "**/ReviewRepo.test.ts",
       //   // "**/ProductPurchaseHistoryRepo.test.ts",

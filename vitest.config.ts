@@ -3,7 +3,7 @@ import tsconfigPaths from "vitest-tsconfig-paths";
 
 export default defineConfig({
   test: {
-    dir: "src/server/tests",
+    dir: "src/server",
     restoreMocks: true,
     reporters: ["default", "html"],
     outputFile: "./test-results/index.html",
@@ -15,40 +15,32 @@ export default defineConfig({
     include: [
       // all tests that are in domain/purchasesHistory
       //   "**/testingDb.test.ts",
-      "**/AuthController.test.ts",
-      // "**/UserAuthRepo.test.ts",
-
       // "**/AuthController.test.ts",
-      "**/UserAuthRepo.test.ts",
-
+      // "**/UserAuthRepo.test.ts",
       // "**/MemberUserAuth.test.ts",
       // "**/Session.test.ts",
       // "**/JobsController.test.ts",
       // "**/EventsManager.test.ts",
-      // "**/JobsController.test.ts",
-
+      "**/JobsController.test.ts",
+      // "**/EventsManager.test.ts",
       //   // "**/ReviewRepo.test.ts",
       // "**/ProductReviewsRepo.test.ts",
       // "**/checkDB.test.ts",
       //   // "**/User.test.ts",
       //   // "**/Basket.test.ts",
-      // "**/UserRepo.test.ts",
-      // "**/Basket.test.ts",
-      // "**/Cart.test.ts",
-      // "**/UsersController.test.ts",
-      // "**/UsersRepo.test.ts",
+      //   "**/UserRepo.test.ts",
+      //   "**/UserController.test.ts",
 
-      "**/CartPurchaseHistoryRepo.test.ts",
+      // "**/CartPurchaseHistoryRepo.test.ts",
       // "**/PurchasesHistory/**/*.test.ts",
 
-      // "**/NotificationRepSo.test.ts",
-
+      // "**/PurchasesHistoryController.test.ts",
       // "**/StoreRepo.test.ts",
       // "**/StoresController.test.ts",
       // "**/Store.test.ts",
       // "**/StoreProduct.test.ts",
       // "**/BasketPurchaseHistoryRepo.test.ts",
-      "**/PurchasesHistoryController.test.ts",
+      //"**/PurchasesHistoryController.test.ts",
     ],
     //make the tests run in an order and not in parallel
     threads: false,

@@ -101,9 +101,17 @@ describe("BasketPurchaseDTOFromBasketDTO", () => {
     };
     const basketDTO = {
       storeId: "storeId",
-      products: [basketProductDTO],
+      purchaseId: "purchaseId",
+      price: 1,
+      products: [
+        {
+          storeProductId: "productId",
+          quantity: 1,
+          storeId: "storeId",
+          userId: "userId",
+        },
+      ],
       userId: "userId",
-      storeId: "storeId",
     };
     vi.spyOn(
       controllers.PurchasesHistory,

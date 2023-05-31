@@ -9,6 +9,7 @@ import * as R from "ramda";
 import { Testable, testable } from "server/helpers/_Testable";
 import { HasControllers } from "../helpers/_HasController";
 import { censored } from "../helpers/_Loggable";
+import { getDB } from "server/helpers/_Transactional";
 
 export interface IUsersController {
   /**
@@ -306,6 +307,7 @@ export class UsersController
       password
     );
     //TODO delete guestId from users(only in this component, Auth component will handle his part)
+    await this.Repos.Users.removeUser(guestId);
     await this.Repos.Users.getUser(MemberId);
     return MemberId;
   }

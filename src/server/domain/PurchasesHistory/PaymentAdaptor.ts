@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { getHost } from "../helpers/hostname";
+import fetch from "node-fetch";
 import { z } from "zod";
 
 export class PaymentAdapter {

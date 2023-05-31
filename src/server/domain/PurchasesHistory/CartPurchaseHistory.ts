@@ -3,7 +3,7 @@ import {
   type BasketPurchaseDTO,
 } from "./BasketPurchaseHistory";
 import { HasRepos } from "./helpers/_HasRepos";
-import { CartPurchaseDAO } from "./helpers/TypeHelper";
+import { type CartPurchaseDAO } from "./helpers/TypeHelper";
 
 // TODO: Does a class need to know its related id, or should the parent hold a map for it?
 

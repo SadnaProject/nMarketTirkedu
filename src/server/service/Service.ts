@@ -7,7 +7,7 @@ import {
 } from "server/domain/Stores/StoreProduct";
 import { type PaymentDetails } from "server/domain/PurchasesHistory/PaymentAdaptor";
 import { type StoreDTO } from "server/domain/Stores/Store";
-import { Permission, type RoleType } from "server/domain/Jobs/Role";
+import { type Permission, type RoleType } from "server/domain/Jobs/Role";
 import { type PositionHolderDTO } from "server/domain/Jobs/PositionHolder";
 import { type ICondition } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
 import { type IDiscount } from "server/domain/Stores/DiscountPolicy/Discount";

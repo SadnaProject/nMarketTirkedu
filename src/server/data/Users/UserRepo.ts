@@ -88,6 +88,9 @@ export class UserRepo extends Testable {
         });
       }
     }
+    await getDB().basketProduct.deleteMany({ where: { userId: id } });
+    await getDB().basket.deleteMany({ where: { userId: id } });
+    await getDB().cart.delete({ where: { userId: id } });
     await getDB().user.delete({ where: { id: id } });
     this.users.delete(id);
   }

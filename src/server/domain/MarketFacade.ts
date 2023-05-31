@@ -22,6 +22,7 @@ import { type PositionHolderDTO } from "./Jobs/PositionHolder";
 import { Loggable, censored, loggable } from "./helpers/_Loggable";
 import { createControllers } from "./helpers/_createControllers";
 import { type Controllers } from "./helpers/_HasController";
+import { eventEmitter } from "./helpers/_EventEmitter";
 
 // @transactional
 @loggable
@@ -105,6 +106,7 @@ export class MarketFacade extends Loggable {
   public getNotifications(userId: string) {
     this.validateConnection(userId);
     return this.controllers.Users.getNotifications(userId);
+    //return eventEmitter.getUnreadNotifications(userId); // todo fix
   }
 
   public purchaseCart(
@@ -226,7 +228,7 @@ export class MarketFacade extends Loggable {
     targetUserId: string
   ) {
     this.validateConnection(currentId);
-    console.log("makeStoreOwner");
+    // console.log("makeStoreOwner");
     await this.controllers.Stores.makeStoreOwner(
       currentId,
       storeId,

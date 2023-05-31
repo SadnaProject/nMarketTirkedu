@@ -15,6 +15,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Modal } from "components/modal";
 import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import Spinner from "components/spinner";
 
 // const product = {
 //   id: "6e259065-7899-4667-bbd0-b9366443896d",
@@ -27,11 +29,25 @@ import { useRouter } from "next/router";
 // };
 
 const formSchema = z.object({
-  creditCardNumber: z
-    .string()
-    .min(16, "Credit card number is too short")
-    .max(16, "Credit card number is too long")
-    .regex(/^\d+$/, "Invalid credit card number"),
+  deliveryDetails: z.object({
+    address: z.string(),
+    city: z.string(),
+    country: z.string(),
+    name: z.string(),
+    zip: z.string(),
+  }),
+  payment: z.object({
+    creditCardNumber: z
+      .string()
+      .min(16, "Credit card number is too short")
+      .max(16, "Credit card number is too long")
+      .regex(/^\d+$/, "Invalid credit card number"),
+    month: z.string(),
+    year: z.string(),
+    holder: z.string(),
+    ccv: z.string(),
+    id: z.string(), // todo??
+  }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -49,8 +65,13 @@ export default function Home() {
   const router = useRouter();
   const { mutate: purchaseCart } = api.users.purchaseCart.useMutation({
     ...cachedQueryOptions,
-    onSuccess: (receiptId) => router.push(PATHS.receipt.path(receiptId)),
+    onSuccess: (ids) =>
+      router.push(PATHS.receipt.path(ids.paymentTransactionId.toString())),
   });
+  const { data: cartPrice } = api.stores.getCartPrice.useQuery(
+    undefined,
+    cachedQueryOptions
+  );
 
   const handlePurchase = handleSubmit((data) => {
     purchaseCart(data);
@@ -82,11 +103,12 @@ export default function Home() {
                         className="group flex w-fit items-center text-slate-700"
                       >
                         <h2 className="transition-all group-hover:mr-1">
-                          {basket.store.name}
+                          {basket.storeId}
+                          {/* todo */}
                         </h2>
                         <RightIcon />
                       </Link>
-                      <Price price={95451.89} className="text-slate-700" />
+                      {/* <Price price={95451.89} className="text-slate-700" /> */}
                     </div>
                     {basket.products.map((product) => (
                       <Card key={product.storeProductId}>
@@ -95,7 +117,8 @@ export default function Home() {
                           className="group flex w-fit items-center text-slate-700"
                         >
                           <h3 className="text-lg font-bold transition-all group-hover:mr-1">
-                            {product.name}
+                            {product.storeProductId}
+                            {/* todo */}
                           </h3>
                           <RightIcon className="h-5 w-5" />
                         </Link>
@@ -103,13 +126,13 @@ export default function Home() {
                           <ItemsIcon />
                           {product.quantity} items
                         </span>
-                        <Collapse id={`desc-${product.storeProductId}`}>
+                        {/* <Collapse id={`desc-${product.storeProductId}`}>
                           {product.description}
                         </Collapse>
                         <div className="flex flex-col items-center justify-between md:flex-row">
-                          <Price price={product.price} />
+                          <Price price={product.price} /> todo
                           <Rating rating={product.rating} />
-                        </div>
+                        </div> */}
                       </Card>
                     ))}
                   </>
@@ -117,7 +140,7 @@ export default function Home() {
               )}
               <div className="flex gap-10 self-center">
                 <span className="text-2xl font-bold">Total</span>
-                <Price price={product.price * 3.2} />
+                <Price price={cartPrice ?? 0} />
               </div>
               <div className="self-center">
                 <Button
@@ -134,15 +157,85 @@ export default function Home() {
         id={"hs-modal-purchase"}
         title="Confirm purchase"
         content={
-          <FormInput
-            {...register("creditCardNumber")}
-            errors={errors}
-            field="creditCardNumber"
-            label="Credit Card Number"
-          />
+          <>
+            <FormInput
+              {...register("payment.creditCardNumber")}
+              errors={errors}
+              field="payment.creditCardNumber"
+              label="Credit Card Number"
+            />
+            <FormInput
+              {...register("payment.month")}
+              errors={errors}
+              field="payment.month"
+              label="Month"
+            />
+            <FormInput
+              {...register("payment.year")}
+              errors={errors}
+              field="payment.year"
+              label="Year"
+            />
+            <FormInput
+              {...register("payment.ccv")}
+              errors={errors}
+              field="payment.ccv"
+              label="CCV"
+            />
+            <FormInput
+              {...register("payment.holder")}
+              errors={errors}
+              field="payment.holder"
+              label="Holder Name"
+            />
+            <FormInput
+              {...register("payment.id")}
+              errors={errors}
+              field="payment.id"
+              label="Holder ID"
+            />
+            {/*  */}
+            <FormInput
+              {...register("deliveryDetails.name")}
+              errors={errors}
+              field="deliveryDetails.name"
+              label="Name"
+            />
+            <FormInput
+              {...register("deliveryDetails.country")}
+              errors={errors}
+              field="deliveryDetails.country"
+              label="Country"
+            />
+            <FormInput
+              {...register("deliveryDetails.city")}
+              errors={errors}
+              field="deliveryDetails.city"
+              label="City"
+            />
+            <FormInput
+              {...register("deliveryDetails.address")}
+              errors={errors}
+              field="deliveryDetails.address"
+              label="Address"
+            />
+            <FormInput
+              {...register("deliveryDetails.zip")}
+              errors={errors}
+              field="deliveryDetails.zip"
+              label="Zip"
+            />
+          </>
         }
         footer={
-          <Button onClick={() => void handlePurchase()}>Purchase Cart</Button>
+          <Button
+            onClick={() => {
+              console.log(errors);
+              void handlePurchase();
+            }}
+          >
+            Purchase Cart
+          </Button>
         }
       />
     </Layout>

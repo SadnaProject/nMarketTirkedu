@@ -3,7 +3,8 @@ import tsconfigPaths from "vitest-tsconfig-paths";
 
 export default defineConfig({
   test: {
-    dir: "src/server",
+
+    dir: "src/server/",
     restoreMocks: true,
     reporters: ["default", "html"],
     outputFile: "./test-results/index.html",
@@ -12,7 +13,6 @@ export default defineConfig({
       provider: "istanbul",
       reporter: ["lcov", "html"],
     },
-
     //make the tests run in an order and not in parallel
     threads: false,
     testTimeout: 100000,

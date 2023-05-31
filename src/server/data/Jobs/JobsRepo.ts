@@ -65,7 +65,7 @@ export class JobsRepo extends Testable {
       (await getDB().role.findMany({ where: { roleType: RoleType.Founder } }))
         .length == 0
     ) {
-      console.log("creating founder role");
+      // console.log("creating founder role");
       await getDB().role.create({
         data: {
           //TODO change this to just use founderRole
@@ -194,7 +194,7 @@ export class JobsRepo extends Testable {
     try {
       return await this.getPositionHolderFromDB(storeId, userId);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       return undefined;
     }
     // return await this.getPositionHolderFromDB(storeId, userId);

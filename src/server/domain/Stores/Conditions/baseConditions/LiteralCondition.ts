@@ -1,6 +1,6 @@
 import { type FullBasketDTO } from "../../StoresController";
 import {
-  ConditionArgs,
+  type ConditionArgs,
   type conditionType,
 } from "../CompositeLogicalCondition/Condition";
 

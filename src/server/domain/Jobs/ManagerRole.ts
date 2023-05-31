@@ -36,7 +36,7 @@ export class ManagerRole extends Role {
         message: "The role already has this permission",
       });
     else {
-      console.log(this.ID);
+      // console.log(this.ID);
       await getDB().role.update({
         where: { id: this.id },
         data: { permissions: { push: permission } },

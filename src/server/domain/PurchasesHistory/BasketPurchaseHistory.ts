@@ -4,7 +4,7 @@ import {
   ProductPurchase,
 } from "./ProductPurchaseHistory";
 import { type ReviewDTO, Review } from "./Review";
-import { BasketPurchaseDAO } from "./helpers/TypeHelper";
+import { type BasketPurchaseDAO } from "./helpers/TypeHelper";
 
 export type BasketPurchaseDTO = {
   purchaseId: string;

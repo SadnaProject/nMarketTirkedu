@@ -13,6 +13,10 @@ import { type StoreProduct as StoreProductDAO } from "@prisma/client";
 import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
 import { ConstraintPolicy } from "./PurchasePolicy/ConstraintPolicy";
 import { createMockControllers } from "../helpers/_createControllers";
+import { resetDB } from "server/helpers/_Transactional";
+beforeEach(async () => {
+  await resetDB();
+});
 
 describe("search products", () => {
   let repos: Repos;

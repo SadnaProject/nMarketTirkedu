@@ -14,4 +14,7 @@ export class Constraint {
   public isSatisfiedBy(basket: FullBasketDTO): boolean {
     return this.condition.isSatisfiedBy(basket);
   }
+  public getArgs(): ConditionArgs {
+    return this.condition.getArgs();
+  }
 }

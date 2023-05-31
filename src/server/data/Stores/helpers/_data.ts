@@ -67,9 +67,7 @@ export async function createStore(
     .initRepos(repos)
     .initControllers(controllers);
   vi.spyOn(repos.Stores, "addStore").mockReturnValue(
-    new Promise<void>((resolve) => {
-      resolve();
-    })
+    createPromise(store.Id)
   );
   await repos.Stores.addStore(storeName, store.Id);
   return store;

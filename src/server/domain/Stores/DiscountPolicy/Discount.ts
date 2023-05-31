@@ -38,6 +38,7 @@ export const discountArgsSchema: z.ZodType<DiscountArgs> = z.union([
 ]);
 export interface IDiscount {
   calculateDiscount(basket: FullBasketDTO): FullBasketDTO;
+  getArgs(): DiscountArgs;
 }
 
 export class Discount implements IDiscount {
@@ -67,6 +68,15 @@ export class Discount implements IDiscount {
       });
     }
     return basket;
+  }
+  public getArgs(): SimpleDiscountArgs {
+    return {
+      amount: this.amount,
+      condition: this.condition.getArgs(),
+      discountOn: this.discountOn,
+      searchFor: this.searchFor,
+      type: "Simple",
+    };
   }
 }
 
@@ -98,6 +108,13 @@ export class MaxBetweenDiscount implements IDiscount {
     });
     return firstPrice < secondPrice ? firstBasket : secondBasket;
   }
+  public getArgs(): CompositeDiscountArgs {
+    return {
+      left: this.first.getArgs(),
+      right: this.second.getArgs(),
+      type: "Max",
+    };
+  }
 }
 export class addBetweenDiscount implements IDiscount {
   first: IDiscount;
@@ -108,6 +125,13 @@ export class addBetweenDiscount implements IDiscount {
   }
   public calculateDiscount(basket: FullBasketDTO) {
     return this.second.calculateDiscount(this.first.calculateDiscount(basket));
+  }
+  public getArgs(): CompositeDiscountArgs {
+    return {
+      left: this.first.getArgs(),
+      right: this.second.getArgs(),
+      type: "Add",
+    };
   }
 }
 

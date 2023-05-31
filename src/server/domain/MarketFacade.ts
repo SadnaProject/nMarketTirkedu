@@ -600,17 +600,11 @@ export class MarketFacade extends Loggable {
   async getMemberIdByEmail(email: string): Promise<string> {
     return await this.controllers.Auth.getMemberIdByEmail(email);
   }
-  async getStoreDiscounts(
-    userId: string,
-    storeId: string
-  ): Promise<Map<string, IDiscount>> {
+  async getStoreDiscounts(userId: string, storeId: string) {
     this.validateConnection(userId);
     return await this.controllers.Stores.getDiscountPolicy(userId, storeId);
   }
-  async getStoreConstraints(
-    userId: string,
-    storeId: string
-  ): Promise<Map<string, ICondition>> {
+  async getStoreConstraints(userId: string, storeId: string) {
     this.validateConnection(userId);
     return await this.controllers.Stores.getConstraintPolicy(userId, storeId);
   }

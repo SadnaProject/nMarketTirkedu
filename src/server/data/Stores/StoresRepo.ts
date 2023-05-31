@@ -6,9 +6,15 @@ import { type ConditionArgs } from "server/domain/Stores/Conditions/CompositeLog
 import { ConstraintPolicy } from "server/domain/Stores/PurchasePolicy/ConstraintPolicy";
 import { DiscountPolicy } from "server/domain/Stores/DiscountPolicy/DiscountPolicy";
 import { type DiscountArgs } from "server/domain/Stores/DiscountPolicy/Discount";
-
+import { createPromise } from "./helpers/_data";
+export type storeCache = {
+  store: DataStore;
+  counter: number;
+};
 @testable
 export class StoresRepo extends Testable {
+  fake_store_cache = new Map<string, storeCache>();
+  counter = 0;
   constructor() {
     super();
   }
@@ -21,6 +27,7 @@ export class StoresRepo extends Testable {
         isActive: true,
       },
     });
+    return storeId;
   }
   public async getAllNames() {
     const stores = await getDB().store.findMany({
@@ -46,6 +53,11 @@ export class StoresRepo extends Testable {
   }
 
   public async getStoreById(storeId: string) {
+    const storeFromCache = this.fake_store_cache.get(storeId)?.store;
+    if (storeFromCache !== undefined) {
+      return storeFromCache;
+    }
+
     const store = await getDB().store.findUnique({
       where: {
         id: storeId,
@@ -57,6 +69,28 @@ export class StoresRepo extends Testable {
         message: "Store not found",
       });
     }
+    if (this.fake_store_cache.size === 10) {
+      /// find the min counter in the cache and delete it
+      let min = Infinity;
+      let minKey = "";
+      for (const [key, value] of this.fake_store_cache.entries()) {
+        if (value.counter < min) {
+          min = value.counter;
+          minKey = key;
+        }
+      }
+      this.fake_store_cache.delete(minKey);
+      //set the new store
+      this.fake_store_cache.set(storeId, {
+        store,
+        counter: this.counter,
+      });
+    }else{
+      this.fake_store_cache.set(storeId, {
+        store,
+        counter: this.counter,
+      });}
+      this.counter++;
     return store;
   }
   public async getConstraints(storeId: string): Promise<ConstraintPolicy> {

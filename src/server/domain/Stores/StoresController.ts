@@ -311,11 +311,11 @@ export interface IStoresController extends HasRepos {
   getDiscountPolicy(
     userId: string,
     storeId: string
-  ): Promise<Map<string, IDiscount>>;
+  ): Promise<Map<string, DiscountArgs>>;
   getConstraintPolicy(
     userId: string,
     storeId: string
-  ): Promise<Map<string, ICondition>>;
+  ): Promise<Map<string, ConditionArgs>>;
   getStoreNameById(userId: string, storeId: string): Promise<string>;
 }
 
@@ -1045,7 +1045,7 @@ export class StoresController
   async getConstraintPolicy(
     userId: string,
     storeId: string
-  ): Promise<Map<string, ICondition>> {
+  ): Promise<Map<string, ConditionArgs>> {
     return (
       await Store.fromStoreId(storeId, this.Repos, this.Controllers)
     ).ConstraintPolicy.getConstraints();
@@ -1053,7 +1053,7 @@ export class StoresController
   async getDiscountPolicy(
     userId: string,
     storeId: string
-  ): Promise<Map<string, IDiscount>> {
+  ): Promise<Map<string, DiscountArgs>> {
     return (
       await Store.fromStoreId(storeId, this.Repos, this.Controllers)
     ).DiscountPolicy.getDiscounts();

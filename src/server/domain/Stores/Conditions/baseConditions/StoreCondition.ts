@@ -22,4 +22,13 @@ export class StoreCondition implements ILiteralCondition {
     });
     return standInTheTypeCondition(this.conditionType, count, this.amount);
   }
+  public getArgs(): LiteralArgs {
+    return {
+      amount: this.amount,
+      conditionType: this.conditionType,
+      searchFor: "",
+      subType: "Store",
+      type: "Literal",
+    };
+  }
 }

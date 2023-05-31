@@ -47,4 +47,5 @@ export const conditionSchema: z.ZodType<ConditionArgs> = z.union([
 ]);
 export interface ICondition {
   isSatisfiedBy(basket: FullBasketDTO): boolean;
+  getArgs(): ConditionArgs;
 }

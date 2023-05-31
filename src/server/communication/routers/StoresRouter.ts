@@ -7,6 +7,8 @@ import {
 import { observable } from "@trpc/server/observable";
 import { service } from "../helpers/_service";
 import { eventEmitter } from "server/domain/helpers/_EventEmitter";
+import { discountArgsSchema } from "server/domain/Stores/DiscountPolicy/Discount";
+import { conditionSchema } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
 
 export const StoresRouter = createTRPCRouter({
   makeStoreOwner: validSessionProcedure
@@ -507,5 +509,23 @@ export const StoresRouter = createTRPCRouter({
     .input(z.object({ storeId: z.string() }))
     .query(({ input, ctx }) => {
       return service.getStoreNameById(ctx.session.user.id, input.storeId);
+    }),
+  addDiscountToStore: validSessionProcedure
+    .input(z.object({ storeId: z.string(), discount: discountArgsSchema }))
+    .query(({ input, ctx }) => {
+      return service.addDiscountToStore(
+        ctx.session.user.id,
+        input.storeId,
+        input.discount
+      );
+    }),
+  addConstraintToStore: validSessionProcedure
+    .input(z.object({ storeId: z.string(), constraint: conditionSchema }))
+    .query(({ input, ctx }) => {
+      return service.addConstraintToStore(
+        ctx.session.user.id,
+        input.storeId,
+        input.constraint
+      );
     }),
 });

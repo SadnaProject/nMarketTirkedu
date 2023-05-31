@@ -9,6 +9,7 @@ import { service } from "../helpers/_service";
 import { observable } from "@trpc/server/observable";
 import { eventEmitter } from "server/domain/helpers/_EventEmitter";
 import { type Event } from "server/domain/helpers/_Events";
+import { BidArgs } from "server/domain/Users/Bid";
 
 export const UsersRouter = createTRPCRouter({
   addProductToCart: validSessionProcedure
@@ -198,4 +199,21 @@ export const UsersRouter = createTRPCRouter({
       };
     });
   }),
+  addBid: validSessionProcedure
+    .input(
+      z.object({
+        price: z.number().nonnegative(),
+        productId: z.string().uuid(),
+        type: z.literal("Store"),
+      })
+    )
+    .mutation(({ input, ctx }) => {
+      const { productId, price, type } = input;
+      return service.addBid({
+        userId: ctx.session.user.id,
+        productId,
+        price,
+        type,
+      });
+    }),
 });

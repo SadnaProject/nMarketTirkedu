@@ -7,10 +7,36 @@ import { RoleType } from "@prisma/client";
 @testable
 export class JobsRepo extends Testable {
   private storeIdToFounder = new Map<string, PositionHolder>();
+  private cacheQueue: string[];
   private systemAdminIds: string[];
   constructor() {
     super();
     this.systemAdminIds = [];
+    this.cacheQueue = [];
+  }
+  private addToCache(storeId: string, positionHolder: PositionHolder) {
+    const cacheSize = 10;
+    const index = this.cacheQueue.findIndex((storeId) => storeId === storeId);
+    if (index !== -1) {
+      // If the user is already in the cache, move it to the end of the queue
+      this.cacheQueue.splice(index, 1);
+    } else if (this.cacheQueue.length >= cacheSize) {
+      // If the cache is full, remove the oldest user from the queue
+      const storeIdToRemove = this.cacheQueue.shift();
+      this.storeIdToFounder.delete(storeIdToRemove!);
+    }
+    if (this.storeIdToFounder.get(storeId) === undefined) {
+      this.storeIdToFounder.set(storeId, positionHolder);
+    }
+    // Add the user to the end of the queue
+    this.cacheQueue.push(storeId);
+  }
+  private removeFromCache(storeId: string) {
+    const index = this.cacheQueue.findIndex((storeId) => storeId === storeId);
+    if (index !== -1) {
+      this.cacheQueue.splice(index, 1);
+    }
+    this.storeIdToFounder.delete(storeId);
   }
   public async getAllStoreIds(): Promise<string[]> {
     const allStoreIds = (
@@ -34,8 +60,6 @@ export class JobsRepo extends Testable {
   }
 
   public async SetStoreFounder(founder: PositionHolder): Promise<void> {
-    //todo: delete the row below
-    // this.storeIdToFounder.set(founder.StoreId, founder);
     //todo: there needs to only one founder role in the db
     if (
       (await getDB().role.findMany({ where: { roleType: RoleType.Founder } }))
@@ -58,6 +82,7 @@ export class JobsRepo extends Testable {
         roleId: RoleType.Founder,
       },
     });
+    this.addToCache(founder.StoreId, founder);
   }
 
   // public async GetStoreFounder(storeId: string): Promise<PositionHolder> {
@@ -98,6 +123,7 @@ export class JobsRepo extends Testable {
         dbPositionHolder.storeId,
         dbPositionHolder.userId
       );
+      this.addToCache(founder.StoreId, founder);
       return founder;
     }
     return founder;

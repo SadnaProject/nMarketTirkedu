@@ -11,6 +11,7 @@
     "db-config": "prisma db push --accept-data-loss --force-reset && prisma generate && pnpm db-seed",
     "db-push": "prisma db push --accept-data-loss && prisma generate",
     "db-seed": "cross-env PORT=3002 NODE_ENV=development tsx prisma/configurationFile.ts --tsconfig tsconfig.json",
+    "db-Init_file_case1Meeting": "cross-env PORT=3002 NODE_ENV=development tsx prisma/Init_file_case1Meeting.ts --tsconfig tsconfig.json",
     "studio": "prisma studio",
     "lint-fix": "eslint --fix ./src && prettier --write ./src",
     "gen-test": "npx playwright codegen localhost:3000",

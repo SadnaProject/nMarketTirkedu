@@ -1,14 +1,22 @@
 import EventEmitter from "events";
+import { Channel, Event } from "../helpers/_Events";
+import {
+  NotificationsRepo,
+  Notification,
+} from "server/data/Notifications/NotificationsRepo";
+import { randomUUID } from "crypto";
 
 export class EventManager {
   private eventEmitter: EventEmitter;
   private onlineUsers: Map<string, (msg: Event) => void>;
   private channelToUsers: Map<string, string[]>;
+  private notificationsRepo: NotificationsRepo;
 
   constructor() {
     this.eventEmitter = new EventEmitter();
     this.onlineUsers = new Map<string, (msg: Event) => void>();
     this.channelToUsers = new Map<string, string[]>();
+    this.notificationsRepo = new NotificationsRepo();
   }
 
   public subscribeChannel(channel: Channel, userId: string) {
@@ -37,6 +45,14 @@ export class EventManager {
 
   public emitEvent(event: Event) {
     this.eventEmitter.emit(event.channel, event);
+    for (const userId of this.channelToUsers.get(event.channel) || []) {
+      // check if the user is online
+      this.notificationsRepo.addNotification(userId, {
+        ...event,
+        isRead: this.onlineUsers.has(userId),
+        id: randomUUID(),
+      });
+    }
   }
 
   public subscribeUser(userId: string, callback: (msg: Event) => void) {
@@ -60,27 +76,4 @@ export class EventManager {
       }
     });
   }
-
-  public getStorePurchaseEventString(storeId: string): string {
-    return `storePurchase_${storeId}`;
-  }
-  public getStoreChangedEventString(storeId: string): string {
-    return `storeChanged_${storeId}`;
-  }
 }
-
-export type Event =
-  | {
-      channel: `storePurchase_${string}`;
-      type: "storePurchase";
-      storeId: string;
-      // more data
-    }
-  | {
-      channel: `storeChanged_${string}`;
-      type: "storeChanged";
-      storeId: string;
-      // more data
-    };
-
-type Channel = Event["channel"];

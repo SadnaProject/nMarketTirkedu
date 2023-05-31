@@ -1,5 +1,4 @@
 import { TRPCError } from "@trpc/server";
-import fetch from "node-fetch";
 import { getHost } from "../helpers/hostname";
 import { z } from "zod";
 
@@ -28,12 +27,9 @@ export class PaymentAdapter {
     paymentDetails: PaymentDetails,
     price: number
   ): Promise<number> {
+    const body = `action_type=pay&card_number=${paymentDetails.number}&month=${paymentDetails.month}&year=${paymentDetails.year}&holder=${paymentDetails.holder}&ccv=${paymentDetails.ccv}&id=${paymentDetails.id}`;
     const res = await fetch(
-      `${getHost()}/api/external?method=POST&body=action_type=pay&card_number=${
-        paymentDetails.number
-      }&month=${paymentDetails.month}&year=${paymentDetails.year}&holder=${
-        paymentDetails.holder
-      }&ccv=${paymentDetails.ccv}&id=${paymentDetails.id}`
+      `${getHost()}/api/external?method=POST&body=${encodeURIComponent(body)}`
     );
     const txt = await res.text();
     const data = this.parseStringFromPaymentService(txt);
@@ -47,8 +43,9 @@ export class PaymentAdapter {
   }
 
   static async cancelPayment(transactionId: string) {
+    const body = `action_type=cancel_pay&transaction_id=${transactionId}`;
     const res = await fetch(
-      `${getHost()}/api/external?method=POST&body=action_type=cancel_pay&transaction_id=${transactionId}`
+      `${getHost()}/api/external?method=POST&body=${encodeURIComponent(body)}`
     );
     const txt = await res.text();
     const data = this.parseStringFromPaymentService(txt);

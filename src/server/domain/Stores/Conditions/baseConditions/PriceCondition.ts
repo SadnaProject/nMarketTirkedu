@@ -25,4 +25,13 @@ export class PriceCondition implements ILiteralCondition {
     });
     return standInTheTypeCondition(this.conditionType, price, this.amount);
   }
+  public getArgs(): LiteralArgs {
+    return {
+      amount: this.amount,
+      conditionType: this.conditionType,
+      searchFor: "",
+      subType: "Price",
+      type: "Literal",
+    };
+  }
 }

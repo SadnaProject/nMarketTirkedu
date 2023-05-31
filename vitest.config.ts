@@ -13,6 +13,7 @@ export default defineConfig({
       reporter: ["lcov", "html"],
     },
     include: [
+      // all tests that are in domain/purchasesHistory
       //   "**/testingDb.test.ts",
       // "**/AuthController.test.ts",
       // "**/UserAuthRepo.test.ts",
@@ -21,7 +22,7 @@ export default defineConfig({
       // "**/JobsController.test.ts",
 
       //   // "**/ReviewRepo.test.ts",
-      //   // "**/ProductPurchaseHistoryRepo.test.ts",
+      // "**/ProductReviewsRepo.test.ts",
       // "**/checkDB.test.ts",
       //   // "**/User.test.ts",
       //   // "**/Basket.test.ts",
@@ -31,10 +32,16 @@ export default defineConfig({
       // "**/UsersController.test.ts",
       // "**/UsersRepo.test.ts",
 
-      // "**/BasketPurchaseHistoryRepo.test.ts",
+      // "**/CartPurchaseHistoryRepo.test.ts",
+      // "**/PurchasesHistory/**/*.test.ts",
 
+      "**/PurchasesHistoryController.test.ts",
+      // "**/StoreRepo.test.ts",
+      // "**/StoresController.test.ts",
+      // "**/Store.test.ts",
+      // "**/StoreProduct.test.ts",
+      // "**/BasketPurchaseHistoryRepo.test.ts",
       //"**/PurchasesHistoryController.test.ts",
-      "**/Owner.test.ts",
     ],
     //make the tests run in an order and not in parallel
     threads: false,

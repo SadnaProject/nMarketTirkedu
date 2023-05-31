@@ -1,5 +1,9 @@
 import { type FullBasketDTO } from "../../StoresController";
-import { type CompositeArgs, type ICondition } from "./Condition";
+import {
+  ConditionArgs,
+  type CompositeArgs,
+  type ICondition,
+} from "./Condition";
 import { buildCondition } from "./_typeDictionary";
 
 export class XORCondition implements ICondition {
@@ -15,5 +19,13 @@ export class XORCondition implements ICondition {
         !this.second.isSatisfiedBy(basket)) ||
       (!this.first.isSatisfiedBy(basket) && this.second.isSatisfiedBy(basket))
     );
+  }
+  public getArgs(): ConditionArgs {
+    return {
+      left: this.first.getArgs(),
+      right: this.second.getArgs(),
+      subType: "Implies",
+      type: "Composite",
+    };
   }
 }

@@ -374,16 +374,10 @@ export class Service {
   getMemberIdByEmail(email: string): Promise<string> {
     return this.facade.getMemberIdByEmail(email);
   }
-  getStoreConstraints(
-    userId: string,
-    storeId: string
-  ): Promise<Map<string, ICondition>> {
+  getStoreConstraints(userId: string, storeId: string) {
     return this.facade.getStoreConstraints(userId, storeId);
   }
-  getStoreDiscounts(
-    userId: string,
-    storeId: string
-  ): Promise<Map<string, IDiscount>> {
+  getStoreDiscounts(userId: string, storeId: string) {
     return this.facade.getStoreDiscounts(userId, storeId);
   }
   getStoreNameById(userId: string, storeId: string): Promise<string> {

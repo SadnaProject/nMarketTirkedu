@@ -1,5 +1,6 @@
 import { type FullBasketDTO } from "../../StoresController";
 import {
+  ConditionArgs,
   type conditionType,
   type TimeArgs,
   type TimeConditionType,
@@ -110,5 +111,15 @@ export class DateCondition implements ILiteralCondition {
   protected checkIfHourEqual(): boolean {
     const date = new Date();
     return this.hour === undefined || date.getHours() === this.hour;
+  }
+  public getArgs(): TimeArgs {
+    return {
+      conditionType: this.timeCondition,
+      day: this.day,
+      hour: this.hour,
+      month: this.month,
+      type: "Time",
+      year: this.year,
+    };
   }
 }

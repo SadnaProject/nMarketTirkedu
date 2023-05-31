@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Store } from "./Store";
 import { createMockRepos, createTestRepos } from "./helpers/_HasRepos";
 import { type BasketDTO } from "../Users/Basket";
@@ -24,6 +24,7 @@ import {
 import { StoresRepo } from "server/data/Stores/StoresRepo";
 import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
 import { ConstraintPolicy } from "./PurchasePolicy/ConstraintPolicy";
+import { resetDB } from "server/helpers/_Transactional";
 
 async function generateForDiscountAndConstraintTests(testType: string) {
   const controllers = createTestControllers(testType, "Stores");
@@ -143,6 +144,12 @@ async function generateForDiscountAndConstraintTests(testType: string) {
     product2BasketQuantity,
   };
 }
+
+//before each reset db
+beforeEach(async () => {
+  await resetDB();
+});
+
 describe("constructor", () => {
   itUnitIntegration("✅creates a store", async (testType) => {
     const storeName = generateStoreName();

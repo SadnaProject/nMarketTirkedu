@@ -9,7 +9,13 @@ import { MemberUserAuth } from "./MemberUserAuth";
 import { GuestUserAuth } from "./GuestUserAuth";
 import { itUnitIntegration } from "../helpers/_mock";
 import { AuthController } from "./AuthController";
-import { resetDB } from "../_Transactional";
+import { resetDB } from "server/helpers/_Transactional";
+import { JobsController } from "../Jobs/JobsController";
+import { Controllers } from "../helpers/_HasController";
+import {
+  createMockControllers,
+  createTestControllers,
+} from "../helpers/_createControllers";
 
 export function createMember(name: string, password: string) {
   return MemberUserAuth.create(name, password);
@@ -25,7 +31,7 @@ function getGuestI(i: number): GuestUserAuth {
   return GuestUserAuth.create();
 }
 let repos: Repos;
-let controllers: { Auth: AuthController };
+let controllers: Controllers;
 function generateEmailI(i: number): string {
   return "user" + i.toString() + "@email.com";
 }
@@ -35,7 +41,7 @@ function generatePasswordI(i: number): string {
 beforeEach(async () => {
   repos = createMockRepos();
   await resetDB();
-  controllers = { Auth: new AuthController() };
+  controllers = createTestControllers("integration", "Auth");
 });
 describe("starts session", () => {
   itUnitIntegration("✅starts session", async (testType) => {
@@ -189,34 +195,47 @@ describe("login member", () => {
   });
 });
 //TODO resolve sessions and then run this test
-// describe("get all members", () => {
-//   itUnitIntegration("✅gets all logged in/out members", async (testType) => {
-//     testType = "integration";
-//     repos = createTestRepos(testType);
-//     controllers.Auth.initRepos(repos);
-//     await db.userAuth.deleteMany({});
+describe("get all members", () => {
+  itUnitIntegration("✅gets all logged in/out members", async (testType) => {
+    testType = "integration";
+    repos = createTestRepos(testType);
+    controllers.Auth.initRepos(repos);
 
-//     await controllers.Auth.register(generateEmailI(1), generatePasswordI(1));
-//     await controllers.Auth.register(generateEmailI(2), generatePasswordI(2));
-//     // expect(controllers.Auth.getAllLoggedOutMembersIds().length).toEqual(2);
-//     // expect(controllers.Auth.getAllLoggedInMembersIds().length).toEqual(0);
-//     let allLoggedOutMembersIds =
-//       await controllers.Auth.getAllLoggedOutMembersIds();
-//     let allLoggedInMembersIds =
-//       await controllers.Auth.getAllLoggedInMembersIds();
-//     expect(allLoggedOutMembersIds.length).toEqual(2);
-//     expect(allLoggedInMembersIds.length).toEqual(0);
-//     const guestId = controllers.Auth.startSession();
-//     await controllers.Auth.login(
-//       guestId,
-//       generateEmailI(1),
-//       generatePasswordI(1)
-//     );
-//     // expect(controllers.Auth.getAllLoggedOutMembersIds().length).toEqual(1);
-//     // expect(controllers.Auth.getAllLoggedInMembersIds().length).toEqual(1);
-//     allLoggedOutMembersIds = await controllers.Auth.getAllLoggedOutMembersIds();
-//     allLoggedInMembersIds = await controllers.Auth.getAllLoggedInMembersIds();
-//     expect(allLoggedOutMembersIds.length).toEqual(1);
-//     expect(allLoggedInMembersIds.length).toEqual(1);
-//   });
-// });
+    // await db.userAuth.deleteMany({});
+    const AdminId = await controllers.Auth.register("admin", "admin");
+    await controllers.Jobs.setInitialAdmin(AdminId);
+    await expect(controllers.Jobs.isSystemAdmin(AdminId)).resolves.toEqual(
+      true
+    );
+    await controllers.Auth.register(generateEmailI(1), generatePasswordI(1));
+    await controllers.Auth.register(generateEmailI(2), generatePasswordI(2));
+    expect(
+      (await controllers.Auth.getAllLoggedOutMembersIds(AdminId)).length
+    ).toEqual(3);
+    expect(
+      (await controllers.Auth.getAllLoggedInMembersIds(AdminId)).length
+    ).toEqual(0);
+    let allLoggedOutMembersIds =
+      await controllers.Auth.getAllLoggedOutMembersIds(AdminId);
+    let allLoggedInMembersIds = await controllers.Auth.getAllLoggedInMembersIds(
+      AdminId
+    );
+
+    const guestId = controllers.Auth.startSession();
+    await controllers.Auth.login(
+      guestId,
+      generateEmailI(1),
+      generatePasswordI(1)
+    );
+    // expect(controllers.Auth.getAllLoggedOutMembersIds().length).toEqual(1);
+    // expect(controllers.Auth.getAllLoggedInMembersIds().length).toEqual(1);
+    allLoggedOutMembersIds = await controllers.Auth.getAllLoggedOutMembersIds(
+      AdminId
+    );
+    allLoggedInMembersIds = await controllers.Auth.getAllLoggedInMembersIds(
+      AdminId
+    );
+    expect(allLoggedOutMembersIds.length).toEqual(2);
+    expect(allLoggedInMembersIds.length).toEqual(1);
+  });
+});

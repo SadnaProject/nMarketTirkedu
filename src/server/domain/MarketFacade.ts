@@ -215,6 +215,7 @@ export class MarketFacade extends Loggable {
     targetUserId: string
   ) {
     this.validateConnection(currentId);
+    console.log("makeStoreOwner");
     await this.controllers.Stores.makeStoreOwner(
       currentId,
       storeId,

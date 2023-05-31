@@ -69,9 +69,9 @@ async function main() {
     getUser(3).password
   );
   await service.loginMember(gId, getUser(1).email, getUser(1).password);
-  await service.createStore(u1Id, getStore(1).name);
-  await service.makeStoreOwner(u1Id, getStore(1).name, u2Id);
-  await service.makeStoreOwner(u2Id, getStore(1).name, u3Id);
+  const storeId=await service.createStore(u1Id, getStore(1).name);
+  await service.makeStoreOwner(u1Id,storeId, u2Id);
+  await service.makeStoreOwner(u2Id,storeId, u3Id);
 }
 
 main()

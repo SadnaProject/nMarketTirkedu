@@ -428,6 +428,7 @@ export class JobsController
     targetUserId: string
   ): Promise<void> {
     // throw new Error("Method not implemented.");
+    console.log("makeStoreOwner in JobsController");
     const phAppointer: PositionHolder | undefined =
       await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
         currentId,

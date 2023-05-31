@@ -82,7 +82,7 @@ export const StoresRouter = createTRPCRouter({
         permission
       );
     }),
-    setEditingProductInStorePermission: validSessionProcedure
+  setEditingProductInStorePermission: validSessionProcedure
     .input(
       z.object({
         storeId: z.string(),
@@ -99,7 +99,7 @@ export const StoresRouter = createTRPCRouter({
         permission
       );
     }),
-    setModifyingPurchasePolicyPermission: validSessionProcedure
+  setModifyingPurchasePolicyPermission: validSessionProcedure
     .input(
       z.object({
         storeId: z.string(),
@@ -116,7 +116,7 @@ export const StoresRouter = createTRPCRouter({
         permission
       );
     }),
-    setRemovingProductFromStorePermission: validSessionProcedure
+  setRemovingProductFromStorePermission: validSessionProcedure
     .input(
       z.object({
         storeId: z.string(),
@@ -133,7 +133,7 @@ export const StoresRouter = createTRPCRouter({
         permission
       );
     }),
-    setReceivingPrivateStoreDataPermission: validSessionProcedure
+  setReceivingPrivateStoreDataPermission: validSessionProcedure
     .input(
       z.object({
         storeId: z.string(),

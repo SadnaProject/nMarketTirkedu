@@ -347,7 +347,7 @@ export class JobsController
     // this.ownerRole = new OwnerRole();
     // this.founderRole = new FounderRole();
   }
-  
+
   // private initializeSystemAdmin() {
   //   const userId = this.Controllers.Auth.register("admin", "admin");
   //   this.setInitialAdmin(userId);
@@ -593,7 +593,7 @@ export class JobsController
       permission
     );
   }
-  
+
   //
 
   // private wasAppointedByUser(appointer: string, storeId: string, appointee: string): boolean{
@@ -641,11 +641,33 @@ export class JobsController
       "EditProductDetails"
     );
   }
-  async setModifyingPurchasePolicyPermission(currentId: string, storeId: string, targetUserId: string, permission: boolean): Promise<void> {
-    await this.setAppointeePermission(currentId, storeId, targetUserId, permission, "ModifyPurchasePolicy");
+  async setModifyingPurchasePolicyPermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void> {
+    await this.setAppointeePermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission,
+      "ModifyPurchasePolicy"
+    );
   }
-  async setReceivingPrivateStoreDataPermission(currentId: string, storeId: string, targetUserId: string, permission: boolean): Promise<void> {
-    await this.setAppointeePermission(currentId, storeId, targetUserId, permission, "receivePrivateStoreData");
+  async setReceivingPrivateStoreDataPermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void> {
+    await this.setAppointeePermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission,
+      "receivePrivateStoreData"
+    );
   }
 
   async canCreateProductInStore(

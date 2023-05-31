@@ -7,7 +7,7 @@ import {
 } from "server/domain/Stores/StoreProduct";
 import { type PaymentDetails } from "server/domain/PurchasesHistory/PaymentAdaptor";
 import { type StoreDTO } from "server/domain/Stores/Store";
-import { Permission, type RoleType } from "server/domain/Jobs/Role";
+import { type Permission, type RoleType } from "server/domain/Jobs/Role";
 import { type PositionHolderDTO } from "server/domain/Jobs/PositionHolder";
 import { type ICondition } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
 import { type IDiscount } from "server/domain/Stores/DiscountPolicy/Discount";
@@ -214,21 +214,57 @@ export class Service {
       permission
     );
   }
-  async setRemovingProductFromStorePermission( currentId: string, storeId: string, targetUserId: string, permission: boolean ): Promise<void> 
-  {
-    await this.facade.setRemovingProductFromStorePermission( currentId, storeId, targetUserId, permission );
+  async setRemovingProductFromStorePermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void> {
+    await this.facade.setRemovingProductFromStorePermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission
+    );
   }
-  async setEditingProductInStorePermission( currentId: string, storeId: string, targetUserId: string, permission: boolean ): Promise<void>
-  {
-    await this.facade.setEditingProductInStorePermission( currentId, storeId, targetUserId, permission );
+  async setEditingProductInStorePermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void> {
+    await this.facade.setEditingProductInStorePermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission
+    );
   }
-  async setModifyingPurchasePolicyPermission( currentId: string, storeId: string, targetUserId: string, permission: boolean ): Promise<void>
-  {
-    await this.facade.setModifyingPurchasePolicyPermission( currentId, storeId, targetUserId, permission );
+  async setModifyingPurchasePolicyPermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void> {
+    await this.facade.setModifyingPurchasePolicyPermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission
+    );
   }
-  async setReceivingPrivateStoreDataPermission( currentId: string, storeId: string, targetUserId: string, permission: boolean ): Promise<void>
-  {
-    await this.facade.setReceivingPrivateStoreDataPermission( currentId, storeId, targetUserId, permission );
+  async setReceivingPrivateStoreDataPermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void> {
+    await this.facade.setReceivingPrivateStoreDataPermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission
+    );
   }
   canCreateProductInStore(
     currentId: string,

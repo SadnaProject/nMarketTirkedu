@@ -3,6 +3,7 @@ import { MemberUserAuth } from "./MemberUserAuth";
 import { GuestUserAuth } from "./GuestUserAuth";
 import { itUnitIntegration } from "../helpers/_mock";
 import { resetDB } from "server/helpers/_Transactional";
+import { createPromise } from "server/data/Stores/helpers/_data";
 
 export function createMember(name: string, password: string) {
   return MemberUserAuth.create(name, password);
@@ -38,7 +39,7 @@ describe("login member", () => {
     vi.spyOn(member, "isConnectionValid").mockReturnValue(false);
     expect(member.isUserLoggedInAsMember()).toBeFalsy();
     vi.spyOn(MemberUserAuth.prototype, "setIsLoggedIn").mockImplementation(
-      async () => {}
+      async () => Promise.resolve()
     );
     await member.login();
     vi.spyOn(member, "isConnectionValid").mockReturnValue(true);
@@ -66,7 +67,7 @@ describe("logout member", () => {
     const member = getMemberI(1);
     vi.spyOn(member, "isConnectionValid").mockReturnValue(false);
     vi.spyOn(MemberUserAuth.prototype, "setIsLoggedIn").mockImplementation(
-      async () => {}
+      async () => Promise.resolve()
     );
     await member.login();
     vi.spyOn(member, "isConnectionValid").mockReturnValue(true);

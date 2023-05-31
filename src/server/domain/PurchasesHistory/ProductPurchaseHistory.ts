@@ -1,6 +1,6 @@
 import { HasRepos } from "./helpers/_HasRepos";
 import { ProductReview, type ProductReviewDTO } from "./ProductReview";
-import { ProductPurchaseDAO } from "./helpers/TypeHelper";
+import { type ProductPurchaseDAO } from "./helpers/TypeHelper";
 import { TRPCError } from "@trpc/server";
 
 export type ProductPurchaseDTO = {

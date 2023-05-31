@@ -11,7 +11,7 @@ import { itUnitIntegration } from "../helpers/_mock";
 import { AuthController } from "./AuthController";
 import { resetDB } from "server/helpers/_Transactional";
 import { JobsController } from "../Jobs/JobsController";
-import { Controllers } from "../helpers/_HasController";
+import { type Controllers } from "../helpers/_HasController";
 import {
   createMockControllers,
   createTestControllers,

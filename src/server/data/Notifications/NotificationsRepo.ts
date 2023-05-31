@@ -1,4 +1,4 @@
-import { Event } from "server/domain/helpers/_Events";
+import { type Event } from "server/domain/helpers/_Events";
 import { Testable, testable } from "server/helpers/_Testable";
 
 @testable

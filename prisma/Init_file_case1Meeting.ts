@@ -12,6 +12,7 @@
   u3 tries to remove u2 – expected failure
   u1 removes u2 – expected success.
   Expected results: u3 is removed. How?
+
   Expected flow: u1 🡪 ‘u1-u2-Ownership-appointment’ 🡪 s1 & u2
   🡪 u2.remove-owner(u3,s1)` 
    
@@ -72,6 +73,7 @@ async function main() {
   const storeId=await service.createStore(u1Id, getStore(1).name);
   await service.makeStoreOwner(u1Id,storeId, u2Id);
   await service.makeStoreOwner(u2Id,storeId, u3Id);
+  await service.disconnectUser(u1Id);
 }
 
 main()

@@ -82,6 +82,75 @@ export const StoresRouter = createTRPCRouter({
         permission
       );
     }),
+    setEditingProductInStorePermission: validSessionProcedure
+    .input(
+      z.object({
+        storeId: z.string(),
+        targetUserId: z.string(),
+        permission: z.boolean(),
+      })
+    )
+    .mutation(({ input, ctx }) => {
+      const { storeId, targetUserId, permission } = input;
+      return service.setEditingProductInStorePermission(
+        ctx.session.user.id,
+        storeId,
+        targetUserId,
+        permission
+      );
+    }),
+    setModifyingPurchasePolicyPermission: validSessionProcedure
+    .input(
+      z.object({
+        storeId: z.string(),
+        targetUserId: z.string(),
+        permission: z.boolean(),
+      })
+    )
+    .mutation(({ input, ctx }) => {
+      const { storeId, targetUserId, permission } = input;
+      return service.setModifyingPurchasePolicyPermission(
+        ctx.session.user.id,
+        storeId,
+        targetUserId,
+        permission
+      );
+    }),
+    setRemovingProductFromStorePermission: validSessionProcedure
+    .input(
+      z.object({
+        storeId: z.string(),
+        targetUserId: z.string(),
+        permission: z.boolean(),
+      })
+    )
+    .mutation(({ input, ctx }) => {
+      const { storeId, targetUserId, permission } = input;
+      return service.setRemovingProductFromStorePermission(
+        ctx.session.user.id,
+        storeId,
+        targetUserId,
+        permission
+      );
+    }),
+    setReceivingPrivateStoreDataPermission: validSessionProcedure
+    .input(
+      z.object({
+        storeId: z.string(),
+        targetUserId: z.string(),
+        permission: z.boolean(),
+      })
+    )
+    .mutation(({ input, ctx }) => {
+      const { storeId, targetUserId, permission } = input;
+      return service.setReceivingPrivateStoreDataPermission(
+        ctx.session.user.id,
+        storeId,
+        targetUserId,
+        permission
+      );
+    }),
+
   canCreateProductInStore: validSessionProcedure
     .input(z.object({ storeId: z.string() }))
     .query(({ input, ctx }) => {

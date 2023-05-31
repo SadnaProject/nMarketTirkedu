@@ -1,8 +1,8 @@
 import EventEmitter from "events";
-import { Channel, Event } from "../helpers/_Events";
+import { type Channel, type Event } from "../helpers/_Events";
 import {
   NotificationsRepo,
-  Notification,
+  type Notification,
 } from "server/data/Notifications/NotificationsRepo";
 import { randomUUID } from "crypto";
 
@@ -75,5 +75,9 @@ export class EventManager {
         );
       }
     });
+  }
+
+  public getUnreadNotifications(userId: string): Notification[] {
+    return this.notificationsRepo.getUnreadNotifications(userId);
   }
 }

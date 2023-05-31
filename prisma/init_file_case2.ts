@@ -98,3 +98,12 @@ async function main() {
   await service.makeStoreOwner(u2Id, storeId, u5Id);
   await service.logoutMember(u2Id);
 }
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(() => {
+    void prisma.$disconnect();
+  });

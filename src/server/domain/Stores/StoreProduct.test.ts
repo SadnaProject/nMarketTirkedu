@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { StoreProduct } from "./StoreProduct";
 import { createMockRepos, createTestRepos } from "./helpers/_HasRepos";
 import {
@@ -14,6 +14,10 @@ import {
   createMockControllers,
   createTestControllers,
 } from "../helpers/_createControllers";
+import { resetDB } from "server/helpers/_Transactional";
+beforeEach(async () => {
+  await resetDB();
+});
 
 describe("constructor", () => {
   itUnitIntegration("✅creates a product", async (testType) => {

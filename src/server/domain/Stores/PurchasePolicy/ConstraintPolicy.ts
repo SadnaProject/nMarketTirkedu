@@ -32,6 +32,10 @@ export class ConstraintPolicy {
     this.constraints.delete(constraintID);
   }
   public getConstraints() {
-    return this.constraints;
+    const constraintsArgs = new Map<string, ConditionArgs>();
+    this.constraints.forEach((constraint, constraintID) => {
+      constraintsArgs.set(constraintID, constraint.getArgs());
+    });
+    return constraintsArgs;
   }
 }

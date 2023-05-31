@@ -10,8 +10,12 @@ import { type StoreDTO } from "server/domain/Stores/Store";
 import { type Permission, type RoleType } from "server/domain/Jobs/Role";
 import { type PositionHolderDTO } from "server/domain/Jobs/PositionHolder";
 import { type ICondition } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
-import { type IDiscount } from "server/domain/Stores/DiscountPolicy/Discount";
+import {
+  DiscountArgs,
+  type IDiscount,
+} from "server/domain/Stores/DiscountPolicy/Discount";
 import { type ConditionArgs } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
+import { BidArgs } from "server/domain/Users/Bid";
 
 export type SearchArgs = {
   name?: string;
@@ -457,5 +461,22 @@ export class Service {
   }
   async initializeAdmin() {
     return await this.facade.initializeSystemAdmin();
+  }
+  async addDiscountToStore(
+    userId: string,
+    storeId: string,
+    discount: DiscountArgs
+  ): Promise<string> {
+    return await this.facade.addDiscountToStore(userId, storeId, discount);
+  }
+  async removeDiscountFromStore(
+    userId: string,
+    storeId: string,
+    discountId: string
+  ): Promise<void> {
+    await this.facade.removeDiscountFromStore(userId, storeId, discountId);
+  }
+  async addBid(bid: BidArgs) {
+    return await this.facade.addBid(bid);
   }
 }

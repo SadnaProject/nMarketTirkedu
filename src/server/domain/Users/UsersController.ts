@@ -305,6 +305,7 @@ export class UsersController
       email,
       password
     );
+    //TODO delete guestId from users(only in this component, Auth component will handle his part)
     await this.Repos.Users.getUser(MemberId);
     return MemberId;
   }

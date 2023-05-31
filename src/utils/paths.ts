@@ -12,6 +12,7 @@ type Path = {
 
 const PATHS = {
   home: { path: "/", for: ["guest", "member"] },
+  online: { path: "/online", for: ["admin"] },
   register: { path: "/register", for: ["guest"] },
   login: { path: "/login", for: ["guest"] },
   products: { path: "/products", for: ["guest", "member"] },
@@ -57,7 +58,7 @@ const PATHS = {
   },
   chat: { path: (uid: string) => `/chat/${uid}`, for: ["member"] },
   cart: { path: "/cart", for: ["guest", "member"] },
-  adminPanel: { path: "/admin", for: ["admin"] },
+  // adminPanel: { path: "/admin", for: ["admin"] },
 } as const satisfies Record<string, Path>;
 export default PATHS;
 

@@ -26,7 +26,8 @@ const privateLinks = [
 ] as const;
 
 const adminLinks = [
-  { name: "Admin Panel", path: PATHS.adminPanel.path },
+  // { name: "Admin Panel", path: PATHS.adminPanel.path },
+  { name: "Users", path: PATHS.online.path },
 ] as const;
 
 export default function Navbar() {

@@ -34,7 +34,7 @@ export class MarketFacade extends Loggable {
     this.controllers = createControllers();
     //await this.initializeSystemAdmin();
   }
-  private async initializeSystemAdmin() {
+  public async initializeSystemAdmin() {
     const userId = await this.controllers.Users.register(
       "admin@gmail.com",
       "admin"

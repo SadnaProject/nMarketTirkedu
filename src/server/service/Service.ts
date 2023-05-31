@@ -455,4 +455,7 @@ export class Service {
   ): Promise<void> {
     await this.facade.removeConstraintFromStore(userId, storeId, constraintId);
   }
+  async initializeAdmin() {
+    return await this.facade.initializeSystemAdmin();
+  }
 }

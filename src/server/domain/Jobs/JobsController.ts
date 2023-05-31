@@ -785,9 +785,9 @@ export class JobsController
   }
 
   async setInitialAdmin(userId: string): Promise<void> {
-    if (this.wasAdminInitialized) {
-      throw new Error("admin was already initialized");
-    }
+    // if (this.wasAdminInitialized) {
+    //   throw new Error("admin was already initialized");
+    // }
     await this.Repos.jobs.addSystemAdmin(userId);
     this.wasAdminInitialized = true;
   }

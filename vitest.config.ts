@@ -13,22 +13,29 @@ export default defineConfig({
       reporter: ["lcov", "html"],
     },
     include: [
+      // all tests that are in domain/purchasesHistory
       //   "**/testingDb.test.ts",
       // "**/AuthController.test.ts",
       // "**/UserAuthRepo.test.ts",
       // "**/MemberUserAuth.test.ts",
       // "**/Session.test.ts",
+      // "**/JobsController.test.ts",
+      // "**/EventsManager.test.ts",
       "**/JobsController.test.ts",
       // "**/EventsManager.test.ts",
 
-
       //   // "**/ReviewRepo.test.ts",
-      //   // "**/ProductPurchaseHistoryRepo.test.ts",
+      // "**/ProductReviewsRepo.test.ts",
       // "**/checkDB.test.ts",
       //   // "**/User.test.ts",
       //   // "**/Basket.test.ts",
       //   "**/UserRepo.test.ts",
       //   "**/UserController.test.ts",
+
+      // "**/CartPurchaseHistoryRepo.test.ts",
+      // "**/PurchasesHistory/**/*.test.ts",
+
+      "**/PurchasesHistoryController.test.ts",
       // "**/StoreRepo.test.ts",
       // "**/StoresController.test.ts",
       // "**/Store.test.ts",

@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+import fetch from "node-fetch";
 import { getHost } from "../helpers/hostname";
 import { z } from "zod";
 
@@ -23,12 +24,11 @@ export class DeliveryAdaptor {
   }
 
   static async supply(deliveryDetails: DeliveryDetails): Promise<number> {
+    const body = `action_type=supply&name=${deliveryDetails.name}&address=${deliveryDetails.address}&city=${deliveryDetails.city}&country=${deliveryDetails.country}&zip=${deliveryDetails.zip}`;
     const res = await fetch(
-      `${getHost()}/api/external?method=POST&body=action_type=supply&name=${
-        deliveryDetails.name
-      }&address=${deliveryDetails.address}&city=${
-        deliveryDetails.city
-      }&country=${deliveryDetails.country}&zip=${deliveryDetails.zip}`
+      `${getHost()}/api/external?method=POST&body=action_type=${encodeURIComponent(
+        body
+      )}`
     );
     const txt = await res.text();
     const data = this.parseStringFromPaymentService(txt);
@@ -41,8 +41,11 @@ export class DeliveryAdaptor {
     return Number(data);
   }
   static async cancelSupply(transactionId: string) {
+    const body = `action_type=cancel_supply&transaction_id=${transactionId}`;
     const res = await fetch(
-      `${getHost()}/api/external?method=POST&body=action_type=cancel_supply&transaction_id=${transactionId}`
+      `${getHost()}/api/external?method=POST&body=action_type=${encodeURIComponent(
+        body
+      )}`
     );
     const txt = await res.text();
     const data = this.parseStringFromPaymentService(txt);

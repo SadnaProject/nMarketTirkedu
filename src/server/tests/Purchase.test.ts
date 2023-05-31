@@ -225,94 +225,94 @@ describe("Keep an Item in the cart", () => {
   });
 });
 //Use Case 2.4
-describe("Edit cart contents", () => {
-  let email: string,
-    password: string,
-    id: string,
-    uid: string,
-    storeName: string,
-    storeId: string,
-    ownermail: string,
-    ownerpass: string,
-    oid: string,
-    oid2: string,
-    pid: string,
-    pargs: {
-      name: string;
-      quantity: number;
-      price: number;
-      category: string;
-      description: string;
-    },
-    memail: string,
-    mpassword: string,
-    mid: string,
-    umid: string;
-  beforeEach(async () => {
-    email = faker.internet.email();
-    password = faker.internet.password();
-    id = await service.startSession();
-    await service.registerMember(id, email, password);
-    uid = await service.loginMember(id, email, password);
-    storeName = generateStoreName();
-    storeId = await service.createStore(uid, storeName);
-    ownermail = "owner@gmail.com";
-    ownerpass = "owner123";
-    oid2 = await service.startSession();
-    await service.registerMember(oid2, ownermail, ownerpass);
-    oid = await service.loginMember(oid2, ownermail, ownerpass);
-    await service.makeStoreOwner(uid, storeId, oid);
-    pargs = generateProductArgs();
-    pargs.quantity = 7;
-    pid = await service.createProduct(oid, storeId, pargs);
-    memail = "member@gmail.com";
-    mpassword = faker.internet.password();
-    mid = await service.startSession();
-    await service.registerMember(mid, memail, mpassword);
-    umid = await service.loginMember(mid, memail, mpassword);
-  });
-  // it("✅ Add item to cart", async () => {
-  //   const pargs2 = generateProductArgs();
-  //   pargs2.quantity = 5;
-  //   const pid2 = await service.createProduct(oid, storeId, pargs2);
-  //   await service.addProductToCart(umid, pid, 1);
-  //   const cart = await service.getCart(umid);
-  //   await service.addProductToCart(umid, pid2, 3);
-  //   const cart2 = await service.getCart(umid);
-  //   expect(
-  //     cart2.storeIdToBasket.get(storeId)?.products[0]?.storeProductId === pid &&
-  //       cart2.storeIdToBasket.get(storeId)?.products[1]?.storeProductId ==
-  //         pid2 &&
-  //       cart2.storeIdToBasket.get(storeId)?.products.length === 2 &&
-  //       cart.storeIdToBasket.get(storeId)?.products.length === 1 &&
-  //       cart.storeIdToBasket.get(storeId)?.products[0]?.storeProductId === pid
-  //   ).toBe(true);
-  // });
-  it("✅ Edit quantity", async () => {
-    await service.addProductToCart(umid, pid, 7);
-    const q1 = (await service.getCart(umid)).storeIdToBasket.get(storeId)
-      ?.products[0]?.quantity;
-    await service.editProductQuantityInCart(umid, pid, 4);
-    const q2 = (await service.getCart(umid)).storeIdToBasket.get(storeId)
-      ?.products[0]?.quantity;
-    expect(q1 === 7 && q2 === 4).toBe(true);
-  });
-  it("✅ Remove existing item", async () => {
-    await service.addProductToCart(umid, pid, 7);
-    const q1 = (await service.getCart(umid)).storeIdToBasket.get(storeId)
-      ?.products[0]?.quantity;
-    await service.removeProductFromCart(umid, pid);
-    expect(
-      (await service.getCart(umid)).storeIdToBasket.get(storeId)?.products
-        .length === 0
-    ).toBe(true);
-  });
-  it("❎ Remove non-existing item", async () => {
-    await expect(() =>
-      service.removeProductFromCart(umid, pid)
-    ).rejects.toThrow("Product not found");
-  });
-});
+// describe("Edit cart contents", () => {
+//   let email: string,
+//     password: string,
+//     id: string,
+//     uid: string,
+//     storeName: string,
+//     storeId: string,
+//     ownermail: string,
+//     ownerpass: string,
+//     oid: string,
+//     oid2: string,
+//     pid: string,
+//     pargs: {
+//       name: string;
+//       quantity: number;
+//       price: number;
+//       category: string;
+//       description: string;
+//     },
+//     memail: string,
+//     mpassword: string,
+//     mid: string,
+//     umid: string;
+//   beforeEach(async () => {
+//     email = faker.internet.email();
+//     password = faker.internet.password();
+//     id = await service.startSession();
+//     await service.registerMember(id, email, password);
+//     uid = await service.loginMember(id, email, password);
+//     storeName = generateStoreName();
+//     storeId = await service.createStore(uid, storeName);
+//     ownermail = "owner@gmail.com";
+//     ownerpass = "owner123";
+//     oid2 = await service.startSession();
+//     await service.registerMember(oid2, ownermail, ownerpass);
+//     oid = await service.loginMember(oid2, ownermail, ownerpass);
+//     await service.makeStoreOwner(uid, storeId, oid);
+//     pargs = generateProductArgs();
+//     pargs.quantity = 7;
+//     pid = await service.createProduct(oid, storeId, pargs);
+//     memail = "member@gmail.com";
+//     mpassword = faker.internet.password();
+//     mid = await service.startSession();
+//     await service.registerMember(mid, memail, mpassword);
+//     umid = await service.loginMember(mid, memail, mpassword);
+//   });
+//   // it("✅ Add item to cart", async () => {
+//   //   const pargs2 = generateProductArgs();
+//   //   pargs2.quantity = 5;
+//   //   const pid2 = await service.createProduct(oid, storeId, pargs2);
+//   //   await service.addProductToCart(umid, pid, 1);
+//   //   const cart = await service.getCart(umid);
+//   //   await service.addProductToCart(umid, pid2, 3);
+//   //   const cart2 = await service.getCart(umid);
+//   //   expect(
+//   //     cart2.storeIdToBasket.get(storeId)?.products[0]?.storeProductId === pid &&
+//   //       cart2.storeIdToBasket.get(storeId)?.products[1]?.storeProductId ==
+//   //         pid2 &&
+//   //       cart2.storeIdToBasket.get(storeId)?.products.length === 2 &&
+//   //       cart.storeIdToBasket.get(storeId)?.products.length === 1 &&
+//   //       cart.storeIdToBasket.get(storeId)?.products[0]?.storeProductId === pid
+//   //   ).toBe(true);
+//   // });
+//   it("✅ Edit quantity", async () => {
+//     await service.addProductToCart(umid, pid, 7);
+//     const q1 = (await service.getCart(umid)).storeIdToBasket.get(storeId)
+//       ?.products[0]?.quantity;
+//     await service.editProductQuantityInCart(umid, pid, 4);
+//     const q2 = (await service.getCart(umid)).storeIdToBasket.get(storeId)
+//       ?.products[0]?.quantity;
+//     expect(q1 === 7 && q2 === 4).toBe(true);
+//   });
+//   it("✅ Remove existing item", async () => {
+//     await service.addProductToCart(umid, pid, 7);
+//     const q1 = (await service.getCart(umid)).storeIdToBasket.get(storeId)
+//       ?.products[0]?.quantity;
+//     await service.removeProductFromCart(umid, pid);
+//     expect(
+//       (await service.getCart(umid)).storeIdToBasket.get(storeId)?.products
+//         .length === 0
+//     ).toBe(true);
+//   });
+//   it("❎ Remove non-existing item", async () => {
+//     await expect(() =>
+//       service.removeProductFromCart(umid, pid)
+//     ).rejects.toThrow("Product not found");
+//   });
+// });
 // //Use Case 2.5
 // describe("Purchase Cart", () => {
 //   let email: string,

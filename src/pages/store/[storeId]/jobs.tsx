@@ -70,7 +70,6 @@ export default function Home() {
 
   useEffect(() => {
     const refetchJobsHierarchyCallback = () => {
-      console.log("hi");
       void refetchJobsHierarchy();
     };
     document.addEventListener(onJobChangeEvent, refetchJobsHierarchyCallback);
@@ -84,8 +83,6 @@ export default function Home() {
 
   const handleAssignment = handleSubmit(
     async (data) => {
-      console.log(data);
-
       const { data: assignmentId } = await getAssignmentId();
       if (!assignmentId) {
         return;
@@ -275,23 +272,38 @@ function Job({ job }: JobProps) {
         toast.success("Job removed successfully");
       },
     });
-  const { mutateAsync: setAddingProductPermission } =
-    api.stores.setAddingProductPermission.useMutation(cachedQueryOptions);
   const [managerId, setManagerId] = useState<string>("");
   const { data: managerPermissions, refetch: refetchManagerPermissions } =
     api.jobs.getPermissionsOfUser.useQuery(
       { userId: managerId, storeId: storeId as string },
-      { ...cachedQueryOptions, enabled: !!managerId }
+      { enabled: !!managerId }
     );
 
-  async function handleSetAddingProductPermission(permission: boolean) {
-    await setAddingProductPermission({
-      permission,
-      storeId: storeId as string,
-      targetUserId: managerId,
+  const { mutate: setAddingProductPermission } =
+    api.stores.setAddingProductPermission.useMutation({
+      ...cachedQueryOptions,
+      onSuccess: () => void refetchManagerPermissions(),
     });
-    void refetchManagerPermissions();
-  }
+  const { mutate: setEditingProductInStorePermission } =
+    api.stores.setEditingProductInStorePermission.useMutation({
+      ...cachedQueryOptions,
+      onSuccess: () => void refetchManagerPermissions(),
+    });
+  const { mutate: setModifyingPurchasePolicyPermission } =
+    api.stores.setModifyingPurchasePolicyPermission.useMutation({
+      ...cachedQueryOptions,
+      onSuccess: () => void refetchManagerPermissions(),
+    });
+  const { mutate: setReceivingPrivateStoreDataPermission } =
+    api.stores.setReceivingPrivateStoreDataPermission.useMutation({
+      ...cachedQueryOptions,
+      onSuccess: () => void refetchManagerPermissions(),
+    });
+  const { mutate: setRemovingProductFromStorePermission } =
+    api.stores.setRemovingProductFromStorePermission.useMutation({
+      ...cachedQueryOptions,
+      onSuccess: () => void refetchManagerPermissions(),
+    });
 
   const handleRemoval = (job: PositionHolderDTO) => {
     if (job.role.roleType === "Owner") {
@@ -362,23 +374,121 @@ function Job({ job }: JobProps) {
             title="Edit Permissions"
             content={
               <div>
-                <div className="flex gap-2">
+                <div className="flex flex-col gap-2">
                   <div className="flex items-center">
                     <input
                       type="checkbox"
-                      id="hs-basic-with-description-unchecked"
+                      id="checkbox-add-product"
                       checked={managerPermissions?.includes("AddProduct")}
                       className="relative h-7 w-[3.25rem] shrink-0 cursor-pointer appearance-none rounded-full border-2 border-transparent bg-gray-200 ring-1 ring-transparent ring-offset-white transition-colors duration-200 ease-in-out before:inline-block before:h-6 before:w-6 before:translate-x-0 before:transform before:rounded-full before:bg-white before:shadow before:ring-0 before:transition before:duration-200 before:ease-in-out checked:bg-blue-600 checked:bg-none checked:before:translate-x-full checked:before:bg-blue-200 focus:border-blue-600 focus:outline-none focus:ring-blue-600"
                       onClick={(e) => {
                         const target = e.target as HTMLInputElement;
-                        void handleSetAddingProductPermission(target.checked);
+                        setAddingProductPermission({
+                          permission: target.checked,
+                          storeId: storeId as string,
+                          targetUserId: managerId,
+                        });
                       }}
                     />
                     <label
-                      htmlFor="hs-basic-with-description-unchecked"
+                      htmlFor="checkbox-add-product"
                       className="ml-3 text-sm text-gray-500"
                     >
                       Add Product
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="checkbox-edit-product"
+                      checked={managerPermissions?.includes(
+                        "EditProductDetails"
+                      )}
+                      className="relative h-7 w-[3.25rem] shrink-0 cursor-pointer appearance-none rounded-full border-2 border-transparent bg-gray-200 ring-1 ring-transparent ring-offset-white transition-colors duration-200 ease-in-out before:inline-block before:h-6 before:w-6 before:translate-x-0 before:transform before:rounded-full before:bg-white before:shadow before:ring-0 before:transition before:duration-200 before:ease-in-out checked:bg-blue-600 checked:bg-none checked:before:translate-x-full checked:before:bg-blue-200 focus:border-blue-600 focus:outline-none focus:ring-blue-600"
+                      onClick={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        setEditingProductInStorePermission({
+                          permission: target.checked,
+                          storeId: storeId as string,
+                          targetUserId: managerId,
+                        });
+                      }}
+                    />
+                    <label
+                      htmlFor="checkbox-edit-product"
+                      className="ml-3 text-sm text-gray-500"
+                    >
+                      Edit Product
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="checkbox-modify-purchase-policy"
+                      checked={managerPermissions?.includes(
+                        "ModifyPurchasePolicy"
+                      )}
+                      className="relative h-7 w-[3.25rem] shrink-0 cursor-pointer appearance-none rounded-full border-2 border-transparent bg-gray-200 ring-1 ring-transparent ring-offset-white transition-colors duration-200 ease-in-out before:inline-block before:h-6 before:w-6 before:translate-x-0 before:transform before:rounded-full before:bg-white before:shadow before:ring-0 before:transition before:duration-200 before:ease-in-out checked:bg-blue-600 checked:bg-none checked:before:translate-x-full checked:before:bg-blue-200 focus:border-blue-600 focus:outline-none focus:ring-blue-600"
+                      onClick={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        setModifyingPurchasePolicyPermission({
+                          permission: target.checked,
+                          storeId: storeId as string,
+                          targetUserId: managerId,
+                        });
+                      }}
+                    />
+                    <label
+                      htmlFor="checkbox-modify-purchase-policy"
+                      className="ml-3 text-sm text-gray-500"
+                    >
+                      Modify Purchase Policy
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="checkbox-get-private-data"
+                      checked={managerPermissions?.includes(
+                        "receivePrivateStoreData"
+                      )}
+                      className="relative h-7 w-[3.25rem] shrink-0 cursor-pointer appearance-none rounded-full border-2 border-transparent bg-gray-200 ring-1 ring-transparent ring-offset-white transition-colors duration-200 ease-in-out before:inline-block before:h-6 before:w-6 before:translate-x-0 before:transform before:rounded-full before:bg-white before:shadow before:ring-0 before:transition before:duration-200 before:ease-in-out checked:bg-blue-600 checked:bg-none checked:before:translate-x-full checked:before:bg-blue-200 focus:border-blue-600 focus:outline-none focus:ring-blue-600"
+                      onClick={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        setReceivingPrivateStoreDataPermission({
+                          permission: target.checked,
+                          storeId: storeId as string,
+                          targetUserId: managerId,
+                        });
+                      }}
+                    />
+                    <label
+                      htmlFor="checkbox-get-private-data"
+                      className="ml-3 text-sm text-gray-500"
+                    >
+                      Get Private Data
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="checkbox-remove-product"
+                      checked={managerPermissions?.includes("RemoveProduct")}
+                      className="relative h-7 w-[3.25rem] shrink-0 cursor-pointer appearance-none rounded-full border-2 border-transparent bg-gray-200 ring-1 ring-transparent ring-offset-white transition-colors duration-200 ease-in-out before:inline-block before:h-6 before:w-6 before:translate-x-0 before:transform before:rounded-full before:bg-white before:shadow before:ring-0 before:transition before:duration-200 before:ease-in-out checked:bg-blue-600 checked:bg-none checked:before:translate-x-full checked:before:bg-blue-200 focus:border-blue-600 focus:outline-none focus:ring-blue-600"
+                      onClick={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        setRemovingProductFromStorePermission({
+                          permission: target.checked,
+                          storeId: storeId as string,
+                          targetUserId: managerId,
+                        });
+                      }}
+                    />
+                    <label
+                      htmlFor="checkbox-remove-product"
+                      className="ml-3 text-sm text-gray-500"
+                    >
+                      Remove Product
                     </label>
                   </div>
                 </div>

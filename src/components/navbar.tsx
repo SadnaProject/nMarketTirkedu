@@ -14,6 +14,7 @@ import Badge from "./Badge";
 import { useEffect } from "react";
 import { onCartChangeEvent } from "utils/events";
 import { CartIcon } from "./icons";
+import { toast } from "react-hot-toast";
 
 const publicLinks = [
   { name: "Products", path: PATHS.products.path },
@@ -42,8 +43,16 @@ export default function Navbar() {
   const { data: session } = useSession();
   const { data: notifications, refetch: refetchNotifications } =
     api.users.getNotifications.useQuery();
-  api.example.onAddNotificationEvent.useSubscription(undefined, {
-    onData: () => void refetchNotifications(),
+  api.users.subscribeToEvents.useSubscription(undefined, {
+    onData: (data) => {
+      console.log("yay", data);
+      if (data.type === "storeChanged") {
+        toast.success(`The state of store ${data.storeId} has changed`);
+      } else if (data.type === "storePurchase") {
+        toast.success(`A purchase has been made in store ${data.storeId}`);
+      }
+      void refetchNotifications();
+    },
   });
   const { data: cartPrice, refetch: refetchCartPrice } =
     api.stores.getCartPrice.useQuery(undefined, cachedQueryOptions);
@@ -156,15 +165,16 @@ export default function Navbar() {
                           href={PATHS.receipt.path("todo")}
                         >
                           <div className="flex cursor-pointer items-center gap-x-1.5 rounded-md px-3 py-2 text-sm text-slate-800 hover:bg-slate-100 focus:ring-2 focus:ring-blue-500">
-                            <CashIcon />
+                            {/* <CashIcon /> */}
                             <div className="flex items-center gap-x-1">
-                              <Link href={PATHS.chat.path("todo")}>
+                              Store state has changed
+                              {/* <Link href={PATHS.chat.path("todo")}>
                                 <Badge>Omer</Badge>
                               </Link>
                               bought from
                               <Link href={PATHS.store.path("todo")}>
                                 <Badge>H&M</Badge>
-                              </Link>
+                              </Link> */}
                             </div>
                           </div>
                         </Link>

@@ -8,7 +8,7 @@ import {
 import { service } from "../helpers/_service";
 import { observable } from "@trpc/server/observable";
 import { eventEmitter } from "server/domain/helpers/_EventEmitter";
-import { type Event } from "server/domain/Notifications/EventsManager";
+import { type Event } from "server/domain/helpers/_Events";
 
 export const UsersRouter = createTRPCRouter({
   addProductToCart: validSessionProcedure

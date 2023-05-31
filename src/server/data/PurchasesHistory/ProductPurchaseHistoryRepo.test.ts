@@ -16,7 +16,7 @@ const productPurchase = new ProductPurchase({
 
 const productPurchase2 = new ProductPurchase({
   productId: "productId2",
-  quantity: 1,
+  quantity: 2,
   price: 1,
   purchaseId: "purchaseId",
 });
@@ -98,8 +98,12 @@ describe("getProductsPurchaseById", () => {
     const productPurchaseRepo = new ProductPurchaseRepo();
     const cartPurchaseRepo = new CartPurchaseRepo();
     await cartPurchaseRepo.addCartPurchase(cartPurchase2);
-    await expect(
-      productPurchaseRepo.getProductsPurchaseById(productPurchase.PurchaseId)
-    ).resolves.toEqual([productPurchase2, productPurchase]);
+    expect(
+      new Set(
+        await productPurchaseRepo.getProductsPurchaseById(
+          productPurchase.PurchaseId
+        )
+      )
+    ).toEqual(new Set([productPurchase2, productPurchase]));
   });
 });

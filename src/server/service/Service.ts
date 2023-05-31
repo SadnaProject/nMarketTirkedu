@@ -11,11 +11,11 @@ import { type Permission, type RoleType } from "server/domain/Jobs/Role";
 import { type PositionHolderDTO } from "server/domain/Jobs/PositionHolder";
 import { type ICondition } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
 import {
-  DiscountArgs,
+  type DiscountArgs,
   type IDiscount,
 } from "server/domain/Stores/DiscountPolicy/Discount";
 import { type ConditionArgs } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
-import { BidArgs } from "server/domain/Users/Bid";
+import { type BidArgs } from "server/domain/Users/Bid";
 
 export type SearchArgs = {
   name?: string;

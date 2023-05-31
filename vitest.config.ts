@@ -21,6 +21,8 @@ export default defineConfig({
       // "**/Session.test.ts",
       // "**/JobsController.test.ts",
       // "**/EventsManager.test.ts",
+      "**/JobsController.test.ts",
+      // "**/EventsManager.test.ts",
 
       //   // "**/ReviewRepo.test.ts",
       // "**/ProductReviewsRepo.test.ts",
@@ -34,6 +36,12 @@ export default defineConfig({
       // "**/PurchasesHistory/**/*.test.ts",
 
       "**/PurchasesHistoryController.test.ts",
+      // "**/StoreRepo.test.ts",
+      // "**/StoresController.test.ts",
+      // "**/Store.test.ts",
+      // "**/StoreProduct.test.ts",
+      // "**/BasketPurchaseHistoryRepo.test.ts",
+      //"**/PurchasesHistoryController.test.ts",
     ],
     //make the tests run in an order and not in parallel
     threads: false,

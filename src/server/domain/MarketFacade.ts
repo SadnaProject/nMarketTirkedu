@@ -496,7 +496,7 @@ export class MarketFacade extends Loggable {
    */
   async getAllLoggedInMembersIds(userId: string): Promise<string[]> {
     this.validateConnection(userId);
-    return await this.controllers.Auth.getAllLoggedInMembersIds();
+    return await this.controllers.Auth.getAllLoggedInMembersIds(userId);
   }
   // eslint-disable-next-line jsdoc/require-param
   /**
@@ -505,7 +505,7 @@ export class MarketFacade extends Loggable {
    */
   async getAllLoggedOutMembersIds(userId: string): Promise<string[]> {
     this.validateConnection(userId);
-    return await this.controllers.Auth.getAllLoggedOutMembersIds();
+    return await this.controllers.Auth.getAllLoggedOutMembersIds(userId);
   }
   async searchStores(userId: string, storeName: string): Promise<StoreDTO[]> {
     this.validateConnection(userId);
@@ -600,17 +600,11 @@ export class MarketFacade extends Loggable {
   async getMemberIdByEmail(email: string): Promise<string> {
     return await this.controllers.Auth.getMemberIdByEmail(email);
   }
-  async getStoreDiscounts(
-    userId: string,
-    storeId: string
-  ): Promise<Map<string, IDiscount>> {
+  async getStoreDiscounts(userId: string, storeId: string) {
     this.validateConnection(userId);
     return await this.controllers.Stores.getDiscountPolicy(userId, storeId);
   }
-  async getStoreConstraints(
-    userId: string,
-    storeId: string
-  ): Promise<Map<string, ICondition>> {
+  async getStoreConstraints(userId: string, storeId: string) {
     this.validateConnection(userId);
     return await this.controllers.Stores.getConstraintPolicy(userId, storeId);
   }

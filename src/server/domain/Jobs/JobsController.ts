@@ -299,6 +299,10 @@ export interface IJobsController extends HasRepos {
    * @param storeId The id of the store.
    */
   getPermissionsOfUser(userId: string, storeId: string): Promise<Permission[]>;
+  /**
+   *  This function checks if a user can get members data.
+   */
+  canGetMembersData(userId: string): Promise<boolean>;
 }
 @testable
 export class JobsController
@@ -862,5 +866,8 @@ export class JobsController
       });
     }
     return ph.Role.getPermissions();
+  }
+  async canGetMembersData(userId: string): Promise<boolean> {
+    return await this.isSystemAdmin(userId);
   }
 }

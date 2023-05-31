@@ -6,11 +6,30 @@ import {
 import { Service } from "server/service/Service";
 import { describe, expect, it, beforeEach } from "vitest";
 import { TRPCError } from "@trpc/server";
-
+import { resetDB } from "server/helpers/_Transactional";
+import { type ConditionArgs } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
 let service: Service;
-beforeEach(() => {
+beforeEach(async () => {
+  await resetDB();
   service = new Service();
 });
+
+export type PaymentDetails = {
+  number: string;
+  month: string;
+  year: string;
+  holder: string;
+  ccv: string;
+  id: string;
+};
+export type DeliveryDetails = {
+  name: string;
+  address: string;
+  city: string;
+  country: string;
+  zip: string;
+};
+
 //Use Case 4.1
 describe("Stock Management", () => {
   let email: string,
@@ -56,7 +75,9 @@ describe("Stock Management", () => {
   });
   it("❎ product creation - empty name", async () => {
     pargs.name = "";
-    expect(() => service.createProduct(oid, storeId, pargs)).toThrow(TRPCError);
+    await expect(() =>
+      service.createProduct(oid, storeId, pargs)
+    ).rejects.toThrow("Name must be nonempty");
     const res = await service.searchProducts(uid, {
       name: pargs.name.toUpperCase().split(" ")[0],
     });
@@ -65,7 +86,9 @@ describe("Stock Management", () => {
 
   it("❎ product creation - gets negative quantity", async () => {
     pargs.quantity = -1;
-    expect(() => service.createProduct(oid, storeId, pargs)).toThrow(TRPCError);
+    await expect(() =>
+      service.createProduct(oid, storeId, pargs)
+    ).rejects.toThrow(TRPCError);
     const res = await service.searchProducts(uid, {
       name: pargs.name.toUpperCase().split(" ")[0],
     });
@@ -74,7 +97,9 @@ describe("Stock Management", () => {
 
   it("❎ product creation -gets negative price", async () => {
     pargs.price = -1;
-    expect(() => service.createProduct(oid, storeId, pargs)).toThrow(TRPCError);
+    await expect(() =>
+      service.createProduct(oid, storeId, pargs)
+    ).rejects.toThrow(TRPCError);
     const res = await service.searchProducts(uid, {
       name: pargs.name.toUpperCase().split(" ")[0],
     });
@@ -98,7 +123,9 @@ describe("Stock Management", () => {
   it("❎ Decrease product quantity exceeding range", async () => {
     pargs.quantity = 5;
     const pid = await service.createProduct(oid, storeId, pargs);
-    expect(() => service.decreaseProductQuantity(pid, 7)).toThrow(TRPCError);
+    await expect(() => service.decreaseProductQuantity(pid, 7)).rejects.toThrow(
+      TRPCError
+    );
     expect(
       (await service.isProductQuantityInStock(uid, pid, 5)) &&
         !(await service.isProductQuantityInStock(uid, pid, 6))
@@ -142,9 +169,9 @@ describe("Owner Appointment", () => {
     await service.registerMember(oid22, owner2mail, owner2pass);
     const oid222 = await service.loginMember(oid22, owner2mail, owner2pass);
     await service.makeStoreOwner(uid, storeId, oid222);
-    expect(() => service.makeStoreOwner(oid, storeId, oid222)).toThrow(
-      TRPCError
-    );
+    await expect(() =>
+      service.makeStoreOwner(oid, storeId, oid222)
+    ).rejects.toThrow(TRPCError);
     expect(await service.isStoreOwner(oid, storeId)).toBe(true);
   });
 });
@@ -194,8 +221,10 @@ describe("Manager Firing", () => {
     const mid = await service.loginMember(m2, managermail, managerpass);
     await service.makeStoreManager(oid, storeId, mid);
     await service.removeStoreManager(oid, storeId, mid);
-    expect(() => service.removeStoreManager(oid, storeId, mid)).toThrow(
-      TRPCError
+    await expect(() =>
+      service.removeStoreManager(oid, storeId, mid)
+    ).rejects.toThrow(
+      "The user requested to be removed is not a store manager"
     );
     expect(await service.isStoreManager(mid, storeId)).toBe(false);
   });
@@ -219,8 +248,10 @@ describe("Manager Firing", () => {
     await service.registerMember(oid22, owner2mail, owner2pass);
     const oid222 = await service.loginMember(oid22, owner2mail, owner2pass);
     await service.makeStoreOwner(uid, storeId, oid222);
-    expect(() => service.makeStoreManager(oid, storeId, oid222)).toThrow(
-      TRPCError
+    await expect(() =>
+      service.makeStoreManager(oid, storeId, oid222)
+    ).rejects.toThrow(
+      "This user cannot be appointed as he is already a position holder in this store"
     );
     expect(await service.isStoreOwner(oid222, storeId)).toBe(true);
   });
@@ -264,9 +295,9 @@ describe("Owner Firing", () => {
     await service.registerMember(m2, managermail, managerpass);
     const mid = await service.loginMember(m2, managermail, managerpass);
     await service.makeStoreManager(oid, storeId, mid);
-    expect(() => service.removeStoreOwner(oid, storeId, mid)).toThrow(
-      TRPCError
-    );
+    await expect(() =>
+      service.removeStoreOwner(oid, storeId, mid)
+    ).rejects.toThrow("The user requested to be removed is not a store owner");
   });
 });
 //Use Case 4.6
@@ -312,9 +343,9 @@ describe("Manager Appointment", () => {
     await service.registerMember(m2, managermail, managerpass);
     const mid = await service.loginMember(m2, managermail, managerpass);
     await service.makeStoreManager(oid, storeId, mid);
-    expect(() => service.makeStoreManager(oid, storeId, mid)).toThrow(
-      TRPCError
-    );
+    await expect(() =>
+      service.makeStoreManager(oid, storeId, mid)
+    ).rejects.toThrow(TRPCError);
     expect(await service.isStoreManager(mid, storeId)).toBe(true);
   });
   it("❎ Appointing store owner to be a manager", async () => {
@@ -324,9 +355,9 @@ describe("Manager Appointment", () => {
     await service.registerMember(oid22, owner2mail, owner2pass);
     const oid222 = await service.loginMember(oid22, owner2mail, owner2pass);
     await service.makeStoreOwner(uid, storeId, oid222);
-    expect(() => service.makeStoreManager(oid, storeId, oid222)).toThrow(
-      TRPCError
-    );
+    await expect(() =>
+      service.makeStoreManager(oid, storeId, oid222)
+    ).rejects.toThrow(TRPCError);
     expect(await service.isStoreOwner(oid222, storeId)).toBe(true);
     expect(await service.isStoreManager(oid222, storeId)).toBe(false);
   });
@@ -375,7 +406,9 @@ describe("Store Inactivating", () => {
     const storeName = generateStoreName();
     const storeId = await service.createStore(uid, storeName);
     await service.deactivateStore(uid, storeId);
-    expect(() => service.deactivateStore(uid, storeId)).toThrow(TRPCError);
+    await expect(() => service.deactivateStore(uid, storeId)).rejects.toThrow(
+      TRPCError
+    );
     expect(await service.isStoreActive(uid, storeId)).toBe(false);
   });
 });
@@ -451,13 +484,27 @@ describe("Get Purchase History by a store", () => {
     const umid = await service.loginMember(mid, memail, mpassword);
     await service.addProductToCart(umid, pid, 1);
     const card = faker.finance.creditCardNumber();
-    const cCard = { number: card };
-    await service.purchaseCart(umid, cCard);
+    const cCard: PaymentDetails = {
+      number: card,
+      ccv: "144",
+      holder: "Buya",
+      id: "111111111",
+      month: "3",
+      year: "2025",
+    };
+    const d: DeliveryDetails = {
+      address: "dsadas",
+      city: "asdasd",
+      country: "sadasd",
+      name: "bsajsa",
+      zip: "2143145",
+    };
+    await service.purchaseCart(umid, cCard, d);
     const pargs2 = generateProductArgs();
     pargs2.quantity = 3;
     const pid2 = await service.createProduct(oid, storeId, pargs2);
     await service.addProductToCart(umid, pid2, 2);
-    await service.purchaseCart(umid, cCard);
+    await service.purchaseCart(umid, cCard, d);
     const hist = await service.getPurchasesByStore(oid, storeId);
     expect(
       hist.length === 2 &&
@@ -491,14 +538,30 @@ describe("Get Purchase History by a store", () => {
     const umid = await service.loginMember(mid, memail, mpassword);
     await service.addProductToCart(umid, pid, 1);
     const card = faker.finance.creditCardNumber();
-    const cCard = { number: card };
-    await service.purchaseCart(umid, cCard);
+    const cCard: PaymentDetails = {
+      number: card,
+      ccv: "144",
+      holder: "Buya",
+      id: "111111111",
+      month: "3",
+      year: "2025",
+    };
+    const d: DeliveryDetails = {
+      address: "dsadas",
+      city: "asdasd",
+      country: "sadasd",
+      name: "bsajsa",
+      zip: "2143145",
+    };
+    await service.purchaseCart(umid, cCard, d);
     const pargs2 = generateProductArgs();
     pargs2.quantity = 3;
     const pid2 = await service.createProduct(oid, storeId, pargs2);
     await service.addProductToCart(umid, pid2, 2);
-    await service.purchaseCart(umid, cCard);
-    expect(() => service.getPurchasesByStore(umid, storeId)).toThrow(TRPCError);
+    await service.purchaseCart(umid, cCard, d);
+    await expect(() =>
+      service.getPurchasesByStore(umid, storeId)
+    ).rejects.toThrow(TRPCError);
   });
   it("❎ Applied on non existing store", async () => {
     const email = faker.internet.email();
@@ -513,7 +576,9 @@ describe("Get Purchase History by a store", () => {
     const oid2 = await service.startSession();
     await service.registerMember(oid2, ownermail, ownerpass);
     const oid = await service.loginMember(oid2, ownermail, ownerpass);
-    expect(() => service.getPurchasesByStore(oid, storeId)).toThrow(TRPCError);
+    await expect(() =>
+      service.getPurchasesByStore(oid, storeId)
+    ).rejects.toThrow("Store not found");
   });
 });
 it("✅ Applied by a founder", async () => {
@@ -540,13 +605,27 @@ it("✅ Applied by a founder", async () => {
   const umid = await service.loginMember(mid, memail, mpassword);
   await service.addProductToCart(umid, pid, 1);
   const card = faker.finance.creditCardNumber();
-  const cCard = { number: card };
-  await service.purchaseCart(umid, cCard);
+  const cCard: PaymentDetails = {
+    number: card,
+    ccv: "144",
+    holder: "Buya",
+    id: "111111111",
+    month: "3",
+    year: "2025",
+  };
+  const d: DeliveryDetails = {
+    address: "dsadas",
+    city: "asdasd",
+    country: "sadasd",
+    name: "bsajsa",
+    zip: "2143145",
+  };
+  await service.purchaseCart(umid, cCard, d);
   const pargs2 = generateProductArgs();
   pargs2.quantity = 3;
   const pid2 = await service.createProduct(oid, storeId, pargs2);
   await service.addProductToCart(umid, pid2, 2);
-  await service.purchaseCart(umid, cCard);
+  await service.purchaseCart(umid, cCard, d);
   const hist = await service.getPurchasesByStore(uid, storeId);
   expect(
     hist.length === 2 &&
@@ -604,5 +683,70 @@ describe("Get details/permissions of role holders", () => {
     await service.setAddingProductToStorePermission(oid, storeId, mid, true);
     await service.setAddingProductToStorePermission(oid, storeId, mid, false);
     expect(await service.canCreateProductInStore(mid, storeId)).toBe(false);
+  });
+});
+
+//Use Case 4.2
+describe("Add Constraint", () => {
+  it("✅ Only with 3 bananas", async () => {
+    const cargs: ConditionArgs = {
+      conditionType: "Exactly",
+      type: "Literal",
+      searchFor: "Banana",
+      amount: 3,
+      subType: "Price",
+    };
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+    const id = await service.startSession();
+    await service.registerMember(id, email, password);
+    const uid = await service.loginMember(id, email, password);
+    const storeName = generateStoreName();
+    const storeId = await service.createStore(uid, storeName);
+    const ownermail = "owner@gmail.com";
+    const ownerpass = "owner123";
+    const oid2 = await service.startSession();
+    await service.registerMember(oid2, ownermail, ownerpass);
+    const oid = await service.loginMember(oid2, ownermail, ownerpass);
+    const pargs2 = generateProductArgs();
+    pargs2.name = "banana";
+    pargs2.quantity = 5;
+    const pid2 = await service.createProduct(uid, storeId, pargs2);
+    pargs2.name = "tomato";
+    const pid = await service.createProduct(uid, storeId, pargs2);
+    await service.addConstraintToStore(uid, storeId, cargs);
+    await service.createProduct(uid, storeId, pargs2);
+    await service.addProductToCart(oid, "banana", 2);
+    const card = faker.finance.creditCardNumber();
+    const cCard: PaymentDetails = {
+      number: card,
+      ccv: "144",
+      holder: "Buya",
+      id: "111111111",
+      month: "3",
+      year: "2025",
+    };
+    const d: DeliveryDetails = {
+      address: "dsadas",
+      city: "asdasd",
+      country: "sadasd",
+      name: "bsajsa",
+      zip: "2143145",
+    };
+    await expect(() => service.purchaseCart(oid, cCard, d)).rejects.toThrow(
+      TRPCError
+    );
+    await service.addProductToCart(oid, "tomato", 2);
+    await expect(() => service.purchaseCart(oid, cCard, d)).rejects.toThrow(
+      TRPCError
+    );
+    await service.editProductQuantityInCart(oid, "banana", 3);
+    await service.purchaseCart(oid, cCard, d);
+    expect(
+      !(await service.isProductQuantityInStock(uid, pid, 3)) &&
+        (await service.isProductQuantityInStock(uid, pid, 2)) &&
+        !(await service.isProductQuantityInStock(uid, pid2, 3)) &&
+        (await service.isProductQuantityInStock(uid, pid2, 2))
+    ).toBe(true);
   });
 });

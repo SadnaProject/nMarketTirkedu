@@ -1,8 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { randomUUID } from "crypto";
 import { UserRepo } from "./UserRepo";
 import { TRPCError } from "@trpc/server";
-import { PrismaClientValidationError } from "@prisma/client/runtime";
+import { resetDB } from "server/helpers/_Transactional";
+beforeEach(async () => {
+  await resetDB();
+});
 describe("add user", () => {
   it("should add a user to the repo", async () => {
     const userRepo = new UserRepo();
@@ -14,7 +17,9 @@ describe("add user", () => {
     const userRepo = new UserRepo();
     const userId = randomUUID();
     await userRepo.addUser(userId);
-    await expect(() => userRepo.addUser(userId)).rejects.toThrow(TRPCError);
+    await expect(() => userRepo.addUser(userId)).rejects.toThrow(
+      "User already exists"
+    );
   });
 });
 describe("get user", () => {
@@ -27,7 +32,9 @@ describe("get user", () => {
   it("should throw an error if the user does not exist", async () => {
     const userRepo = new UserRepo();
     const userId = randomUUID();
-    await expect(() => userRepo.getUser(userId)).rejects.toThrow(TRPCError);
+    await expect(() => userRepo.getUser(userId)).rejects.toThrow(
+      "User not found"
+    );
   });
 });
 describe("remove user", () => {
@@ -42,7 +49,7 @@ describe("remove user", () => {
     const userRepo = new UserRepo();
     const userId = randomUUID();
     await expect(async () => await userRepo.removeUser(userId)).rejects.toThrow(
-      TRPCError
+      "User does not exist"
     );
   });
 });

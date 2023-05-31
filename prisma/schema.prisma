@@ -178,7 +178,7 @@ model Notification {
 model BasketProduct {
     storeProductId String @id @default(cuid())
     quantity       Float
-    basket         Basket @relation(fields: [userId, storeId], references: [userId, storeId], onDelete: Cascade)
+    // basket         Basket @relation(fields: [userId, storeId], references: [userId, storeId], onDelete: Cascade)
     storeId        String
     userId         String
     bids           Bid[]
@@ -187,7 +187,7 @@ model BasketProduct {
 model Basket {
     userId   String
     storeId  String
-    products BasketProduct[]
+    // products BasketProduct[]
     cart     Cart            @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
     @@unique([userId, storeId])

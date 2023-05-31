@@ -199,5 +199,11 @@ export class StoreProductsRepo extends Testable {
         [field]: value,
       },
     });
+    if (this.fake_cache.has(productId)) {
+      const cache_product = this.fake_cache.get(productId)?.product;
+      if (cache_product !== undefined) {
+        cache_product[field] = value;
+      }
+    }
   }
 }

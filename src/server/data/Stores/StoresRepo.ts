@@ -85,12 +85,13 @@ export class StoresRepo extends Testable {
         store,
         counter: this.counter,
       });
-    }else{
+    } else {
       this.fake_store_cache.set(storeId, {
         store,
         counter: this.counter,
-      });}
-      this.counter++;
+      });
+    }
+    this.counter++;
     return store;
   }
   public async getConstraints(storeId: string): Promise<ConstraintPolicy> {
@@ -385,6 +386,12 @@ export class StoresRepo extends Testable {
         [field]: value,
       },
     });
+    if (this.fake_store_cache.has(id)) {
+      const store = this.fake_store_cache.get(id)?.store;
+      if (store !== undefined) {
+        store[field] = value;
+      }
+    }
   }
   public async removeConstraint(constraintId: string) {
     const conditions = await getDB().condition.findMany({

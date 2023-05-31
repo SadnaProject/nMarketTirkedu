@@ -454,7 +454,7 @@ export class JobsController
     targetUserId: string
   ): Promise<void> {
     // throw new Error("Method not implemented.");
-    console.log("makeStoreOwner in JobsController");
+    // console.log("makeStoreOwner in JobsController");
     const phAppointer: PositionHolder | undefined =
       await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
         currentId,
@@ -853,7 +853,7 @@ export class JobsController
     const founderDTOWithEmail = await this.addEmailsToPositionHolderDTO(
       founder.DTO
     );
-    console.log(founderDTOWithEmail.email);
+    // console.log(founderDTOWithEmail.email);
     return founderDTOWithEmail;
   }
 

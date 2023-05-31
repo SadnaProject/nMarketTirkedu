@@ -102,7 +102,7 @@ export class MemberUserAuth extends UserAuth {
         message: "Member is already logged in",
       });
     }
-    console.log("Member is logging in");
+    // console.log("Member is logging in");
     await this.setIsLoggedIn(true);
     const session = new Session(this.userId);
     this.addSession(session);

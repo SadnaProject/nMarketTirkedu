@@ -101,7 +101,7 @@ export class PositionHolder {
       (await getDB().role.findMany({ where: { roleType: RoleType.Owner } }))
         .length == 0
     ) {
-      console.log("creating owner role");
+      // console.log("creating owner role");
       await getDB().role.create({
         data: {
           id: RoleType.Owner,

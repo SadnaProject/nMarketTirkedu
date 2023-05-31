@@ -3,7 +3,8 @@ import tsconfigPaths from "vitest-tsconfig-paths";
 
 export default defineConfig({
   test: {
-    dir: "src/server",
+
+    dir: "src/server/",
     restoreMocks: true,
     reporters: ["default", "html"],
     outputFile: "./test-results/index.html",
@@ -28,8 +29,11 @@ export default defineConfig({
       // "**/checkDB.test.ts",
       //   // "**/User.test.ts",
       //   // "**/Basket.test.ts",
-      //   "**/UserRepo.test.ts",
-      //   "**/UserController.test.ts",
+      // "**/UserRepo.test.ts",
+      // "**/Basket.test.ts",
+      // "**/Cart.test.ts",
+      "**/UsersController.test.ts",
+      // "**/UsersRepo.test.ts",
 
       // "**/CartPurchaseHistoryRepo.test.ts",
       // "**/PurchasesHistory/**/*.test.ts",
@@ -40,8 +44,6 @@ export default defineConfig({
       // "**/Store.test.ts",
       // "**/StoreProduct.test.ts",
       // "**/BasketPurchaseHistoryRepo.test.ts",
-      // run all tests in Data/PurchaseHistory folder
-      "**/PurchasesHistory/**/*.test.ts",
     ],
     //make the tests run in an order and not in parallel
     threads: false,

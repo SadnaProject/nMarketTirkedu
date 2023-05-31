@@ -52,7 +52,7 @@ export default function Home() {
             <Link href={PATHS.receipt.path(purchase.purchaseId)}>
               <Card>
                 <h2 className="text-lg font-bold text-slate-800">
-                  {purchase.username}
+                  {/* {purchase.username} todo */}
                 </h2>
                 <Price
                   price={purchase.price}
@@ -63,7 +63,7 @@ export default function Home() {
                 />
                 <span className="flex items-end gap-1 text-sm text-slate-700">
                   <TimeIcon className="h-5 w-5" />
-                  {purchase.date.toLocaleString()}
+                  {/* {purchase.date.toLocaleString()} todo */}
                 </span>
               </Card>
             </Link>

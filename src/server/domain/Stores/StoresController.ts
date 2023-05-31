@@ -637,12 +637,12 @@ export class StoresController
         "Store activated 💃",
         `Store ${storeId} has been activated`
       );
+      // todo eventEmitter.emitEvent({
+      //   type:"storeChanged",
+      //   channel:"",
+      //   storeId
+      // });
     }
-    // eventEmitter.emitEvent(`store is changed ${storeId}`, {
-    //   storeId: storeId,
-    //   userId: userId,
-    //   state: "activated",
-    // });
   }
 
   async deactivateStore(userId: string, storeId: string): Promise<void> {

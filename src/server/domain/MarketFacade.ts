@@ -22,6 +22,7 @@ import { type PositionHolderDTO } from "./Jobs/PositionHolder";
 import { Loggable, censored, loggable } from "./helpers/_Loggable";
 import { createControllers } from "./helpers/_createControllers";
 import { type Controllers } from "./helpers/_HasController";
+import { eventEmitter } from "./helpers/_EventEmitter";
 
 // @transactional
 @loggable
@@ -105,6 +106,7 @@ export class MarketFacade extends Loggable {
   public getNotifications(userId: string) {
     this.validateConnection(userId);
     return this.controllers.Users.getNotifications(userId);
+    //return eventEmitter.getUnreadNotifications(userId); // todo fix
   }
 
   public purchaseCart(
@@ -226,7 +228,7 @@ export class MarketFacade extends Loggable {
     targetUserId: string
   ) {
     this.validateConnection(currentId);
-    console.log("makeStoreOwner");
+    // console.log("makeStoreOwner");
     await this.controllers.Stores.makeStoreOwner(
       currentId,
       storeId,
@@ -280,6 +282,62 @@ export class MarketFacade extends Loggable {
   ): Promise<void> {
     this.validateConnection(currentId);
     await this.controllers.Stores.setAddingProductToStorePermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission
+    );
+  }
+  async setRemovingProductFromStorePermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void> {
+    this.validateConnection(currentId);
+    await this.controllers.Jobs.setRemovingProductFromStorePermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission
+    );
+  }
+  async setEditingProductInStorePermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void> {
+    this.validateConnection(currentId);
+    await this.controllers.Jobs.setEditingProductInStorePermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission
+    );
+  }
+  async setModifyingPurchasePolicyPermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void> {
+    this.validateConnection(currentId);
+    await this.controllers.Jobs.setModifyingPurchasePolicyPermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission
+    );
+  }
+  async setReceivingPrivateStoreDataPermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void> {
+    this.validateConnection(currentId);
+    await this.controllers.Jobs.setReceivingPrivateStoreDataPermission(
       currentId,
       storeId,
       targetUserId,

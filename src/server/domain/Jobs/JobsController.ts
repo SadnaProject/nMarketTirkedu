@@ -132,6 +132,32 @@ export interface IJobsController extends HasRepos {
     permission: boolean
   ): Promise<void>;
   /**
+   * This function sets the permission of a user to modify the purchase policy of a store.
+   * @param currentId The id of the user that is currently logged in.
+   * @param storeId The id of the store that is related to the permission.
+   * @param targetUserId The id of the user that his permission is being set.
+   * @param permission The permission that is being set( true = can edit, false = can't edit).
+   */
+  setModifyingPurchasePolicyPermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void>;
+  /**
+   * This function sets the permission of a user to receive the private data of a store.
+   * @param currentId The id of the user that is currently logged in.
+   * @param storeId The id of the store that is related to the permission.
+   * @param targetUserId The id of the user that his permission is being set.
+   * @param permission The permission that is being set( true = can edit, false = can't edit).
+   */
+  setReceivingPrivateStoreDataPermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void>;
+  /**
    * This function returns whether a user has permission to create a product in a store.
    * @param userId The id of the user that we are checking the permission of.
    * @param storeId The id of the store related to the permission.
@@ -321,6 +347,7 @@ export class JobsController
     // this.ownerRole = new OwnerRole();
     // this.founderRole = new FounderRole();
   }
+  
   // private initializeSystemAdmin() {
   //   const userId = this.Controllers.Auth.register("admin", "admin");
   //   this.setInitialAdmin(userId);
@@ -427,7 +454,7 @@ export class JobsController
     targetUserId: string
   ): Promise<void> {
     // throw new Error("Method not implemented.");
-    console.log("makeStoreOwner in JobsController");
+    // console.log("makeStoreOwner in JobsController");
     const phAppointer: PositionHolder | undefined =
       await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
         currentId,
@@ -566,6 +593,7 @@ export class JobsController
       permission
     );
   }
+  
   //
 
   // private wasAppointedByUser(appointer: string, storeId: string, appointee: string): boolean{
@@ -612,6 +640,12 @@ export class JobsController
       permission,
       "EditProductDetails"
     );
+  }
+  async setModifyingPurchasePolicyPermission(currentId: string, storeId: string, targetUserId: string, permission: boolean): Promise<void> {
+    await this.setAppointeePermission(currentId, storeId, targetUserId, permission, "ModifyPurchasePolicy");
+  }
+  async setReceivingPrivateStoreDataPermission(currentId: string, storeId: string, targetUserId: string, permission: boolean): Promise<void> {
+    await this.setAppointeePermission(currentId, storeId, targetUserId, permission, "receivePrivateStoreData");
   }
 
   async canCreateProductInStore(
@@ -819,7 +853,7 @@ export class JobsController
     const founderDTOWithEmail = await this.addEmailsToPositionHolderDTO(
       founder.DTO
     );
-    console.log(founderDTOWithEmail.email);
+    // console.log(founderDTOWithEmail.email);
     return founderDTOWithEmail;
   }
 

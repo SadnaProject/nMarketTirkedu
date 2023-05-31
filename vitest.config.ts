@@ -3,6 +3,7 @@ import tsconfigPaths from "vitest-tsconfig-paths";
 
 export default defineConfig({
   test: {
+
     dir: "src/server/",
     restoreMocks: true,
     reporters: ["default", "html"],
@@ -21,8 +22,8 @@ export default defineConfig({
       // "**/Session.test.ts",
       // "**/JobsController.test.ts",
       // "**/EventsManager.test.ts",
-      // "**/JobsController.test.ts",
-
+      "**/JobsController.test.ts",
+      // "**/EventsManager.test.ts",
       //   // "**/ReviewRepo.test.ts",
       // "**/ProductReviewsRepo.test.ts",
       // "**/checkDB.test.ts",
@@ -37,6 +38,7 @@ export default defineConfig({
       // "**/CartPurchaseHistoryRepo.test.ts",
       // "**/PurchasesHistory/**/*.test.ts",
 
+      // "**/PurchasesHistoryController.test.ts",
       // "**/StoreRepo.test.ts",
       // "**/StoresController.test.ts",
       // "**/Store.test.ts",

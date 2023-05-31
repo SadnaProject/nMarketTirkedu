@@ -6,7 +6,6 @@ export type Permission =
   | EditablePermission
   | "AppointStoreOwner"
   | "AppointStoreManager"
-  | "GetMembersInfo"
   | "receiveClosedStoreData";
 export type EditablePermission =
   | "AddProduct"

@@ -14,12 +14,12 @@ beforeEach(() => {
 //Use Cases 4.4 + 4.5, Homework Scenario
 /**
  * Users: u1, u2, u3.
-u1 is founder of store s1.
-u1 appoint u2 as s1 store owner.
-u2 appoint u3 as s1 store owner.
-u3 tries to remove u2 – expected failure.
-u1 removes u2 – expected success.
-Expected results: u3 is removed.
+ * U1 is founder of store s1.
+ * U1 appoint u2 as s1 store owner.
+ * U2 appoint u3 as s1 store owner.
+ * U3 tries to remove u2 – expected failure.
+ * U1 removes u2 – expected success.
+ * Expected results: u3 is removed.
  */
 describe("Homework Scenario", () => {
   let email: string,
@@ -72,7 +72,7 @@ describe("Homework Scenario", () => {
 
 //Use Cases 6.2 + 6.6
 /**
- * Homework Scenario 2: makes sure that after removing a member its data is removed in real-time
+ * Homework Scenario 2: makes sure that after removing a member its data is removed in real-time.
  */
 describe("Remove Member", () => {
   it("Scenario 2", async () => {

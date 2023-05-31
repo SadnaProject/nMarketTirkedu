@@ -1,5 +1,5 @@
 import { Review, type ReviewArgs, type ReviewDTO } from "./Review";
-import { ProductReviewDAO } from "./helpers/TypeHelper";
+import { type ProductReviewDAO } from "./helpers/TypeHelper";
 
 export type ProductReviewDTO = {
   title: string;

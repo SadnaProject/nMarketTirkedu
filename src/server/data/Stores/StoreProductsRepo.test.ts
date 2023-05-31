@@ -1,9 +1,9 @@
 import {
-  Repos,
+  type Repos,
   createMockRepos,
   createRepos,
 } from "server/domain/Stores/helpers/_HasRepos";
-import { Controllers } from "server/domain/helpers/_HasController";
+import { type Controllers } from "server/domain/helpers/_HasController";
 import { createMockControllers } from "server/domain/helpers/_createControllers";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {

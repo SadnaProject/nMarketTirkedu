@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { Notification, NotificationsRepo } from "./NotificationsRepo";
+import { type Notification, NotificationsRepo } from "./NotificationsRepo";
 import { channel } from "diagnostics_channel";
 
 let notificationsRepo: NotificationsRepo;

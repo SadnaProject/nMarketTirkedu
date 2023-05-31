@@ -5,7 +5,10 @@ import {
   createMockRepos,
   createTestRepos,
 } from "./helpers/_HasRepos";
-import { ProductPurchase, ProductPurchaseDTO } from "./ProductPurchaseHistory";
+import {
+  ProductPurchase,
+  type ProductPurchaseDTO,
+} from "./ProductPurchaseHistory";
 import { BasketPurchase } from "./BasketPurchaseHistory";
 import { CartPurchase } from "./CartPurchaseHistory";
 import { ProductPurchaseRepo } from "server/data/PurchasesHistory/ProductPurchaseHistoryRepo";

@@ -6,11 +6,28 @@ import {
 } from "server/data/Stores/helpers/_data";
 import { Service } from "server/service/Service";
 import { describe, expect, it, beforeEach } from "vitest";
-
+import { resetDB } from "server/helpers/_Transactional";
 let service: Service;
-beforeEach(() => {
+beforeEach(async () => {
+  await resetDB();
   service = new Service();
 });
+
+export type PaymentDetails = {
+  number: string;
+  month: string;
+  year: string;
+  holder: string;
+  ccv: string;
+  id: string;
+};
+export type DeliveryDetails = {
+  name: string;
+  address: string;
+  city: string;
+  country: string;
+  zip: string;
+};
 //Use Case 6.4
 describe("Get Purchase History by a buyer", () => {
   it("✅ Applied by system admin", async () => {
@@ -34,13 +51,27 @@ describe("Get Purchase History by a buyer", () => {
     const umid = await service.loginMember(mid, memail, mpassword);
     await service.addProductToCart(umid, pid, 1);
     const card = faker.finance.creditCardNumber();
-    const cCard = { number: card };
-    await service.purchaseCart(umid, cCard);
+    const cCard: PaymentDetails = {
+      number: card,
+      ccv: "144",
+      holder: "Buya",
+      id: "111111111",
+      month: "3",
+      year: "2025",
+    };
+    const d: DeliveryDetails = {
+      address: "dsadas",
+      city: "asdasd",
+      country: "sadasd",
+      name: "bsajsa",
+      zip: "2143145",
+    };
+    await service.purchaseCart(umid, cCard, d);
     const pargs2 = generateProductArgs();
     pargs2.quantity = 3;
     const pid2 = await service.createProduct(oid, storeId, pargs2);
     await service.addProductToCart(umid, pid2, 2);
-    await service.purchaseCart(umid, cCard);
+    await service.purchaseCart(umid, cCard, d);
     const hist = await service.getPurchasesByUser(uid, umid);
     expect(
       hist.length === 2 &&
@@ -87,13 +118,27 @@ describe("Get Purchase History by a store", () => {
     const umid = await service.loginMember(mid, memail, mpassword);
     await service.addProductToCart(umid, pid, 1);
     const card = faker.finance.creditCardNumber();
-    const cCard = { number: card };
-    await service.purchaseCart(umid, cCard);
+    const cCard: PaymentDetails = {
+      number: card,
+      ccv: "144",
+      holder: "Buya",
+      id: "111111111",
+      month: "3",
+      year: "2025",
+    };
+    const d: DeliveryDetails = {
+      address: "dsadas",
+      city: "asdasd",
+      country: "sadasd",
+      name: "bsajsa",
+      zip: "2143145",
+    };
+    await service.purchaseCart(umid, cCard, d);
     const pargs2 = generateProductArgs();
     pargs2.quantity = 3;
     const pid2 = await service.createProduct(oid, storeId, pargs2);
     await service.addProductToCart(umid, pid2, 2);
-    await service.purchaseCart(umid, cCard);
+    await service.purchaseCart(umid, cCard, d);
     const hist = await service.getPurchasesByStore(uid, storeId);
     expect(
       hist.length === 2 &&

@@ -2,9 +2,10 @@ import { faker } from "@faker-js/faker/locale/en";
 import { Service } from "server/service/Service";
 import { describe, expect, it, beforeEach } from "vitest";
 import { TRPCError } from "@trpc/server";
-
+import { resetDB } from "server/helpers/_Transactional";
 let service: Service;
-beforeEach(() => {
+beforeEach(async () => {
+  await resetDB();
   service = new Service();
 });
 //Use Case 1.1
@@ -41,15 +42,17 @@ describe("Guest Registration", () => {
     const id = await service.startSession();
     await service.registerMember(id, email, password);
     const uid = await service.loginMember(id, email, password);
-    expect(service.isMember(uid)).toBe(true);
+    expect(await service.isMember(uid)).toBe(true);
   });
   it("❎ Registration of an existing member", async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
     const id = await service.startSession();
     await service.registerMember(id, email, password);
-    expect(() => service.registerMember(id, email, password)).toThrow(
-      TRPCError
+    await expect(() =>
+      service.registerMember(id, email, password)
+    ).rejects.toThrow(
+      "Email already in use, please try again with a different email"
     );
   });
 });
@@ -70,13 +73,17 @@ describe("Guest Login", () => {
     const password = faker.internet.password();
     const id = await service.startSession();
     await service.registerMember(id, email, password);
-    expect(() => service.loginMember(id, "", password)).toThrow(TRPCError);
+    await expect(() => service.loginMember(id, "", password)).rejects.toThrow(
+      TRPCError
+    );
   });
   it("❎ Login using wrong password", async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
     const id = await service.startSession();
     await service.registerMember(id, email, password);
-    expect(() => service.loginMember(id, email, "")).toThrow(TRPCError);
+    await expect(() => service.loginMember(id, email, "")).rejects.toThrow(
+      "Password is incorrect, please try again with a different password"
+    );
   });
 });

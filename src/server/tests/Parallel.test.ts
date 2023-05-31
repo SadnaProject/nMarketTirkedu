@@ -6,11 +6,28 @@ import {
   generateStoreName,
 } from "server/data/Stores/helpers/_data";
 import { Service } from "server/service/Service";
-
+import { resetDB } from "server/helpers/_Transactional";
 let service: Service;
-beforeEach(() => {
+beforeEach(async () => {
+  await resetDB();
   service = new Service();
 });
+
+export type PaymentDetails = {
+  number: string;
+  month: string;
+  year: string;
+  holder: string;
+  ccv: string;
+  id: string;
+};
+export type DeliveryDetails = {
+  name: string;
+  address: string;
+  city: string;
+  country: string;
+  zip: string;
+};
 
 // since action takes time, it returns a promise
 async function action(): Promise<number> {
@@ -75,17 +92,33 @@ describe("Concurrent Purchase", () => {
       const card2 = faker.finance.creditCardNumber();
       const mid2 = await service.startSession();
       await service.addProductToCart(mid2, pid, 1);
-      const cCard = { number: card };
-      const cCard2 = { number: card2 };
+      const cCard: PaymentDetails = {
+        number: card,
+        ccv: "144",
+        holder: "Buya",
+        id: "111111111",
+        month: "3",
+        year: "2025",
+      };
+      const d: DeliveryDetails = {
+        address: "dsadas",
+        city: "asdasd",
+        country: "sadasd",
+        name: "bsajsa",
+        zip: "2143145",
+      };
       async function purchase() {
         await new Promise((resolve) => setTimeout(resolve, 0));
-        return service.purchaseCart(mid2, cCard2);
+        return service.purchaseCart(mid2, cCard, d);
       }
       async function purchase2() {
         await new Promise((resolve) => setTimeout(resolve, 0));
-        return service.purchaseCart(umid, cCard);
+        return service.purchaseCart(umid, cCard, d);
       }
-      const promises: Promise<string>[] = [];
+      const promises: Promise<{
+        paymentTransactionId: number;
+        deliveryTransactionId: number;
+      }>[] = [];
       promises.push(purchase());
       promises.push(purchase2());
       const res = await Promise.allSettled(promises);

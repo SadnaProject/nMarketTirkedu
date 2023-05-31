@@ -54,7 +54,7 @@ export class Basket {
         this.storeId,
         this.userId
       );
-      this.products.push(new_product);
+      if (this.products.length < 10) this.products.push(new_product);
     } else {
       product.Quantity = quantity;
     }
@@ -114,7 +114,7 @@ export class Basket {
             this.storeId,
             this.userId
           );
-          this.products.push(new_product);
+          if (this.products.length < 10) this.products.push(new_product);
         } else {
           product.Quantity = quantity;
         }

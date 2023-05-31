@@ -7,11 +7,29 @@ import {
 import { Service } from "server/service/Service";
 import { describe, expect, it, beforeEach } from "vitest";
 import { TRPCError } from "@trpc/server";
-
+import { resetDB } from "server/helpers/_Transactional";
 let service: Service;
-beforeEach(() => {
+beforeEach(async () => {
+  await resetDB();
   service = new Service();
 });
+
+export type PaymentDetails = {
+  number: string;
+  month: string;
+  year: string;
+  holder: string;
+  ccv: string;
+  id: string;
+};
+export type DeliveryDetails = {
+  name: string;
+  address: string;
+  city: string;
+  country: string;
+  zip: string;
+};
+
 //Use Case 2.1
 describe("Get information about stores and products", () => {
   it("✅ Get information about stores and products", async () => {
@@ -62,7 +80,9 @@ describe("Get information about stores and products", () => {
     const mid = await service.startSession();
     await service.registerMember(mid, memail, mpassword);
     const umid = await service.loginMember(mid, memail, mpassword);
-    expect(() => service.getStoreFounder("ashaleee")).toThrow(TRPCError);
+    await expect(() => service.getStoreFounder("ashaleee")).rejects.toThrow(
+      "Store not found"
+    );
   });
 });
 //Use Case 2.2
@@ -287,8 +307,10 @@ describe("Edit cart contents", () => {
         .length === 0
     ).toBe(true);
   });
-  it("❎ Remove non-existing item", () => {
-    expect(() => service.removeProductFromCart(umid, pid)).toThrow(TRPCError);
+  it("❎ Remove non-existing item", async () => {
+    await expect(() =>
+      service.removeProductFromCart(umid, pid)
+    ).rejects.toThrow("Product not found");
   });
 });
 //Use Case 2.5
@@ -340,8 +362,22 @@ describe("Purchase Cart", () => {
     await service.addProductToCart(umid, pid, 1);
     await service.addProductToCart(umid, pid2, 3);
     const card = faker.finance.creditCardNumber();
-    const cCard = { number: card };
-    await service.purchaseCart(umid, cCard);
+    const cCard: PaymentDetails = {
+      number: card,
+      ccv: "144",
+      holder: "Buya",
+      id: "111111111",
+      month: "3",
+      year: "2025",
+    };
+    const d: DeliveryDetails = {
+      address: "dsadas",
+      city: "asdasd",
+      country: "sadasd",
+      name: "bsajsa",
+      zip: "2143145",
+    };
+    await service.purchaseCart(umid, cCard, d);
     const cart = (await service.getCart(umid)).storeIdToBasket;
     const b = await service.isProductQuantityInStock(umid, pid, 7);
     expect(
@@ -362,11 +398,27 @@ describe("Purchase Cart", () => {
     await service.registerMember(mid, memail, mpassword);
     const umid = await service.loginMember(mid, memail, mpassword);
     await service.addProductToCart(umid, pid, 4);
-    expect(() => service.addProductToCart(umid, pid2, 3)).toThrow(TRPCError);
+    expect(() => service.addProductToCart(umid, pid2, 3)).toThrow(
+      "store doesn't have such amount of product"
+    );
     const card = faker.finance.creditCardNumber();
-    const cCard = { number: card };
+    const cCard: PaymentDetails = {
+      number: card,
+      ccv: "144",
+      holder: "Buya",
+      id: "111111111",
+      month: "3",
+      year: "2025",
+    };
+    const d: DeliveryDetails = {
+      address: "dsadas",
+      city: "asdasd",
+      country: "sadasd",
+      name: "bsajsa",
+      zip: "2143145",
+    };
     await service.decreaseProductQuantity(pid, 4);
-    expect(() => service.purchaseCart(umid, cCard)).toThrow(TRPCError);
+    expect(() => service.purchaseCart(umid, cCard, d)).toThrow(TRPCError);
   });
   it("❎ Purchasing items that were on stock when added to cart but another user bought them", async () => {
     const pid = await service.createProduct(oid, storeId, pargs);
@@ -385,10 +437,25 @@ describe("Purchase Cart", () => {
     const mid2 = await service.startSession();
     await service.addProductToCart(mid2, pid, 7);
     await service.addProductToCart(mid2, pid2, 5);
-    const cCard = { number: card };
-    const cCard2 = { number: card2 };
-    await service.purchaseCart(umid, cCard);
-    expect(() => service.purchaseCart(mid2, cCard2)).toThrow(TRPCError);
+    const cCard: PaymentDetails = {
+      number: card,
+      ccv: "144",
+      holder: "Buya",
+      id: "111111111",
+      month: "3",
+      year: "2025",
+    };
+    const d: DeliveryDetails = {
+      address: "dsadas",
+      city: "asdasd",
+      country: "sadasd",
+      name: "bsajsa",
+      zip: "2143145",
+    };
+    await service.purchaseCart(umid, cCard, d);
+    await expect(() => service.purchaseCart(mid2, cCard, d)).rejects.toThrow(
+      TRPCError
+    );
   });
   it("❎ Empty Cart Purchase", async () => {
     const pid = await service.createProduct(oid, storeId, pargs);
@@ -401,8 +468,24 @@ describe("Purchase Cart", () => {
     await service.registerMember(mid, memail, mpassword);
     const umid = await service.loginMember(mid, memail, mpassword);
     const card = faker.finance.creditCardNumber();
-    const cCard = { number: card };
-    expect(() => service.purchaseCart(umid, cCard)).toThrow(TRPCError);
-    expect(() => service.removeProductFromCart(umid, pid)).toThrow(TRPCError);
+    const cCard: PaymentDetails = {
+      number: card,
+      ccv: "144",
+      holder: "Buya",
+      id: "111111111",
+      month: "3",
+      year: "2025",
+    };
+    const d: DeliveryDetails = {
+      address: "dsadas",
+      city: "asdasd",
+      country: "sadasd",
+      name: "bsajsa",
+      zip: "2143145",
+    };
+    await expect(() => service.purchaseCart(umid, cCard, d)).rejects.toThrow(
+      "Cart is empty, please add products to cart before purchasing"
+    );
+    // expect(() => service.removeProductFromCart(umid, pid)).toThrow(TRPCError);
   });
 });

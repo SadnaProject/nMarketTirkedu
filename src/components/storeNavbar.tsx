@@ -2,7 +2,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { twMerge } from "tailwind-merge";
 import PATHS from "utils/paths";
-import { BookIcon, TrashIcon } from "./icons";
+import { BookIcon, EyeClosedIcon, EyeIcon, TrashIcon } from "./icons";
 import { api } from "server/communication/api";
 import { useEffect, useState } from "react";
 import { cachedQueryOptions } from "utils/query";
@@ -38,6 +38,33 @@ export default function StoreNavbar({ storeId }: Props) {
       setIsMyStore(myStores.some((myStore) => myStore.store.id === storeId));
     }
   }, [myStores, storeId]);
+  const { mutate: activateStore } = api.stores.activateStore.useMutation({
+    ...cachedQueryOptions,
+    onSuccess: () => {
+      console.log("activated");
+      void refetchIsStoreActive();
+    },
+  });
+  const { mutate: deactivateStore } = api.stores.deactivateStore.useMutation({
+    ...cachedQueryOptions,
+    onSuccess: () => {
+      console.log("deactivated");
+      void refetchIsStoreActive();
+    },
+  });
+  const { data: isStoreActive, refetch: refetchIsStoreActive } =
+    api.stores.isStoreActive.useQuery(
+      { storeId: storeId as string },
+      { ...cachedQueryOptions, enabled: !!storeId }
+    );
+
+  function handleChangeStoreActivation() {
+    if (isStoreActive) {
+      deactivateStore({ storeId: storeId as string });
+    } else {
+      activateStore({ storeId: storeId as string });
+    }
+  }
 
   const links = [
     {
@@ -76,6 +103,11 @@ export default function StoreNavbar({ storeId }: Props) {
             {isSystemAdmin && (
               <button data-hs-overlay={"#hs-modal-perm-close"}>
                 <TrashIcon />
+              </button>
+            )}
+            {isMyStore && (
+              <button onClick={() => void handleChangeStoreActivation()}>
+                {isStoreActive ? <EyeIcon /> : <EyeClosedIcon />}
               </button>
             )}
             <Modal

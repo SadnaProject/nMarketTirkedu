@@ -4,20 +4,21 @@ import { z } from "zod";
 import StoreNavbar from "components/storeNavbar";
 import Input from "components/input";
 import Button from "components/button";
-import { Dropdown, SmallDropdown } from "components/dropdown";
+import { SmallDropdown } from "components/dropdown";
 import { toast } from "react-hot-toast";
 import { Modal } from "components/modal";
 import { api } from "server/communication/api";
 import { cachedQueryOptions, onError } from "utils/query";
 import { useGuestRedirect } from "utils/paths";
-import { RemoveIcon } from "components/icons";
+import { EditIcon, RemoveIcon } from "components/icons";
 import { type PositionHolderDTO } from "server/domain/Jobs/PositionHolder";
 import { roleTypeSchema } from "server/domain/Jobs/Role";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type RoleType } from "@prisma/client";
 import { onJobChangeEvent } from "utils/events";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { type EditablePermission } from "server/domain/Jobs/Role";
 
 const formSchema = z.object({
   role: roleTypeSchema,
@@ -25,6 +26,7 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+type ManagerPermissionList = EditablePermission;
 
 export default function Home() {
   useGuestRedirect();
@@ -241,11 +243,23 @@ function AccordionIcons() {
   );
 }
 
+// const permissionFormSchema = z.object({
+//   email: z
+//     .string()
+//     .nonempty("Email is required")
+//     .email("Invalid email address"),
+//   password: z.string().min(5, "Password must be at least 5 characters"),
+// });
+
+// type FormValues = z.infer<typeof formSchema>;
+
 type JobProps = {
   job: PositionHolderDTO;
 };
 
 function Job({ job }: JobProps) {
+  const router = useRouter();
+  const storeId = z.undefined().or(z.string()).parse(router.query.storeId);
   const { mutate: removeStoreOwner } = api.stores.removeStoreOwner.useMutation({
     onError,
     onSuccess: () => {
@@ -261,6 +275,23 @@ function Job({ job }: JobProps) {
         toast.success("Job removed successfully");
       },
     });
+  const { mutateAsync: setAddingProductPermission } =
+    api.stores.setAddingProductPermission.useMutation(cachedQueryOptions);
+  const [managerId, setManagerId] = useState<string>("");
+  const { data: managerPermissions, refetch: refetchManagerPermissions } =
+    api.jobs.getPermissionsOfUser.useQuery(
+      { userId: managerId, storeId: storeId as string },
+      { ...cachedQueryOptions, enabled: !!managerId }
+    );
+
+  async function handleSetAddingProductPermission(permission: boolean) {
+    await setAddingProductPermission({
+      permission,
+      storeId: storeId as string,
+      targetUserId: managerId,
+    });
+    void refetchManagerPermissions();
+  }
 
   const handleRemoval = (job: PositionHolderDTO) => {
     if (job.role.roleType === "Owner") {
@@ -314,6 +345,49 @@ function Job({ job }: JobProps) {
           </Button>
         }
       />
+      {job.role.roleType === "Manager" && (
+        <>
+          <button
+            className="ml-2 peer-hover:opacity-100 hover:opacity-100 sm:opacity-0"
+            data-hs-overlay={`#hs-modal-${job.userId}-edit`}
+            onClick={() => {
+              setManagerId(job.userId);
+              void refetchManagerPermissions();
+            }}
+          >
+            <EditIcon />
+          </button>
+          <Modal
+            id={`hs-modal-${job.userId}-edit`}
+            title="Edit Permissions"
+            content={
+              <div>
+                <div className="flex gap-2">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="hs-basic-with-description-unchecked"
+                      checked={managerPermissions?.includes("AddProduct")}
+                      className="relative h-7 w-[3.25rem] shrink-0 cursor-pointer appearance-none rounded-full border-2 border-transparent bg-gray-200 ring-1 ring-transparent ring-offset-white transition-colors duration-200 ease-in-out before:inline-block before:h-6 before:w-6 before:translate-x-0 before:transform before:rounded-full before:bg-white before:shadow before:ring-0 before:transition before:duration-200 before:ease-in-out checked:bg-blue-600 checked:bg-none checked:before:translate-x-full checked:before:bg-blue-200 focus:border-blue-600 focus:outline-none focus:ring-blue-600"
+                      onClick={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        void handleSetAddingProductPermission(target.checked);
+                      }}
+                    />
+                    <label
+                      htmlFor="hs-basic-with-description-unchecked"
+                      className="ml-3 text-sm text-gray-500"
+                    >
+                      Add Product
+                    </label>
+                  </div>
+                </div>
+              </div>
+            }
+            footer={<></>}
+          />
+        </>
+      )}
       <div
         id={`hs-basic-always-open-collapse-${job.userId}`}
         className="hs-accordion-content w-full overflow-hidden pl-6 transition-[height] duration-300"

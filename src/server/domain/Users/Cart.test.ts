@@ -1,6 +1,21 @@
 import { Cart } from "./Cart";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { TRPCError } from "@trpc/server";
+import { getDB } from "server/helpers/_Transactional";
+import { resetDB } from "server/helpers/_Transactional";
+beforeEach(async () => {
+  await resetDB();
+  await getDB().user.create({
+    data: {
+      id: "1",
+    },
+  });
+  await getDB().cart.create({
+    data: {
+      userId: "1",
+    },
+  });
+});
 describe("addProduct", () => {
   it("should add a product to the basket", async () => {
     const cart = new Cart("1");
@@ -21,11 +36,13 @@ describe("addProduct", () => {
         ?.products.filter((p) => p.storeProductId === productId)[0]?.quantity
     ).toBe(quantity + 1);
   });
-  it("should override the quantity if the product already exists in the basket", () => {
+  it("should override the quantity if the product already exists in the basket", async () => {
     const cart = new Cart("1");
     const productId = "1";
     const storeId = "1";
-    expect(() => cart.addProduct(productId, storeId, -1)).toThrow();
+    await expect(() => cart.addProduct(productId, storeId, -1)).rejects.toThrow(
+      "Quantity cannot be negative"
+    );
   });
 });
 describe("removeProduct", () => {
@@ -49,7 +66,9 @@ describe("removeProduct", () => {
     const quantity = 1;
     await cart.addProduct(productId, storeId, quantity);
     const productId2 = "2";
-    expect(() => cart.removeProduct(productId2, storeId)).toThrow(TRPCError);
+    await expect(() => cart.removeProduct(productId2, storeId)).rejects.toThrow(
+      "Product not found"
+    );
   });
 });
 describe("editProductQuantity", () => {
@@ -84,8 +103,8 @@ describe("editProductQuantity", () => {
     const storeId = "1";
     const quantity = 1;
     await cart.addProduct(productId, storeId, quantity);
-    expect(() => cart.editProductQuantity(productId, storeId, -1)).toThrow(
-      TRPCError
-    );
+    await expect(() =>
+      cart.editProductQuantity(productId, storeId, -1)
+    ).rejects.toThrow("Quantity cannot be negative");
   });
 });

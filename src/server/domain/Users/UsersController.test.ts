@@ -1,4 +1,4 @@
-import { describe, afterEach, expect, it, vi } from "vitest";
+import { beforeEach, describe, afterEach, expect, it, vi } from "vitest";
 import { randomUUID } from "crypto";
 import { TRPCError } from "@trpc/server";
 import {
@@ -6,6 +6,10 @@ import {
   createTestControllers,
 } from "../helpers/_createControllers";
 import { itUnitIntegration } from "../helpers/_mock";
+import { resetDB } from "server/helpers/_Transactional";
+beforeEach(async () => {
+  await resetDB();
+});
 //* Vitest Docs: https://vitest.dev/api
 // userController.addUser({id: "123456", name: "username"});
 // const storeId = storeController.createStore("123456", "storeName");
@@ -243,13 +247,25 @@ describe("purchase cart", () => {
     );
     const price = 100;
     vi.spyOn(controllers.Stores, "getCartPrice").mockResolvedValueOnce(price);
-    vi.spyOn(controllers.PurchasesHistory, "purchaseCart").mockResolvedValue(
-      "15"
-    );
+    vi.spyOn(controllers.PurchasesHistory, "purchaseCart").mockResolvedValue({
+      paymentTransactionId: 15,
+      deliveryTransactionId: 15,
+    });
     const notificationSizeBefore = (
       await controllers.Users.getNotifications(userId)
     ).length;
-    await controllers.Users.purchaseCart(userId, { number: "123456789" });
+    await controllers.Users.purchaseCart(
+      userId,
+      {
+        number: "123456789",
+        ccv: "149",
+        holder: "buya",
+        id: "111111111",
+        month: "3",
+        year: "2024",
+      },
+      { address: "", city: "", country: "", name: "", zip: "" }
+    );
     const notificationSizeAfter = (
       await controllers.Users.getNotifications(userId)
     ).length;
@@ -271,11 +287,23 @@ describe("purchase cart", () => {
       storeId
     );
     vi.spyOn(controllers.Stores, "getCartPrice").mockResolvedValueOnce(100);
-    vi.spyOn(controllers.PurchasesHistory, "purchaseCart").mockResolvedValue(
-      "15"
-    );
+    vi.spyOn(controllers.PurchasesHistory, "purchaseCart").mockResolvedValue({
+      paymentTransactionId: 15,
+      deliveryTransactionId: 15,
+    });
     await expect(() =>
-      controllers.Users.purchaseCart("Blabla", { number: "123456789" })
+      controllers.Users.purchaseCart(
+        "Blabla",
+        {
+          number: "123456789",
+          ccv: "",
+          holder: "",
+          id: "",
+          month: "",
+          year: "",
+        },
+        { address: "", city: "", country: "", name: "", zip: "" }
+      )
     ).rejects.toThrow("User not found");
   });
 });

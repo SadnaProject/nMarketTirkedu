@@ -7,7 +7,7 @@ import { OwnerRole } from "./OwnerRole";
 import { HasRepos, createRepos } from "./helpers/_HasRepos";
 import { PositionHolder, type PositionHolderDTO } from "./PositionHolder";
 import { FounderRole } from "./FounderRole";
-import { Permission, type EditablePermission } from "./Role";
+import { type Permission, type EditablePermission } from "./Role";
 import { TRPCError } from "@trpc/server";
 
 export interface IJobsController extends HasRepos {
@@ -270,12 +270,11 @@ export interface IJobsController extends HasRepos {
    */
   canRemoveMember(userId: string): Promise<boolean>;
   /**
-   * This function checks if a user has permission to change the store's purchase policy.(Constraints and discounts)
+   * This function checks if a user has permission to change the store's purchase policy.(Constraints and discounts).
    * @param userId The id of the user that is being checked.
    * @param storeId The id of the store that the user is being checked in.
    * @returns A boolean that represents if the user has permission to change the store's purchase policy.
    * @throws Error if the store doesn't exist.
-   *
    */
   canModifyPurchasePolicy(userId: string, storeId: string): Promise<boolean>;
   /**
@@ -428,6 +427,7 @@ export class JobsController
     targetUserId: string
   ): Promise<void> {
     // throw new Error("Method not implemented.");
+    console.log("makeStoreOwner in JobsController");
     const phAppointer: PositionHolder | undefined =
       await this.Repos.jobs.getPositionHolderByUserIdAndStoreId(
         currentId,

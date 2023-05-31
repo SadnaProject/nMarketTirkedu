@@ -194,6 +194,7 @@ export class JobsRepo extends Testable {
     try {
       return await this.getPositionHolderFromDB(storeId, userId);
     } catch (error) {
+      console.log(error);
       return undefined;
     }
     // return await this.getPositionHolderFromDB(storeId, userId);

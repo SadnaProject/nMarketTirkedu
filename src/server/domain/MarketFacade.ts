@@ -33,7 +33,7 @@ export class MarketFacade extends Loggable {
     this.controllers = createControllers();
     //await this.initializeSystemAdmin();
   }
-  private async initializeSystemAdmin() {
+  public async initializeSystemAdmin() {
     const userId = await this.controllers.Users.register(
       "admin@gmail.com",
       "admin"
@@ -286,25 +286,61 @@ export class MarketFacade extends Loggable {
       permission
     );
   }
-  async setRemovingProductFromStorePermission( currentId: string, storeId: string, targetUserId: string, permission: boolean ): Promise<void> 
-  {
+  async setRemovingProductFromStorePermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void> {
     this.validateConnection(currentId);
-    await this.controllers.Jobs.setRemovingProductFromStorePermission( currentId, storeId, targetUserId, permission );
+    await this.controllers.Jobs.setRemovingProductFromStorePermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission
+    );
   }
-  async setEditingProductInStorePermission( currentId: string, storeId: string, targetUserId: string, permission: boolean ): Promise<void>
-  {
+  async setEditingProductInStorePermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void> {
     this.validateConnection(currentId);
-    await this.controllers.Jobs.setEditingProductInStorePermission( currentId, storeId, targetUserId, permission );
+    await this.controllers.Jobs.setEditingProductInStorePermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission
+    );
   }
-  async setModifyingPurchasePolicyPermission( currentId: string, storeId: string, targetUserId: string, permission: boolean ): Promise<void>
-  {
+  async setModifyingPurchasePolicyPermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void> {
     this.validateConnection(currentId);
-    await this.controllers.Jobs.setModifyingPurchasePolicyPermission( currentId, storeId, targetUserId, permission );
+    await this.controllers.Jobs.setModifyingPurchasePolicyPermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission
+    );
   }
-  async setReceivingPrivateStoreDataPermission( currentId: string, storeId: string, targetUserId: string, permission: boolean ): Promise<void>
-  {
+  async setReceivingPrivateStoreDataPermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void> {
     this.validateConnection(currentId);
-    await this.controllers.Jobs.setReceivingPrivateStoreDataPermission( currentId, storeId, targetUserId, permission );
+    await this.controllers.Jobs.setReceivingPrivateStoreDataPermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission
+    );
   }
   async canCreateProductInStore(
     currentId: string,

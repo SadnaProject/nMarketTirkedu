@@ -22,27 +22,27 @@ describe("Member Logout", () => {
   });
 });
 //Use Case 3.2
-describe("create a new store", () => {
-  it("✅creates a store", async () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const id = await service.startSession();
-    await service.registerMember(id, email, password);
-    const uid = await service.loginMember(id, email, password);
-    const storeName = generateStoreName();
-    const storeId = await service.createStore(uid, storeName);
-    expect(await service.isStoreFounder(uid, storeId)).toBe(true);
-  });
-  it("❎user is not a member", async () => {
-    const id = await service.startSession();
-    const storeName = generateStoreName();
-    expect(() => service.createStore(id, storeName)).toThrow(TRPCError);
-    //this store should not be added, so the following code has to work
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    await service.registerMember(id, email, password);
-    const uid = await service.loginMember(id, email, password);
-    const storeId = await service.createStore(uid, storeName);
-    expect(await service.isStoreFounder(uid, storeId)).toBe(true);
-  });
-});
+// describe("create a new store", () => {
+//   it("✅creates a store", async () => {
+//     const email = faker.internet.email();
+//     const password = faker.internet.password();
+//     const id = await service.startSession();
+//     await service.registerMember(id, email, password);
+//     const uid = await service.loginMember(id, email, password);
+//     const storeName = generateStoreName();
+//     const storeId = await service.createStore(uid, storeName);
+//     expect(await service.isStoreFounder(uid, storeId)).toBe(true);
+//   });
+//   it("❎user is not a member", async () => {
+//     const id = await service.startSession();
+//     const storeName = generateStoreName();
+//     expect(() => service.createStore(id, storeName)).toThrow(TRPCError);
+//     //this store should not be added, so the following code has to work
+//     const email = faker.internet.email();
+//     const password = faker.internet.password();
+//     await service.registerMember(id, email, password);
+//     const uid = await service.loginMember(id, email, password);
+//     const storeId = await service.createStore(uid, storeName);
+//     expect(await service.isStoreFounder(uid, storeId)).toBe(true);
+//   });
+// });

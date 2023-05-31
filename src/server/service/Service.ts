@@ -214,21 +214,57 @@ export class Service {
       permission
     );
   }
-  async setRemovingProductFromStorePermission( currentId: string, storeId: string, targetUserId: string, permission: boolean ): Promise<void> 
-  {
-    await this.facade.setRemovingProductFromStorePermission( currentId, storeId, targetUserId, permission );
+  async setRemovingProductFromStorePermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void> {
+    await this.facade.setRemovingProductFromStorePermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission
+    );
   }
-  async setEditingProductInStorePermission( currentId: string, storeId: string, targetUserId: string, permission: boolean ): Promise<void>
-  {
-    await this.facade.setEditingProductInStorePermission( currentId, storeId, targetUserId, permission );
+  async setEditingProductInStorePermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void> {
+    await this.facade.setEditingProductInStorePermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission
+    );
   }
-  async setModifyingPurchasePolicyPermission( currentId: string, storeId: string, targetUserId: string, permission: boolean ): Promise<void>
-  {
-    await this.facade.setModifyingPurchasePolicyPermission( currentId, storeId, targetUserId, permission );
+  async setModifyingPurchasePolicyPermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void> {
+    await this.facade.setModifyingPurchasePolicyPermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission
+    );
   }
-  async setReceivingPrivateStoreDataPermission( currentId: string, storeId: string, targetUserId: string, permission: boolean ): Promise<void>
-  {
-    await this.facade.setReceivingPrivateStoreDataPermission( currentId, storeId, targetUserId, permission );
+  async setReceivingPrivateStoreDataPermission(
+    currentId: string,
+    storeId: string,
+    targetUserId: string,
+    permission: boolean
+  ): Promise<void> {
+    await this.facade.setReceivingPrivateStoreDataPermission(
+      currentId,
+      storeId,
+      targetUserId,
+      permission
+    );
   }
   canCreateProductInStore(
     currentId: string,
@@ -418,5 +454,8 @@ export class Service {
     constraintId: string
   ): Promise<void> {
     await this.facade.removeConstraintFromStore(userId, storeId, constraintId);
+  }
+  async initializeAdmin() {
+    return await this.facade.initializeSystemAdmin();
   }
 }

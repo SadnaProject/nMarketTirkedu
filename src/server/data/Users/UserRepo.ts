@@ -38,7 +38,7 @@ export class UserRepo extends Testable {
           userId: userId,
         },
       });
-      this.users.set(userId, new User(userId));
+      if (this.users.size < 10) this.users.set(userId, new User(userId));
     } catch (e) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -59,7 +59,7 @@ export class UserRepo extends Testable {
         });
       }
       user = await User.UserFromDTO(userdb);
-      this.users.set(id, user);
+      if (this.users.size < 10) this.users.set(id, user);
     }
     return user;
   }

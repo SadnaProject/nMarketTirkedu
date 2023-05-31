@@ -58,7 +58,9 @@ describe("Homework Scenario", () => {
     await service.makeStoreOwner(u2, storeId, u3);
   });
   it("u3 tries to remove u2 - should fail", async () => {
-    expect(await service.removeStoreOwner(u3, storeId, u2)).toThrow(TRPCError);
+    await expect(
+      await service.removeStoreOwner(u3, storeId, u2)
+    ).rejects.toThrow("This user cannot remove appointee");
     expect(await service.isStoreOwner(u2, storeId)).toBe(true);
   });
   it("u1 tries to remove u2 - should succeed and remove also u3", async () => {

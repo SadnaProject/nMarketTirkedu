@@ -64,7 +64,17 @@ export interface IUsersController {
    * This function purchases the cart of a user.
    * @param userId The id of the user that is currently logged in.
    */
-  purchaseCart(userId: string, creditCard: PaymentDetails): Promise<string>;
+  purchaseCart(
+    userId: string,
+    creditCard: PaymentDetails,
+    delivery: {
+      address: string;
+      city: string;
+      country: string;
+      name: string;
+      zip: string;
+    }
+  ): Promise<{ paymentTransactionId: number; deliveryTransactionId: number }>;
   /**
    * This function adds a user to the system.
    * @param user The user that is being added to the system.
@@ -215,8 +225,16 @@ export class UsersController
   }
   async purchaseCart(
     userId: string,
-    @censored creditCard: PaymentDetails
-  ): Promise<string> {
+    @censored creditCard: PaymentDetails,
+    @censored
+    delivery: {
+      address: string;
+      city: string;
+      country: string;
+      name: string;
+      zip: string;
+    }
+  ): Promise<{ paymentTransactionId: number; deliveryTransactionId: number }> {
     const user = await this.Repos.Users.getUser(userId);
     const cart = user.Cart;
     const price = await this.Controllers.Stores.getCartPrice(userId);
@@ -224,7 +242,14 @@ export class UsersController
       userId,
       cart,
       price,
-      creditCard
+      creditCard,
+      {
+        address: delivery.address,
+        city: delivery.city,
+        country: delivery.country,
+        name: delivery.name,
+        zip: delivery.zip,
+      }
     );
     const notificationMsg = `The cart ${cart.toString()} has been purchased for ${price}.`;
     const notification = new Notification("purchase", notificationMsg);

@@ -11,6 +11,7 @@ import { Permission, type RoleType } from "server/domain/Jobs/Role";
 import { type PositionHolderDTO } from "server/domain/Jobs/PositionHolder";
 import { type ICondition } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
 import { type IDiscount } from "server/domain/Stores/DiscountPolicy/Discount";
+import { type ConditionArgs } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
 
 export type SearchArgs = {
   name?: string;
@@ -57,8 +58,18 @@ export class Service {
   public getNotifications(userId: string) {
     return this.facade.getNotifications(userId);
   }
-  public purchaseCart(userId: string, creditCard: PaymentDetails) {
-    return this.facade.purchaseCart(userId, creditCard);
+  public purchaseCart(
+    userId: string,
+    creditCard: PaymentDetails,
+    delivery: {
+      address: string;
+      city: string;
+      country: string;
+      name: string;
+      zip: string;
+    }
+  ) {
+    return this.facade.purchaseCart(userId, creditCard, delivery);
   }
   public removeUser(userId: string) {
     return this.facade.removeUser(userId);
@@ -383,5 +394,19 @@ export class Service {
     storeId: string
   ): Promise<Permission[]> {
     return await this.facade.getPermissionsOfUser(userId, storeId);
+  }
+  async addConstraintToStore(
+    userId: string,
+    storeId: string,
+    constraint: ConditionArgs
+  ): Promise<string> {
+    return await this.facade.addConstraintToStore(userId, storeId, constraint);
+  }
+  async removeConstraintFromStore(
+    userId: string,
+    storeId: string,
+    constraintId: string
+  ): Promise<void> {
+    await this.facade.removeConstraintFromStore(userId, storeId, constraintId);
   }
 }

@@ -32,7 +32,8 @@ export class Cart {
       });
       const new_basket = new Basket(storeId, this.userId);
       await new_basket.addProduct(productId, quantity);
-      this.storeIdToBasket.set(storeId, new_basket);
+      if (this.storeIdToBasket.size < 10)
+        this.storeIdToBasket.set(storeId, new_basket);
     }
     const basket = this.storeIdToBasket.get(storeId);
     if (basket === undefined) {
@@ -48,7 +49,8 @@ export class Cart {
         });
       }
       await new_basket.addProduct(productId, quantity);
-      this.storeIdToBasket.set(storeId, new_basket);
+      if (this.storeIdToBasket.size < 10)
+        this.storeIdToBasket.set(storeId, new_basket);
     } else {
       await basket.addProduct(productId, quantity);
     }
@@ -80,7 +82,8 @@ export class Cart {
         });
       }
       await new_basket.removeProduct(productId);
-      this.storeIdToBasket.set(storeId, new_basket);
+      if (this.storeIdToBasket.size < 10)
+        this.storeIdToBasket.set(storeId, new_basket);
     } else {
       await basket.removeProduct(productId);
     }

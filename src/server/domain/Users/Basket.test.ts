@@ -2,9 +2,33 @@ import { describe, afterEach, beforeEach, expect, it, vi } from "vitest";
 import { randomUUID } from "crypto";
 import { Basket } from "./Basket";
 import { TRPCError } from "@trpc/server";
+import { resetDB } from "server/helpers/_Transactional";
+import { dbGlobal } from "server/data/helpers/db";
+import { getDB } from "server/helpers/_Transactional";
+beforeEach(async () => {
+  await resetDB();
+});
 describe("addProduct", () => {
   it("should add a product to the basket", async () => {
-    const basket = new Basket(randomUUID(), randomUUID());
+    const id = randomUUID();
+    await getDB().user.create({
+      data: {
+        id: id,
+      },
+    });
+    await getDB().cart.create({
+      data: {
+        userId: id,
+      },
+    });
+    await getDB().store.create({
+      data: {
+        name: "s",
+        id: id,
+        isActive: true,
+      },
+    });
+    const basket = new Basket(id, id);
     const productId = randomUUID();
     const quantity = 1;
     await basket.addProduct(productId, quantity);
@@ -20,10 +44,30 @@ describe("addProduct", () => {
         ?.quantity
     ).toBe(quantity + 1);
   });
-  it("should override the quantity if the product already exists in the basket", () => {
-    const basket = new Basket(randomUUID(), randomUUID());
+  it("should override the quantity if the product already exists in the basket", async () => {
+    const id = randomUUID();
+    await getDB().user.create({
+      data: {
+        id: id,
+      },
+    });
+    await getDB().cart.create({
+      data: {
+        userId: id,
+      },
+    });
+    await getDB().store.create({
+      data: {
+        name: "s",
+        id: id,
+        isActive: true,
+      },
+    });
+    const basket = new Basket(id, id);
     const productId = randomUUID();
-    expect(() => basket.addProduct(productId, -1)).toThrow(TRPCError);
+    await expect(() => basket.addProduct(productId, -1)).rejects.toThrow(
+      "Quantity cannot be negative"
+    );
     expect(basket.DTO.products.length).toBe(0);
   });
 });
@@ -43,7 +87,9 @@ describe("removeProduct", () => {
     const productId = randomUUID();
     const quantity = 1;
     await basket.addProduct(productId, quantity);
-    expect(() => basket.removeProduct(randomUUID())).toThrow(TRPCError);
+    await expect(() => basket.removeProduct(randomUUID())).rejects.toThrow(
+      "Product not found"
+    );
     expect(basket.DTO.products.length).toBe(1);
   });
 });
@@ -73,7 +119,9 @@ describe("editProductQuantity", () => {
     const productId = randomUUID();
     const quantity = 1;
     await basket.addProduct(productId, quantity);
-    expect(() => basket.editProductQuantity(productId, -1)).toThrow(TRPCError);
+    await expect(() =>
+      basket.editProductQuantity(productId, -1)
+    ).rejects.toThrow("Quantity cannot be negative");
     expect(
       basket.DTO.products.filter((p) => p.storeProductId === productId)[0]
         ?.quantity
@@ -84,8 +132,8 @@ describe("editProductQuantity", () => {
     const productId = randomUUID();
     const quantity = 1;
     await basket.addProduct(productId, quantity);
-    expect(() => basket.editProductQuantity(randomUUID(), quantity)).toThrow(
-      TRPCError
-    );
+    await expect(() =>
+      basket.editProductQuantity(randomUUID(), quantity)
+    ).rejects.toThrow("Product not found");
   });
 });

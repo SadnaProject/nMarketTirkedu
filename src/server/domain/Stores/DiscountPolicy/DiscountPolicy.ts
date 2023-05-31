@@ -31,6 +31,10 @@ export class DiscountPolicy {
     return basket;
   }
   public getDiscounts() {
-    return this.discounts;
+    const discountsArgs = new Map<string, DiscountArgs>();
+    this.discounts.forEach((discount, discountID) => {
+      discountsArgs.set(discountID, discount.getArgs());
+    });
+    return discountsArgs;
   }
 }

@@ -26,4 +26,13 @@ export class CategoryCondition implements ILiteralCondition {
     });
     return standInTheTypeCondition(this.conditionType, count, this.amount);
   }
+  public getArgs(): LiteralArgs {
+    return {
+      amount: this.amount,
+      conditionType: this.conditionType,
+      searchFor: this.searchFor,
+      subType: "Category",
+      type: "Literal",
+    };
+  }
 }

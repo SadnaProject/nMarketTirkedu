@@ -1,5 +1,4 @@
 import { TRPCError } from "@trpc/server";
-import fetch from "node-fetch";
 import { getHost } from "../helpers/hostname";
 import { z } from "zod";
 

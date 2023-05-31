@@ -3,9 +3,15 @@ import { type StoreProduct as DataStoreProduct } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { getDB } from "server/helpers/_Transactional";
 import { type StoreProductArgs } from "../../domain/Stores/StoreProduct";
-
+export type productCache = {
+  product: DataStoreProduct;
+  counter: number;
+};
 @testable
 export class StoreProductsRepo extends Testable {
+  //fake cache
+  fake_cache = new Map<string, productCache>();
+  counter = 0;
   constructor() {
     super();
   }
@@ -51,15 +57,18 @@ export class StoreProductsRepo extends Testable {
     return specialPrice?.price;
   }
   public async getAllProducts() {
-    const products = await getDB().storeProduct.findMany({
-      include: {
-        store: true,
-      },
-    });
+    const products = await getDB().storeProduct.findMany();
 
     return products;
   }
   public async getProductById(productId: string) {
+    if (this.fake_cache.has(productId)) {
+      const cache_product = this.fake_cache.get(productId)?.product;
+      if (cache_product !== undefined) {
+        return cache_product;
+      }
+    }
+
     const product = await getDB().storeProduct.findUnique({
       where: {
         id: productId,
@@ -71,6 +80,29 @@ export class StoreProductsRepo extends Testable {
         message: "Product not found",
       });
     }
+    if (this.fake_cache.size === 10) {
+      ///find minimum counter and delete it
+      let min = Infinity;
+      let min_key = "";
+      for (const [key, value] of this.fake_cache.entries()) {
+        if (value.counter < min) {
+          min = value.counter;
+          min_key = key;
+        }
+      }
+      this.fake_cache.delete(min_key);
+      //add new product
+      this.fake_cache.set(productId, {
+        product: product,
+        counter: this.counter,
+      });
+    } else {
+      this.fake_cache.set(productId, {
+        product: product,
+        counter: this.counter,
+      });
+    }
+    this.counter++;
     return product;
   }
 

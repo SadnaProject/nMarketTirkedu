@@ -7,10 +7,13 @@ import { Store } from "server/domain/Stores/Store";
 import { createMockControllers } from "server/domain/helpers/_createControllers";
 import { type Controllers } from "server/domain/helpers/_HasController";
 import { generateStoreName } from "./helpers/_data";
+import { resetDB } from "server/helpers/_Transactional";
 
 let repos: Repos;
 let controllers: Controllers;
-beforeEach(() => {
+beforeEach(async () => {
+  await resetDB();
+
   repos = createMockRepos("Stores");
   controllers = createMockControllers("Stores");
 });

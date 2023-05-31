@@ -15,7 +15,7 @@ export default defineConfig({
     include: [
       // all tests that are in domain/purchasesHistory
       //   "**/testingDb.test.ts",
-      // "**/AuthController.test.ts",
+      "**/AuthController.test.ts",
       // "**/UserAuthRepo.test.ts",
       // "**/MemberUserAuth.test.ts",
       // "**/Session.test.ts",
@@ -38,7 +38,7 @@ export default defineConfig({
       // "**/CartPurchaseHistoryRepo.test.ts",
       // "**/PurchasesHistory/**/*.test.ts",
 
-      "**/NotificationRepo.test.ts",
+      // "**/NotificationRepSo.test.ts",
       // "**/StoreRepo.test.ts",
       // "**/StoresController.test.ts",
       // "**/Store.test.ts",

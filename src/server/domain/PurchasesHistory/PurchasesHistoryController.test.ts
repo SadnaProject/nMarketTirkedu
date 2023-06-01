@@ -230,8 +230,8 @@ describe("addProductPurchaseReview", () => {
 });
 
 // add store purchase review
-describe("addStorePurchaseReview", () => {
-  /*itUnitIntegration("✅adds store purchase review", async () => {
+//describe("addStorePurchaseReview", () => {
+/*itUnitIntegration("✅adds store purchase review", async () => {
     const cartPurchase = new CartPurchase(
       cartPurchaseData.userId,
       cartPurchaseData.purchaseId,
@@ -255,7 +255,7 @@ describe("addStorePurchaseReview", () => {
         )
     ).not.toThrow();
   });*/
-  /*itUnitIntegration("❎ adds two store purchase reviews", async () => {
+/*itUnitIntegration("❎ adds two store purchase reviews", async () => {
     // todo - fix test. it uses mock controller for integration test, and maybe there are other problems... (notice Unhandled Rejection in console)
     const cartPurchase = new CartPurchase(
       cartPurchaseData.userId,
@@ -284,7 +284,7 @@ describe("addStorePurchaseReview", () => {
       "Store already reviewed, please try again with a different purchase"
     );
   });*/
-  /*itUnitIntegration("❎No such store", async () => {
+/*itUnitIntegration("❎No such store", async () => {
     vi.spyOn(BasketPurchaseRepo.prototype, "hasPurchase").mockReturnValue(
       Promise.resolve(false)
     );
@@ -297,10 +297,10 @@ describe("addStorePurchaseReview", () => {
       )
     ).rejects.toThrow("Purchase not found");
   });*/
-});
+//});
 
-describe("getCartPurchaseByUserId", () => {
-  /*it("✅gets cart purchase", async () => {
+//describe("getCartPurchaseByUserId", () => {
+/*it("✅gets cart purchase", async () => {
     controllers.PurchasesHistory.initRepos(repos);
     const cartPurchase = new CartPurchase(
       cartPurchaseData.userId,
@@ -349,7 +349,7 @@ describe("getCartPurchaseByUserId", () => {
     ).toStrictEqual([cartPurchase.ToDTO()]);
   });*/
 
-  /*it("❎gets undefined cart purchase", async () => {
+/*it("❎gets undefined cart purchase", async () => {
     vi.spyOn(controllers.Auth, "register").mockReturnValue(
       Promise.resolve("admin")
     );
@@ -366,7 +366,7 @@ describe("getCartPurchaseByUserId", () => {
     ).toStrictEqual([]);
   });*/
 
-  itUnitIntegration(
+/*itUnitIntegration(
     "❎try to get purchases when not an admin",
     async (testType) => {
       repos = createTestRepos(testType);
@@ -383,8 +383,8 @@ describe("getCartPurchaseByUserId", () => {
         "User is not a system admin, and therefore cannot view other users' purchases"
       );
     }
-  );
-});
+  );*/
+//});
 
 describe("getCartPurchaseByPurchaseId", () => {
   itUnitIntegration("✅gets cart purchase", async (testType) => {

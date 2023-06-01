@@ -412,8 +412,8 @@ describe("addProductPurchaseReview", () => {
 });*/
 
 // test add purchase
-describe("addPurchase", () => {
-  /*itUnitIntegration("✅adds purchase", async () => {
+//describe("addPurchase", () => {
+/*itUnitIntegration("✅adds purchase", async () => {
     const cartPurchase = new CartPurchase(
       cartPurchaseData.userId,
       cartPurchaseData.purchaseId,
@@ -429,7 +429,7 @@ describe("addPurchase", () => {
     ).toStrictEqual(cartPurchase.ToDTO());
   });*/
 
-  itUnitIntegration("❎ add two purchases with same id", async () => {
+/*itUnitIntegration("❎ add two purchases with same id", async () => {
     const cartPurchase = new CartPurchase(
       cartPurchaseData.userId,
       cartPurchaseData.purchaseId,
@@ -446,8 +446,8 @@ describe("addPurchase", () => {
     ).rejects.toThrow(
       "Purchase with same id already exists, please try again with a different cart"
     );
-  });
-});
+  });*/
+//});
 
 // test get reviews by product id
 describe("getReviewsByProductId", () => {

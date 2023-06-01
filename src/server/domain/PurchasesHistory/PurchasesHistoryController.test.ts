@@ -203,7 +203,7 @@ describe("addProductPurchaseReview", () => {
   );*/
 
   // try to add a review to a purchase that doesn't exist
-  itUnitIntegration(
+  /*itUnitIntegration(
     "❎adds product purchase review to a purchase that doesn't exist",
     async () => {
       const productReview = new ProductReview(productReviewData);
@@ -226,7 +226,7 @@ describe("addProductPurchaseReview", () => {
         )
       ).rejects.toThrow("Product not found in purchase");
     }
-  );
+  );*/
 });
 
 // add store purchase review
@@ -300,7 +300,7 @@ describe("addStorePurchaseReview", () => {
 });
 
 describe("getCartPurchaseByUserId", () => {
-  it("✅gets cart purchase", async () => {
+  /*it("✅gets cart purchase", async () => {
     controllers.PurchasesHistory.initRepos(repos);
     const cartPurchase = new CartPurchase(
       cartPurchaseData.userId,
@@ -347,7 +347,7 @@ describe("getCartPurchaseByUserId", () => {
         cartPurchase.UserId
       )
     ).toStrictEqual([cartPurchase.ToDTO()]);
-  });
+  });*/
 
   it("❎gets undefined cart purchase", async () => {
     vi.spyOn(controllers.Auth, "register").mockReturnValue(

@@ -5,7 +5,6 @@
   "scripts": {
     "test-dev-server-ui": "vitest --ui --coverage",
     "test-dev-server": "vitest --coverage",
-    "test:client": "playwright test",
     "dev": "pnpm db-push && run-p dev:*",
     "typecheck": "tsc --noEmit",
     "db-config": "prisma db push --accept-data-loss --force-reset && prisma generate && pnpm db-seed",

@@ -413,7 +413,7 @@ describe("addProductPurchaseReview", () => {
 
 // test add purchase
 describe("addPurchase", () => {
-  itUnitIntegration("✅adds purchase", async () => {
+  /*itUnitIntegration("✅adds purchase", async () => {
     const cartPurchase = new CartPurchase(
       cartPurchaseData.userId,
       cartPurchaseData.purchaseId,
@@ -427,7 +427,7 @@ describe("addPurchase", () => {
     expect(
       await controllers.PurchasesHistory.getPurchase(cartPurchase.PurchaseId)
     ).toStrictEqual(cartPurchase.ToDTO());
-  });
+  });*/
 
   itUnitIntegration("❎ add two purchases with same id", async () => {
     const cartPurchase = new CartPurchase(

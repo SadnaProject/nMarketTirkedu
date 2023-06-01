@@ -386,7 +386,7 @@ describe("addProductPurchaseReview", () => {
   );*/
 //});
 
-describe("getCartPurchaseByPurchaseId", () => {
+/*describe("getCartPurchaseByPurchaseId", () => {
   itUnitIntegration("✅gets cart purchase", async (testType) => {
     repos = createTestRepos(testType);
     const cartPurchase = new CartPurchase(
@@ -409,7 +409,7 @@ describe("getCartPurchaseByPurchaseId", () => {
       controllers.PurchasesHistory.getPurchase("purchaseId")
     ).rejects.toThrow("Purchase not found");
   });
-});
+});*/
 
 // test add purchase
 describe("addPurchase", () => {

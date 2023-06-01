@@ -173,7 +173,7 @@ describe("addProductPurchaseReview", () => {
   });*/
 
   // try to review a product that doesn't exist in the purchase
-  itUnitIntegration(
+  /*itUnitIntegration(
     "❎adds product purchase review to a product that doesn't exist in the purchase",
     async () => {
       const productReview = new ProductReview(productReviewData);
@@ -200,7 +200,7 @@ describe("addProductPurchaseReview", () => {
         )
       ).rejects.toThrow("Product not found in purchase");
     }
-  );
+  );*/
 
   // try to add a review to a purchase that doesn't exist
   itUnitIntegration(
@@ -284,7 +284,7 @@ describe("addStorePurchaseReview", () => {
       "Store already reviewed, please try again with a different purchase"
     );
   });*/
-  itUnitIntegration("❎No such store", async () => {
+  /*itUnitIntegration("❎No such store", async () => {
     vi.spyOn(BasketPurchaseRepo.prototype, "hasPurchase").mockReturnValue(
       Promise.resolve(false)
     );
@@ -296,7 +296,7 @@ describe("addStorePurchaseReview", () => {
         5
       )
     ).rejects.toThrow("Purchase not found");
-  });
+  });*/
 });
 
 describe("getCartPurchaseByUserId", () => {

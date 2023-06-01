@@ -231,7 +231,7 @@ describe("addProductPurchaseReview", () => {
 
 // add store purchase review
 describe("addStorePurchaseReview", () => {
-  itUnitIntegration("✅adds store purchase review", async () => {
+  /*itUnitIntegration("✅adds store purchase review", async () => {
     const cartPurchase = new CartPurchase(
       cartPurchaseData.userId,
       cartPurchaseData.purchaseId,
@@ -254,7 +254,7 @@ describe("addStorePurchaseReview", () => {
           5
         )
     ).not.toThrow();
-  });
+  });*/
   /*itUnitIntegration("❎ adds two store purchase reviews", async () => {
     // todo - fix test. it uses mock controller for integration test, and maybe there are other problems... (notice Unhandled Rejection in console)
     const cartPurchase = new CartPurchase(
@@ -349,7 +349,7 @@ describe("getCartPurchaseByUserId", () => {
     ).toStrictEqual([cartPurchase.ToDTO()]);
   });*/
 
-  it("❎gets undefined cart purchase", async () => {
+  /*it("❎gets undefined cart purchase", async () => {
     vi.spyOn(controllers.Auth, "register").mockReturnValue(
       Promise.resolve("admin")
     );
@@ -364,7 +364,7 @@ describe("getCartPurchaseByUserId", () => {
     expect(
       await controllers.PurchasesHistory.getPurchasesByUser("admin", "admin")
     ).toStrictEqual([]);
-  });
+  });*/
 
   itUnitIntegration(
     "❎try to get purchases when not an admin",

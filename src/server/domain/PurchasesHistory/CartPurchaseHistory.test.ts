@@ -11,7 +11,7 @@ import { BasketProduct } from "../Users/BasketProduct";
 import { StoresController } from "../Stores/StoresController";
 import { CartPurchase } from "./CartPurchaseHistory";
 import { BasketDTO } from "../Users/Basket";
-import { itUnitIntegration } from "../_mock";
+import { itUnitIntegration } from "../helpers/_mock";
 
 const productPurchaseData = {
   purchaseId: "purchaseId",
@@ -103,14 +103,14 @@ describe("ToDTO", () => {
       1
     );
     //mock basketPurchase.ToDTO()
-    vi.spyOn(BasketPurchase.prototype, "ToDTO").mockReturnValueOnce({
-      storeId: "storeId",
-      products: new Map<string, ProductPurchaseDTO>([
-        ["productId", productPurchaseData],
-      ]),
-      price: 1,
-      purchaseId: "purchaseId",
-    });
+    // vi.spyOn(BasketPurchase.prototype, "ToDTO").mockReturnValueOnce({
+    //   storeId: "storeId",
+    //   products: new Map<string, ProductPurchaseDTO>([
+    //     ["productId", productPurchaseData],
+    //   ]),
+    //   price: 1,
+    //   purchaseId: "purchaseId",
+    // });
     const dto = cartPurchase.ToDTO();
     expect(dto).toEqual({
       purchaseId: "purchaseId",

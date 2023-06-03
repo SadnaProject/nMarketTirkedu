@@ -1,15 +1,18 @@
+import { getDB } from "server/helpers/_Transactional";
 import { Cart, type CartDTO } from "./Cart";
-import { type Notification } from "./Notification";
+import { Notification } from "./Notification";
 import { TRPCError } from "@trpc/server";
+
 export class User {
   private id: string;
   private notifications: Notification[];
   private cart: Cart;
-
+  private bidsFromMe: string[] = [];
+  private bidsToMe: string[] = [];
   constructor(id: string) {
     this.id = id;
     this.notifications = [];
-    this.cart = new Cart();
+    this.cart = new Cart(id);
   }
 
   public get Id(): string {
@@ -19,46 +22,122 @@ export class User {
   public get Notifications(): Notification[] {
     return this.notifications;
   }
-  public addNotification(notification: Notification): void {
+  public async getUpdatedNotifications(): Promise<Notification[]> {
+    const dtos = getDB().notification.findMany({
+      where: { userId: this.id },
+    });
+    this.notifications = (await dtos).map((dto) =>
+      Notification.createFromDTO(dto)
+    );
+    return (await dtos).map((dto) => Notification.createFromDTO(dto));
+  }
+  public async addNotification(notification: Notification): Promise<void> {
     this.notifications.push(notification);
+    await getDB().notification.create({
+      data: {
+        userId: this.id,
+        id: notification.Id,
+        type: notification.Type,
+        message: notification.Message,
+        isRead: notification.IsRead,
+      },
+    });
   }
   public get Cart(): CartDTO {
     return this.cart.DTO;
   }
-  public addProductToCart(
+  public async addProductToCart(
     productId: string,
     quantity: number,
     storeId: string
-  ): void {
-    this.cart.addProduct(productId, storeId, quantity);
+  ): Promise<void> {
+    await this.cart.addProduct(productId, storeId, quantity);
   }
-  public removeProductFromCart(productId: string, storeId: string): void {
-    this.cart.removeProduct(productId, storeId);
+  public async removeProductFromCart(
+    productId: string,
+    storeId: string
+  ): Promise<void> {
+    await this.cart.removeProduct(productId, storeId);
   }
-  public editProductQuantityInCart(
+  public async editProductQuantityInCart(
     productId: string,
     storeId: string,
     quantity: number
-  ): void {
-    this.cart.editProductQuantity(productId, storeId, quantity);
+  ): Promise<void> {
+    await this.cart.editProductQuantity(productId, storeId, quantity);
   }
-  public readNotification(notificationId: string): void {
-    const notification = this.notifications.find(
+  public async readNotification(notificationId: string): Promise<void> {
+    let notification = this.notifications.find(
       (notification) => notification.Id === notificationId
     );
     if (notification === undefined) {
-      throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "The requested notification not found",
+      const n = await getDB().notification.findUnique({
+        where: { id: notificationId },
       });
+      if (n == null) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "The requested notification not found",
+        });
+      }
+      notification = Notification.createFromDTO(n);
+      this.notifications.push(notification);
     }
-    notification.read();
+    await notification.read();
   }
-  public clearCart(): void {
-    this.cart = new Cart();
+  public async clearCart(): Promise<void> {
+    this.cart = new Cart(this.id);
+    await getDB().cart.delete({ where: { userId: this.id } });
+    await getDB().cart.create({
+      data: {
+        userId: this.id,
+      },
+    });
   }
-  public clone(user: User): void {
+  public async clone(user: User): Promise<void> {
+    await this.getUpdatedNotifications();
     this.notifications = user.notifications;
     this.cart = user.cart;
+  }
+  public addBidToMe(bidId: string): void {
+    if (this.bidsToMe.includes(bidId)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Bid already exists",
+      });
+    }
+    this.bidsToMe.push(bidId);
+  }
+  public addBidFromMe(bidId: string): void {
+    if (this.bidsFromMe.includes(bidId)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Bid already exists",
+      });
+    }
+    this.bidsFromMe.push(bidId);
+  }
+
+  public isBidExistFromMe(bidId: string): boolean {
+    return this.bidsFromMe.includes(bidId);
+  }
+  public isBidExistToMe(bidId: string): boolean {
+    return this.bidsToMe.includes(bidId);
+  }
+  public get BidsFromMe(): string[] {
+    return this.bidsFromMe;
+  }
+  public get BidsToMe(): string[] {
+    return this.bidsToMe;
+  }
+  static async UserFromDTO(dto: { id: string }): Promise<User> {
+    const u = new User(dto.id);
+    const products = await getDB().basketProduct.findMany({
+      where: { userId: dto.id },
+    });
+    //fix bids later
+    const stores = new Set(products.map((p) => p.storeId));
+    u.cart = await Cart.createFromArgs(u.Id, Array.from(stores));
+    return u;
   }
 }

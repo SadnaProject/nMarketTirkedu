@@ -8,8 +8,13 @@ import ButtonLight from "./buttonLight";
 import { twMerge } from "tailwind-merge";
 import Profile from "./profile";
 import Price from "./price";
-import { api } from "utils/api";
-import { onError } from "utils/onError";
+import { api } from "server/communication/api";
+import { cachedQueryOptions, onError } from "utils/query";
+import Badge from "./Badge";
+import { useEffect } from "react";
+import { onCartChangeEvent } from "utils/events";
+import { CartIcon } from "./icons";
+import { toast } from "react-hot-toast";
 
 const publicLinks = [
   { name: "Products", path: PATHS.products.path },
@@ -18,27 +23,47 @@ const publicLinks = [
 
 const privateLinks = [
   { name: "My Stores", path: PATHS.myStores.path },
-  // { name: "My Receipts", path: PATHS.myReceipts.path },
+  { name: "My Receipts", path: PATHS.myReceipts.path },
+] as const;
+
+const adminLinks = [
+  // { name: "Admin Panel", path: PATHS.adminPanel.path },
+  { name: "Users", path: PATHS.online.path },
 ] as const;
 
 export default function Navbar() {
   const router = useRouter();
-  const activeLink = [...publicLinks, ...privateLinks].find(
+  const activeLink = [...publicLinks, ...privateLinks, ...adminLinks].find(
     (link) => link.path === router.pathname
   );
-  const { mutate: serverSignOut } = api.users.logoutMember.useMutation({
-    onSuccess: async () => {
-      await signOut();
-    },
-    onError,
-  });
+  const { data: isSystemAdmin } = api.jobs.isSystemAdmin.useQuery(
+    undefined,
+    cachedQueryOptions
+  );
   const { data: session } = useSession();
   const { data: notifications, refetch: refetchNotifications } =
     api.users.getNotifications.useQuery();
-  api.example.onAddNotificationEvent.useSubscription(undefined, {
-    onData: () => void refetchNotifications(),
+  api.users.subscribeToEvents.useSubscription(undefined, {
+    onData: (data) => {
+      console.log("yay", data);
+      if (data.type === "storeChanged") {
+        toast.success(`The state of store ${data.storeId} has changed`);
+      } else if (data.type === "storePurchase") {
+        toast.success(`A purchase has been made in store ${data.storeId}`);
+      }
+      void refetchNotifications();
+    },
   });
-  const { data: cartPrice } = api.stores.getCartPrice.useQuery();
+  const { data: cartPrice, refetch: refetchCartPrice } =
+    api.stores.getCartPrice.useQuery(undefined, cachedQueryOptions);
+
+  useEffect(() => {
+    const refetchCartPriceCallback = () => void refetchCartPrice();
+    document.addEventListener(onCartChangeEvent, refetchCartPriceCallback);
+    return () => {
+      document.removeEventListener(onCartChangeEvent, refetchCartPriceCallback);
+    };
+  }, [refetchCartPrice]);
 
   return (
     <header className="flex w-full flex-wrap bg-white text-sm drop-shadow-xl sm:flex-nowrap sm:justify-start">
@@ -71,20 +96,36 @@ export default function Navbar() {
                 {link.name}
               </Link>
             ))}
-            {privateLinks.map((link) => (
-              <Link
-                key={link.name}
-                className={twMerge(
-                  "font-medium hover:text-primary",
-                  link.path === activeLink?.path
-                    ? "text-primary"
-                    : "text-slate-600"
-                )}
-                href={link.path}
-              >
-                {link.name}
-              </Link>
-            ))}
+            {session?.user.type === "member" &&
+              privateLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  className={twMerge(
+                    "font-medium hover:text-primary",
+                    link.path === activeLink?.path
+                      ? "text-primary"
+                      : "text-slate-600"
+                  )}
+                  href={link.path}
+                >
+                  {link.name}
+                </Link>
+              ))}
+            {isSystemAdmin &&
+              adminLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  className={twMerge(
+                    "font-medium hover:text-primary",
+                    link.path === activeLink?.path
+                      ? "text-primary"
+                      : "text-slate-600"
+                  )}
+                  href={link.path}
+                >
+                  {link.name}
+                </Link>
+              ))}
             <Link href={PATHS.cart.path} passHref legacyBehavior>
               <ButtonLight>
                 <CartIcon className="h-4 w-4" />
@@ -123,20 +164,17 @@ export default function Navbar() {
                           legacyBehavior
                           href={PATHS.receipt.path("todo")}
                         >
-                          <div className="flex cursor-pointer items-center gap-x-1.5 rounded-md px-3 py-2 text-sm text-slate-800 focus:ring-2 focus:ring-blue-500 hover:bg-slate-100">
-                            <CashIcon />
+                          <div className="flex cursor-pointer items-center gap-x-1.5 rounded-md px-3 py-2 text-sm text-slate-800 hover:bg-slate-100 focus:ring-2 focus:ring-blue-500">
+                            {/* <CashIcon /> */}
                             <div className="flex items-center gap-x-1">
-                              <Link href={PATHS.chat.path("todo")}>
-                                <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-900 hover:bg-blue-200">
-                                  Omer
-                                </span>
+                              Store state has changed
+                              {/* <Link href={PATHS.chat.path("todo")}>
+                                <Badge>Omer</Badge>
                               </Link>
                               bought from
                               <Link href={PATHS.store.path("todo")}>
-                                <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-900 hover:bg-blue-200">
-                                  H&M
-                                </span>
-                              </Link>
+                                <Badge>H&M</Badge>
+                              </Link> */}
                             </div>
                           </div>
                         </Link>
@@ -144,10 +182,7 @@ export default function Navbar() {
                     </div>
                   </div>
                 </div>
-                <Profile
-                  id={session.user.id}
-                  onClick={() => void serverSignOut()}
-                />
+                <Profile id={session.user.id} onClick={() => void signOut()} />
               </>
             ) : (
               <Link href={PATHS.login.path} passHref legacyBehavior>
@@ -264,25 +299,6 @@ function CashIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-      />
-    </svg>
-  );
-}
-
-function CartIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={1.5}
-      stroke="currentColor"
-      className={twMerge("h-6 w-6", className)}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"
       />
     </svg>
   );

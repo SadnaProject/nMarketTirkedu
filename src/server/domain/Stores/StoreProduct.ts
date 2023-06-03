@@ -1,11 +1,21 @@
 import { randomUUID } from "crypto";
 import { z } from "zod";
-import { HasRepos, type Repos } from "./_HasRepos";
+import { HasRepos, type Repos } from "./helpers/_HasRepos";
 import { TRPCError } from "@trpc/server";
+import { type Controllers, HasControllers } from "../helpers/_HasController";
+import { Mixin } from "ts-mixer";
+import { type StoreProduct as StoreProductDAO } from "@prisma/client";
+import { Store } from "./Store";
 
 const nameSchema = z.string().nonempty("Name must be nonempty");
-const quantitySchema = z.number().nonnegative("Quantity must be non negative");
-const priceSchema = z.number().positive("Price must be positive");
+const quantitySchema = z
+  .number()
+  .nonnegative("Quantity must be non negative")
+  .max(1000000, "Quantity must be less than 1,000,000");
+const priceSchema = z
+  .number()
+  .positive("Price must be positive")
+  .max(1000000, "Price must be less than 1,000,000");
 const categorySchema = z.string().nonempty("Category must be nonempty");
 const descriptionSchema = z.string().nonempty("Description must be nonempty");
 
@@ -26,18 +36,19 @@ export const StoreProductDTOSchema = z.object({
   price: priceSchema,
   category: categorySchema,
   description: descriptionSchema,
+  rating: z.number().min(0).max(5),
 });
 
 export type StoreProductDTO = z.infer<typeof StoreProductDTOSchema>;
 
-export class StoreProduct extends HasRepos {
+export class StoreProduct extends Mixin(HasRepos, HasControllers) {
   private id: string;
   private name: string;
   private quantity: number;
   private price: number;
   private category: string;
   private description: string;
-
+  private specialPrices: Map<string, number> = new Map();
   constructor(product: StoreProductArgs) {
     super();
     storeProductArgsSchema.parse(product);
@@ -49,81 +60,125 @@ export class StoreProduct extends HasRepos {
     this.description = product.description;
   }
 
-  static fromDTO(dto: StoreProductDTO, repos: Repos) {
-    const product = new StoreProduct(dto).initRepos(repos);
+  static fromDTO(dto: StoreProductDTO, controllers: Controllers, repos: Repos) {
+    const product = new StoreProduct(dto)
+      .initControllers(controllers)
+      .initRepos(repos);
     product.id = dto.id;
     return product;
   }
+  static fromDAO(product: StoreProductDAO, SpecialPrices: Map<string, number>) {
+    const realProduct = new StoreProduct({
+      name: product.name,
+      quantity: product.quantity,
+      price: product.price,
+      category: product.category,
+      description: product.description,
+    });
+    realProduct.id = product.id;
+    realProduct.specialPrices = SpecialPrices;
+    return realProduct;
+  }
 
-  static fromProductId(productId: string, repos: Repos) {
-    return repos.Products.getProductById(productId);
+  static async fromProductId(
+    productId: string,
+    repos: Repos,
+    controllers: Controllers
+  ) {
+    const product = StoreProduct.fromDAO(
+      await repos.Products.getProductById(productId),
+      await repos.Products.getSpecialPrices(productId)
+    );
+    product.initRepos(repos).initControllers(controllers);
+    return product;
   }
 
   public get Id() {
     return this.id;
   }
-
+  public set Id(id: string) {
+    this.id = id;
+  }
   public get Name() {
     return this.name;
   }
 
-  public set Name(name: string) {
+  public async setName(name: string) {
     nameSchema.parse(name);
     this.name = name;
+    await this.Repos.Products.setField(this.Id, "name", name);
   }
 
   public get Quantity() {
     return this.quantity;
   }
 
-  public set Quantity(quantity: number) {
+  public async setQuantity(quantity: number) {
     quantitySchema.parse(quantity);
     this.quantity = quantity;
+    await this.Repos.Products.setField(this.Id, "quantity", quantity);
   }
 
-  public decreaseQuantity(quantity: number) {
-    if (!this.isQuantityInStock(quantity)) {
+  public async decreaseQuantity(quantity: number) {
+    const flag = await this.isQuantityInStock(quantity);
+    if (!flag) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Not enough quantity in stock",
       });
     }
-    this.Quantity = this.Quantity - quantity;
+    await this.setQuantity(this.Quantity - quantity);
   }
 
   public get Price() {
     return this.price;
   }
 
-  public set Price(price: number) {
+  public async setPrice(price: number) {
     priceSchema.parse(price);
     this.price = price;
+    await this.Repos.Products.setField(this.Id, "price", price);
   }
 
   public get Category() {
     return this.category;
   }
 
-  public set Category(category: string) {
+  public async setCategory(category: string) {
     categorySchema.parse(category);
     this.category = category;
+    await this.Repos.Products.setField(this.Id, "category", category);
   }
 
   public get Description() {
     return this.description;
   }
 
-  public set Description(description: string) {
+  public async setDescription(description: string) {
     descriptionSchema.parse(description);
     this.description = description;
+    await this.Repos.Products.setField(this.Id, "description", description);
   }
 
-  public get Store() {
-    const storeId = this.Repos.Products.getStoreIdByProductId(this.Id);
-    return this.Repos.Stores.getStoreById(storeId);
+  public async getStore() {
+    const storeId = await this.Repos.Products.getStoreIdByProductId(this.Id);
+    return Store.fromDAO(
+      await this.Repos.Stores.getStoreById(storeId),
+      await this.Repos.Stores.getDiscounts(storeId),
+      await this.Repos.Stores.getConstraints(storeId)
+    )
+      .initControllers(this.Controllers)
+      .initRepos(this.Repos);
+  }
+  public get SpecialPrices() {
+    return this.specialPrices;
+  }
+  public async setSpecialPrices(specialPrices: Map<string, number>) {
+    this.specialPrices = specialPrices;
+    await this.Repos.Products.setSpecialPrices(specialPrices, this.Id);
   }
 
-  public get DTO(): StoreProductDTO {
+  public async getDTO(): Promise<StoreProductDTO> {
     return {
       id: this.Id,
       name: this.Name,
@@ -131,20 +186,24 @@ export class StoreProduct extends HasRepos {
       price: this.Price,
       category: this.Category,
       description: this.Description,
+      rating: (
+        await this.Controllers.PurchasesHistory.getReviewsByProduct(this.Id)
+      ).avgRating,
     };
   }
 
-  public isQuantityInStock(quantity: number): boolean {
-    if (!this.Store.IsActive) {
+  public async isQuantityInStock(quantity: number): Promise<boolean> {
+    const store = await this.getStore();
+    if (!store.IsActive()) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Store is not active",
       });
     }
-    if (quantity <= 0) {
+    if (quantity < 0) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "Quantity must be positive",
+        message: "Quantity can't be negative",
       });
     }
     return this.Quantity >= quantity;
@@ -154,8 +213,8 @@ export class StoreProduct extends HasRepos {
     return this.Price * quantity;
   }
 
-  public delete() {
-    this.Repos.Products.deleteProduct(this.Id);
+  public async delete() {
+    await this.Repos.Products.deleteProduct(this.Id);
   }
 
   public static getAll(repos: Repos) {
@@ -164,5 +223,25 @@ export class StoreProduct extends HasRepos {
 
   public static getActive(repos: Repos) {
     return repos.Products.getActiveProducts();
+  }
+
+  public async addSpecialPrice(userId: string, price: number) {
+    await this.Repos.Products.addSpecialPrice(userId, this.Id, price);
+    this.SpecialPrices.set(userId, price);
+  }
+  public getPriceForUser(userId: string): number {
+    const p = this.SpecialPrices.get(userId);
+    return p !== undefined ? p : this.Price;
+  }
+  public async getDAO(): Promise<StoreProductDAO> {
+    return {
+      category: this.Category,
+      description: this.Description,
+      id: this.Id,
+      name: this.Name,
+      price: this.Price,
+      quantity: this.Quantity,
+      storeId: (await this.getStore()).Id,
+    };
   }
 }

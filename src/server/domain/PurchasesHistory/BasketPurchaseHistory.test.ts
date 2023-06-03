@@ -7,14 +7,13 @@ import {
   ProductPurchase,
   type ProductPurchaseDTO,
 } from "./ProductPurchaseHistory";
-import { BasketProduct } from "../Users/BasketProduct";
 import { StoresController } from "../Stores/StoresController";
-import { itUnitIntegration } from "../_mock";
-import { PurchasesHistoryController } from "./PurchasesHistoryController";
+import { itUnitIntegration } from "../helpers/_mock";
+import { createPromise } from "../../data/Stores/helpers/_data";
 import {
   createMockControllers,
   type createTestControllers,
-} from "../_createControllers";
+} from "../helpers/_createControllers";
 
 let controllers: ReturnType<typeof createTestControllers>;
 const productPurchaseData = {
@@ -93,7 +92,7 @@ describe("FromDTO", () => {
 });
 
 describe("BasketPurchaseDTOFromBasketDTO", () => {
-  it("should return a BasketPurchaseDTO", () => {
+  it("should return a BasketPurchaseDTO", async () => {
     controllers = createMockControllers("PurchasesHistory");
 
     const basketProductDTO = {
@@ -102,22 +101,34 @@ describe("BasketPurchaseDTOFromBasketDTO", () => {
     };
     const basketDTO = {
       storeId: "storeId",
-      products: [basketProductDTO],
+      purchaseId: "purchaseId",
+      price: 1,
+      products: [
+        {
+          storeProductId: "productId",
+          quantity: 1,
+          storeId: "storeId",
+          userId: "userId",
+        },
+      ],
+      userId: "userId",
     };
     vi.spyOn(
       controllers.PurchasesHistory,
       "ProductPurchaseDTOFromBasketProductDTO"
-    ).mockReturnValueOnce({
-      purchaseId: "purchaseId",
-      productId: "productId",
-      quantity: 1,
-      price: 1,
-    });
+    ).mockReturnValueOnce(
+      createPromise({
+        purchaseId: "purchaseId",
+        productId: "productId",
+        quantity: 1,
+        price: 1,
+      })
+    );
     vi.spyOn(StoresController.prototype, "getBasketPrice").mockReturnValueOnce(
-      1
+      createPromise(1)
     );
     const basketPurchaseDTO =
-      controllers.PurchasesHistory.BasketPurchaseDTOFromBasketDTO(
+      await controllers.PurchasesHistory.BasketPurchaseDTOFromBasketDTO(
         basketDTO,
         "purchaseId",
         "userId"

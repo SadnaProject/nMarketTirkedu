@@ -1,15 +1,16 @@
 import { randomUUID } from "crypto";
 import { type Session } from "./Session";
 import { z } from "zod";
+import { getDB } from "server/helpers/_Transactional";
 
 export type UserType = "GUEST" | "MEMBER";
 
 export type UserAuthDTO = {
-  userId: string;
+  id: string;
   // email: string;
   // password: string;
-  type: UserType;
-  sessions: Session[];
+  type?: UserType;
+  sessions?: Session[];
 };
 export abstract class UserAuth {
   protected userId: string;
@@ -17,11 +18,13 @@ export abstract class UserAuth {
   // private password: string;
   protected type: UserType;
   protected sessions: Session[];
+  protected isLoggedIn: boolean;
 
   protected constructor(type: UserType) {
     this.userId = randomUUID();
     this.type = type;
     this.sessions = [];
+    this.isLoggedIn = false;
   }
 
   public get UserId(): string {
@@ -30,7 +33,7 @@ export abstract class UserAuth {
 
   public get DTO(): UserAuthDTO {
     return {
-      userId: this.userId,
+      id: this.userId,
       // email: this.email,
       // password: this.password,
       type: this.type,
@@ -40,6 +43,16 @@ export abstract class UserAuth {
 
   protected addSession(session: Session): void {
     this.sessions.push(session);
+  }
+  public get IsLoggedIn(): boolean {
+    return this.isLoggedIn;
+  }
+  public async setIsLoggedIn(isLoggedIn: boolean) {
+    await getDB().userAuth.update({
+      where: { id: this.userId },
+      data: { isLoggedIn: isLoggedIn },
+    });
+    this.isLoggedIn = isLoggedIn;
   }
 
   public isConnectionValid(): boolean {
@@ -54,7 +67,7 @@ export abstract class UserAuth {
     if (this.sessions.length === 0) {
       return undefined;
     }
-    return this.sessions[this.sessions.length - 1];
+    return this.sessions.at(-1);
   }
   //Logged in= has a valid session as a member
   //Connected= has a valid session as a guest or a member

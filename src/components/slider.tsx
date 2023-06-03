@@ -1,5 +1,6 @@
 import Slider from "rc-slider";
 import "rc-slider/assets/index.css";
+import { useCallback } from "react";
 import { z } from "zod";
 
 type Props = {
@@ -7,10 +8,12 @@ type Props = {
 };
 
 export default function RateSlider({ onChange }: Props) {
-  function handleChange(res: number | number[]) {
-    const values = z.number().array().parse(res);
-    onChange?.(values);
-  }
+  const handleChange = useCallback(
+    (res: number | number[]) => {
+      onChange?.(z.number().array().parse(res));
+    },
+    [onChange]
+  );
 
   return (
     <div className="w-44">

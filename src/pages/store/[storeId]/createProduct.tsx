@@ -10,8 +10,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Button from "components/button";
 import { FormInput } from "components/form";
-import { api } from "utils/api";
-import { onError } from "utils/onError";
+import { api } from "server/communication/api";
+import { onError } from "utils/query";
 import StoreNavbar from "components/storeNavbar";
 
 const formSchema = z.object({
@@ -19,14 +19,14 @@ const formSchema = z.object({
     .string()
     .min(3, "Name must be at least 3 characters")
     .max(50, "Name must be at most 50 characters"),
-  price: z.preprocess(Number, z.number().min(0, "Price must be positive")),
+  price: z.preprocess(Number, z.number().positive("Price must be positive")),
   category: z
     .string()
     .min(3, "Category must be at least 3 characters")
     .max(50, "Category must be at most 50 characters"),
   quantity: z.preprocess(
     Number,
-    z.number().min(0, "Quantity must be positive")
+    z.number().min(0, "Quantity can't be negative")
   ),
   description: z
     .string()
@@ -39,8 +39,7 @@ type FormValues = z.infer<typeof formSchema>;
 export default function Home() {
   useGuestRedirect();
   const router = useRouter();
-  const { storeId } = router.query;
-  const { data: session } = useSession();
+  const storeId = z.undefined().or(z.string()).parse(router.query.storeId);
   const {
     register,
     handleSubmit,
@@ -60,8 +59,7 @@ export default function Home() {
 
   return (
     <Layout>
-      <h1>The Happy Place</h1>
-      {storeId && <StoreNavbar storeId={storeId as string} />}
+      <StoreNavbar storeId={storeId} />
       <Card className="sm:w-80">
         <div className="text-center">
           <h1>New Product</h1>
@@ -73,35 +71,35 @@ export default function Home() {
               field="name"
               label="Product Name"
               type="text"
-              register={register}
+              {...register("name")}
               errors={errors}
             />
             <FormInput
               field="category"
               label="Category"
               type="text"
-              register={register}
+              {...register("category")}
               errors={errors}
             />
             <FormInput
               field="description"
               label="Description"
               type="text"
-              register={register}
+              {...register("description")}
               errors={errors}
             />
             <FormInput
               field="price"
               label="Price"
               type="text"
-              register={register}
+              {...register("price")}
               errors={errors}
             />
             <FormInput
               field="quantity"
               label="Quantity"
               type="text"
-              register={register}
+              {...register("quantity")}
               errors={errors}
             />
 

@@ -15,14 +15,19 @@ export class GuestUserAuth extends UserAuth {
   }
   static createFromDTO(dto: GuestUserAuthDTO): GuestUserAuth {
     const guestUserAuth = new GuestUserAuth();
-    guestUserAuth.userId = dto.userId;
-    guestUserAuth.type = dto.type;
-    guestUserAuth.sessions = dto.sessions;
+    guestUserAuth.userId = dto.id;
+    if (dto.type !== undefined) {
+      guestUserAuth.type = dto.type;
+    }
+    // memberUserAuth.type = dto.type;
+    if (dto.sessions !== undefined) {
+      guestUserAuth.sessions = dto.sessions;
+    }
     return guestUserAuth;
   }
   public get DTO(): GuestUserAuthDTO {
     return {
-      userId: this.userId,
+      id: this.userId,
       type: this.type,
       sessions: this.sessions,
     };
@@ -34,6 +39,6 @@ export class GuestUserAuth extends UserAuth {
     return false;
   }
   public isUserLoggedInAsGuest(): boolean {
-    return this.isConnectionValid();
+    return true;
   }
 }

@@ -1,12 +1,13 @@
 name: CI
 
-on: [push, pull_request]
+on: [pull_request]
 
 env:
-  DATABASE_URL: "file:./db.sqlite"
+  DATABASE_URL: "postgresql://postgres:9YEtyU8rREfAyroV@db.lbwnlnoxzclizasvfeaj.supabase.co:5432/postgres"
   NEXTAUTH_URL: "localhost:3000"
   NEXTAUTH_SECRET: "SECRET"
   WS_URL: "ws://localhost:3001"
+  HOST: "localhost:3000"
 
 jobs:
   typecheck:
@@ -18,9 +19,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v2
         with:
-          version: 7.26.0
+          version: 8.6.0
           run_install: false
 
       - name: Use Node ${{ matrix.node }}
@@ -61,15 +62,18 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    concurrency:
+      group: ${{ github.ref }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v2
         with:
-          version: 7.26.0
+          version: 8.6.0
 
       - name: Use Node ${{ matrix.node }}
         uses: actions/setup-node@v3
@@ -92,7 +96,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install Dependencies
-        run: pnpm install && pnpm run postinstall
+        run: pnpm install && pnpm run db-push && pnpm run postinstall
 
       - name: Install Chromium
         run: pnpm playwright install chromium

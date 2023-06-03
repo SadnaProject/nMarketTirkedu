@@ -7,7 +7,8 @@ import { Rating } from "components/star";
 import PATHS, { useGuestRedirect } from "utils/paths";
 import Price from "components/price";
 import { TimeIcon } from "components/icons";
-import { api } from "utils/api";
+import { api } from "server/communication/api";
+import { cachedQueryOptions } from "utils/query";
 
 const receipts = [
   {
@@ -31,6 +32,11 @@ const receipts = [
 ];
 
 export default function Home() {
+  const { data: purchases } = api.purchaseHistory.getMyPurchases.useQuery(
+    undefined,
+    cachedQueryOptions
+  );
+
   return (
     <Layout>
       <h1>My Receipts</h1>

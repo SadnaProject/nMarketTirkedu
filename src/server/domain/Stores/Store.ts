@@ -1,36 +1,44 @@
 import { z } from "zod";
-import { HasRepos, type Repos } from "./_HasRepos";
 import { StoreProduct, type StoreProductArgs } from "./StoreProduct";
 import { type BasketDTO } from "../Users/Basket";
 import { Mixin } from "ts-mixer";
-import { type Controllers, HasControllers } from "../_HasController";
 import { randomUUID } from "crypto";
-import { TRPCError } from "@trpc/server";
-import { DiscountPolicy } from "./DiscountPolicy";
-import { FullBasketDTO, ProductWithQuantityDTO } from "./StoresController";
-import { ContraintPolicy } from "./ConstraintPolicy";
+import {
+  type ProductWithQuantityDTO,
+  type FullBasketDTO,
+} from "./StoresController";
+import { ConstraintPolicy } from "./PurchasePolicy/ConstraintPolicy";
+import { type BasketProductDTO } from "../Users/BasketProduct";
+import { type DiscountArgs } from "./DiscountPolicy/Discount";
+import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
+import { type ConditionArgs } from "./Conditions/CompositeLogicalCondition/Condition";
+import { HasRepos, type Repos } from "./helpers/_HasRepos";
+import { type Store as StoreDAO } from "@prisma/client";
+import { type Controllers, HasControllers } from "../helpers/_HasController";
 export const nameSchema = z.string().nonempty();
 
 export type StoreDTO = {
   id: string;
   name: string;
   isActive: boolean;
+  rating: number;
 };
 
 export class Store extends Mixin(HasRepos, HasControllers) {
   private id: string;
   private name: string;
   private isActive: boolean;
-  private discount: DiscountPolicy;
-  private constraint: ContraintPolicy;
+  private discountPolicy: DiscountPolicy;
+  private constraintPolicy: ConstraintPolicy;
+
   constructor(name: string) {
     super();
-    nameSchema.parse(name);
     this.id = randomUUID();
+    nameSchema.parse(name);
     this.name = name;
     this.isActive = true;
-    this.discount = new DiscountPolicy(this.id);
-    this.constraint = new ContraintPolicy(this.Id);
+    this.discountPolicy = new DiscountPolicy(this.id);
+    this.constraintPolicy = new ConstraintPolicy(this.Id);
   }
 
   static fromDTO(dto: StoreDTO, repos: Repos, controllers: Controllers) {
@@ -41,94 +49,127 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     store.isActive = dto.isActive;
     return store;
   }
-
-  static fromStoreId(storeId: string, repos: Repos) {
-    return repos.Stores.getStoreById(storeId);
+  static fromDAO(
+    store: StoreDAO,
+    discountPolicy: DiscountPolicy,
+    constraintPolicy: ConstraintPolicy
+  ) {
+    const newStore = new Store(store.name);
+    newStore.id = store.id;
+    newStore.isActive = store.isActive;
+    newStore.discountPolicy = discountPolicy;
+    newStore.constraintPolicy = constraintPolicy;
+    return newStore;
   }
-
-  public get Id() {
-    return this.id;
-  }
-
-  public get Name() {
-    return this.name;
-  }
-
-  public get IsActive() {
-    return this.isActive;
-  }
-
-  public set IsActive(isActive: boolean) {
-    this.isActive = isActive;
-  }
-
-  public get DTO(): StoreDTO {
+  getDAO() {
     return {
       id: this.id,
       name: this.name,
       isActive: this.isActive,
     };
   }
-
-  public get Products() {
-    return this.Repos.Products.getProductsByStoreId(this.id).map((p) => p.DTO);
+  static async fromStoreId(
+    storeId: string,
+    repos: Repos,
+    controllers: Controllers
+  ) {
+    const store = Store.fromDAO(
+      await repos.Stores.getStoreById(storeId),
+      await repos.Stores.getDiscounts(storeId),
+      await repos.Stores.getConstraints(storeId)
+    );
+    return store.initRepos(repos).initControllers(controllers);
   }
 
-  public createProduct(product: StoreProductArgs) {
-    const newProduct = new StoreProduct(product).initRepos(this.Repos);
-    this.Repos.Products.addProduct(this.Id, newProduct);
+  public get Id() {
+    return this.id;
+  }
+
+  public set Id(id: string) {
+    this.id = id;
+  }
+  public get Name() {
+    return this.name;
+  }
+
+  public IsActive() {
+    return this.isActive;
+  }
+
+  public async setActive(isActive: boolean) {
+    this.isActive = isActive;
+    await this.Repos.Stores.setField(this.Id, "isActive", isActive);
+  }
+
+  public async getDTO(): Promise<StoreDTO> {
+    return {
+      id: this.id,
+      name: this.name,
+      isActive: this.isActive,
+      rating: await this.Controllers.PurchasesHistory.getStoreRating(this.id),
+    };
+  }
+
+  public async getProducts() {
+    const productsDAO = await this.Repos.Products.getProductsByStoreId(this.id);
+    const productsPromises = productsDAO.map(async (product) =>
+      StoreProduct.fromDAO(
+        product,
+        await this.Repos.Products.getSpecialPrices(product.id)
+      )
+    );
+    const products = await Promise.all(productsPromises);
+    products.forEach((product) =>
+      product.initRepos(this.Repos).initControllers(this.Controllers)
+    );
+    const productsDTO = await Promise.all(
+      products.map((product) => product.getDTO())
+    );
+    return productsDTO;
+  }
+
+  public async createProduct(product: StoreProductArgs) {
+    const newProduct = new StoreProduct(product)
+      .initControllers(this.Controllers)
+      .initRepos(this.Repos);
+    const productId = await this.Repos.Products.addProduct(
+      this.Id,
+      product,
+      newProduct.Id
+    );
+    newProduct.Id = productId;
     return newProduct.Id;
   }
+  public async getBasketPrice(
+    userId: string,
+    basketDTO: BasketDTO
+  ): Promise<number> {
+    let fullBasket = await this.BasketDTOToFullBasketDTO(basketDTO);
 
-  public getBasketPrice(basketDTO: BasketDTO): number {
-    if (!this.constraint.isSatisfiedBy1(basketDTO))
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "the basket doesn't fulfilled the terms",
-      });
-    const productsIds = this.Products.map((p) => p.id);
-
-    basketDTO = this.discount.applyDiscounts1(basketDTO);
-
-    return basketDTO.products.reduce((acc, curr) => {
-      const product = this.Repos.Products.getProductById(curr.storeProductId);
-      if (!productsIds.includes(curr.storeProductId))
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: `Product ${curr.storeProductId} is not in store ${this.Id}`,
-        });
-      return acc + product.getPriceByQuantity(curr.quantity);
-    }, 0);
+    fullBasket = this.discountPolicy.applyDiscounts(fullBasket);
+    let price = 0;
+    for (const product of fullBasket.products) {
+      price +=
+        product.BasketQuantity *
+        StoreProduct.fromDAO(
+          await this.Repos.Products.getProductById(product.product.id),
+          await this.Repos.Products.getSpecialPrices(product.product.id)
+        ).getPriceForUser(userId) *
+        (1 - product.Discount / 100);
+    }
+    return price;
   }
 
-  public delete() {
-    this.Repos.Stores.deleteStore(this.Id);
+  public async checkIfBasketFulfillsPolicy(
+    basketDTO: BasketDTO
+  ): Promise<boolean> {
+    const fullBasket = await this.BasketDTOToFullBasketDTO(basketDTO);
+    return this.constraintPolicy.isSatisfiedBy(fullBasket);
+  }
+  public async delete() {
+    await this.Repos.Stores.deleteStore(this.Id);
   }
 
-  makeOwner(currentId: string, targetUserId: string) {
-    this.Controllers.Jobs.makeStoreOwner(currentId, this.Id, targetUserId);
-  }
-  makeManager(currentId: string, targetUserId: string) {
-    this.Controllers.Jobs.makeStoreManager(currentId, this.Id, targetUserId);
-  }
-  removeOwner(currentId: string, targetUserId: string) {
-    this.Controllers.Jobs.removeStoreOwner(currentId, this.Id, targetUserId);
-  }
-  removeManager(currentId: string, targetUserId: string) {
-    this.Controllers.Jobs.removeStoreManager(currentId, this.Id, targetUserId);
-  }
-  setAddingProductPermission(
-    currentId: string,
-    targetUserId: string,
-    permission: boolean
-  ) {
-    this.Controllers.Jobs.setAddingProductToStorePermission(
-      currentId,
-      this.Id,
-      targetUserId,
-      permission
-    );
-  }
   canCreateProduct(currentId: string) {
     return this.Controllers.Jobs.canCreateProductInStore(currentId, this.Id);
   }
@@ -153,4 +194,68 @@ export class Store extends Mixin(HasRepos, HasControllers) {
   get Purchases() {
     return this.Controllers.PurchasesHistory.getPurchasesByStore(this.Id);
   }
+  async BasketDTOToFullBasketDTO(basket: BasketDTO): Promise<FullBasketDTO> {
+    const storeId = basket.storeId;
+    const productsPromises = [];
+    for (const basketProduct of basket.products) {
+      productsPromises.push(
+        await this.BasketProductDTOToProductWithQuantityDTO(basketProduct)
+      );
+    }
+    return {
+      storeId: storeId,
+      products: productsPromises,
+    };
+  }
+  async BasketProductDTOToProductWithQuantityDTO(
+    basketProduct: BasketProductDTO
+  ): Promise<ProductWithQuantityDTO> {
+    const p = StoreProduct.fromDAO(
+      await this.Repos.Products.getProductById(basketProduct.storeProductId),
+      await this.Repos.Products.getSpecialPrices(basketProduct.storeProductId)
+    );
+    p.initControllers(this.Controllers).initRepos(this.Repos);
+    return {
+      product: await p.getDTO(),
+      Discount: 0,
+      BasketQuantity: basketProduct.quantity,
+    };
+  }
+  public async addDiscount(discount: DiscountArgs) {
+    const Id = await this.Repos.Stores.addDiscount(this.Id, discount);
+    this.discountPolicy.addDiscount(discount, Id);
+    return Id;
+  }
+  public async removeDiscount(discountId: string) {
+    this.discountPolicy.removeDiscount(discountId);
+    return await this.Repos.Stores.removeDiscount(discountId);
+  }
+  public async addConstraint(args: ConditionArgs) {
+    const Id = await this.Repos.Stores.addConstraint(this.Id, args);
+    this.constraintPolicy.addConstraint(args, Id);
+    return Id;
+  }
+  public async removeConstraint(constraintId: string) {
+    await this.Repos.Stores.removeConstraint(constraintId);
+    this.constraintPolicy.removeConstraint(constraintId);
+  }
+  public get ConstraintPolicy() {
+    return this.constraintPolicy;
+  }
+  public set ConstraintPolicy(policy: ConstraintPolicy) {
+    this.constraintPolicy = policy;
+  }
+  public get DiscountPolicy() {
+    return this.discountPolicy;
+  }
+  public set DiscountPolicy(policy: DiscountPolicy) {
+    this.discountPolicy = policy;
+  }
+  /*private createCartDTOfromBasket(basket: BasketDTO, StoreId: string): CartDTO {
+    const storeIdToBasket: Map<string, BasketDTO> = new Map();
+    storeIdToBasket.set(StoreId, basket);
+    return {
+      storeIdToBasket: storeIdToBasket,
+    };
+  }*/
 }

@@ -2,52 +2,156 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { twMerge } from "tailwind-merge";
 import PATHS from "utils/paths";
-import { CreateIcon } from "./icons";
+import { BookIcon, EyeClosedIcon, EyeIcon, TrashIcon } from "./icons";
+import { api } from "server/communication/api";
+import { useEffect, useState } from "react";
+import { cachedQueryOptions } from "utils/query";
+import Button from "./button";
+import { Modal } from "./modal";
 
 type Props = {
-  storeId: string;
+  storeId: string | undefined;
 };
 
 export default function StoreNavbar({ storeId }: Props) {
   const router = useRouter();
+  const { data: isSystemAdmin } = api.jobs.isSystemAdmin.useQuery(
+    undefined,
+    cachedQueryOptions
+  );
+  const { data: storeName } = api.stores.getStoreNameById.useQuery(
+    { storeId: storeId as string },
+    { ...cachedQueryOptions, enabled: !!storeId }
+  );
+  const { mutate: closeStorePermanently } =
+    api.stores.closeStorePermanently.useMutation({
+      ...cachedQueryOptions,
+      onSuccess: () => router.push(PATHS.stores.path),
+    });
+  const { data: myStores } = api.stores.myStores.useQuery(
+    undefined,
+    cachedQueryOptions
+  );
+  const [isMyStore, setIsMyStore] = useState(false);
+  useEffect(() => {
+    if (myStores) {
+      setIsMyStore(myStores.some((myStore) => myStore.store.id === storeId));
+    }
+  }, [myStores, storeId]);
+  const { mutate: activateStore } = api.stores.activateStore.useMutation({
+    ...cachedQueryOptions,
+    onSuccess: () => {
+      console.log("activated");
+      void refetchIsStoreActive();
+    },
+  });
+  const { mutate: deactivateStore } = api.stores.deactivateStore.useMutation({
+    ...cachedQueryOptions,
+    onSuccess: () => {
+      console.log("deactivated");
+      void refetchIsStoreActive();
+    },
+  });
+  const { data: isStoreActive, refetch: refetchIsStoreActive } =
+    api.stores.isStoreActive.useQuery(
+      { storeId: storeId as string },
+      { ...cachedQueryOptions, enabled: !!storeId }
+    );
+
+  function handleChangeStoreActivation() {
+    if (isStoreActive) {
+      deactivateStore({ storeId: storeId as string });
+    } else {
+      activateStore({ storeId: storeId as string });
+    }
+  }
 
   const links = [
     {
-      name: "Overview",
-      href: PATHS.store.path(storeId),
+      name: "Products",
+      href: PATHS.store.path(storeId ?? ""),
       icon: <OverviewIcon />,
     },
-    { name: "Jobs", href: PATHS.storeJobs.path(storeId), icon: <JobsIcon /> },
+    {
+      name: "Jobs",
+      href: PATHS.storeJobs.path(storeId ?? ""),
+      icon: <JobsIcon />,
+    },
     {
       name: "Revenue",
-      href: PATHS.storeRevenue.path(storeId),
+      href: PATHS.storeRevenue.path(storeId ?? ""),
       icon: <RevenueIcon />,
     },
-    // {
-    //   name: "New Product",
-    //   href: PATHS.createProduct.path(storeId),
-    //   icon: <CreateIcon />,
-    // },
+    {
+      name: "Discounts",
+      href: PATHS.storeDiscounts.path(storeId ?? ""),
+      icon: <DiscountIcon />,
+    },
+    {
+      name: "Policy",
+      href: PATHS.storePolicy.path(storeId ?? ""),
+      icon: <BookIcon />,
+    },
   ];
 
   return (
-    <nav className="flex w-full max-w-2xl space-x-2 overflow-auto">
-      {links.map((link) => (
-        <Link
-          key={link.name}
-          className={twMerge(
-            "inline-flex grow basis-0 items-center justify-center gap-2 rounded-lg px-4 py-3 text-center text-sm font-medium",
-            router.asPath.split("?")[0] === link.href
-              ? "bg-blue-600 text-white"
-              : "bg-transparent text-gray-500 hover:text-blue-600"
+    <>
+      {storeId && (
+        <>
+          <div className="flex items-center gap-2">
+            <h1>{storeName}</h1>
+            {isSystemAdmin && (
+              <button data-hs-overlay={"#hs-modal-perm-close"}>
+                <TrashIcon />
+              </button>
+            )}
+            {isMyStore && (
+              <button onClick={() => void handleChangeStoreActivation()}>
+                {isStoreActive ? <EyeIcon /> : <EyeClosedIcon />}
+              </button>
+            )}
+            <Modal
+              id={"hs-modal-perm-close"}
+              title="Confirm permanent closure"
+              content={
+                <>
+                  Are you sure you want to close the store permanently?
+                  <br />
+                  This action cannot be undone.
+                </>
+              }
+              footer={
+                <Button
+                  onClick={() => closeStorePermanently({ storeId })}
+                  data-hs-overlay={"#hs-modal-perm-close"}
+                >
+                  Close store permanently
+                </Button>
+              }
+            />
+          </div>
+          {isMyStore && (
+            <nav className="flex w-full max-w-2xl space-x-2 overflow-x-auto">
+              {links.map((link) => (
+                <Link
+                  key={link.name}
+                  className={twMerge(
+                    "inline-flex grow basis-0 items-center justify-center gap-2 rounded-lg px-4 py-3 text-center text-sm font-medium",
+                    router.asPath.split("?")[0] === link.href
+                      ? "bg-blue-600 text-white"
+                      : "bg-transparent text-gray-500 hover:text-blue-600"
+                  )}
+                  href={link.href}
+                >
+                  {link.icon}
+                  {link.name}
+                </Link>
+              ))}
+            </nav>
           )}
-          href={link.href}
-        >
-          {link.icon}
-          {link.name}
-        </Link>
-      ))}
-    </nav>
+        </>
+      )}
+    </>
   );
 }
 
@@ -103,6 +207,25 @@ function RevenueIcon() {
         strokeLinecap="round"
         strokeLinejoin="round"
         d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"
+      />
+    </svg>
+  );
+}
+
+function DiscountIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      className="h-6 w-6"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185zM9.75 9h.008v.008H9.75V9zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm4.125 4.5h.008v.008h-.008V13.5zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
       />
     </svg>
   );

@@ -1,4 +1,5 @@
 import { randomUUID } from "crypto";
+import { getDB } from "server/helpers/_Transactional";
 
 export class Notification {
   private id: string;
@@ -28,13 +29,29 @@ export class Notification {
     this.isRead = isRead;
   }
 
-  public read() {
+  public async read() {
     this.isRead = true;
+    await getDB().notification.update({
+      where: { id: this.id },
+      data: { isRead: true },
+    });
   }
   public get Type(): string {
     return this.type;
   }
   public toString(): string {
     return `Notification id: ${this.id} Type: ${this.type} Message: ${this.message}. \n`;
+  }
+  static createFromDTO(dto: {
+    id: string;
+    userId: string;
+    type: string;
+    message: string;
+    isRead: boolean;
+  }): Notification {
+    const i = new Notification(dto.type, dto.message);
+    i.isRead = dto.isRead;
+    i.id = dto.id;
+    return i;
   }
 }

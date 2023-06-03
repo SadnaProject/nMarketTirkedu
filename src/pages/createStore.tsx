@@ -9,8 +9,9 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Button from "components/button";
 import { FormInput } from "components/form";
-import { api } from "utils/api";
-import { onError } from "utils/onError";
+import { api } from "server/communication/api";
+import { onError } from "utils/query";
+import { useCallback } from "react";
 
 const formSchema = z.object({
   name: z
@@ -53,8 +54,7 @@ export default function Home() {
             <FormInput
               field="name"
               label="Store Name"
-              type="text"
-              register={register}
+              {...register("name")}
               errors={errors}
             />
 

@@ -1,28 +1,19 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import {
-  type UseFormRegister,
-  type FieldErrors,
-  type FieldValues,
-  type Path,
-} from "react-hook-form";
+import { type FieldErrors, type FieldValues, type Path } from "react-hook-form";
 import { twMerge } from "tailwind-merge";
 import Input from "./input";
+import React, { forwardRef } from "react";
 
 type FormInputProps<T extends FieldValues> = {
   field: Path<T> & string & keyof T;
   label: string;
-  type: string;
-  register: UseFormRegister<T>;
   errors: FieldErrors<T>;
-};
+} & React.ComponentProps<"input">;
 
-export function FormInput<T extends FieldValues>({
-  field,
-  label,
-  type,
-  register,
-  errors,
-}: FormInputProps<T>) {
+export const FormInput = forwardRef(function FormInput<T extends FieldValues>(
+  { field, label, errors, ...props }: FormInputProps<T>,
+  ref: React.Ref<HTMLInputElement>
+) {
   return (
     <div>
       <label htmlFor={`${field}-input`} className="mb-2 block text-sm">
@@ -30,9 +21,9 @@ export function FormInput<T extends FieldValues>({
       </label>
       <div className="relative">
         <Input
-          {...register(field)}
+          {...props}
+          ref={ref}
           id={`${field}-input`}
-          type={type}
           aria-describedby={`${field}-error`}
         />
         <InputErrorIcon isShown={!!errors[field]} />
@@ -44,7 +35,7 @@ export function FormInput<T extends FieldValues>({
       />
     </div>
   );
-}
+});
 
 type InputErrorIconProps = {
   isShown: boolean;

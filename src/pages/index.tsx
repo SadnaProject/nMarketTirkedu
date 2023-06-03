@@ -1,11 +1,11 @@
 import Glow from "components/glow";
 import Image from "next/image";
-import { api } from "utils/api";
 import Layout from "./_layout";
+import Button from "components/button";
+import Link from "next/link";
+import PATHS from "utils/paths";
 
 export default function Home() {
-  const hello = api.example.hello.useQuery({ text: "from tRPC", price: 45 });
-
   return (
     <Layout>
       <div className="flex h-full flex-col items-center justify-center gap-4">
@@ -15,6 +15,9 @@ export default function Home() {
         <p className="text-center text-2xl text-slate-900">
           We&apos;re not just an online store, we&apos;re your new addiction
         </p>
+        <Link href={PATHS.products.path}>
+          <Button>Go Shopping!</Button>
+        </Link>
         <br />
         <Glow className="animate-pulse blur-2xl">
           <Glow className="animate-pulse blur-lg">

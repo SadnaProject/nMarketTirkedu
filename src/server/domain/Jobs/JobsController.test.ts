@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect } from "vitest";
-import { type Repos, createTestRepos } from "./_HasRepos";
-
-import { itUnitIntegration } from "../_mock";
-import { createTestControllers } from "../_createControllers";
-import { type Controllers } from "../_HasController";
+import { type Repos, createTestRepos } from "./helpers/_HasRepos";
+import { itUnitIntegration } from "../helpers/_mock";
 import { GuestUserAuth } from "../Auth/GuestUserAuth";
 import { MemberUserAuth } from "../Auth/MemberUserAuth";
+import { JobsController } from "./JobsController";
+import { AuthController } from "../Auth/AuthController";
+import { getDB, resetDB } from "server/helpers/_Transactional";
 
 export function createMember(name: string, password: string) {
   return MemberUserAuth.create(name, password);
@@ -21,443 +21,551 @@ function getGuestI(i: number): GuestUserAuth {
   return GuestUserAuth.create();
 }
 let repos: Repos;
-let controllers: Controllers;
+// let controllers: Controllers;
+let controllers: { Jobs: JobsController; Auth: AuthController };
 function generateEmailI(i: number): string {
   return "user" + i.toString() + "@email.com";
 }
 function generatePasswordI(i: number): string {
   return "password" + i.toString();
 }
-beforeEach(() => {
+beforeEach(async () => {
+  await resetDB();
+  await getDB().positionHolder.deleteMany({});
+  await getDB().role.deleteMany({});
+  await getDB().admin.deleteMany({});
+  await getDB().userAuth.deleteMany({});
   const testType = "integration";
-  controllers = createTestControllers(testType, "Jobs");
+  // controllers = createTestControllers(testType, "Jobs");
+  controllers = { Jobs: new JobsController(), Auth: new AuthController() };
   repos = createTestRepos(testType);
   controllers.Jobs.initRepos(repos);
 });
 describe("InitializeStore", () => {
-  itUnitIntegration("✅InitializeStore", (testType) => {
+  itUnitIntegration("✅InitializeStore", async (testType) => {
     const storeId = "store1";
     const founderId = "founder1";
 
-    expect(() => controllers.Jobs.getStoreFounderId(storeId)).toThrow();
+    await expect(controllers.Jobs.getStoreFounderId(storeId)).rejects.toThrow(
+      "store founder not found for store with id: store1 not found"
+    );
 
-    expect(() =>
+    await expect(
       controllers.Jobs.InitializeStore(founderId, storeId)
-    ).not.toThrow();
-    expect(controllers.Jobs.getStoreFounderId(storeId)).toEqual(founderId);
+    ).resolves.not.toThrow();
+    await expect(controllers.Jobs.getStoreFounderId(storeId)).resolves.toEqual(
+      founderId
+    );
   });
 });
 describe("Make position holder", () => {
-  itUnitIntegration("✅Make store owner", (testType) => {
+  itUnitIntegration("✅Make store owner", async (testType) => {
     const storeId = "store1";
     const founderId = "founder1";
     const owner1Id = "owner1";
     const owner2Id = "owner2";
-    controllers.Jobs.InitializeStore(founderId, storeId);
-    expect(controllers.Jobs.isStoreOwner(owner1Id, storeId)).toEqual(false);
-    controllers.Jobs.makeStoreOwner(founderId, storeId, owner1Id);
-    expect(controllers.Jobs.isStoreOwner(owner1Id, storeId)).toEqual(true);
-    expect(controllers.Jobs.isStoreOwner(owner2Id, storeId)).toEqual(false);
-    controllers.Jobs.makeStoreOwner(owner1Id, storeId, owner2Id);
-    expect(controllers.Jobs.isStoreOwner(owner2Id, storeId)).toEqual(true);
+    await controllers.Jobs.InitializeStore(founderId, storeId);
+    await expect(
+      controllers.Jobs.isStoreOwner(owner1Id, storeId)
+    ).resolves.toEqual(false);
+    await controllers.Jobs.makeStoreOwner(founderId, storeId, owner1Id);
+    await expect(
+      controllers.Jobs.isStoreOwner(owner1Id, storeId)
+    ).resolves.toEqual(true);
+    await expect(
+      controllers.Jobs.isStoreOwner(owner2Id, storeId)
+    ).resolves.toEqual(false);
+    await controllers.Jobs.makeStoreOwner(owner1Id, storeId, owner2Id);
+    await expect(
+      controllers.Jobs.isStoreOwner(owner2Id, storeId)
+    ).resolves.toEqual(true);
   });
-  //a test for the bad case of trying to make a store owner without being a store owner
+  // a test for the bad case of trying to make a store owner without being a store owner
   itUnitIntegration(
     "❌Make store owner fails because the user appointing is not a store owner/founder",
-    (testType) => {
+    async (testType) => {
       //
       const storeId = "store1";
       const founderId = "founder1";
       const owner1Id = "owner1";
       const owner2Id = "owner2";
-      controllers.Jobs.InitializeStore(founderId, storeId);
-      expect(controllers.Jobs.isStoreOwner(owner1Id, storeId)).toEqual(false);
-      expect(() =>
+      await controllers.Jobs.InitializeStore(founderId, storeId);
+      await expect(
+        controllers.Jobs.isStoreOwner(owner1Id, storeId)
+      ).resolves.toEqual(false);
+      await expect(() =>
         controllers.Jobs.makeStoreOwner(owner2Id, storeId, owner1Id)
-      ).toThrow();
-      expect(controllers.Jobs.isStoreOwner(owner1Id, storeId)).toEqual(false);
+      ).rejects.toThrow("This user cannot appoint");
+      await expect(
+        controllers.Jobs.isStoreOwner(owner1Id, storeId)
+      ).resolves.toEqual(false);
     }
   );
   //make store manager
-  itUnitIntegration("✅Make store manager", (testType) => {
+  itUnitIntegration("✅Make store manager", async (testType) => {
     const storeId = "store1";
     const founderId = "founder1";
     const owner1Id = "owner1";
     const manager1Id = "manager1";
     const manager2Id = "manager2";
     const manager3Id = "manager3";
-    controllers.Jobs.InitializeStore(founderId, storeId);
-    expect(controllers.Jobs.isStoreManager(manager1Id, storeId)).toEqual(false);
-    controllers.Jobs.makeStoreOwner(founderId, storeId, owner1Id);
-    controllers.Jobs.makeStoreManager(owner1Id, storeId, manager1Id);
-    expect(controllers.Jobs.isStoreManager(manager1Id, storeId)).toEqual(true);
-    expect(controllers.Jobs.isStoreManager(manager2Id, storeId)).toEqual(false);
-    controllers.Jobs.makeStoreManager(founderId, storeId, manager2Id);
-    expect(controllers.Jobs.isStoreManager(manager2Id, storeId)).toEqual(true);
+    await controllers.Jobs.InitializeStore(founderId, storeId);
+    await expect(
+      controllers.Jobs.isStoreManager(manager1Id, storeId)
+    ).resolves.toEqual(false);
+    await controllers.Jobs.makeStoreOwner(founderId, storeId, owner1Id);
+    await controllers.Jobs.makeStoreManager(owner1Id, storeId, manager1Id);
+    await expect(
+      controllers.Jobs.isStoreManager(manager1Id, storeId)
+    ).resolves.toEqual(true);
+    await expect(
+      controllers.Jobs.isStoreManager(manager2Id, storeId)
+    ).resolves.toEqual(false);
+    await controllers.Jobs.makeStoreManager(founderId, storeId, manager2Id);
+    await expect(
+      controllers.Jobs.isStoreManager(manager2Id, storeId)
+    ).resolves.toEqual(true);
   });
   //a test for the bad case of trying to make a store manager without being a store owner/founder
   itUnitIntegration(
     "❌Make store manager fails because the user appointing is not a store owner/founder",
-    (testType) => {
+    async (testType) => {
       //
       const storeId = "store1";
       const founderId = "founder1";
       const manager1Id = "manager1";
       const manager2Id = "manager2";
       const manager3Id = "manager3";
-      controllers.Jobs.InitializeStore(founderId, storeId);
-      expect(controllers.Jobs.isStoreManager(manager1Id, storeId)).toEqual(
-        false
-      );
-      expect(() =>
+      await controllers.Jobs.InitializeStore(founderId, storeId);
+      await expect(
+        controllers.Jobs.isStoreManager(manager1Id, storeId)
+      ).resolves.toEqual(false);
+      await expect(
         controllers.Jobs.makeStoreManager(manager2Id, storeId, manager1Id)
-      ).toThrow();
-      expect(controllers.Jobs.isStoreManager(manager1Id, storeId)).toEqual(
-        false
-      );
-      controllers.Jobs.makeStoreManager(founderId, storeId, manager1Id);
-      expect(controllers.Jobs.isStoreManager(manager1Id, storeId)).toEqual(
-        true
-      );
-      expect(() =>
+      ).rejects.toThrow("This user cannot appoint");
+      await expect(
+        controllers.Jobs.isStoreManager(manager1Id, storeId)
+      ).resolves.toEqual(false);
+      await controllers.Jobs.makeStoreManager(founderId, storeId, manager1Id);
+      await expect(
+        controllers.Jobs.isStoreManager(manager1Id, storeId)
+      ).resolves.toEqual(true);
+      await expect(
         controllers.Jobs.makeStoreManager(manager1Id, storeId, manager2Id)
-      ).toThrow();
+      ).rejects.toThrow(
+        "User does not have permission to appoint store manager for store with id: store1"
+      );
     }
   );
 });
 describe("Remove position holder", () => {
-  itUnitIntegration("✅Remove store owner", (testType) => {
+  itUnitIntegration("✅Remove store owner", async (testType) => {
     const storeId = "store1";
     const founderId = "founder1";
     const owner1Id = "owner1";
     const owner2Id = "owner2";
-    controllers.Jobs.InitializeStore(founderId, storeId);
-    expect(controllers.Jobs.isStoreOwner(owner1Id, storeId)).toEqual(false);
-    controllers.Jobs.makeStoreOwner(founderId, storeId, owner1Id);
-    expect(controllers.Jobs.isStoreOwner(owner1Id, storeId)).toEqual(true);
-    expect(controllers.Jobs.isStoreOwner(owner2Id, storeId)).toEqual(false);
-    controllers.Jobs.makeStoreOwner(owner1Id, storeId, owner2Id);
-    expect(controllers.Jobs.isStoreOwner(owner2Id, storeId)).toEqual(true);
-    controllers.Jobs.removeStoreOwner(owner1Id, storeId, owner2Id);
-    expect(controllers.Jobs.isStoreOwner(owner2Id, storeId)).toEqual(false);
-    expect(controllers.Jobs.isStoreOwner(owner1Id, storeId)).toEqual(true);
-    controllers.Jobs.removeStoreOwner(founderId, storeId, owner1Id);
-    expect(controllers.Jobs.isStoreOwner(owner1Id, storeId)).toEqual(false);
+    await controllers.Jobs.InitializeStore(founderId, storeId);
+    await expect(
+      controllers.Jobs.isStoreOwner(owner1Id, storeId)
+    ).resolves.toEqual(false);
+    await controllers.Jobs.makeStoreOwner(founderId, storeId, owner1Id);
+    await expect(
+      controllers.Jobs.isStoreOwner(owner1Id, storeId)
+    ).resolves.toEqual(true);
+    await expect(
+      controllers.Jobs.isStoreOwner(owner2Id, storeId)
+    ).resolves.toEqual(false);
+    await controllers.Jobs.makeStoreOwner(owner1Id, storeId, owner2Id);
+    await expect(
+      controllers.Jobs.isStoreOwner(owner2Id, storeId)
+    ).resolves.toEqual(true);
+    await controllers.Jobs.removeStoreOwner(owner1Id, storeId, owner2Id);
+    await expect(
+      controllers.Jobs.isStoreOwner(owner2Id, storeId)
+    ).resolves.toEqual(false);
+    await expect(
+      controllers.Jobs.isStoreOwner(owner1Id, storeId)
+    ).resolves.toEqual(true);
+    await controllers.Jobs.removeStoreOwner(founderId, storeId, owner1Id);
+    await expect(
+      controllers.Jobs.isStoreOwner(owner1Id, storeId)
+    ).resolves.toEqual(false);
   });
   //a test for the bad case of trying to remove a store owner without being a store owner/founder
   itUnitIntegration(
     "❌Remove store owner fails because the user removing is not the appointer of the owner to be removed",
-    (testType) => {
+    async (testType) => {
       //
       const storeId = "store1";
       const founderId = "founder1";
       const owner1Id = "owner1";
       const owner2Id = "owner2";
-      controllers.Jobs.InitializeStore(founderId, storeId);
-      expect(controllers.Jobs.isStoreOwner(owner1Id, storeId)).toEqual(false);
-      controllers.Jobs.makeStoreOwner(founderId, storeId, owner1Id);
-      expect(controllers.Jobs.isStoreOwner(owner1Id, storeId)).toEqual(true);
-      expect(controllers.Jobs.isStoreOwner(owner2Id, storeId)).toEqual(false);
-      controllers.Jobs.makeStoreOwner(owner1Id, storeId, owner2Id);
-      expect(controllers.Jobs.isStoreOwner(owner2Id, storeId)).toEqual(true);
-      expect(() =>
+      await controllers.Jobs.InitializeStore(founderId, storeId);
+      await expect(
+        controllers.Jobs.isStoreOwner(owner1Id, storeId)
+      ).resolves.toEqual(false);
+      await controllers.Jobs.makeStoreOwner(founderId, storeId, owner1Id);
+      await expect(
+        controllers.Jobs.isStoreOwner(owner1Id, storeId)
+      ).resolves.toEqual(true);
+      await expect(
+        controllers.Jobs.isStoreOwner(owner2Id, storeId)
+      ).resolves.toEqual(false);
+      await controllers.Jobs.makeStoreOwner(owner1Id, storeId, owner2Id);
+      await expect(
+        controllers.Jobs.isStoreOwner(owner2Id, storeId)
+      ).resolves.toEqual(true);
+      await expect(() =>
         controllers.Jobs.removeStoreOwner(owner2Id, storeId, owner1Id)
-      ).toThrow();
-      expect(() =>
+      ).rejects.toThrow(
+        "User is not appointed by this position holder for store with id: store1"
+      );
+      await expect(() =>
         controllers.Jobs.removeStoreOwner(founderId, storeId, owner2Id)
-      ).toThrow();
-      expect(controllers.Jobs.isStoreOwner(owner2Id, storeId)).toEqual(true);
-      expect(controllers.Jobs.isStoreOwner(owner1Id, storeId)).toEqual(true);
+      ).rejects.toThrow(
+        "User is not appointed by this position holder for store with id: store1"
+      );
+      await expect(
+        controllers.Jobs.isStoreOwner(owner2Id, storeId)
+      ).resolves.toEqual(true);
+      await expect(
+        controllers.Jobs.isStoreOwner(owner1Id, storeId)
+      ).resolves.toEqual(true);
     }
   );
   itUnitIntegration(
     "❌Remove store owner fails because the user to be removed is not a store owner",
-    (testType) => {
+    async (testType) => {
       //
       const storeId = "store1";
       const founderId = "founder1";
       const owner1Id = "owner1";
       const owner2Id = "owner2";
-      controllers.Jobs.InitializeStore(founderId, storeId);
-      expect(controllers.Jobs.isStoreOwner(owner1Id, storeId)).toEqual(false);
-      controllers.Jobs.makeStoreOwner(founderId, storeId, owner1Id);
-      expect(controllers.Jobs.isStoreOwner(owner1Id, storeId)).toEqual(true);
-      expect(controllers.Jobs.isStoreOwner(owner2Id, storeId)).toEqual(false);
-      expect(() =>
+      await controllers.Jobs.InitializeStore(founderId, storeId);
+      await expect(
+        controllers.Jobs.isStoreOwner(owner1Id, storeId)
+      ).resolves.toEqual(false);
+      await controllers.Jobs.makeStoreOwner(founderId, storeId, owner1Id);
+      await expect(
+        controllers.Jobs.isStoreOwner(owner1Id, storeId)
+      ).resolves.toEqual(true);
+      await expect(
+        controllers.Jobs.isStoreOwner(owner2Id, storeId)
+      ).resolves.toEqual(false);
+      await expect(() =>
         controllers.Jobs.removeStoreOwner(founderId, storeId, owner2Id)
-      ).toThrow();
-      expect(controllers.Jobs.isStoreOwner(owner2Id, storeId)).toEqual(false);
-      expect(controllers.Jobs.isStoreOwner(owner1Id, storeId)).toEqual(true);
+      ).rejects.toThrow(
+        "The user requested to be removed is not a store owner"
+      );
+      await expect(
+        controllers.Jobs.isStoreOwner(owner2Id, storeId)
+      ).resolves.toEqual(false);
+      await expect(
+        controllers.Jobs.isStoreOwner(owner1Id, storeId)
+      ).resolves.toEqual(true);
     }
   );
-  itUnitIntegration("✅Remove store manager", (testType) => {
+  itUnitIntegration("✅Remove store manager", async (testType) => {
     const storeId = "store1";
     const founderId = "founder1";
     const manager1Id = "manager1";
-    controllers.Jobs.InitializeStore(founderId, storeId);
-    expect(controllers.Jobs.isStoreManager(manager1Id, storeId)).toEqual(false);
-    controllers.Jobs.makeStoreManager(founderId, storeId, manager1Id);
-    expect(controllers.Jobs.isStoreManager(manager1Id, storeId)).toEqual(true);
-    controllers.Jobs.removeStoreManager(founderId, storeId, manager1Id);
-    expect(controllers.Jobs.isStoreManager(manager1Id, storeId)).toEqual(false);
+    await controllers.Jobs.InitializeStore(founderId, storeId);
+    await expect(
+      controllers.Jobs.isStoreManager(manager1Id, storeId)
+    ).resolves.toEqual(false);
+    await controllers.Jobs.makeStoreManager(founderId, storeId, manager1Id);
+    await expect(
+      controllers.Jobs.isStoreManager(manager1Id, storeId)
+    ).resolves.toEqual(true);
+    await controllers.Jobs.removeStoreManager(founderId, storeId, manager1Id);
+    await expect(
+      controllers.Jobs.isStoreManager(manager1Id, storeId)
+    ).resolves.toEqual(false);
   });
   //a test for the bad case of trying to remove a store manager without being a store owner/founder
   itUnitIntegration(
     "❌Remove store manager fails because the user removing is not the appointer of the manager to be removed",
-    (testType) => {
+    async (testType) => {
       //
       const storeId = "store1";
       const founderId = "founder1";
       const owner1Id = "owner1";
       const manager1Id = "manager1";
 
-      controllers.Jobs.InitializeStore(founderId, storeId);
-      expect(controllers.Jobs.isStoreManager(manager1Id, storeId)).toEqual(
-        false
-      );
-      controllers.Jobs.makeStoreManager(founderId, storeId, manager1Id);
-      expect(controllers.Jobs.isStoreManager(manager1Id, storeId)).toEqual(
-        true
-      );
-      controllers.Jobs.makeStoreOwner(founderId, storeId, owner1Id);
-      expect(controllers.Jobs.isStoreOwner(owner1Id, storeId)).toEqual(true);
-      expect(() =>
+      await controllers.Jobs.InitializeStore(founderId, storeId);
+      await expect(
+        controllers.Jobs.isStoreManager(manager1Id, storeId)
+      ).resolves.toEqual(false);
+      await controllers.Jobs.makeStoreManager(founderId, storeId, manager1Id);
+      await expect(
+        controllers.Jobs.isStoreManager(manager1Id, storeId)
+      ).resolves.toEqual(true);
+      await controllers.Jobs.makeStoreOwner(founderId, storeId, owner1Id);
+      await expect(
+        controllers.Jobs.isStoreOwner(owner1Id, storeId)
+      ).resolves.toEqual(true);
+      await expect(
         controllers.Jobs.removeStoreManager(owner1Id, storeId, manager1Id)
-      ).toThrow();
+      ).rejects.toThrow(
+        "User is not appointed by this position holder for store with id: store1"
+      );
     }
   );
 });
 describe("permissions", () => {
   itUnitIntegration(
     "✅System admin has the correct permissions",
-    (testType) => {
+    async (testType) => {
       //
-      const AdminId = controllers.Auth.register("admin", "admin");
-      controllers.Jobs.setInitialAdmin(AdminId);
-      expect(controllers.Jobs.isSystemAdmin(AdminId)).toEqual(true);
-      expect(
+      const AdminId = await controllers.Auth.register("admin", "admin");
+      await controllers.Jobs.setInitialAdmin(AdminId);
+      await expect(controllers.Jobs.isSystemAdmin(AdminId)).resolves.toEqual(
+        true
+      );
+      await expect(
         controllers.Jobs.canCloseStorePermanently(AdminId, "store1")
-      ).toEqual(true);
-      expect(
+      ).resolves.toEqual(true);
+      await expect(
         controllers.Jobs.canReceivePurchaseHistoryFromStore(AdminId, "store1")
-      ).toEqual(true);
+      ).resolves.toEqual(true);
     }
   );
 
   itUnitIntegration(
     "✅Store founder has the correct permissions",
-    (testType) => {
+    async (testType) => {
       //
       const storeId = "store1";
 
       const founderId = "founder1";
-      controllers.Jobs.InitializeStore(founderId, storeId);
-      expect(controllers.Jobs.isStoreFounder(founderId, storeId)).toEqual(true);
-      expect(controllers.Jobs.canActivateStore(founderId, storeId)).toEqual(
-        true
-      );
-      expect(
+      await controllers.Jobs.InitializeStore(founderId, storeId);
+      await expect(
+        controllers.Jobs.isStoreFounder(founderId, storeId)
+      ).resolves.toEqual(true);
+      await expect(
+        controllers.Jobs.canActivateStore(founderId, storeId)
+      ).resolves.toEqual(true);
+      await expect(
         controllers.Jobs.canCloseStorePermanently(founderId, storeId)
-      ).toEqual(false);
-      expect(
+      ).resolves.toEqual(false);
+      await expect(
         controllers.Jobs.canCreateProductInStore(founderId, storeId)
-      ).toEqual(true);
-      expect(
+      ).resolves.toEqual(true);
+      await expect(
         controllers.Jobs.canRemoveProductFromStore(founderId, storeId)
-      ).toEqual(true);
-      expect(
+      ).resolves.toEqual(true);
+      await expect(
         controllers.Jobs.canEditProductInStore(founderId, storeId)
-      ).toEqual(true);
-      expect(controllers.Jobs.canDeactivateStore(founderId, storeId)).toEqual(
-        true
-      );
-      expect(
+      ).resolves.toEqual(true);
+      await expect(
+        controllers.Jobs.canDeactivateStore(founderId, storeId)
+      ).resolves.toEqual(true);
+      await expect(
         controllers.Jobs.canReceivePurchaseHistoryFromStore(founderId, storeId)
-      ).toEqual(true);
-      expect(controllers.Jobs.canRemoveMember(founderId)).toEqual(false);
+      ).resolves.toEqual(true);
+      await expect(
+        controllers.Jobs.canRemoveMember(founderId)
+      ).resolves.toEqual(false);
     }
   );
-  itUnitIntegration("✅Store Owner has the correct permissions", (testType) => {
-    //
-    const storeId = "store1";
-    const founderId = "founder1";
-    const owner1Id = "owner1";
-    controllers.Jobs.InitializeStore(founderId, storeId);
-    controllers.Jobs.makeStoreOwner(founderId, storeId, owner1Id);
-    expect(controllers.Jobs.isStoreOwner(owner1Id, storeId)).toEqual(true);
-    expect(controllers.Jobs.canActivateStore(owner1Id, storeId)).toEqual(false);
-    expect(
-      controllers.Jobs.canCloseStorePermanently(owner1Id, storeId)
-    ).toEqual(false);
-    expect(controllers.Jobs.canCreateProductInStore(owner1Id, storeId)).toEqual(
-      true
-    );
-    expect(
-      controllers.Jobs.canRemoveProductFromStore(owner1Id, storeId)
-    ).toEqual(true);
-    expect(controllers.Jobs.canEditProductInStore(owner1Id, storeId)).toEqual(
-      true
-    );
-    expect(controllers.Jobs.canDeactivateStore(owner1Id, storeId)).toEqual(
-      false
-    );
-    expect(
-      controllers.Jobs.canReceivePurchaseHistoryFromStore(owner1Id, storeId)
-    ).toEqual(true);
-    expect(controllers.Jobs.canRemoveMember(owner1Id)).toEqual(false);
-  });
+  itUnitIntegration(
+    "✅Store Owner has the correct permissions",
+    async (testType) => {
+      //
+      const storeId = "store1";
+      const founderId = "founder1";
+      const owner1Id = "owner1";
+      await controllers.Jobs.InitializeStore(founderId, storeId);
+      await controllers.Jobs.makeStoreOwner(founderId, storeId, owner1Id);
+      await expect(
+        controllers.Jobs.isStoreOwner(owner1Id, storeId)
+      ).resolves.toEqual(true);
+      await expect(
+        controllers.Jobs.canActivateStore(owner1Id, storeId)
+      ).resolves.toEqual(false);
+      await expect(
+        controllers.Jobs.canCloseStorePermanently(owner1Id, storeId)
+      ).resolves.toEqual(false);
+      await expect(
+        controllers.Jobs.canCreateProductInStore(owner1Id, storeId)
+      ).resolves.toEqual(true);
+      await expect(
+        controllers.Jobs.canRemoveProductFromStore(owner1Id, storeId)
+      ).resolves.toEqual(true);
+      await expect(
+        controllers.Jobs.canEditProductInStore(owner1Id, storeId)
+      ).resolves.toEqual(true);
+      await expect(
+        controllers.Jobs.canDeactivateStore(owner1Id, storeId)
+      ).resolves.toEqual(false);
+      await expect(
+        controllers.Jobs.canReceivePurchaseHistoryFromStore(owner1Id, storeId)
+      ).resolves.toEqual(true);
+      await expect(controllers.Jobs.canRemoveMember(owner1Id)).resolves.toEqual(
+        false
+      );
+    }
+  );
   itUnitIntegration(
     "✅Store Manger has the correct default permissions",
-    (testType) => {
+    async (testType) => {
       //
       const storeId = "store1";
       const founderId = "founder1";
       const manager1Id = "manager1";
-      controllers.Jobs.InitializeStore(founderId, storeId);
-      controllers.Jobs.makeStoreManager(founderId, storeId, manager1Id);
-      expect(controllers.Jobs.isStoreManager(manager1Id, storeId)).toEqual(
-        true
-      );
-      expect(controllers.Jobs.canActivateStore(manager1Id, storeId)).toEqual(
-        false
-      );
-      expect(
+      await controllers.Jobs.InitializeStore(founderId, storeId);
+      await controllers.Jobs.makeStoreManager(founderId, storeId, manager1Id);
+      await expect(
+        controllers.Jobs.isStoreManager(manager1Id, storeId)
+      ).resolves.toEqual(true);
+      await expect(
+        controllers.Jobs.canActivateStore(manager1Id, storeId)
+      ).resolves.toEqual(false);
+      await expect(
         controllers.Jobs.canCloseStorePermanently(manager1Id, storeId)
-      ).toEqual(false);
-      expect(
+      ).resolves.toEqual(false);
+      await expect(
         controllers.Jobs.canCreateProductInStore(manager1Id, storeId)
-      ).toEqual(false);
-      expect(
+      ).resolves.toEqual(false);
+      await expect(
         controllers.Jobs.canRemoveProductFromStore(manager1Id, storeId)
-      ).toEqual(false);
-      expect(
+      ).resolves.toEqual(false);
+      await expect(
         controllers.Jobs.canEditProductInStore(manager1Id, storeId)
-      ).toEqual(false);
-      expect(controllers.Jobs.canDeactivateStore(manager1Id, storeId)).toEqual(
-        false
-      );
-      expect(
+      ).resolves.toEqual(false);
+      await expect(
+        controllers.Jobs.canDeactivateStore(manager1Id, storeId)
+      ).resolves.toEqual(false);
+      await expect(
         controllers.Jobs.canReceivePurchaseHistoryFromStore(manager1Id, storeId)
-      ).toEqual(true);
-      expect(controllers.Jobs.canRemoveMember(manager1Id)).toEqual(false);
+      ).resolves.toEqual(true);
+      await expect(
+        controllers.Jobs.canRemoveMember(manager1Id)
+      ).resolves.toEqual(false);
     }
   );
   itUnitIntegration(
     "✅Store Manger has the correct permissions after being granted permissions",
-    (testType) => {
+    async (testType) => {
       //
       const storeId = "store1";
       const founderId = "founder1";
       const manager1Id = "manager1";
-      controllers.Jobs.InitializeStore(founderId, storeId);
-      controllers.Jobs.makeStoreManager(founderId, storeId, manager1Id);
-      expect(controllers.Jobs.isStoreManager(manager1Id, storeId)).toEqual(
-        true
-      );
-      expect(controllers.Jobs.canActivateStore(manager1Id, storeId)).toEqual(
-        false
-      );
-      expect(
+      await controllers.Jobs.InitializeStore(founderId, storeId);
+      await controllers.Jobs.makeStoreManager(founderId, storeId, manager1Id);
+      await expect(
+        controllers.Jobs.isStoreManager(manager1Id, storeId)
+      ).resolves.toEqual(true);
+      await expect(
+        controllers.Jobs.canActivateStore(manager1Id, storeId)
+      ).resolves.toEqual(false);
+      await expect(
         controllers.Jobs.canCreateProductInStore(manager1Id, storeId)
-      ).toEqual(false);
-      controllers.Jobs.setAddingProductToStorePermission(
+      ).resolves.toEqual(false);
+      await controllers.Jobs.setAddingProductToStorePermission(
         founderId,
         storeId,
         manager1Id,
         true
       );
-      expect(
+      await expect(
         controllers.Jobs.canCreateProductInStore(manager1Id, storeId)
-      ).toEqual(true);
-      controllers.Jobs.setAddingProductToStorePermission(
+      ).resolves.toEqual(true);
+      await controllers.Jobs.setAddingProductToStorePermission(
         founderId,
         storeId,
         manager1Id,
         false
       );
-      expect(
+      await expect(
         controllers.Jobs.canCreateProductInStore(manager1Id, storeId)
-      ).toEqual(false);
-      expect(
+      ).resolves.toEqual(false);
+      await expect(
         controllers.Jobs.canRemoveProductFromStore(manager1Id, storeId)
-      ).toEqual(false);
-      controllers.Jobs.setRemovingProductFromStorePermission(
+      ).resolves.toEqual(false);
+      await controllers.Jobs.setRemovingProductFromStorePermission(
         founderId,
         storeId,
         manager1Id,
         true
       );
-      expect(
+      await expect(
         controllers.Jobs.canRemoveProductFromStore(manager1Id, storeId)
-      ).toEqual(true);
-      controllers.Jobs.setRemovingProductFromStorePermission(
+      ).resolves.toEqual(true);
+      await controllers.Jobs.setRemovingProductFromStorePermission(
         founderId,
         storeId,
         manager1Id,
         false
       );
-      expect(
+      await expect(
         controllers.Jobs.canRemoveProductFromStore(manager1Id, storeId)
-      ).toEqual(false);
-      expect(
+      ).resolves.toEqual(false);
+      await expect(
         controllers.Jobs.canEditProductInStore(manager1Id, storeId)
-      ).toEqual(false);
-      controllers.Jobs.setEditingProductInStorePermission(
+      ).resolves.toEqual(false);
+      await controllers.Jobs.setEditingProductInStorePermission(
         founderId,
         storeId,
         manager1Id,
         true
       );
-      expect(
+      await expect(
         controllers.Jobs.canEditProductInStore(manager1Id, storeId)
-      ).toEqual(true);
-      controllers.Jobs.setEditingProductInStorePermission(
+      ).resolves.toEqual(true);
+      await controllers.Jobs.setEditingProductInStorePermission(
         founderId,
         storeId,
         manager1Id,
         false
       );
-      expect(
+      await expect(
         controllers.Jobs.canEditProductInStore(manager1Id, storeId)
-      ).toEqual(false);
+      ).resolves.toEqual(false);
     }
   );
   //fail
   itUnitIntegration(
     "❌Permissions are not granted because grantor is not the appointer",
-    (testType) => {
+    async (testType) => {
       //
       const storeId = "store1";
       const founderId = "founder1";
       const owner1Id = "owner1";
       const manager1Id = "manager1";
-      controllers.Jobs.InitializeStore(founderId, storeId);
-      controllers.Jobs.makeStoreOwner(founderId, storeId, owner1Id);
-      controllers.Jobs.makeStoreManager(founderId, storeId, manager1Id);
-      expect(() =>
+      await controllers.Jobs.InitializeStore(founderId, storeId);
+      await controllers.Jobs.makeStoreOwner(founderId, storeId, owner1Id);
+      await controllers.Jobs.makeStoreManager(founderId, storeId, manager1Id);
+      await expect(
         controllers.Jobs.setAddingProductToStorePermission(
           owner1Id,
           storeId,
           manager1Id,
           true
         )
-      ).toThrow();
-      expect(() =>
+      ).rejects.toThrow(
+        "User is not appointed by this position holder for store with id: store1"
+      );
+      await expect(
         controllers.Jobs.setRemovingProductFromStorePermission(
           owner1Id,
           storeId,
           manager1Id,
           true
         )
-      ).toThrow();
-      expect(() =>
+      ).rejects.toThrow(
+        "User is not appointed by this position holder for store with id: store1"
+      );
+      await expect(
         controllers.Jobs.setEditingProductInStorePermission(
           owner1Id,
           storeId,
           manager1Id,
           true
         )
-      ).toThrow();
+      ).rejects.toThrow(
+        "User is not appointed by this position holder for store with id: store1"
+      );
     }
   );
 });

@@ -2,14 +2,14 @@
 import { type AppType } from "next/app";
 import { type Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
-import { api } from "utils/api";
+import { api } from "server/communication/api";
 import "styles/globals.css";
 import Head from "next/head";
 import Navbar from "components/navbar";
 import Script from "next/script";
 import { Provider } from "react-wrap-balancer";
 import { Toaster } from "react-hot-toast";
-import { EnforceSession } from "./_enforceSession";
+import { MainWrapper } from "./_mainWrapper";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -26,14 +26,15 @@ const MyApp: AppType<{ session: Session | null }> = ({
           />
           <link rel="icon" href="/favicon.svg" />
         </Head>
-        <EnforceSession />
-        <main className="flex h-screen flex-col">
-          <Toaster position="bottom-right" reverseOrder={false} />
-          <div className="shadow-middle relative z-10">
-            <Navbar />
-          </div>
-          <Component {...pageProps} />
-        </main>
+        <MainWrapper>
+          <main className="flex h-screen flex-col">
+            <Toaster position="bottom-right" reverseOrder={false} />
+            <div className="shadow-middle relative z-10">
+              <Navbar />
+            </div>
+            <Component {...pageProps} />
+          </main>
+        </MainWrapper>
         <Script src="/preline/preline.js"></Script>
       </Provider>
     </SessionProvider>

@@ -4,89 +4,137 @@ import { z } from "zod";
 import StoreNavbar from "components/storeNavbar";
 import Input from "components/input";
 import Button from "components/button";
-import { CategoryDropdown } from "components/dropdown";
+import { SmallDropdown } from "components/dropdown";
 import { toast } from "react-hot-toast";
 import { Modal } from "components/modal";
-import { api } from "utils/api";
-import { onError } from "utils/onError";
+import { api } from "server/communication/api";
+import { cachedQueryOptions, onError } from "utils/query";
 import { useGuestRedirect } from "utils/paths";
+import { EditIcon, RemoveIcon } from "components/icons";
+import { type PositionHolderDTO } from "server/domain/Jobs/PositionHolder";
+import { roleTypeSchema } from "server/domain/Jobs/Role";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { type RoleType } from "@prisma/client";
+import { onJobChangeEvent } from "utils/events";
+import { useEffect, useState } from "react";
+import { type EditablePermission } from "server/domain/Jobs/Role";
 
-interface Job {
-  id: string;
-  name: string;
-  title: "Founder" | "Owner" | "Manager";
-  assignments: Job[];
-}
+const formSchema = z.object({
+  role: roleTypeSchema,
+  email: z.string().email(),
+});
 
-const jobs: Job = {
-  id: "0",
-  name: "Omer Shahar",
-  title: "Founder",
-  assignments: [
-    {
-      id: "1",
-      name: "Ron Ziskind",
-      title: "Owner",
-      assignments: [
-        {
-          id: "2",
-          name: "Barman",
-          title: "Manager",
-          assignments: [],
-        },
-        {
-          id: "3",
-          name: "Ilay Zarfaty",
-          title: "Owner",
-          assignments: [],
-        },
-      ],
-    },
-    {
-      id: "4",
-      name: "Bar not man",
-      title: "Owner",
-      assignments: [],
-    },
-  ],
-};
+type FormValues = z.infer<typeof formSchema>;
+type ManagerPermissionList = EditablePermission;
 
 export default function Home() {
   useGuestRedirect();
+  const {
+    register,
+    handleSubmit,
+    getValues,
+    setValue,
+    formState: { errors },
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    mode: "all",
+    criteriaMode: "all",
+    reValidateMode: "onChange",
+  });
   const router = useRouter();
   const storeId = z.undefined().or(z.string()).parse(router.query.storeId);
+  const { data: jobs, refetch: refetchJobsHierarchy } =
+    api.stores.getJobsHierarchyOfStore.useQuery(
+      { storeId: storeId as string },
+      { ...cachedQueryOptions, enabled: !!storeId }
+    );
   const { mutate: makeStoreOwner } = api.stores.makeStoreOwner.useMutation({
-    onError,
+    ...cachedQueryOptions,
     onSuccess: () => {
+      document.dispatchEvent(new Event(onJobChangeEvent));
       toast.success("Job added successfully");
     },
   });
   const { mutate: makeStoreManager } = api.stores.makeStoreManager.useMutation({
-    onError,
+    ...cachedQueryOptions,
     onSuccess: () => {
+      document.dispatchEvent(new Event(onJobChangeEvent));
       toast.success("Job added successfully");
     },
   });
+  const { refetch: getAssignmentId } = api.auth.getMemberIdByEmail.useQuery(
+    { email: getValues("email") },
+    { ...cachedQueryOptions, enabled: false }
+  );
+
+  useEffect(() => {
+    const refetchJobsHierarchyCallback = () => {
+      void refetchJobsHierarchy();
+    };
+    document.addEventListener(onJobChangeEvent, refetchJobsHierarchyCallback);
+    return () => {
+      document.removeEventListener(
+        onJobChangeEvent,
+        refetchJobsHierarchyCallback
+      );
+    };
+  }, [refetchJobsHierarchy]);
+
+  const handleAssignment = handleSubmit(
+    async (data) => {
+      const { data: assignmentId } = await getAssignmentId();
+      if (!assignmentId) {
+        return;
+      }
+      if (data.role === "Owner") {
+        makeStoreOwner({
+          storeId: storeId as string,
+          targetUserId: assignmentId,
+        });
+      } else if (data.role === "Manager") {
+        makeStoreManager({
+          storeId: storeId as string,
+          targetUserId: assignmentId,
+        });
+      }
+    },
+    (e) => toast.error(Object.values(e)[0]?.message || "Something went wrong")
+  );
 
   return (
     <Layout>
-      <h1>The Happy Place</h1>
-      {storeId && <StoreNavbar storeId={storeId} />}
-
-      <div className="flex flex-wrap sm:flex-nowrap">
-        <CategoryDropdown options={["Manager", "Owner"]} />
-        <Input placeholder="Email" className="rounded-none" />
+      <StoreNavbar storeId={storeId} />
+      <div className="flex w-full max-w-md flex-wrap sm:flex-nowrap">
+        <SmallDropdown
+          options={
+            [
+              { label: "Owner", value: "Owner" },
+              { label: "Manager", value: "Manager" },
+            ] satisfies {
+              label: string;
+              value: RoleType;
+            }[]
+          }
+          {...register("role")}
+          className="rounded-b-none sm:w-40 sm:rounded-b-lg sm:rounded-br-none sm:rounded-tr-none"
+        />
+        <Input
+          placeholder="Email"
+          className="rounded-none"
+          {...register("email")}
+        />
         <Button
           glowClassName="w-full"
           glowContainerClassName="w-full sm:w-auto"
           className="h-full w-full rounded-t-lg sm:rounded-lg sm:rounded-l-none"
-          // onClick={()=>}
+          onClick={() => void handleAssignment()}
         >
           Add
         </Button>
       </div>
       <div className="hs-accordion-group w-full" data-hs-accordion-always-open>
-        <Job job={jobs} />
+        {jobs && <Job job={jobs} />}
       </div>
     </Layout>
   );
@@ -152,7 +200,6 @@ function ManagerIcon() {
 function AccordionIcons() {
   return (
     <>
-      {" "}
       <svg
         className="block h-3 w-3 text-gray-600 group-hover:text-gray-500 hs-accordion-active:hidden hs-accordion-active:text-blue-600 hs-accordion-active:group-hover:text-blue-600"
         width="16"
@@ -193,71 +240,271 @@ function AccordionIcons() {
   );
 }
 
-function RemoveIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-      strokeWidth={1.5}
-      stroke="currentColor"
-      className="h-6 w-6"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-      />
-    </svg>
-  );
-}
+// const permissionFormSchema = z.object({
+//   email: z
+//     .string()
+//     .nonempty("Email is required")
+//     .email("Invalid email address"),
+//   password: z.string().min(5, "Password must be at least 5 characters"),
+// });
+
+// type FormValues = z.infer<typeof formSchema>;
 
 type JobProps = {
-  job: Job;
+  job: PositionHolderDTO;
 };
 
 function Job({ job }: JobProps) {
+  const router = useRouter();
+  const storeId = z.undefined().or(z.string()).parse(router.query.storeId);
+  const { mutate: removeStoreOwner } = api.stores.removeStoreOwner.useMutation({
+    onError,
+    onSuccess: () => {
+      document.dispatchEvent(new Event(onJobChangeEvent));
+      toast.success("Job removed successfully");
+    },
+  });
+  const { mutate: removeStoreManager } =
+    api.stores.removeStoreManager.useMutation({
+      onError,
+      onSuccess: () => {
+        document.dispatchEvent(new Event(onJobChangeEvent));
+        toast.success("Job removed successfully");
+      },
+    });
+  const [managerId, setManagerId] = useState<string>("");
+  const { data: managerPermissions, refetch: refetchManagerPermissions } =
+    api.jobs.getPermissionsOfUser.useQuery(
+      { userId: managerId, storeId: storeId as string },
+      { enabled: !!managerId }
+    );
+
+  const { mutate: setAddingProductPermission } =
+    api.stores.setAddingProductPermission.useMutation({
+      ...cachedQueryOptions,
+      onSuccess: () => void refetchManagerPermissions(),
+    });
+  const { mutate: setEditingProductInStorePermission } =
+    api.stores.setEditingProductInStorePermission.useMutation({
+      ...cachedQueryOptions,
+      onSuccess: () => void refetchManagerPermissions(),
+    });
+  const { mutate: setModifyingPurchasePolicyPermission } =
+    api.stores.setModifyingPurchasePolicyPermission.useMutation({
+      ...cachedQueryOptions,
+      onSuccess: () => void refetchManagerPermissions(),
+    });
+  const { mutate: setReceivingPrivateStoreDataPermission } =
+    api.stores.setReceivingPrivateStoreDataPermission.useMutation({
+      ...cachedQueryOptions,
+      onSuccess: () => void refetchManagerPermissions(),
+    });
+  const { mutate: setRemovingProductFromStorePermission } =
+    api.stores.setRemovingProductFromStorePermission.useMutation({
+      ...cachedQueryOptions,
+      onSuccess: () => void refetchManagerPermissions(),
+    });
+
+  const handleRemoval = (job: PositionHolderDTO) => {
+    if (job.role.roleType === "Owner") {
+      removeStoreOwner({
+        storeId: job.storeId,
+        targetUserId: job.userId,
+      });
+    } else if (job.role.roleType === "Manager") {
+      removeStoreManager({
+        storeId: job.storeId,
+        targetUserId: job.userId,
+      });
+    } else {
+      toast.error("User cannot be removed. Incident will be reported");
+    }
+  };
+
   return (
     <div
       className="hs-accordion active"
-      id={`hs-basic-always-open-heading-${job.id}`}
+      id={`hs-basic-always-open-heading-${job.userId}`}
     >
       <button
         className="hs-accordion-toggle peer inline-flex items-center gap-x-3 py-3 text-left font-semibold text-gray-800 transition hs-accordion-active:text-blue-600 hover:text-gray-500"
-        aria-controls={`hs-basic-always-open-collapse-${job.id}`}
+        aria-controls={`hs-basic-always-open-collapse-${job.userId}`}
       >
         {/* <AccordionIcons /> */}
-        {job.title === "Founder" && <FounderIcon />}
-        {job.title === "Owner" && <OwnerIcon />}
-        {job.title === "Manager" && <ManagerIcon />}
-        {job.name} - {job.title}
+        {job.role.roleType === "Founder" && <FounderIcon />}
+        {job.role.roleType === "Owner" && <OwnerIcon />}
+        {job.role.roleType === "Manager" && <ManagerIcon />}
+        {job.email} - {job.role.roleType}
       </button>
       <button
         className="ml-2 peer-hover:opacity-100 hover:opacity-100 sm:opacity-0"
-        data-hs-overlay={`#hs-modal-${job.id}`}
+        data-hs-overlay={`#hs-modal-${job.userId}`}
       >
         <RemoveIcon />
       </button>
       <Modal
-        id={`hs-modal-${job.id}`}
+        id={`hs-modal-${job.userId}`}
         title="Confirm deletion"
-        content={`Are you sure you want to remove ${job.name} (${job.title}) and the subordinates from the store?`}
+        content={`Are you sure you want to remove ${job.email ?? "unknown"} (${
+          job.role.roleType
+        }) and the subordinates from the store?`}
         footer={
           <Button
-            onClick={() => toast.success(job.id)}
-            data-hs-overlay={`#hs-modal-${job.id}`}
+            onClick={() => handleRemoval(job)}
+            data-hs-overlay={`#hs-modal-${job.userId}`}
           >
             Apply changes
           </Button>
         }
       />
+      {job.role.roleType === "Manager" && (
+        <>
+          <button
+            className="ml-2 peer-hover:opacity-100 hover:opacity-100 sm:opacity-0"
+            data-hs-overlay={`#hs-modal-${job.userId}-edit`}
+            onClick={() => {
+              setManagerId(job.userId);
+              void refetchManagerPermissions();
+            }}
+          >
+            <EditIcon />
+          </button>
+          <Modal
+            id={`hs-modal-${job.userId}-edit`}
+            title="Edit Permissions"
+            content={
+              <div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="checkbox-add-product"
+                      checked={managerPermissions?.includes("AddProduct")}
+                      className="relative h-7 w-[3.25rem] shrink-0 cursor-pointer appearance-none rounded-full border-2 border-transparent bg-gray-200 ring-1 ring-transparent ring-offset-white transition-colors duration-200 ease-in-out before:inline-block before:h-6 before:w-6 before:translate-x-0 before:transform before:rounded-full before:bg-white before:shadow before:ring-0 before:transition before:duration-200 before:ease-in-out checked:bg-blue-600 checked:bg-none checked:before:translate-x-full checked:before:bg-blue-200 focus:border-blue-600 focus:outline-none focus:ring-blue-600"
+                      onClick={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        setAddingProductPermission({
+                          permission: target.checked,
+                          storeId: storeId as string,
+                          targetUserId: managerId,
+                        });
+                      }}
+                    />
+                    <label
+                      htmlFor="checkbox-add-product"
+                      className="ml-3 text-sm text-gray-500"
+                    >
+                      Add Product
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="checkbox-edit-product"
+                      checked={managerPermissions?.includes(
+                        "EditProductDetails"
+                      )}
+                      className="relative h-7 w-[3.25rem] shrink-0 cursor-pointer appearance-none rounded-full border-2 border-transparent bg-gray-200 ring-1 ring-transparent ring-offset-white transition-colors duration-200 ease-in-out before:inline-block before:h-6 before:w-6 before:translate-x-0 before:transform before:rounded-full before:bg-white before:shadow before:ring-0 before:transition before:duration-200 before:ease-in-out checked:bg-blue-600 checked:bg-none checked:before:translate-x-full checked:before:bg-blue-200 focus:border-blue-600 focus:outline-none focus:ring-blue-600"
+                      onClick={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        setEditingProductInStorePermission({
+                          permission: target.checked,
+                          storeId: storeId as string,
+                          targetUserId: managerId,
+                        });
+                      }}
+                    />
+                    <label
+                      htmlFor="checkbox-edit-product"
+                      className="ml-3 text-sm text-gray-500"
+                    >
+                      Edit Product
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="checkbox-modify-purchase-policy"
+                      checked={managerPermissions?.includes(
+                        "ModifyPurchasePolicy"
+                      )}
+                      className="relative h-7 w-[3.25rem] shrink-0 cursor-pointer appearance-none rounded-full border-2 border-transparent bg-gray-200 ring-1 ring-transparent ring-offset-white transition-colors duration-200 ease-in-out before:inline-block before:h-6 before:w-6 before:translate-x-0 before:transform before:rounded-full before:bg-white before:shadow before:ring-0 before:transition before:duration-200 before:ease-in-out checked:bg-blue-600 checked:bg-none checked:before:translate-x-full checked:before:bg-blue-200 focus:border-blue-600 focus:outline-none focus:ring-blue-600"
+                      onClick={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        setModifyingPurchasePolicyPermission({
+                          permission: target.checked,
+                          storeId: storeId as string,
+                          targetUserId: managerId,
+                        });
+                      }}
+                    />
+                    <label
+                      htmlFor="checkbox-modify-purchase-policy"
+                      className="ml-3 text-sm text-gray-500"
+                    >
+                      Modify Purchase Policy
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="checkbox-get-private-data"
+                      checked={managerPermissions?.includes(
+                        "receivePrivateStoreData"
+                      )}
+                      className="relative h-7 w-[3.25rem] shrink-0 cursor-pointer appearance-none rounded-full border-2 border-transparent bg-gray-200 ring-1 ring-transparent ring-offset-white transition-colors duration-200 ease-in-out before:inline-block before:h-6 before:w-6 before:translate-x-0 before:transform before:rounded-full before:bg-white before:shadow before:ring-0 before:transition before:duration-200 before:ease-in-out checked:bg-blue-600 checked:bg-none checked:before:translate-x-full checked:before:bg-blue-200 focus:border-blue-600 focus:outline-none focus:ring-blue-600"
+                      onClick={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        setReceivingPrivateStoreDataPermission({
+                          permission: target.checked,
+                          storeId: storeId as string,
+                          targetUserId: managerId,
+                        });
+                      }}
+                    />
+                    <label
+                      htmlFor="checkbox-get-private-data"
+                      className="ml-3 text-sm text-gray-500"
+                    >
+                      Get Private Data
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="checkbox-remove-product"
+                      checked={managerPermissions?.includes("RemoveProduct")}
+                      className="relative h-7 w-[3.25rem] shrink-0 cursor-pointer appearance-none rounded-full border-2 border-transparent bg-gray-200 ring-1 ring-transparent ring-offset-white transition-colors duration-200 ease-in-out before:inline-block before:h-6 before:w-6 before:translate-x-0 before:transform before:rounded-full before:bg-white before:shadow before:ring-0 before:transition before:duration-200 before:ease-in-out checked:bg-blue-600 checked:bg-none checked:before:translate-x-full checked:before:bg-blue-200 focus:border-blue-600 focus:outline-none focus:ring-blue-600"
+                      onClick={(e) => {
+                        const target = e.target as HTMLInputElement;
+                        setRemovingProductFromStorePermission({
+                          permission: target.checked,
+                          storeId: storeId as string,
+                          targetUserId: managerId,
+                        });
+                      }}
+                    />
+                    <label
+                      htmlFor="checkbox-remove-product"
+                      className="ml-3 text-sm text-gray-500"
+                    >
+                      Remove Product
+                    </label>
+                  </div>
+                </div>
+              </div>
+            }
+            footer={<></>}
+          />
+        </>
+      )}
       <div
-        id={`hs-basic-always-open-collapse-${job.id}`}
+        id={`hs-basic-always-open-collapse-${job.userId}`}
         className="hs-accordion-content w-full overflow-hidden pl-6 transition-[height] duration-300"
-        aria-labelledby={`hs-basic-always-open-heading-${job.id}`}
+        aria-labelledby={`hs-basic-always-open-heading-${job.userId}`}
       >
-        {job.assignments.map((assignment) => (
-          <Job key={assignment.id} job={assignment} />
+        {job.assignedPositionHolders.map((assignment) => (
+          <Job key={assignment.userId} job={assignment} />
         ))}
       </div>
     </div>

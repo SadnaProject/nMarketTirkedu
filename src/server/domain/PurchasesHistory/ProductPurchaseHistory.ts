@@ -1,7 +1,7 @@
-import { HasRepos } from "./_HasRepos";
-import { type ProductReview, type ProductReviewDTO } from "./ProductReview";
-import { type BasketProductDTO } from "../Users/BasketProduct";
-import { StoresController } from "../Stores/StoresController";
+import { HasRepos } from "./helpers/_HasRepos";
+import { ProductReview, type ProductReviewDTO } from "./ProductReview";
+import { type ProductPurchaseDAO } from "./helpers/TypeHelper";
+import { TRPCError } from "@trpc/server";
 
 export type ProductPurchaseDTO = {
   purchaseId: string;
@@ -17,7 +17,7 @@ type ProductPurchaseArgs = {
   purchaseId: string;
 };
 
-export class ProductPurchase extends HasRepos {
+export class ProductPurchase {
   private purchaseId: string;
   private productId: string;
   private quantity: number;
@@ -25,7 +25,7 @@ export class ProductPurchase extends HasRepos {
   private review?: ProductReview;
 
   constructor({ productId, quantity, price, purchaseId }: ProductPurchaseArgs) {
-    super();
+    // super();
     this.purchaseId = purchaseId;
     this.productId = productId;
     this.quantity = quantity;
@@ -33,10 +33,22 @@ export class ProductPurchase extends HasRepos {
   }
 
   public setReview(review: ProductReview) {
+    if (this.review) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Review already exists",
+      });
+    }
     this.review = review;
   }
 
   public get Review() {
+    if (!this.review) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Review does not exist",
+      });
+    }
     return this.review;
   }
   public ToDTO(): ProductPurchaseDTO {
@@ -55,6 +67,14 @@ export class ProductPurchase extends HasRepos {
   public get ProductId(): string {
     return this.productId;
   }
+  public get Quantity(): number {
+    return this.quantity;
+  }
+
+  public get Price(): number {
+    return this.price;
+  }
+
   static fromDTO(ProductPurchaseDTO: ProductPurchaseDTO): ProductPurchase {
     return new ProductPurchase({
       productId: ProductPurchaseDTO.productId,
@@ -62,5 +82,20 @@ export class ProductPurchase extends HasRepos {
       price: ProductPurchaseDTO.price,
       purchaseId: ProductPurchaseDTO.purchaseId,
     });
+  }
+
+  public static fromDAO(
+    ProductPurchaseDAO: ProductPurchaseDAO
+  ): ProductPurchase {
+    const productPurchase = new ProductPurchase({
+      productId: ProductPurchaseDAO.productId,
+      quantity: ProductPurchaseDAO.quantity,
+      price: ProductPurchaseDAO.price,
+      purchaseId: ProductPurchaseDAO.purchaseId,
+    });
+    if (ProductPurchaseDAO.review) {
+      productPurchase.review = ProductReview.fromDAO(ProductPurchaseDAO.review);
+    }
+    return productPurchase;
   }
 }

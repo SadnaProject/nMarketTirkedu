@@ -1,4 +1,4 @@
-import { HasControllers } from "../_HasController";
+import { HasControllers } from "../helpers/_HasController";
 import { type CartDTO } from "../Users/Cart";
 import {
   type BasketPurchase,
@@ -6,71 +6,80 @@ import {
 } from "./BasketPurchaseHistory";
 import { CartPurchase, type CartPurchaseDTO } from "./CartPurchaseHistory";
 import { type ProductReviewDTO, ProductReview } from "./ProductReview";
-import { Review, type ReviewDTO } from "./Review";
+import { Review } from "./Review";
 import { randomUUID } from "crypto";
 import { Mixin } from "ts-mixer";
-import { Testable, testable } from "server/domain/_Testable";
-import { HasRepos, type Repos, createRepos } from "./_HasRepos";
-import { type CreditCard, PaymentAdapter } from "./PaymentAdaptor";
+import { Testable, testable } from "server/helpers/_Testable";
+import { HasRepos, type Repos, createRepos } from "./helpers/_HasRepos";
+import { type PaymentDetails, PaymentAdapter } from "./PaymentAdaptor";
 import {
-  type ProductPurchaseDTO,
   type ProductPurchase,
+  type ProductPurchaseDTO,
 } from "./ProductPurchaseHistory";
-import { Console, error } from "console";
-import { createControllers } from "../_createControllers";
-import { JobsController } from "../Jobs/JobsController";
 import { TRPCError } from "@trpc/server";
-import { eventEmitter } from "server/EventEmitter";
-import { censored } from "../_Loggable";
+import { eventEmitter } from "server/domain/helpers/_EventEmitter";
+import { censored } from "../helpers/_Loggable";
 import { type BasketDTO } from "../Users/Basket";
 import { type BasketProductDTO } from "../Users/BasketProduct";
+import { EventManager } from "../Notifications/EventsManager";
+import { EventEmitter } from "stream";
+import { DeliveryAdaptor, type DeliveryDetails } from "./DeliveryAdaptor";
 
 export interface IPurchasesHistoryController extends HasRepos {
-  getPurchase(purchaseId: string): CartPurchaseDTO;
+  getPurchase(purchaseId: string): Promise<CartPurchaseDTO>;
   purchaseCart(
     userId: string,
     cart: CartDTO,
     price: number,
-    creditCard: CreditCard
-  ): void; // TODO: add payment details
+    creditCard: PaymentDetails,
+    deliveryDetails: DeliveryDetails
+  ): Promise<{
+    paymentTransactionId: number;
+    deliveryTransactionId: number;
+  }>;
   addStorePurchaseReview(
     userId: string,
     purchaseId: string,
     storeId: string,
     review: number
-  ): void; // TODO: add
+  ): Promise<void>;
   addProductPurchaseReview(
     userId: string,
     purchaseId: string,
     productId: string,
     rating: number,
     title: string,
-    description: string
-  ): void;
-  getStoreRating(storeId: string): number;
-  getReviewsByStore(storeId: string): number;
-  getReviewsByProduct(productId: string): {
+    description: string,
+    storeId: string
+  ): Promise<void>;
+  getStoreRating(storeId: string): Promise<number>;
+  getReviewsByStore(storeId: string): Promise<number>;
+  getReviewsByProduct(productId: string): Promise<{
     reviews: ProductReviewDTO[];
     avgRating: number;
-  };
-  getPurchasesByUser(admingId: string, userId: string): CartPurchaseDTO[];
-  getPurchasesByStore(storeId: string): BasketPurchaseDTO[];
+  }>;
+  getPurchasesByUser(
+    admingId: string,
+    userId: string
+  ): Promise<CartPurchaseDTO[]>;
+  getPurchasesByStore(storeId: string): Promise<BasketPurchaseDTO[]>;
   ProductPurchaseDTOFromBasketProductDTO(
     basketProductDTO: BasketProductDTO,
     purchaseId: string,
     userId: string
-  ): ProductPurchaseDTO;
+  ): Promise<ProductPurchaseDTO>;
   BasketPurchaseDTOFromBasketDTO(
     basket: BasketDTO,
     purchaseId: string,
     userId: string
-  ): BasketPurchaseDTO;
+  ): Promise<BasketPurchaseDTO>;
   CartPurchaseDTOfromCartDTO(
     cartDTO: CartDTO,
     userId: string,
     totalPrice: number
-  ): CartPurchaseDTO;
-  addPurchase(cartPurchase: CartPurchase): void;
+  ): Promise<CartPurchaseDTO>;
+  addPurchase(cartPurchase: CartPurchase): Promise<void>;
+  getMyPurchases(userId: string): Promise<CartPurchaseDTO[]>;
 }
 
 @testable
@@ -82,120 +91,165 @@ export class PurchasesHistoryController
     super();
     this.initRepos(repos);
   }
-  getPurchasesByUser(admingId: string, userId: string): CartPurchaseDTO[] {
-    if (this.Controllers.Jobs.isSystemAdmin(admingId) === false) {
+  async getPurchasesByUser(
+    admingId: string,
+    userId: string
+  ): Promise<CartPurchaseDTO[]> {
+    if ((await this.Controllers.Jobs.isSystemAdmin(admingId)) === false) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
           "User is not a system admin, and therefore cannot view other users' purchases",
       });
     }
-    return this.Repos.CartPurchases.getPurchasesByUser(userId).map((purchase) =>
-      purchase.ToDTO()
-    );
+    const purchases = await this.Repos.CartPurchases.getPurchasesByUser(userId);
+    return purchases.map((purchase) => purchase.ToDTO());
   }
-  getPurchasesByStore(storeId: string): BasketPurchaseDTO[] {
-    return this.Repos.BasketPurchases.getPurchasesByStore(storeId).map(
-      (purchase) => purchase.ToDTO()
+  async getPurchasesByStore(storeId: string): Promise<BasketPurchaseDTO[]> {
+    const purchases = await this.Repos.BasketPurchases.getPurchasesByStore(
+      storeId
     );
+    return purchases.map((purchase) => purchase.ToDTO());
   }
 
-  purchaseCart(
+  async getMyPurchases(userId: string): Promise<CartPurchaseDTO[]> {
+    const purchases = await this.Repos.CartPurchases.getPurchasesByUser(userId);
+    return purchases.map((purchase) => purchase.ToDTO());
+  }
+
+  async purchaseCart(
     userId: string,
     cart: CartDTO,
     price: number,
-    @censored creditCard: CreditCard
-  ): void {
-    cart.storeIdToBasket.forEach((basket) => {
-      basket.products.forEach((product) => {
+    @censored creditCard: PaymentDetails,
+    @censored deliveryDetails: DeliveryDetails
+  ): Promise<{
+    paymentTransactionId: number;
+    deliveryTransactionId: number;
+  }> {
+    // for each basket run StoresController.checkIfBasketSatisfiesStoreConstraints
+    for (const [storeId, basket] of cart.storeIdToBasket) {
+      if (
+        !(await this.Controllers.Stores.checkIfBasketSatisfiesStoreConstraints(
+          userId,
+          storeId,
+          basket
+        ))
+      ) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Basket does not satisfy store constraints",
+        });
+      }
+    }
+    for (const basket of cart.storeIdToBasket.values()) {
+      for (const product of basket.products.values()) {
         if (
-          !this.Controllers.Stores.isProductQuantityInStock(
+          !(await this.Controllers.Stores.isProductQuantityInStock(
             userId,
             product.storeProductId,
             product.quantity
-          )
+          ))
         ) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "Product quantity is not available",
           });
         }
-      });
-    });
+      }
+    }
     if (cart.storeIdToBasket.size === 0) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Cart is empty, please add products to cart before purchasing",
       });
     }
-    if (PaymentAdapter.pay(creditCard, price) === false) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message:
-          "Payment failed, please check your credit card details and try again",
-      });
-    }
-    cart.storeIdToBasket.forEach((basket) => {
-      basket.products.forEach((product) => {
-        this.Controllers.Stores.decreaseProductQuantity(
+    await PaymentAdapter.handShake();
+    const payTransID = await PaymentAdapter.pay(creditCard, price);
+    await DeliveryAdaptor.handShake();
+    const deliveryTransId = await DeliveryAdaptor.supply(deliveryDetails);
+    for (const basket of cart.storeIdToBasket.values()) {
+      for (const product of basket.products.values()) {
+        await this.Controllers.Stores.decreaseProductQuantity(
           product.storeProductId,
           product.quantity
         );
-      });
-    });
-    // for every storeId in cart, EventEmmiter.emit("purchase", storeId, cart.storeIdToBasket.get(storeId))
-    const cartPurchase = this.CartPurchaseDTOfromCartDTO(cart, userId, price);
-    this.addPurchase(CartPurchase.fromDTO(cartPurchase));
-    for (const [storeId, basket] of cart.storeIdToBasket) {
-      eventEmitter.emit(`purchase store ${storeId}`, {
-        purchaseId: cartPurchase.purchaseId,
-        userId: userId,
-        storeId: storeId,
-      });
+      }
     }
+    // for every storeId in cart, EventEmmiter.emit("purchase", storeId, cart.storeIdToBasket.get(storeId))
+    const cartPurchase = await this.CartPurchaseDTOfromCartDTO(
+      cart,
+      userId,
+      price
+    );
+    await this.addPurchase(CartPurchase.fromDTO(cartPurchase));
+    return {
+      paymentTransactionId: payTransID,
+      deliveryTransactionId: deliveryTransId,
+    };
   }
 
-  addPurchase(cartPurchase: CartPurchase): void {
+  async addPurchase(cartPurchase: CartPurchase): Promise<void> {
     // check that purchase with same id doesn't exist
     // if this.Repos.CartPurchases.getPurchaseById(cartPurchase.PurchaseId) dosent throw, throw error
-    if (this.Repos.CartPurchases.doesPurchaseExist(cartPurchase.PurchaseId)) {
+    if (
+      await this.Repos.CartPurchases.doesPurchaseExist(cartPurchase.PurchaseId)
+    ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
           "Purchase with same id already exists, please try again with a different cart",
       });
     }
-    this.Repos.CartPurchases.addCartPurchase(cartPurchase);
-    // for each <string, basket> in cart do addBasketPurchase
-    cartPurchase.StoreIdToBasketPurchases.forEach((basket, storeId) => {
-      this.addBasketPurchase(basket);
-      basket.Products.forEach((product) => {
-        this.addProductPurchase(product);
+    await this.Repos.CartPurchases.addCartPurchase(cartPurchase);
+    // for each basket in cartPurchase do addBasketPurchase
+    for (const basket of cartPurchase.StoreIdToBasketPurchases.values()) {
+      eventEmitter.emitEvent({
+        type: "storePurchase",
+        channel: `storePurchase_${basket.StoreId}`,
+        storeId: basket.StoreId,
       });
-    });
-  }
-  addBasketPurchase(basketPurchase: BasketPurchase): void {
-    this.Repos.BasketPurchases.addBasketPurchase(basketPurchase);
+    }
+    // for each <string, basket> in cart do addBasketPurchase
+    // cartPurchase.StoreIdToBasketPurchases.forEach((basket, storeId) => {
+    //   this.addBasketPurchase(basket);
+    //   basket.Products.forEach((product) => {
+    //     this.addProductPurchase(product);
+    //   });
+    // });
   }
 
-  addProductPurchase(productPurchase: ProductPurchase): void {
-    this.Repos.ProductsPurchases.addProductPurchase(productPurchase);
+  async addBasketPurchase(basketPurchase: BasketPurchase): Promise<void> {
+    await this.Repos.BasketPurchases.addBasketPurchase(basketPurchase);
   }
 
-  addStorePurchaseReview(
+  async addProductPurchase(
+    productPurchase: ProductPurchase,
+    storeId: string
+  ): Promise<void> {
+    await this.Repos.ProductsPurchases.addProductPurchase(
+      productPurchase,
+      storeId
+    );
+  }
+
+  async addStorePurchaseReview(
     userId: string,
     purchaseId: string,
     storeId: string,
     rating: number
-  ): void {
-    if (this.Repos.Reviews.doesStoreReviewExist(purchaseId, storeId)) {
+  ): Promise<void> {
+    if (await this.Repos.Reviews.doesStoreReviewExist(purchaseId, storeId)) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
           "Store already reviewed, please try again with a different purchase",
       });
     }
-    if (this.Repos.BasketPurchases.hasPurchase(purchaseId) === false) {
+    if (
+      (await this.Repos.BasketPurchases.hasPurchase(purchaseId, storeId)) ===
+      false
+    ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Purchase not found",
@@ -203,24 +257,27 @@ export class PurchasesHistoryController
     }
     const review = new Review({
       rating: rating,
-      id: randomUUID(),
       createdAt: new Date(),
       userId: userId,
       purchaseId: purchaseId,
       storeId: storeId,
     });
-    this.Repos.Reviews.addStoreReview(review);
+    await this.Repos.Reviews.addStoreReview(review);
   }
-  addProductPurchaseReview(
+  async addProductPurchaseReview(
     userId: string,
     purchaseId: string,
     productId: string,
     rating: number,
     title: string,
-    description: string
-  ): void {
+    description: string,
+    storeId: string
+  ): Promise<void> {
     if (
-      this.Repos.ProductReviews.doesProductReviewExist(purchaseId, productId)
+      await this.Repos.ProductReviews.doesProductReviewExist(
+        purchaseId,
+        productId
+      )
     ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -237,11 +294,11 @@ export class PurchasesHistoryController
         message: "Purchase not found",
       });
     }
-    // check if there is product with productId in getProductsPurchaseById
+    const products = await this.Repos.ProductsPurchases.getProductsPurchaseById(
+      purchaseId
+    );
     if (
-      this.Repos.ProductsPurchases.getProductsPurchaseById(purchaseId).find(
-        (product) => product.ProductId === productId
-      ) === undefined
+      products.find((product) => product.ProductId === productId) === undefined
     ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
@@ -249,36 +306,38 @@ export class PurchasesHistoryController
       });
     }
     const productReview = new ProductReview({
-      rating: rating,
-      id: randomUUID(),
-      createdAt: new Date(),
-      userId: userId,
-      purchaseId: purchaseId,
       title: title,
       description: description,
       productId: productId,
+      rating: rating,
+      createdAt: new Date(),
+      userId: userId,
+      purchaseId: purchaseId,
+      storeId: storeId,
     });
-    this.Repos.ProductReviews.addProductReview(productReview);
+    await this.Repos.ProductReviews.addProductReview(productReview);
   }
-  getStoreRating(storeId: string): number {
+  async getStoreRating(storeId: string): Promise<number> {
     let sum = 0;
     let count = 0;
-    const reviews = this.Repos.Reviews.getAllStoreReviews(storeId);
+    const reviews = await this.Repos.Reviews.getAllStoreReviews(storeId);
     for (const review of reviews) {
       sum += review.Rating;
       count++;
     }
     return sum / count || 0;
   }
-  getReviewsByStore(storeId: string): number {
-    const reviews = this.Repos.Reviews.getAllStoreReviews(storeId);
+  async getReviewsByStore(storeId: string): Promise<number> {
+    const reviews = await this.Repos.Reviews.getAllStoreReviews(storeId);
     return reviews.length;
   }
-  getReviewsByProduct(productId: string): {
+  async getReviewsByProduct(productId: string): Promise<{
     reviews: ProductReviewDTO[];
     avgRating: number;
-  } {
-    const reviews = this.Repos.ProductReviews.getAllProductReviews(productId);
+  }> {
+    const reviews = await this.Repos.ProductReviews.getAllProductReviews(
+      productId
+    );
     let sum = 0;
     for (const review of reviews) {
       sum += review.Rating;
@@ -288,62 +347,72 @@ export class PurchasesHistoryController
       avgRating: sum / reviews.length || 0,
     };
   }
-  getPurchase(purchaseId: string): CartPurchaseDTO {
-    if (this.Repos.CartPurchases.doesPurchaseExist(purchaseId) === false) {
+  async getPurchase(purchaseId: string): Promise<CartPurchaseDTO> {
+    if (
+      (await this.Repos.CartPurchases.doesPurchaseExist(purchaseId)) === false
+    ) {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Purchase not found",
       });
     }
-    return this.Repos.CartPurchases.getPurchaseById(purchaseId)!.ToDTO();
+    const purchase = await this.Repos.CartPurchases.getPurchaseById(purchaseId);
+    return purchase.ToDTO();
   }
-  BasketPurchaseDTOFromBasketDTO(
+  async BasketPurchaseDTOFromBasketDTO(
     basketDTO: BasketDTO,
     purchaseId: string,
     userId: string
-  ): BasketPurchaseDTO {
+  ): Promise<BasketPurchaseDTO> {
     const products = new Map<string, ProductPurchaseDTO>();
-    basketDTO.products.forEach((product) => {
+    for (const product of basketDTO.products) {
       products.set(
         product.storeProductId,
-        this.ProductPurchaseDTOFromBasketProductDTO(product, purchaseId, userId)
+        await this.ProductPurchaseDTOFromBasketProductDTO(
+          product,
+          purchaseId,
+          userId
+        )
       );
-    });
+    }
     return {
       purchaseId: purchaseId,
       storeId: basketDTO.storeId,
       products: products,
-      price: this.Controllers.Stores.getBasketPrice(userId, basketDTO.storeId),
+      price: await this.Controllers.Stores.getBasketPrice(
+        userId,
+        basketDTO.storeId
+      ),
     };
   }
-  ProductPurchaseDTOFromBasketProductDTO(
+  async ProductPurchaseDTOFromBasketProductDTO(
     basketProductDTO: BasketProductDTO,
     purchaseId: string,
     userId: string
-  ): ProductPurchaseDTO {
+  ): Promise<ProductPurchaseDTO> {
     return {
       productId: basketProductDTO.storeProductId,
       quantity: basketProductDTO.quantity,
-      price: this.Controllers.Stores.getProductPrice(
+      price: await this.Controllers.Stores.getProductPrice(
         userId,
         basketProductDTO.storeProductId
       ),
       purchaseId: purchaseId,
     };
   }
-  CartPurchaseDTOfromCartDTO(
+  async CartPurchaseDTOfromCartDTO(
     cartDTO: CartDTO,
     userId: string,
     totalPrice: number
-  ): CartPurchaseDTO {
+  ): Promise<CartPurchaseDTO> {
     const purchaseId = randomUUID();
     const storeIdToBasketPurchases = new Map<string, BasketPurchaseDTO>();
-    cartDTO.storeIdToBasket.forEach((basketPurchase, storeId) => {
+    for (const [storeId, basket] of cartDTO.storeIdToBasket) {
       storeIdToBasketPurchases.set(
         storeId,
-        this.BasketPurchaseDTOFromBasketDTO(basketPurchase, purchaseId, userId)
+        await this.BasketPurchaseDTOFromBasketDTO(basket, purchaseId, userId)
       );
-    });
+    }
     return {
       purchaseId: purchaseId,
       userId: userId,

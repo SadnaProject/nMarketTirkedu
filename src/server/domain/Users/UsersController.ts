@@ -10,6 +10,7 @@ import { Testable, testable } from "server/helpers/_Testable";
 import { HasControllers } from "../helpers/_HasController";
 import { censored } from "../helpers/_Loggable";
 import { getDB } from "server/helpers/_Transactional";
+import { eventEmitter } from "../helpers/_EventEmitter";
 
 export interface IUsersController {
   /**
@@ -290,9 +291,13 @@ export class UsersController
     await this.addUser(guestId);
     return guestId;
   }
+  subscribeForUserEvents(userId: string) {
+    eventEmitter.subscribeChannel(`bidAdded_${userId}`, userId);
+  }
   async register(email: string, @censored password: string): Promise<string> {
     const MemberId = await this.Controllers.Auth.register(email, password);
     await this.Repos.Users.addUser(MemberId);
+    this.subscribeForUserEvents(MemberId);
     return MemberId;
   }
   async login(
@@ -359,7 +364,12 @@ export class UsersController
         )
       );
       for (const oid of oids) {
-        (await this.Repos.Users.getUser(oid)).addBidFromMe(bid.Id);
+        (await this.Repos.Users.getUser(oid)).addBidToMe(bid.Id);
+        eventEmitter.emitEvent({
+          bidId: bid.Id,
+          channel: `bidAdded_${oid}`,
+          type: "bidAdded",
+        });
       }
       bid.Owners = R.clone(
         await this.Controllers.Jobs.getStoreOwnersIds(
@@ -369,13 +379,21 @@ export class UsersController
           )
         )
       );
+      (await this.Repos.Users.getUser(bid.UserId)).addBidFromMe(bid.Id);
+      eventEmitter.subscribeChannel(`bidApproved_${bid.Id}`, bid.UserId);
     } else {
       (await this.Repos.Users.getUser(bid.UserId)).addBidFromMe(bid.Id);
+      eventEmitter.subscribeChannel(`bidApproved_${bid.Id}`, bid.UserId);
       const targetUser = await this.Repos.Users.getUserByBidId(
         bidArgs.previousBidId
       );
       bid.Owners = [targetUser.Id];
       targetUser.addBidToMe(bid.Id);
+      eventEmitter.emitEvent({
+        bidId: bid.Id,
+        channel: `bidAdded_${targetUser.Id}`,
+        type: "bidAdded",
+      });
     }
     return bid.Id;
   }
@@ -403,18 +421,23 @@ export class UsersController
       });
     }
     bid.approve(userId);
+    // await this.Repos.Bids.updateBid(bid); //TODO:  needed!!!!
     if (bid.isApproved()) {
       switch (bid.Type) {
         case "Store":
           await this.Controllers.Stores.addSpecialPriceToProduct(bid);
+          eventEmitter.emitEvent({
+            bidId: bid.Id,
+            channel: `bidApproved_${bid.Id}`,
+            type: "bidApproved",
+          });
           break;
         case "Counter":
           await this.addBid({
             userId: userId,
-            type: "Counter",
+            type: "Store",
             price: bid.Price,
             productId: bid.ProductId,
-            previousBidId: bid.Id,
           });
       }
     }

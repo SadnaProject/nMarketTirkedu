@@ -137,6 +137,7 @@ model Store {
     discounts   Discount[]
     Constraints Constraint[]
     Condition   Condition[]
+    MakeOwner   MakeOwner[]
 }
 
 model StoreProduct {
@@ -185,10 +186,10 @@ model BasketProduct {
 }
 
 model Basket {
-    userId   String
-    storeId  String
+    userId  String
+    storeId String
     // products BasketProduct[]
-    cart     Cart            @relation(fields: [userId], references: [userId], onDelete: Cascade)
+    cart    Cart   @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
     @@unique([userId, storeId])
 }
@@ -234,18 +235,19 @@ model User {
     cart           Cart?
     notifications  Notification[]
     bids           Bid[]
+    MakeOwner      MakeOwner[]
 }
 
 model ProductReview {
     title           String
     description     String
     userId          String
-    user            User             @relation(fields: [userId], references: [id])
+    user            User            @relation(fields: [userId], references: [id])
     rating          Int
     productId       String
     purchaseId      String
     storeId         String
-    createdAt       DateTime         @default(now())
+    createdAt       DateTime        @default(now())
     productPurchase ProductPurchase @relation(fields: [purchaseId, productId], references: [purchaseId, productId])
 
     @@id([userId, productId])
@@ -346,6 +348,16 @@ model PositionHolder {
     assignedBy              PositionHolder?  @relation("PositionHolderToAssignees", fields: [assignerId, storeId], references: [userId, storeId])
 
     @@id([userId, storeId])
+}
+
+model MakeOwner {
+    id             String   @id
+    userId         String
+    user           User     @relation(fields: [userId], references: [id])
+    storeId        String
+    store          Store    @relation(fields: [storeId], references: [id])
+    needsApproveBy String[]
+    appointedBy    String
 }
 
 //TODO maybe better to just save a field in the users table.

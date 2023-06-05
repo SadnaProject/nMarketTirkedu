@@ -1,12 +1,16 @@
 import { getDB } from "server/helpers/_Transactional";
 import { Testable, testable } from "server/helpers/_Testable";
 import { TRPCError } from "@trpc/server";
-import { type Store as DataStore } from "@prisma/client";
+import {
+  MakeOwner as MakeOwnerDAO,
+  type Store as DataStore,
+} from "@prisma/client";
 import { type ConditionArgs } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
 import { ConstraintPolicy } from "server/domain/Stores/PurchasePolicy/ConstraintPolicy";
 import { DiscountPolicy } from "server/domain/Stores/DiscountPolicy/DiscountPolicy";
 import { type DiscountArgs } from "server/domain/Stores/DiscountPolicy/Discount";
 import { createPromise } from "./helpers/_data";
+import { MakeOwner } from "server/domain/Stores/MakeOwner";
 export type storeCache = {
   store: DataStore;
   counter: number;
@@ -523,5 +527,80 @@ export class StoresRepo extends Testable {
     for (const constraint of constraints) {
       await this.removeConstraint(constraint.id);
     }
+  }
+  public async addMakeOwner(
+    storeId: string,
+    userId: string,
+    appointerId: string,
+    id: string,
+    needsApproveBy: string[]
+  ): Promise<void> {
+    await getDB().makeOwner.create({
+      data: {
+        storeId: storeId,
+        userId: userId,
+        appointedBy: appointerId,
+        id: id,
+        needsApproveBy: needsApproveBy,
+      },
+    });
+  }
+  public async isApprovedOwner(id: string): Promise<boolean> {
+    const makeOwner = await getDB().makeOwner.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    if (makeOwner === null) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "makeOwner does not exist",
+      });
+    }
+    return makeOwner.needsApproveBy.length === 0;
+  }
+  public async approveOwner(id: string, userId: string): Promise<void> {
+    const makeOwner = await getDB().makeOwner.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    if (makeOwner === null) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "makeOwner does not exist",
+      });
+    }
+    const needsApproveBy = makeOwner.needsApproveBy;
+    const index = needsApproveBy.indexOf(userId);
+    if (index === -1) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "user is not in needsApproveBy",
+      });
+    }
+    needsApproveBy.splice(index, 1);
+    await getDB().makeOwner.update({
+      where: {
+        id: id,
+      },
+      data: {
+        needsApproveBy: needsApproveBy,
+      },
+    });
+  }
+  public async getMakeOwner(id: string): Promise<MakeOwner> {
+    const makeOwner = await getDB().makeOwner.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    if (makeOwner === null) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "makeOwner does not exist",
+      });
+    }
+    return MakeOwner.fromDAO(makeOwner);
   }
 }

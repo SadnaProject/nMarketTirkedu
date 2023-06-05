@@ -127,7 +127,7 @@ describe("addProductPurchaseReview", () => {
       Promise.resolve([new ProductPurchase(productPurchaseData)])
     );
     await controllers.PurchasesHistory.addPurchase(cartPurchase);
-    expect(() =>
+    await expect(
       controllers.PurchasesHistory.addProductPurchaseReview(
         "admin",
         "purchaseId",
@@ -137,7 +137,7 @@ describe("addProductPurchaseReview", () => {
         "description",
         "storeId"
       )
-    ).not.toThrow();
+    ).resolves.not.toThrow();
   });
 
   // try to review the same product twice in the same purchase
@@ -254,15 +254,14 @@ describe("addStorePurchaseReview", () => {
     vi.spyOn(BasketPurchaseRepo.prototype, "hasPurchase").mockReturnValue(
       Promise.resolve(true)
     );
-    expect(
-      async () =>
-        await controllers.PurchasesHistory.addStorePurchaseReview(
-          "admin",
-          "purchaseId",
-          "storeId",
-          5
-        )
-    ).not.toThrow();
+    await expect(
+      controllers.PurchasesHistory.addStorePurchaseReview(
+        "admin",
+        "purchaseId",
+        "storeId",
+        5
+      )
+    ).resolves.not.toThrow();
   });
   itUnitIntegration("❎ adds two store purchase reviews", async () => {
     // todo - fix test. it uses mock controller for integration test, and maybe there are other problems... (notice Unhandled Rejection in console)

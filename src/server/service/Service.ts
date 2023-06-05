@@ -479,4 +479,7 @@ export class Service {
   async addBid(bid: BidArgs) {
     return await this.facade.addBid(bid);
   }
+  async subscribeToStoreEvents(userId: string) {
+    await this.facade.subscribeToStoreEvents(userId);
+  }
 }

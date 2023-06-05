@@ -689,4 +689,8 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     return await this.controllers.Jobs.getPermissionsOfUser(userId, storeId);
   }
+  async subscribeToStoreEvents(userId: string) {
+    this.validateConnection(userId);
+    await this.controllers.Stores.subscribeToStoreEvents(userId);
+  }
 }

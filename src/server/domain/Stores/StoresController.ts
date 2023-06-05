@@ -24,6 +24,7 @@ import { type Bid, storeBidArgs } from "../Users/Bid";
 import { type StoreProduct as StoreProductDAO } from "@prisma/client";
 import { ConstraintPolicy } from "./PurchasePolicy/ConstraintPolicy";
 import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
+import { MakeOwner } from "./MakeOwner";
 
 export type SearchArgs = {
   name?: string;
@@ -317,6 +318,8 @@ export interface IStoresController extends HasRepos {
     storeId: string
   ): Promise<Map<string, ConditionArgs>>;
   getStoreNameById(userId: string, storeId: string): Promise<string>;
+  approveStoreOwner(makeOwnerId: string, userId: string): Promise<void>;
+  subscribeToStoreEvents(userId: string): Promise<void>;
 }
 
 @testable
@@ -756,17 +759,36 @@ export class StoresController
   async makeStoreOwner(
     currentId: string,
     storeId: string,
-    targetUserId: string
+    targetUserId: string,
+    idOfMakeOwnerObject?: string
   ) {
-    await this.Controllers.Jobs.makeStoreOwner(
-      currentId,
-      storeId,
-      targetUserId
-    );
-    // eventEmitter.emit(`receive bid for store ${storeId}`, {
-    //   storeId: storeId,
-    //   userId: targetUserId,
-    // });
+    if (idOfMakeOwnerObject) {
+      if (await this.Repos.Stores.isApprovedOwner(idOfMakeOwnerObject)) {
+        await this.Controllers.Jobs.makeStoreOwner(
+          currentId,
+          storeId,
+          targetUserId
+        );
+      }
+    } else {
+      const make = new MakeOwner(
+        storeId,
+        targetUserId,
+        currentId,
+        await this.getStoreOwnersIds(storeId)
+      );
+      await this.Repos.Stores.addMakeOwner(
+        make.getStoreId(),
+        make.getTargetUserId(),
+        make.getAppointerUserId(),
+        make.getId(),
+        make.getNeedsApproveBy()
+      );
+      // eventEmitter.emit(`receive bid for store ${storeId}`, {
+      //   storeId: storeId,
+      //   userId: targetUserId,
+      // });
+    }
   }
   async makeStoreManager(
     currentId: string,
@@ -1062,10 +1084,35 @@ export class StoresController
     return (await Store.fromStoreId(storeId, this.Repos, this.Controllers))
       .Name;
   }
+  async subscribeToMakeOwnerEvents(userId: string): Promise<void> {
+    const myStores = await this.myStores(userId);
+    const onlyOwners = myStores.filter((store) => store.role === "Owner");
+    for (const store of onlyOwners) {
+      eventEmitter.subscribeChannel(
+        `tryToMakeNewOwner_${store.store.id}`,
+        userId
+      );
+    }
+  }
   async subscribeToStoreEvents(userId: string): Promise<void> {
     const myStores = await this.myStores(userId);
     for (const store of myStores) {
       eventEmitter.subscribeChannel(`storeChanged_${store.store.id}`, userId);
+      eventEmitter.subscribeChannel(`bidAdded_${store.store.id}`, userId);
+    }
+    await this.subscribeToMakeOwnerEvents(userId);
+  }
+
+  async approveStoreOwner(makeOwnerId: string, userId: string) {
+    await this.Repos.Stores.approveOwner(makeOwnerId, userId);
+    const make = await this.Repos.Stores.getMakeOwner(makeOwnerId);
+    if (make.isApproved()) {
+      await this.makeStoreOwner(
+        make.getAppointerUserId(),
+        make.getStoreId(),
+        make.getTargetUserId(),
+        make.getId()
+      );
     }
   }
 }

@@ -103,18 +103,70 @@ export class PurchasesHistoryController
       });
     }
     const purchases = await this.Repos.CartPurchases.getPurchasesByUser(userId);
-    return purchases.map((purchase) => purchase.ToDTO());
+    const purchaseDTO = purchases.map((purchase) => purchase.ToDTO());
+    // for every basket, set the store name, and the products names
+    for (const purchase of purchaseDTO) {
+      for (const [storeId, basket] of purchase.storeIdToBasketPurchases) {
+        basket.storeName = await this.Controllers.Stores.getStoreNameById(
+          "userId",
+          storeId
+        );
+        for (const [productId, product] of basket.products) {
+          const pro = await this.Controllers.Stores.getProductById(
+            "userId",
+            productId
+          );
+          product.name = pro.name;
+          product.description = pro.description;
+        }
+      }
+    }
+    return purchaseDTO
   }
   async getPurchasesByStore(storeId: string): Promise<BasketPurchaseDTO[]> {
     const purchases = await this.Repos.BasketPurchases.getPurchasesByStore(
       storeId
     );
-    return purchases.map((purchase) => purchase.ToDTO());
+    const purchaseDTO = purchases.map((purchase) => purchase.ToDTO());
+    // for every basket, set the store name, and the products names
+    for (const purchase of purchaseDTO) {
+      purchase.storeName = await this.Controllers.Stores.getStoreNameById(
+        "userId",
+        storeId
+      );
+      for (const [productId, product] of purchase.products) {
+        const pro = await this.Controllers.Stores.getProductById(
+          "userId",
+          productId
+        );
+        product.name = pro.name;
+        product.description = pro.description;
+      }
+    }
+    return purchaseDTO;
   }
 
   async getMyPurchases(userId: string): Promise<CartPurchaseDTO[]> {
     const purchases = await this.Repos.CartPurchases.getPurchasesByUser(userId);
-    return purchases.map((purchase) => purchase.ToDTO());
+    const purchaseDTO = purchases.map((purchase) => purchase.ToDTO());
+    // for every basket, set the store name, and the products names
+    for (const purchase of purchaseDTO) {
+      for (const [storeId, basket] of purchase.storeIdToBasketPurchases) {
+        basket.storeName = await this.Controllers.Stores.getStoreNameById(
+          "userId",
+          storeId
+        );
+        for (const [productId, product] of basket.products) {
+          const pro = await this.Controllers.Stores.getProductById(
+            "userId",
+            productId
+          );
+          product.name = pro.name;
+          product.description = pro.description;
+        }
+      }
+    }
+    return purchaseDTO;
   }
 
   async purchaseCart(
@@ -357,7 +409,17 @@ export class PurchasesHistoryController
       });
     }
     const purchase = await this.Repos.CartPurchases.getPurchaseById(purchaseId);
-    return purchase.ToDTO();
+    const purchaseDTO = purchase.ToDTO();
+    // for each basket, set its name, and for each product set its name and description
+    for (const [storeId, basketPurchase] of purchaseDTO.storeIdToBasketPurchases) {
+      basketPurchase.storeName = await this.Controllers.Stores.getStoreNameById("userId", storeId);
+      for (const [productId, productPurchase] of basketPurchase.products) {
+        const product = await this.Controllers.Stores.getProductById("userId",productId);
+        productPurchase.name = product.name;
+        productPurchase.description = product.description;
+      }
+    }
+    return purchaseDTO;
   }
   async BasketPurchaseDTOFromBasketDTO(
     basketDTO: BasketDTO,

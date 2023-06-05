@@ -12,6 +12,7 @@ export type BasketPurchaseDTO = {
   products: Map<string, ProductPurchaseDTO>; // product id to product purchase
   review?: ReviewDTO;
   price: number;
+  storeName?: string;
 };
 export class BasketPurchase {
   private purchaseId: string;

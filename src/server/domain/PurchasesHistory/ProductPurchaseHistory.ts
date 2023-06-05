@@ -8,6 +8,8 @@ export type ProductPurchaseDTO = {
   productId: string;
   quantity: number;
   price: number;
+  name?: string;
+  description?: string;
   review?: ProductReviewDTO;
 };
 type ProductPurchaseArgs = {

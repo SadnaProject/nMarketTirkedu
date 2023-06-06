@@ -146,7 +146,6 @@ export interface IUsersController {
   addBid(BidArgs: BidArgs): Promise<string>;
   getAllBidsSendFromUser(userId: string): Promise<BidDTO[]>;
   getAllBidsSendToUser(userId: string): Promise<BidDTO[]>;
-  removeVoteFromBid(userId: string, bidId: string): void;
   counterBid(userId: string, bidId: string, price: number): Promise<void>;
   approveBid(userId: string, bidId: string): Promise<void>;
   rejectBid(userId: string, bidId: string): Promise<void>;
@@ -355,7 +354,7 @@ export class UsersController
   }
   async addBid(bidArgs: BidArgs): Promise<string> {
     const bid = new Bid(bidArgs);
-    this.Repos.Bids.addBid(bid);
+    await this.Repos.Bids.addBid(bid);
     if (bidArgs.type === "Store") {
       const oids = await this.Controllers.Jobs.getStoreOwnersIds(
         await this.Controllers.Stores.getStoreIdByProductId(
@@ -384,8 +383,10 @@ export class UsersController
     } else {
       (await this.Repos.Users.getUser(bid.UserId)).addBidFromMe(bid.Id);
       eventEmitter.subscribeChannel(`bidApproved_${bid.Id}`, bid.UserId);
-      const targetUser = await this.Repos.Users.getUserByBidId(
-        bidArgs.previousBidId
+      const targetUser = await this.Repos.Users.getUser(
+        (
+          await this.Repos.Bids.getBid(bidArgs.previousBidId)
+        ).UserId
       );
       bid.Owners = [targetUser.Id];
       targetUser.addBidToMe(bid.Id);
@@ -398,7 +399,7 @@ export class UsersController
     return bid.Id;
   }
   async approveBid(userId: string, bidId: string): Promise<void> {
-    const bid = this.Repos.Bids.getBid(bidId);
+    const bid = await this.Repos.Bids.getBid(bidId);
     if (
       bid.Type == "Store" &&
       !(await this.Controllers.Jobs.isStoreOwner(
@@ -420,9 +421,9 @@ export class UsersController
         message: "User doesn't have this bid",
       });
     }
-    bid.approve(userId);
+    await this.Repos.Bids.approveBid(bidId, userId);
     // await this.Repos.Bids.updateBid(bid); //TODO:  needed!!!!
-    if (bid.isApproved()) {
+    if ((await this.Repos.Bids.bidState(bidId)) === "APPROVED") {
       switch (bid.Type) {
         case "Store":
           await this.Controllers.Stores.addSpecialPriceToProduct(bid);
@@ -443,7 +444,7 @@ export class UsersController
     }
   }
   async rejectBid(userId: string, bidId: string): Promise<void> {
-    const bid = this.Repos.Bids.getBid(bidId);
+    const bid = await this.Repos.Bids.getBid(bidId);
     if (
       !(await this.Controllers.Jobs.isStoreOwner(
         userId,
@@ -459,13 +460,14 @@ export class UsersController
       });
     }
     bid.reject(userId);
+    await this.Repos.Bids.rejectBid(bidId, userId);
   }
   async counterBid(
     userId: string,
     bidId: string,
     price: number
   ): Promise<void> {
-    const bid = this.Repos.Bids.getBid(bidId);
+    const bid = await this.Repos.Bids.getBid(bidId);
     if (
       !(await this.Controllers.Jobs.isStoreOwner(
         userId,
@@ -481,6 +483,7 @@ export class UsersController
       });
     }
     bid.reject(userId);
+    await this.Repos.Bids.rejectBid(bidId, userId);
     await this.addBid({
       previousBidId: bidId,
       price: price,
@@ -489,22 +492,20 @@ export class UsersController
       type: "Counter",
     });
   }
-  removeVoteFromBid(userId: string, bidId: string): void {
-    const bid = this.Repos.Bids.getBid(bidId);
-    bid.removeVote(userId);
-  }
+
   async getAllBidsSendToUser(userId: string): Promise<BidDTO[]> {
     const bids: BidDTO[] = [];
-    (await this.Repos.Users.getUser(userId)).BidsToMe.forEach((bidId) =>
-      bids.push(this.Repos.Bids.getBid(bidId).DTO)
-    );
+    const allBids = await this.Repos.Bids.getAllBids();
+    for (const bid of allBids) {
+      if (bid.Owners.includes(userId)) {
+        bids.push(bid.DTO);
+      }
+    }
     return bids;
   }
   async getAllBidsSendFromUser(userId: string): Promise<BidDTO[]> {
-    const bids: BidDTO[] = [];
-    (await this.Repos.Users.getUser(userId)).BidsFromMe.forEach((bidId) =>
-      bids.push(this.Repos.Bids.getBid(bidId).DTO)
+    return (await this.Repos.Bids.getAllBidsSentByUser(userId)).map(
+      (bid) => bid.DTO
     );
-    return bids;
   }
 }

@@ -18,7 +18,6 @@ export default defineConfig({
     testTimeout: 100000,
     hookTimeout: 100000,
     // include only PurchasesHistoryController.test.ts
-    include: ["**/PurchasesHistoryController.test.ts"],
   },
   plugins: [tsconfigPaths()],
   // resolve: {

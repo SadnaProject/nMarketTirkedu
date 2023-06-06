@@ -655,10 +655,7 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     await this.controllers.Users.rejectBid(userId, bidId);
   }
-  removeVoteFromBid(userId: string, bidId: string): void {
-    this.validateConnection(userId);
-    this.controllers.Users.removeVoteFromBid(userId, bidId);
-  }
+
   async getJobsHierarchyOfStore(
     userId: string,
     storeId: string

@@ -33,7 +33,7 @@ describe("get user", () => {
     const userRepo = new UserRepo();
     const userId = randomUUID();
     await expect(() => userRepo.getUser(userId)).rejects.toThrow(
-      "User not found"
+      "User does not exist"
     );
   });
 });

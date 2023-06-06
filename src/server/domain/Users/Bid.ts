@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { Bid as BidDAO } from "@prisma/client";
 
 const bidStateSchema = z.enum(["APPROVED", "WAITING", "REJECTED"]);
 export type BidState = z.infer<typeof bidStateSchema>;
@@ -92,6 +93,9 @@ export class Bid {
   public get State() {
     return this.state;
   }
+  public setState(state: BidState) {
+    this.state = state;
+  }
   public get UserId() {
     return this.userId;
   }
@@ -142,5 +146,42 @@ export class Bid {
       state: this.state,
       type: this.type,
     };
+  }
+  public get RejectedBy() {
+    return this.rejectedBy;
+  }
+
+  public static fromDAO(bidDAO: BidDAO) {
+    if (bidDAO.type === "Counter") {
+      if (!bidDAO.previousBidId)
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "previousBidId is required for counter bid",
+        });
+      const bid = new Bid({
+        userId: bidDAO.userId,
+        price: bidDAO.price,
+        productId: bidDAO.productId,
+        previousBidId: bidDAO.previousBidId,
+        type: bidDAO.type,
+      });
+      bid.id = bidDAO.id;
+      bid.approvedBy = bidDAO.approvedBy;
+      bid.rejectedBy = bidDAO.rejectedBy;
+      bid.state = bidDAO.state;
+      return bid;
+    } else {
+      const bid = new Bid({
+        userId: bidDAO.userId,
+        price: bidDAO.price,
+        productId: bidDAO.productId,
+        type: bidDAO.type,
+      });
+      bid.id = bidDAO.id;
+      bid.approvedBy = bidDAO.approvedBy;
+      bid.rejectedBy = bidDAO.rejectedBy;
+      bid.state = bidDAO.state;
+      return bid;
+    }
   }
 }

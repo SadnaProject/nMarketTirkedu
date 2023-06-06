@@ -33,7 +33,7 @@ describe("get user", () => {
     const userRepo = new UserRepo();
     const userId = randomUUID();
     await expect(() => userRepo.getUser(userId)).rejects.toThrow(
-      "User does not exist"
+      "User not found"
     );
   });
 });
@@ -49,7 +49,7 @@ describe("remove user", () => {
     const userRepo = new UserRepo();
     const userId = randomUUID();
     await expect(async () => await userRepo.removeUser(userId)).rejects.toThrow(
-      "User does not exist"
+      "User not found"
     );
   });
 });

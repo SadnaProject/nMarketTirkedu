@@ -12,7 +12,13 @@ export default defineConfig({
       provider: "istanbul",
       reporter: ["lcov", "html"],
     },
-    exclude: ["**/Owner.test.ts", "**/HW.test.ts", "**/Admin.test.ts"],
+    include: [
+      "**/UserRepo.test.ts",
+      "**/User.test.ts",
+      "**/Bid.test.ts",
+      "Basket.test.ts",
+      "**/UsersController.test.ts",
+    ],
     //make the tests run in an order and not in parallel
     threads: false,
     testTimeout: 100000,

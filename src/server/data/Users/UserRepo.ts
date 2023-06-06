@@ -43,7 +43,7 @@ export class UserRepo extends Testable {
       if (userdb === null) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "User does not exist",
+          message: "User not found",
         });
       }
       user = await User.UserFromDTO(userdb);
@@ -69,7 +69,7 @@ export class UserRepo extends Testable {
     if ((await getDB().user.findUnique({ where: { id: id } })) === null) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "User does not exist",
+        message: "User not found",
       });
     }
     await getDB().user.delete({ where: { id: id } });

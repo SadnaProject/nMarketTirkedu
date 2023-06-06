@@ -50,6 +50,10 @@ export default function Navbar() {
         toast.success(`The state of store ${data.storeId} has changed`);
       } else if (data.type === "storePurchase") {
         toast.success(`A purchase has been made in store ${data.storeId}`);
+      } else if (data.type === "makeOwner") {
+        toast.success(
+          `try to make new owner in store the object id is ${data.makeOwnerObjectId}`
+        );
       }
       void refetchNotifications();
     },

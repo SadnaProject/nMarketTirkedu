@@ -775,7 +775,9 @@ export class StoresController
         storeId,
         targetUserId,
         currentId,
-        await this.getStoreOwnersIds(storeId)
+        (await this.getStoreOwnersIds(storeId)).concat(
+          await this.getStoreFounderId(storeId)
+        )
       );
       await this.Repos.Stores.addMakeOwner(
         make.getStoreId(),
@@ -1087,7 +1089,9 @@ export class StoresController
   }
   async subscribeToMakeOwnerEvents(userId: string): Promise<void> {
     const myStores = await this.myStores(userId);
-    const onlyOwners = myStores.filter((store) => store.role === "Owner");
+    const onlyOwners = myStores.filter(
+      (store) => store.role === "Owner" || store.role === "Founder"
+    );
     for (const store of onlyOwners) {
       eventEmitter.subscribeChannel(
         `tryToMakeNewOwner_${store.store.id}`,

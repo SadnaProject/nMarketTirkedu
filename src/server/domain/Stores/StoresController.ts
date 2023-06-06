@@ -784,10 +784,11 @@ export class StoresController
         make.getId(),
         make.getNeedsApproveBy()
       );
-      // eventEmitter.emit(`receive bid for store ${storeId}`, {
-      //   storeId: storeId,
-      //   userId: targetUserId,
-      // });
+      eventEmitter.emitEvent({
+        channel: `tryToMakeNewOwner_${storeId}`,
+        type: "makeOwner",
+        makeOwnerObjectId: make.getId(),
+      });
     }
   }
   async makeStoreManager(

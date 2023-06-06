@@ -130,14 +130,15 @@ model SimpleDiscount {
 }
 
 model Store {
-    id          String         @id
-    name        String
-    isActive    Boolean
-    products    StoreProduct[]
-    discounts   Discount[]
-    Constraints Constraint[]
-    Condition   Condition[]
-    MakeOwner   MakeOwner[]
+    id            String          @id
+    name          String
+    isActive      Boolean
+    products      StoreProduct[]
+    discounts     Discount[]
+    Constraints   Constraint[]
+    Condition     Condition[]
+    MakeOwner     MakeOwner[]
+    BasketProduct BasketProduct[]
 }
 
 model StoreProduct {
@@ -182,13 +183,14 @@ model BasketProduct {
     // basket         Basket @relation(fields: [userId, storeId], references: [userId, storeId], onDelete: Cascade)
     storeId        String
     userId         String
+    store          Store  @relation(fields: [storeId], references: [id], onDelete: Cascade)
+    user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
     bids           Bid[]
 }
 
 model Basket {
     userId  String
     storeId String
-    // products BasketProduct[]
     cart    Cart   @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
     @@unique([userId, storeId])
@@ -214,16 +216,17 @@ enum BidState {
 }
 
 model Bid {
-    id         String        @id @default(cuid())
-    userId     String
-    user       User          @relation(fields: [userId], references: [id])
-    productId  String
-    product    BasketProduct @relation(fields: [productId], references: [storeProductId])
-    price      Float
-    approvedBy String[]
-    rejectedBy String[]
-    state      BidState
-    type       BidType
+    id            String        @id @default(cuid())
+    userId        String
+    user          User          @relation(fields: [userId], references: [id])
+    productId     String
+    product       BasketProduct @relation(fields: [productId], references: [storeProductId])
+    price         Float
+    approvedBy    String[]
+    rejectedBy    String[]
+    state         BidState
+    type          BidType
+    previousBidId String?
 }
 
 model User {
@@ -236,6 +239,7 @@ model User {
     notifications  Notification[]
     bids           Bid[]
     MakeOwner      MakeOwner[]
+    BasketProduct  BasketProduct[]
 }
 
 model ProductReview {

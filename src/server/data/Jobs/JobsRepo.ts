@@ -101,7 +101,8 @@ export class JobsRepo extends Testable {
   //   return founder;
   // }
   public async GetStoreFounder(storeId: string): Promise<PositionHolder> {
-    const founder = this.storeIdToFounder.get(storeId);
+    // const founder = this.storeIdToFounder.get(storeId);
+    const founder = undefined;
     if (founder === undefined) {
       const dbPositionHolder = await getDB().positionHolder.findFirst({
         include: { role: true, assignedPositionHolders: true },
@@ -218,7 +219,8 @@ export class JobsRepo extends Testable {
     storeId: string
   ): Promise<PositionHolder[]> {
     const founder = await this.GetStoreFounder(storeId);
-    return this.getAllPositionHolders(founder);
+    const temp = this.getAllPositionHolders(founder);
+    return temp;
   }
   private getAllPositionHolders(
     positionHolder: PositionHolder

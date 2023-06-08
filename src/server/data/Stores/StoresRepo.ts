@@ -599,7 +599,7 @@ export class StoresRepo extends Testable {
         approvedBy: makeOwner.approvedBy.concat(userId),
       },
     });
-    if (makeOwner.approvedBy === makeOwner.Owners) {
+    if (makeOwner.Owners.length === makeOwner.approvedBy.length + 1) {
       await getDB().makeOwner.update({
         where: {
           id: id,

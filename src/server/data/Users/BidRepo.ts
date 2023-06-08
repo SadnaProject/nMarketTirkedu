@@ -109,6 +109,12 @@ export class BidRepo extends Testable {
         message: "Bid already approved",
       });
     }
+    if (bid.RejectedBy.includes(approverId)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Bid already rejected",
+      });
+    }
     await getDB().bid.update({
       where: {
         id: bidId,
@@ -121,7 +127,7 @@ export class BidRepo extends Testable {
     if (this.bids.has(bidId)) {
       this.bids.get(bidId)?.bid.ApprovedBy.push(approverId);
     }
-    if (bid.ApprovedBy === bid.Owners) {
+    if (bid.ApprovedBy.length === bid.Owners.length) {
       await getDB().bid.update({
         where: {
           id: bidId,
@@ -142,6 +148,12 @@ export class BidRepo extends Testable {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Bid already rejected",
+      });
+    }
+    if (bid.ApprovedBy.includes(rejecterId)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Bid already approved",
       });
     }
     await getDB().bid.update({

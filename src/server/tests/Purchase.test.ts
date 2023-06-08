@@ -536,7 +536,37 @@ describe("Bid User Story", () => {
     pargs = generateProductArgs();
     pargs.quantity = 7;
   });
-  it("✅ Bid on product", async () => {
+  it("✅ Bid on product and then all owners approved it", async () => {
+    const productInitialPrice = pargs.price;
+    const productId = await service.createProduct(ownerId, storeId, pargs);
+    console.log(productId);
+    const bidArgs: BidArgs = {
+      userId: customerId,
+      price: 5,
+      productId: productId,
+      type: "Store",
+    };
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer bids on product
+    const bid = await service.addBid(bidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //owners and founder accept bids
+    await service.approveBid(ownerId, bid);
+    //if not all owners approved bid, product price doesnt change
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await service.approveBid(founderId, bid);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      bidArgs.price
+    );
+  });
+  //only one owner approves bid
+  it("❌ Bid on product and then only one owner approved it", async () => {
     const productInitialPrice = pargs.price;
     const productId = await service.createProduct(ownerId, storeId, pargs);
     const bidArgs: BidArgs = {
@@ -555,6 +585,166 @@ describe("Bid User Story", () => {
     );
     //owner accepts bid
     await service.approveBid(ownerId, bid);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+  });
+  //product price doesnt change if bid is not approved
+  it("❌ Bid on product not approved", async () => {
+    const productInitialPrice = pargs.price;
+    const productId = await service.createProduct(ownerId, storeId, pargs);
+    const bidArgs: BidArgs = {
+      userId: customerId,
+      price: 5,
+      productId: productId,
+      type: "Store",
+    };
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer bids on product
+    const bid = await service.addBid(bidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //owner doesnt accept bid
+    await service.rejectBid(ownerId, bid);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+  });
+  //customer bids on product, owner counter offers, customer accepts counter offer
+  it("✅ Bid on product, owner counter offers, customer accepts counter offer", async () => {
+    const productInitialPrice = pargs.price;
+    const productId = await service.createProduct(ownerId, storeId, pargs);
+    const bidArgs: BidArgs = {
+      userId: customerId,
+      price: 5,
+      productId: productId,
+      type: "Store",
+    };
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer bids on product
+    const bid = await service.addBid(bidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //owner counter offers
+    const counterBidArgs: BidArgs = {
+      userId: ownerId,
+      price: 10,
+      productId: productId,
+      type: "Counter",
+      previousBidId: bid,
+    };
+    const counterBid = await service.addBid(counterBidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer accepts counter offer
+    await service.approveBid(customerId, counterBid);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      counterBidArgs.price
+    );
+  });
+  //customer bids on product, owner counter offers, customer rejects counter offer and bids again. owner accepts second bid
+  it("✅ Bid on product, owner counter offers, customer rejects counter offer and bids again. owner accepts second bid", async () => {
+    const productInitialPrice = pargs.price;
+    const productId = await service.createProduct(ownerId, storeId, pargs);
+    const bidArgs: BidArgs = {
+      userId: customerId,
+      price: 5,
+      productId: productId,
+      type: "Store",
+    };
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer bids on product
+    const bid = await service.addBid(bidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //owner counter offers
+    const counterBidArgs: BidArgs = {
+      userId: ownerId,
+      price: 10,
+      productId: productId,
+      type: "Counter",
+      previousBidId: bid,
+    };
+    const counterBid = await service.addBid(counterBidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer rejects counter offer
+    await service.rejectBid(customerId, counterBid);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer bids again
+    const bid2 = await service.addBid(bidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //owners accepts second bid
+    await service.approveBid(ownerId, bid2);
+    await service.approveBid(founderId, bid2);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      bidArgs.price
+    );
+  });
+  //not owner of store tries to approve bid on product
+  it("❌ Not owner of store tries to approve bid on product", async () => {
+    const productInitialPrice = pargs.price;
+    const productId = await service.createProduct(ownerId, storeId, pargs);
+    const bidArgs: BidArgs = {
+      userId: customerId,
+      price: 5,
+      productId: productId,
+      type: "Store",
+    };
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer bids on product
+    const bid = await service.addBid(bidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //not owner of store tries to approve bid
+    await expect(service.approveBid(customerId, bid)).rejects.toThrow(
+      "User doesn't have permission to approve bid"
+    );
+  });
+  //if an owner of a store is removed, he can't approve bids and we dont need him to approve bids
+  it("✅ If an owner of a store is removed, he can't approve bids and we dont need him to approve bids", async () => {
+    const productInitialPrice = pargs.price;
+    const productId = await service.createProduct(ownerId, storeId, pargs);
+    const bidArgs: BidArgs = {
+      userId: customerId,
+      price: 5,
+      productId: productId,
+      type: "Store",
+    };
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer bids on product
+    const bid = await service.addBid(bidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //owner removes himself from store
+    await service.removeStoreOwner(founderId, storeId, ownerId);
+    //owner tries to approve bid
+    await expect(service.approveBid(ownerId, bid)).rejects.toThrow(
+      "User doesn't have permission to approve bid"
+    );
+    //founder approves bid
+    await service.approveBid(founderId, bid);
     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
       bidArgs.price
     );

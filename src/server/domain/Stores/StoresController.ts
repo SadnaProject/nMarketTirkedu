@@ -813,6 +813,7 @@ export class StoresController
       storeId,
       targetUserId
     );
+    await this.Controllers.Users.removeOwnerFromHisBids(targetUserId);
     // eventEmitter.emit(`member is changed ${targetUserId}`, {
     //   changerId: currentId,
     //   changeeId: targetUserId,

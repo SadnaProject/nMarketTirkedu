@@ -149,6 +149,7 @@ export interface IUsersController {
   counterBid(userId: string, bidId: string, price: number): Promise<void>;
   approveBid(userId: string, bidId: string): Promise<void>;
   rejectBid(userId: string, bidId: string): Promise<void>;
+  removeOwnerFromHisBids(userId: string): Promise<void>;
 }
 
 @testable
@@ -354,7 +355,6 @@ export class UsersController
   }
   async addBid(bidArgs: BidArgs): Promise<string> {
     const bid = new Bid(bidArgs);
-    await this.Repos.Bids.addBid(bid);
     if (bidArgs.type === "Store") {
       const oids = await this.Controllers.Jobs.getIdsThatNeedToApprove(
         await this.Controllers.Stores.getStoreIdByProductId(
@@ -362,6 +362,8 @@ export class UsersController
           bid.ProductId
         )
       );
+      bid.setOwners(R.clone(oids));
+      await this.Repos.Bids.addBid(bid);
       for (const oid of oids) {
         (await this.Repos.Users.getUser(oid)).addBidToMe(bid.Id);
         eventEmitter.emitEvent({
@@ -370,7 +372,6 @@ export class UsersController
           type: "bidAdded",
         });
       }
-      bid.setOwners(R.clone(oids));
       (await this.Repos.Users.getUser(bid.UserId)).addBidFromMe(bid.Id);
       eventEmitter.subscribeChannel(`bidApproved_${bid.Id}`, bid.UserId);
     } else {
@@ -382,6 +383,7 @@ export class UsersController
         ).UserId
       );
       bid.setOwners([targetUser.Id]);
+      await this.Repos.Bids.addBid(bid);
       targetUser.addBidToMe(bid.Id);
       eventEmitter.emitEvent({
         bidId: bid.Id,

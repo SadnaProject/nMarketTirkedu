@@ -482,4 +482,7 @@ export class Service {
   async subscribeToStoreEvents(userId: string) {
     await this.facade.subscribeToStoreEvents(userId);
   }
+  async approveStoreOwner(makeOwnerObjectId: string, approverId: string) {
+    await this.facade.approveStoreOwner(makeOwnerObjectId, approverId);
+  }
 }

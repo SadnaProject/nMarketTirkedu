@@ -356,7 +356,7 @@ export class UsersController
     const bid = new Bid(bidArgs);
     await this.Repos.Bids.addBid(bid);
     if (bidArgs.type === "Store") {
-      const oids = await this.Controllers.Jobs.getStoreOwnersIds(
+      const oids = await this.Controllers.Jobs.getIdsThatNeedToApprove(
         await this.Controllers.Stores.getStoreIdByProductId(
           bid.UserId,
           bid.ProductId
@@ -370,14 +370,7 @@ export class UsersController
           type: "bidAdded",
         });
       }
-      bid.Owners = R.clone(
-        await this.Controllers.Jobs.getStoreOwnersIds(
-          await this.Controllers.Stores.getStoreIdByProductId(
-            bid.UserId,
-            bid.ProductId
-          )
-        )
-      );
+      bid.Owners = R.clone(oids);
       (await this.Repos.Users.getUser(bid.UserId)).addBidFromMe(bid.Id);
       eventEmitter.subscribeChannel(`bidApproved_${bid.Id}`, bid.UserId);
     } else {
@@ -402,13 +395,14 @@ export class UsersController
     const bid = await this.Repos.Bids.getBid(bidId);
     if (
       bid.Type == "Store" &&
-      !(await this.Controllers.Jobs.isStoreOwner(
-        userId,
-        await this.Controllers.Stores.getStoreIdByProductId(
-          bid.UserId,
-          bid.ProductId
+      !(
+        await this.Controllers.Jobs.getIdsThatNeedToApprove(
+          await this.Controllers.Stores.getStoreIdByProductId(
+            bid.UserId,
+            bid.ProductId
+          )
         )
-      ))
+      ).includes(userId)
     ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -446,13 +440,14 @@ export class UsersController
   async rejectBid(userId: string, bidId: string): Promise<void> {
     const bid = await this.Repos.Bids.getBid(bidId);
     if (
-      !(await this.Controllers.Jobs.isStoreOwner(
-        userId,
-        await this.Controllers.Stores.getStoreIdByProductId(
-          bid.UserId,
-          bid.ProductId
+      !(
+        await this.Controllers.Jobs.getIdsThatNeedToApprove(
+          await this.Controllers.Stores.getStoreIdByProductId(
+            bid.UserId,
+            bid.ProductId
+          )
         )
-      ))
+      ).includes(userId)
     ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -469,13 +464,14 @@ export class UsersController
   ): Promise<void> {
     const bid = await this.Repos.Bids.getBid(bidId);
     if (
-      !(await this.Controllers.Jobs.isStoreOwner(
-        userId,
-        await this.Controllers.Stores.getStoreIdByProductId(
-          bid.UserId,
-          bid.ProductId
+      !(
+        await this.Controllers.Jobs.getIdsThatNeedToApprove(
+          await this.Controllers.Stores.getStoreIdByProductId(
+            bid.UserId,
+            bid.ProductId
+          )
         )
-      ))
+      ).includes(userId)
     ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",

@@ -775,9 +775,7 @@ export class StoresController
         storeId,
         targetUserId,
         currentId,
-        (await this.getStoreOwnersIds(storeId)).concat(
-          await this.getStoreFounderId(storeId)
-        )
+        await this.Controllers.Jobs.getIdsThatNeedToApprove(storeId)
       );
       await this.Repos.Stores.addMakeOwner(
         make.getStoreId(),
@@ -791,6 +789,7 @@ export class StoresController
         type: "makeOwner",
         makeOwnerObjectId: make.getId(),
       });
+      await this.approveStoreOwner(make.getId(), currentId);
     }
   }
   async makeStoreManager(

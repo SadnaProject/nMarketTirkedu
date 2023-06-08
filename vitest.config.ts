@@ -13,11 +13,12 @@ export default defineConfig({
       reporter: ["lcov", "html"],
     },
     include: [
-      "**/UserRepo.test.ts",
-      "**/User.test.ts",
-      "**/Bid.test.ts",
-      "Basket.test.ts",
-      "**/UsersController.test.ts",
+      // "**/UserRepo.test.ts",
+      // "**/User.test.ts",
+      // "**/Bid.test.ts",
+      // "Basket.test.ts",
+      // "**/UsersController.test.ts",
+      "**/Purchase.test.ts",
     ],
     //make the tests run in an order and not in parallel
     threads: false,

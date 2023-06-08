@@ -5,6 +5,7 @@ import { Bid as BidDAO } from "@prisma/client";
 
 const bidStateSchema = z.enum(["APPROVED", "WAITING", "REJECTED"]);
 export type BidState = z.infer<typeof bidStateSchema>;
+//this is a bid from the user to the store
 export const storeBidArgsSchema = z.object({
   userId: z.string().uuid(),
   price: z.number().nonnegative(),
@@ -12,6 +13,7 @@ export const storeBidArgsSchema = z.object({
   type: z.literal("Store"),
 });
 export type storeBidArgs = z.infer<typeof storeBidArgsSchema>;
+//this is a bid from the store to the user
 export const counterBidArgsSchema = z.object({
   userId: z.string().uuid(),
   price: z.number().nonnegative(),

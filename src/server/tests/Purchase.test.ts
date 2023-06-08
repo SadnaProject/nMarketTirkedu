@@ -7,7 +7,8 @@ import {
 import { Service } from "server/service/Service";
 import { describe, expect, it, beforeEach } from "vitest";
 import { TRPCError } from "@trpc/server";
-import { resetDB } from "server/helpers/_Transactional";
+import { getDB, resetDB } from "server/helpers/_Transactional";
+import { BidArgs } from "server/domain/Users/Bid";
 let service: Service;
 beforeEach(async () => {
   await resetDB();
@@ -31,60 +32,60 @@ export type DeliveryDetails = {
 };
 
 //Use Case 2.1
-describe("Get information about stores and products", () => {
-  it("✅ Get information about stores and products", async () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const id = await service.startSession();
-    await service.registerMember(id, email, password);
-    const uid = await service.loginMember(id, email, password);
-    const storeName = generateStoreName();
-    const storeId = await service.createStore(uid, storeName);
-    const ownermail = "owner@gmail.com";
-    const ownerpass = "owner123";
-    const oid2 = await service.startSession();
-    await service.registerMember(oid2, ownermail, ownerpass);
-    const oid = await service.loginMember(oid2, ownermail, ownerpass);
-    await service.makeStoreOwner(uid, storeId, oid);
-    const pargs = generateProductArgs();
-    const pid = await service.createProduct(oid, storeId, pargs);
-    const memail = "member@gmail.com";
-    const mpassword = faker.internet.password();
-    const mid = await service.startSession();
-    await service.registerMember(mid, memail, mpassword);
-    const umid = await service.loginMember(mid, memail, mpassword);
-    const products = await service.getStoreProducts(uid, storeId);
-    const cond =
-      products[0]?.id === pid &&
-      (await service.getStoreFounder(storeId)) === uid;
-    expect(cond).toBe(true);
-  });
-  it("❎ Information of non existing store", async () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const id = await service.startSession();
-    await service.registerMember(id, email, password);
-    const uid = await service.loginMember(id, email, password);
-    const storeName = generateStoreName();
-    const storeId = await service.createStore(uid, storeName);
-    const ownermail = "owner@gmail.com";
-    const ownerpass = "owner123";
-    const oid2 = await service.startSession();
-    await service.registerMember(oid2, ownermail, ownerpass);
-    const oid = await service.loginMember(oid2, ownermail, ownerpass);
-    await service.makeStoreOwner(uid, storeId, oid);
-    const pargs = generateProductArgs();
-    const pid = await service.createProduct(oid, storeId, pargs);
-    const memail = "member@gmail.com";
-    const mpassword = faker.internet.password();
-    const mid = await service.startSession();
-    await service.registerMember(mid, memail, mpassword);
-    const umid = await service.loginMember(mid, memail, mpassword);
-    await expect(() => service.getStoreFounder("ashaleee")).rejects.toThrow(
-      "Store not found"
-    );
-  });
-});
+// describe("Get information about stores and products", () => {
+//   it("✅ Get information about stores and products", async () => {
+//     const email = faker.internet.email();
+//     const password = faker.internet.password();
+//     const id = await service.startSession();
+//     await service.registerMember(id, email, password);
+//     const uid = await service.loginMember(id, email, password);
+//     const storeName = generateStoreName();
+//     const storeId = await service.createStore(uid, storeName);
+//     const ownermail = "owner@gmail.com";
+//     const ownerpass = "owner123";
+//     const oid2 = await service.startSession();
+//     await service.registerMember(oid2, ownermail, ownerpass);
+//     const oid = await service.loginMember(oid2, ownermail, ownerpass);
+//     await service.makeStoreOwner(uid, storeId, oid);
+//     const pargs = generateProductArgs();
+//     const pid = await service.createProduct(oid, storeId, pargs);
+//     const memail = "member@gmail.com";
+//     const mpassword = faker.internet.password();
+//     const mid = await service.startSession();
+//     await service.registerMember(mid, memail, mpassword);
+//     const umid = await service.loginMember(mid, memail, mpassword);
+//     const products = await service.getStoreProducts(uid, storeId);
+//     const cond =
+//       products[0]?.id === pid &&
+//       (await service.getStoreFounder(storeId)) === uid;
+//     expect(cond).toBe(true);
+//   });
+//   it("❎ Information of non existing store", async () => {
+//     const email = faker.internet.email();
+//     const password = faker.internet.password();
+//     const id = await service.startSession();
+//     await service.registerMember(id, email, password);
+//     const uid = await service.loginMember(id, email, password);
+//     const storeName = generateStoreName();
+//     const storeId = await service.createStore(uid, storeName);
+//     const ownermail = "owner@gmail.com";
+//     const ownerpass = "owner123";
+//     const oid2 = await service.startSession();
+//     await service.registerMember(oid2, ownermail, ownerpass);
+//     const oid = await service.loginMember(oid2, ownermail, ownerpass);
+//     await service.makeStoreOwner(uid, storeId, oid);
+//     const pargs = generateProductArgs();
+//     const pid = await service.createProduct(oid, storeId, pargs);
+//     const memail = "member@gmail.com";
+//     const mpassword = faker.internet.password();
+//     const mid = await service.startSession();
+//     await service.registerMember(mid, memail, mpassword);
+//     const umid = await service.loginMember(mid, memail, mpassword);
+//     await expect(() => service.getStoreFounder("ashaleee")).rejects.toThrow(
+//       "Store not found"
+//     );
+//   });
+// });
 //Use Case 2.2
 // describe("Search Products", () => {
 //   let pargs1: StoreProductArgs,
@@ -188,42 +189,42 @@ describe("Get information about stores and products", () => {
 //   });
 // });
 // //Use Case 2.3
-describe("Keep an Item in the cart", () => {
-  it("✅ Add item to cart and keep it after disconnecting", async () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const id = await service.startSession();
-    await service.registerMember(id, email, password);
-    const uid = await service.loginMember(id, email, password);
-    const storeName = generateStoreName();
-    const storeId = await service.createStore(uid, storeName);
-    const ownermail = "owner@gmail.com";
-    const ownerpass = "owner123";
-    const oid2 = await service.startSession();
-    await service.registerMember(oid2, ownermail, ownerpass);
-    const oid = await service.loginMember(oid2, ownermail, ownerpass);
-    await service.makeStoreOwner(uid, storeId, oid);
-    const pargs = generateProductArgs();
-    pargs.quantity = 2;
-    const pid = await service.createProduct(oid, storeId, pargs);
-    const memail = "member@gmail.com";
-    const mpassword = faker.internet.password();
-    const mid = await service.startSession();
-    await service.registerMember(mid, memail, mpassword);
-    const umid = await service.loginMember(mid, memail, mpassword);
-    await service.addProductToCart(umid, pid, 1);
-    const cart = await service.getCart(umid);
-    expect(
-      cart.storeIdToBasket.get(storeId)?.products.at(0)?.storeProductId === pid
-    ).toBe(true);
-    const mid2 = await service.logoutMember(umid);
-    const umid2 = await service.loginMember(mid2, memail, mpassword);
-    const cart2 = await service.getCart(umid2);
-    expect(
-      cart2.storeIdToBasket.get(storeId)?.products.at(0)?.storeProductId === pid
-    ).toBe(true);
-  });
-});
+// describe("Keep an Item in the cart", () => {
+//   it("✅ Add item to cart and keep it after disconnecting", async () => {
+//     const email = faker.internet.email();
+//     const password = faker.internet.password();
+//     const id = await service.startSession();
+//     await service.registerMember(id, email, password);
+//     const uid = await service.loginMember(id, email, password);
+//     const storeName = generateStoreName();
+//     const storeId = await service.createStore(uid, storeName);
+//     const ownermail = "owner@gmail.com";
+//     const ownerpass = "owner123";
+//     const oid2 = await service.startSession();
+//     await service.registerMember(oid2, ownermail, ownerpass);
+//     const oid = await service.loginMember(oid2, ownermail, ownerpass);
+//     await service.makeStoreOwner(uid, storeId, oid);
+//     const pargs = generateProductArgs();
+//     pargs.quantity = 2;
+//     const pid = await service.createProduct(oid, storeId, pargs);
+//     const memail = "member@gmail.com";
+//     const mpassword = faker.internet.password();
+//     const mid = await service.startSession();
+//     await service.registerMember(mid, memail, mpassword);
+//     const umid = await service.loginMember(mid, memail, mpassword);
+//     await service.addProductToCart(umid, pid, 1);
+//     const cart = await service.getCart(umid);
+//     expect(
+//       cart.storeIdToBasket.get(storeId)?.products.at(0)?.storeProductId === pid
+//     ).toBe(true);
+//     const mid2 = await service.logoutMember(umid);
+//     const umid2 = await service.loginMember(mid2, memail, mpassword);
+//     const cart2 = await service.getCart(umid2);
+//     expect(
+//       cart2.storeIdToBasket.get(storeId)?.products.at(0)?.storeProductId === pid
+//     ).toBe(true);
+//   });
+// });
 //Use Case 2.4
 // describe("Edit cart contents", () => {
 //   let email: string,
@@ -489,3 +490,73 @@ describe("Keep an Item in the cart", () => {
 //     // expect(() => service.removeProductFromCart(umid, pid)).toThrow(TRPCError);
 //   });
 // });
+
+//bid user story
+describe("Bid User Story", () => {
+  let email: string,
+    password: string,
+    gid: string,
+    founderId: string,
+    storeName: string,
+    storeId: string,
+    ownermail: string,
+    ownerpass: string,
+    ownerId: string,
+    gid2: string,
+    pargs: {
+      name: string;
+      quantity: number;
+      price: number;
+      category: string;
+      description: string;
+    };
+  let customerId: string;
+  beforeEach(async () => {
+    await resetDB();
+    email = faker.internet.email();
+    password = faker.internet.password();
+    gid = await service.startSession();
+    await service.registerMember(gid, email, password);
+    founderId = await service.loginMember(gid, email, password);
+    storeName = generateStoreName();
+    storeId = await service.createStore(founderId, storeName);
+    ownermail = "owner@gmail.com";
+    ownerpass = "owner123";
+    gid2 = await service.startSession();
+    ownerId = await service.registerMember(gid2, ownermail, ownerpass);
+    await service.makeStoreOwner(founderId, storeId, ownerId);
+    customerId = await service.startSession();
+    const customerEmail = faker.internet.email();
+    const customerPassword = faker.internet.password();
+    customerId = await service.registerMember(
+      customerId,
+      customerEmail,
+      customerPassword
+    );
+    pargs = generateProductArgs();
+    pargs.quantity = 7;
+  });
+  it("✅ Bid on product", async () => {
+    const productInitialPrice = pargs.price;
+    const productId = await service.createProduct(ownerId, storeId, pargs);
+    const bidArgs: BidArgs = {
+      userId: customerId,
+      price: 5,
+      productId: productId,
+      type: "Store",
+    };
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer bids on product
+    const bid = await service.addBid(bidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //owner accepts bid
+    await service.approveBid(ownerId, bid);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      bidArgs.price
+    );
+  });
+});

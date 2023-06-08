@@ -87,7 +87,10 @@ export class Bid {
   public get Price() {
     return this.price;
   }
-  public set Owners(owners: string[]) {
+  public get Owners() {
+    return this.owners;
+  }
+  public setOwners(owners: string[]) {
     this.owners = owners;
   }
   public get State() {
@@ -169,6 +172,7 @@ export class Bid {
       bid.approvedBy = bidDAO.approvedBy;
       bid.rejectedBy = bidDAO.rejectedBy;
       bid.state = bidDAO.state;
+      bid.setOwners(bidDAO.owners);
       return bid;
     } else {
       const bid = new Bid({
@@ -181,6 +185,7 @@ export class Bid {
       bid.approvedBy = bidDAO.approvedBy;
       bid.rejectedBy = bidDAO.rejectedBy;
       bid.state = bidDAO.state;
+      bid.setOwners(bidDAO.owners);
       return bid;
     }
   }

@@ -150,6 +150,7 @@ model StoreProduct {
     quantity     Int
     description  String
     SpecialPrice SpecialPrice[]
+    Bid          Bid[]
 }
 
 model SpecialPrice {
@@ -183,7 +184,6 @@ model BasketProduct {
     storeId        String
     userId         String
     user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-    bids           Bid[]
 }
 
 model Basket {
@@ -214,17 +214,18 @@ enum BidState {
 }
 
 model Bid {
-    id            String        @id @default(cuid())
+    id            String       @id @default(cuid())
     userId        String
-    user          User          @relation(fields: [userId], references: [id])
+    user          User         @relation(fields: [userId], references: [id])
     productId     String
-    product       BasketProduct @relation(fields: [productId], references: [storeProductId])
+    product       StoreProduct @relation(fields: [productId], references: [id])
     price         Float
     approvedBy    String[]
     rejectedBy    String[]
     state         BidState
     type          BidType
     previousBidId String?
+    owners        String[]
 }
 
 model User {

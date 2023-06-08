@@ -370,7 +370,7 @@ export class UsersController
           type: "bidAdded",
         });
       }
-      bid.Owners = R.clone(oids);
+      bid.setOwners(R.clone(oids));
       (await this.Repos.Users.getUser(bid.UserId)).addBidFromMe(bid.Id);
       eventEmitter.subscribeChannel(`bidApproved_${bid.Id}`, bid.UserId);
     } else {
@@ -381,7 +381,7 @@ export class UsersController
           await this.Repos.Bids.getBid(bidArgs.previousBidId)
         ).UserId
       );
-      bid.Owners = [targetUser.Id];
+      bid.setOwners([targetUser.Id]);
       targetUser.addBidToMe(bid.Id);
       eventEmitter.emitEvent({
         bidId: bid.Id,
@@ -503,5 +503,22 @@ export class UsersController
     return (await this.Repos.Bids.getAllBidsSentByUser(userId)).map(
       (bid) => bid.DTO
     );
+  }
+  async removeOwnerFromHisBids(userId: string): Promise<void> {
+    const bids = await this.Repos.Bids.getAllBids();
+    for (const bid of bids) {
+      if (bid.Owners.includes(userId) && bid.State === "WAITING") {
+        await this.Repos.Bids.removeOwnerFromBid(bid.Id, userId);
+        await this.updateBid(bid.Id);
+      }
+    }
+  }
+  async updateBid(bidId: string): Promise<void> {
+    const bid = await this.Repos.Bids.getBid(bidId);
+    if (bid.State === "WAITING") {
+      if (bid.Owners === bid.ApprovedBy) {
+        await this.approveBid(bid.UserId, bid.Id);
+      }
+    }
   }
 }

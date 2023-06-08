@@ -5,18 +5,24 @@ export class MakeOwner {
   private targetUserId: string;
   private appointerUserId: string;
   private needsApproveBy: string[];
+  private approveBy: string[];
+  private rejectBy: string[];
   private id: string;
   constructor(
     storeId: string,
     targetUserId: string,
     appointerUserId: string,
-    needsApproveBy: string[]
+    needsApproveBy: string[],
+    approveBy?: string[],
+    rejectBy?: string[]
   ) {
     this.storeId = storeId;
     this.targetUserId = targetUserId;
     this.appointerUserId = appointerUserId;
     this.needsApproveBy = needsApproveBy;
     this.id = randomUUID();
+    this.approveBy = approveBy || [];
+    this.rejectBy = rejectBy || [];
   }
   public approve(userId: string) {
     if (this.needsApproveBy.includes(userId)) {

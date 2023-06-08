@@ -714,7 +714,7 @@ export class StoresController
       this.Repos,
       this.Controllers
     );
-    return product.getPriceForUser(userId);
+    return await product.getPriceForUser(userId);
   }
 
   async getStoreIdByProductId(
@@ -1061,12 +1061,11 @@ export class StoresController
       .getDTO();
   }
   async addSpecialPriceToProduct(bid: Bid): Promise<void> {
-    const product = StoreProduct.fromDAO(
-      await this.Repos.Products.getProductById(bid.ProductId),
-      await this.Repos.Products.getSpecialPrices(bid.ProductId)
+    await this.Repos.Products.addSpecialPrice(
+      bid.UserId,
+      bid.ProductId,
+      bid.Price
     );
-    product.initControllers(this.Controllers).initRepos(this.Repos);
-    await product.addSpecialPrice(bid.UserId, bid.Price);
   }
   async getConstraintPolicy(
     userId: string,
@@ -1143,8 +1142,17 @@ export class StoresController
   }
   async updateMakeOwnerState(makeOwnerId: string) {
     const make = await this.Repos.Stores.getMakeOwner(makeOwnerId);
-    if (make.getOwners() === make.getApprovers()) {
+    if (
+      make.getRejectors().length === 0 &&
+      make.getOwners().length === make.getApprovers().length
+    ) {
       await this.Repos.Stores.forceApproveMake(makeOwnerId);
+      await this.makeStoreOwner(
+        make.getAppointerUserId(),
+        make.getStoreId(),
+        make.getTargetUserId(),
+        make.getId()
+      );
     }
   }
 }

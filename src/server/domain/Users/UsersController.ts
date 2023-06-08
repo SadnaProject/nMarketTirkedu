@@ -419,7 +419,8 @@ export class UsersController
     }
     await this.Repos.Bids.approveBid(bidId, userId);
     // await this.Repos.Bids.updateBid(bid); //TODO:  needed!!!!
-    if ((await this.Repos.Bids.bidState(bidId)) === "APPROVED") {
+    const state = await this.Repos.Bids.bidState(bidId);
+    if (state === "APPROVED") {
       switch (bid.Type) {
         case "Store":
           await this.Controllers.Stores.addSpecialPriceToProduct(bid);
@@ -456,7 +457,6 @@ export class UsersController
         message: "User doesn't have permission to reject bid",
       });
     }
-    bid.reject(userId);
     await this.Repos.Bids.rejectBid(bidId, userId);
   }
   async counterBid(
@@ -509,7 +509,11 @@ export class UsersController
   async removeOwnerFromHisBids(userId: string): Promise<void> {
     const bids = await this.Repos.Bids.getAllBids();
     for (const bid of bids) {
-      if (bid.Owners.includes(userId) && bid.State === "WAITING") {
+      if (
+        bid.Owners.includes(userId) &&
+        bid.State === "WAITING" &&
+        bid.Type === "Store"
+      ) {
         await this.Repos.Bids.removeOwnerFromBid(bid.Id, userId);
         await this.updateBid(bid.Id);
       }
@@ -519,7 +523,7 @@ export class UsersController
     const bid = await this.Repos.Bids.getBid(bidId);
     if (bid.State === "WAITING") {
       if (bid.Owners === bid.ApprovedBy) {
-        await this.approveBid(bid.UserId, bid.Id);
+        ///TODO: approve bid
       }
     }
   }

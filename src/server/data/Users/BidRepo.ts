@@ -121,7 +121,7 @@ export class BidRepo extends Testable {
     if (this.bids.has(bidId)) {
       this.bids.get(bidId)?.bid.ApprovedBy.push(approverId);
     }
-    if (bid.ApprovedBy.length === bid.Owners.length) {
+    if (bid.ApprovedBy === bid.Owners) {
       await getDB().bid.update({
         where: {
           id: bidId,

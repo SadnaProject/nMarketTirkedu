@@ -108,12 +108,12 @@ export class Bid {
     if (!this.owners.includes(userId))
       throw new TRPCError({
         code: "UNAUTHORIZED",
-        message: "this user can't approve this bid",
+        message: "this user can't reject this bid",
       });
     if (this.approvedBy.includes(userId))
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "this user has already approved this bid",
+        message: "this user has already reject this bid",
       });
     this.rejectedBy.push(userId);
     this.state = "REJECTED";

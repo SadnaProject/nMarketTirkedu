@@ -354,13 +354,16 @@ model PositionHolder {
 }
 
 model MakeOwner {
-    id             String   @id
-    userId         String
-    user           User     @relation(fields: [userId], references: [id])
-    storeId        String
-    store          Store    @relation(fields: [storeId], references: [id])
-    needsApproveBy String[]
-    appointedBy    String
+    id          String   @id
+    userId      String
+    user        User     @relation(fields: [userId], references: [id])
+    storeId     String
+    store       Store    @relation(fields: [storeId], references: [id])
+    Owners      String[]
+    appointedBy String
+    rejectedBy  String[]
+    state       BidState
+    approvedBy  String[]
 }
 
 //TODO maybe better to just save a field in the users table.

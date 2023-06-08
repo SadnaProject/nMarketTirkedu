@@ -533,7 +533,7 @@ export class StoresRepo extends Testable {
     userId: string,
     appointerId: string,
     id: string,
-    needsApproveBy: string[]
+    Owners: string[]
   ): Promise<void> {
     await getDB().makeOwner.create({
       data: {
@@ -541,7 +541,10 @@ export class StoresRepo extends Testable {
         userId: userId,
         appointedBy: appointerId,
         id: id,
-        needsApproveBy: needsApproveBy,
+        Owners: Owners,
+        approvedBy: [],
+        rejectedBy: [],
+        state: "WAITING",
       },
     });
   }
@@ -557,7 +560,7 @@ export class StoresRepo extends Testable {
         message: "makeOwner does not exist",
       });
     }
-    return makeOwner.needsApproveBy.length === 0;
+    return makeOwner.state === "APPROVED";
   }
   public async approveOwner(id: string, userId: string): Promise<void> {
     const makeOwner = await getDB().makeOwner.findUnique({
@@ -571,24 +574,71 @@ export class StoresRepo extends Testable {
         message: "makeOwner does not exist",
       });
     }
-    const needsApproveBy = makeOwner.needsApproveBy;
-    const index = needsApproveBy.indexOf(userId);
+    const Owners = makeOwner.Owners;
+    const index = Owners.indexOf(userId);
     if (index === -1) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "user is not in needsApproveBy",
+        message: "user is not in Owners",
       });
     }
-    needsApproveBy.splice(index, 1);
+    if (
+      makeOwner.approvedBy.includes(userId) ||
+      makeOwner.rejectedBy.includes(userId)
+    ) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "user already approved or rejected",
+      });
+    }
     await getDB().makeOwner.update({
       where: {
         id: id,
       },
       data: {
-        needsApproveBy: needsApproveBy,
+        approvedBy: makeOwner.approvedBy.concat(userId),
       },
     });
   }
+  public async rejectMakeOwner(id: string, userId: string): Promise<void> {
+    const makeOwner = await getDB().makeOwner.findUnique({
+      where: {
+        id: id,
+      },
+    });
+    if (makeOwner === null) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "makeOwner does not exist",
+      });
+    }
+    const Owners = makeOwner.Owners;
+    const index = Owners.indexOf(userId);
+    if (index === -1) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "user is not in Owners",
+      });
+    }
+    if (
+      makeOwner.approvedBy.includes(userId) ||
+      makeOwner.rejectedBy.includes(userId)
+    ) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "user already approved or rejected",
+      });
+    }
+    await getDB().makeOwner.update({
+      where: {
+        id: id,
+      },
+      data: {
+        rejectedBy: makeOwner.rejectedBy.concat(userId),
+      },
+    });
+  }
+
   public async getMakeOwner(id: string): Promise<MakeOwner> {
     const makeOwner = await getDB().makeOwner.findUnique({
       where: {
@@ -602,5 +652,13 @@ export class StoresRepo extends Testable {
       });
     }
     return MakeOwner.fromDAO(makeOwner);
+  }
+  public async getMakeOwners(storeId: string): Promise<MakeOwner[]> {
+    const makeOwners = await getDB().makeOwner.findMany({
+      where: {
+        storeId: storeId,
+      },
+    });
+    return makeOwners.map((makeOwner) => MakeOwner.fromDAO(makeOwner));
   }
 }

@@ -782,7 +782,7 @@ export class StoresController
         make.getTargetUserId(),
         make.getAppointerUserId(),
         make.getId(),
-        make.getNeedsApproveBy()
+        make.getOwners()
       );
       eventEmitter.emitEvent({
         channel: `tryToMakeNewOwner_${storeId}`,
@@ -1118,6 +1118,25 @@ export class StoresController
         make.getTargetUserId(),
         make.getId()
       );
+    }
+  }
+  async rejectStoreOwner(makeOwnerId: string, userId: string) {
+    await this.Repos.Stores.rejectMakeOwner(makeOwnerId, userId);
+  }
+  async removeStoreOwnerFromPendingOfMakeOwner(
+    userId: string,
+    storeId: string
+  ) {
+    const makes = await this.Repos.Stores.getMakeOwners(storeId);
+    for (const make of makes) {
+      if (
+        make.getState() === "WAITING" &&
+        make.getOwners().includes(userId) &&
+        !make.getApprovers().includes(userId) &&
+        !make.getRejectors().includes(userId)
+      ) {
+        ///TODO remove him from the owners and update the make
+      }
     }
   }
 }

@@ -933,6 +933,7 @@ export class JobsController
   async getIdsThatNeedToApprove(storeId: string): Promise<string[]> {
     const ownersIds = await this.getStoreOwnersIds(storeId);
     const foundersIds = await this.getStoreFounderId(storeId);
-    return [...ownersIds, foundersIds];
+    ownersIds.push(foundersIds);
+    return ownersIds;
   }
 }

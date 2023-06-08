@@ -1,14 +1,14 @@
-// import { faker } from "@faker-js/faker/locale/en";
-// import {
-//   generateProductArgs,
-//   generateStoreName,
-// } from "server/data/Stores/helpers/_data";
-// import { Service } from "server/service/Service";
-// import { describe, expect, it, beforeEach } from "vitest";
-// import { TRPCError } from "@trpc/server";
-// import { resetDB } from "server/helpers/_Transactional";
-// import { type ConditionArgs } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
-// let service: Service;
+import { faker } from "@faker-js/faker/locale/en";
+import {
+  generateProductArgs,
+  generateStoreName,
+} from "server/data/Stores/helpers/_data";
+import { Service } from "server/service/Service";
+import { describe, expect, it, beforeEach } from "vitest";
+import { TRPCError } from "@trpc/server";
+import { resetDB } from "server/helpers/_Transactional";
+import { type ConditionArgs } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
+let service: Service;
 
 // export type PaymentDetails = {
 //   number: string;
@@ -747,3 +747,110 @@
 //     ).toBe(true);
 //   });
 // });
+
+//adding owner tests(after requirements change to require approval of all owners)
+describe("Add Owner require approval", () => {
+  let email: string,
+    password: string,
+    gid: string,
+    founderId: string,
+    storeName: string,
+    storeId: string,
+    owner1mail: string,
+    owner1pass: string,
+    owner1Id: string,
+    gid2: string,
+    pargs: {
+      name: string;
+      quantity: number;
+      price: number;
+      category: string;
+      description: string;
+    };
+  let customerId: string;
+  beforeEach(async () => {
+    await resetDB();
+    email = faker.internet.email();
+    password = faker.internet.password();
+    gid = await service.startSession();
+    await service.registerMember(gid, email, password);
+    founderId = await service.loginMember(gid, email, password);
+    storeName = generateStoreName();
+    storeId = await service.createStore(founderId, storeName);
+    owner1mail = "owner@gmail.com";
+    owner1pass = "owner123";
+    gid2 = await service.startSession();
+    owner1Id = await service.registerMember(gid2, owner1mail, owner1pass);
+    // await service.makeStoreOwner(founderId, storeId, owner1Id);
+    customerId = await service.startSession();
+    const customerEmail = faker.internet.email();
+    const customerPassword = faker.internet.password();
+    customerId = await service.registerMember(
+      customerId,
+      customerEmail,
+      customerPassword
+    );
+    pargs = generateProductArgs();
+    pargs.quantity = 7;
+  });
+  //founder adds owner, this needs to work as the founder is the only owner(so no need for approval)
+  it("✅ founder adds owner", async () => {
+    await service.makeStoreOwner(founderId, storeId, customerId);
+    expect(await service.isStoreOwner(founderId, storeId)).toBe(true);
+  });
+  //founder adds owner1, owner1 adds customer as owner. Now customer isnt appointed till founder approves
+  it("✅ founder adds owner1, owner1 adds customer. Now customer isnt appointed till founder approves", async () => {
+    await service.makeStoreOwner(founderId, storeId, owner1Id);
+    expect(await service.isStoreOwner(founderId, storeId)).toBe(true);
+    const makeStoreOwnerRequestId = await service.makeStoreOwner(
+      owner1Id,
+      storeId,
+      customerId
+    );
+    expect(await service.isStoreOwner(owner1Id, storeId)).toBe(false);
+    await service.approveStoreOwner(makeStoreOwnerRequestId, founderId); //this currently doesnt work because makeStoreOwner doesnt return the request id as it should
+    expect(await service.isStoreOwner(owner1Id, storeId)).toBe(true);
+  });
+  //founder adds owner1, owner1 adds customer as owner. Now customer isnt appointed till founder approves(should fail)
+  it("❌ founder adds owner1, owner1 adds customer. Now customer isnt appointed till founder approves(should fail)", async () => {
+    await service.makeStoreOwner(founderId, storeId, owner1Id);
+    expect(await service.isStoreOwner(owner1Id, storeId)).toBe(true);
+    const makeStoreOwnerRequestId = await service.makeStoreOwner(
+      owner1Id,
+      storeId,
+      customerId
+    );
+    expect(await service.isStoreOwner(owner1Id, storeId)).toBe(false);
+  });
+  //a non owner tries to add owner to store
+  it("❌ a non owner tries to add owner to store", async () => {
+    await expect(() =>
+      service.makeStoreOwner(customerId, storeId, owner1Id)
+    ).rejects.toThrow(TRPCError);
+  });
+  //a non owner tries to approve owner to store(same one that is appointed and antoher unrelated one)
+  it("❌ a non owner tries to approve owner to store", async () => {
+    await service.makeStoreOwner(founderId, storeId, owner1Id);
+    expect(await service.isStoreOwner(owner1Id, storeId)).toBe(true);
+    const makeStoreOwnerRequestId = await service.makeStoreOwner(
+      owner1Id,
+      storeId,
+      customerId
+    );
+    expect(await service.isStoreOwner(owner1Id, storeId)).toBe(false);
+    await expect(() =>
+      service.approveStoreOwner(makeStoreOwnerRequestId, customerId)
+    ).rejects.toThrow(TRPCError);
+    //create another user
+    const customer2Email = faker.internet.email();
+    const customer2Password = faker.internet.password();
+    const customerId2 = await service.registerMember(
+      customerId,
+      customer2Email,
+      customer2Password
+    );
+    await expect(() =>
+      service.approveStoreOwner(makeStoreOwnerRequestId, customerId2)
+    ).rejects.toThrow(TRPCError);
+  });
+});

@@ -19,6 +19,12 @@ export class BidRepo extends Testable {
   }
 
   public async addBid(bid: Bid) {
+    if (this.bids.has(bid.Id)) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "StoreBid already exists",
+      });
+    }
     await getDB().bid.create({
       data: {
         id: bid.Id,
@@ -27,14 +33,9 @@ export class BidRepo extends Testable {
         userId: bid.UserId,
         state: bid.State,
         type: bid.Type,
+        owners: bid.Owners,
       },
     });
-    if (this.bids.has(bid.Id)) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "StoreBid already exists",
-      });
-    }
     /// if the size is lower than 10 add it to the map
     if (this.bids.size <= 10) {
       this.bids.set(bid.Id, { bid: bid, counter: counter });
@@ -179,5 +180,25 @@ export class BidRepo extends Testable {
       bids.push(Bid.fromDAO(bidDAO));
     }
     return bids;
+  }
+  public async removeOwnerFromBid(bidId: string, ownerId: string) {
+    const bid = await this.getBid(bidId);
+    const owners = bid.Owners;
+    const index = owners.indexOf(ownerId);
+    if (index > -1) {
+      owners.splice(index, 1);
+    }
+    await getDB().bid.update({
+      where: {
+        id: bidId,
+      },
+      data: {
+        owners: owners,
+      },
+    });
+    bid.setOwners(owners);
+    if (this.bids.has(bidId)) {
+      this.bids.get(bidId)?.bid.setOwners(owners);
+    }
   }
 }

@@ -813,7 +813,8 @@ export class StoresController
       storeId,
       targetUserId
     );
-    await this.Controllers.Users.removeOwnerFromHisBids(targetUserId);
+    await this.Controllers.Users.removeOwnerFromHisBids(targetUserId, storeId);
+    await this.removeStoreOwnerFromPendingOfMakeOwner(currentId, storeId);
     // eventEmitter.emit(`member is changed ${targetUserId}`, {
     //   changerId: currentId,
     //   changeeId: targetUserId,
@@ -1135,8 +1136,15 @@ export class StoresController
         !make.getApprovers().includes(userId) &&
         !make.getRejectors().includes(userId)
       ) {
-        ///TODO remove him from the owners and update the make
+        await this.Repos.Stores.removeOwnerForMakeOwner(make.getId(), userId);
+        await this.updateMakeOwnerState(make.getId());
       }
+    }
+  }
+  async updateMakeOwnerState(makeOwnerId: string) {
+    const make = await this.Repos.Stores.getMakeOwner(makeOwnerId);
+    if (make.getOwners() === make.getApprovers()) {
+      await this.Repos.Stores.forceApproveMake(makeOwnerId);
     }
   }
 }

@@ -201,4 +201,19 @@ export class BidRepo extends Testable {
       this.bids.get(bidId)?.bid.setOwners(owners);
     }
   }
+  public async forceApprove(bidId: string) {
+    const bid = await this.getBid(bidId);
+    await getDB().bid.update({
+      where: {
+        id: bidId,
+      },
+      data: {
+        state: "APPROVED",
+      },
+    });
+    if (this.bids.has(bidId)) {
+      this.bids.get(bidId)?.bid.setState("APPROVED");
+    }
+    bid.setState("APPROVED");
+  }
 }

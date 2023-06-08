@@ -149,7 +149,7 @@ export interface IUsersController {
   counterBid(userId: string, bidId: string, price: number): Promise<void>;
   approveBid(userId: string, bidId: string): Promise<void>;
   rejectBid(userId: string, bidId: string): Promise<void>;
-  removeOwnerFromHisBids(userId: string): Promise<void>;
+  removeOwnerFromHisBids(userId: string, storeId: string): Promise<void>;
 }
 
 @testable
@@ -506,13 +506,17 @@ export class UsersController
       (bid) => bid.DTO
     );
   }
-  async removeOwnerFromHisBids(userId: string): Promise<void> {
+  async removeOwnerFromHisBids(userId: string, storeId: string): Promise<void> {
     const bids = await this.Repos.Bids.getAllBids();
     for (const bid of bids) {
       if (
         bid.Owners.includes(userId) &&
         bid.State === "WAITING" &&
-        bid.Type === "Store"
+        bid.Type === "Store" &&
+        (await this.Controllers.Stores.getStoreIdByProductId(
+          bid.UserId,
+          bid.ProductId
+        )) === storeId
       ) {
         await this.Repos.Bids.removeOwnerFromBid(bid.Id, userId);
         await this.updateBid(bid.Id);
@@ -523,7 +527,7 @@ export class UsersController
     const bid = await this.Repos.Bids.getBid(bidId);
     if (bid.State === "WAITING") {
       if (bid.Owners === bid.ApprovedBy) {
-        ///TODO: approve bid
+        await this.Repos.Bids.forceApprove(bidId);
       }
     }
   }

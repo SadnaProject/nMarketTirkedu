@@ -423,6 +423,7 @@ export class UsersController
     if (state === "APPROVED") {
       switch (bid.Type) {
         case "Store":
+          console.log("GOT HERE");
           await this.Controllers.Stores.addSpecialPriceToProduct(bid);
           eventEmitter.emitEvent({
             bidId: bid.Id,

@@ -65,7 +65,7 @@ export class Cart {
     if (b == null) {
       throw new TRPCError({
         code: "NOT_FOUND",
-        message: "The requested basket not found",
+        message: "Product not found",
       });
     }
     const basket = this.storeIdToBasket.get(storeId);

@@ -9,6 +9,7 @@ import { TRPCError } from "@trpc/server";
 import { resetDB } from "server/helpers/_Transactional";
 import { type ConditionArgs } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
 import { ZodError } from "zod";
+import exp from "constants";
 let service: Service;
 // const service = new Service();
 
@@ -131,6 +132,109 @@ describe("Stock Management", () => {
     ).toBe(true);
   });
 });
+//Use Case 4.1-Manager
+describe("Stock Management", () => {
+  let email: string,
+    password: string,
+    id: string,
+    founderId: string,
+    storeName: string,
+    storeId: string,
+    managerMail: string,
+    managerPass: string,
+    managerId: string,
+    // oid2: string,
+
+    pargs: {
+      name: string;
+      quantity: number;
+      price: number;
+      category: string;
+      description: string;
+    };
+  beforeEach(async () => {
+    await resetDB();
+    service = new Service();
+    email = faker.internet.email();
+    password = faker.internet.password();
+    id = await service.startSession();
+    await service.registerMember(id, email, password);
+    founderId = await service.loginMember(id, email, password);
+    storeName = generateStoreName();
+    storeId = await service.createStore(founderId, storeName);
+    managerMail = "owner@gmail.com";
+    managerPass = "owner123";
+    const oid2 = await service.startSession();
+    await service.registerMember(oid2, managerMail, managerPass);
+    managerId = await service.loginMember(oid2, managerMail, managerPass);
+    await service.makeStoreManager(founderId, storeId, managerId);
+    pargs = generateProductArgs();
+  });
+  it("✅ Add product to a store", async () => {
+    await service.setAddingProductToStorePermission(
+      founderId,
+      storeId,
+      managerId,
+      true
+    );
+    const pid = await service.createProduct(managerId, storeId, pargs);
+    expect(
+      (await service.getProductPrice(founderId, pid)) === pargs.price &&
+        (await service.getStoreIdByProductId(founderId, pid)) === storeId
+    ).toBe(true);
+  });
+  it("❎ Add product to a store - manager doesnt have permission", async () => {
+    await expect(() =>
+      service.createProduct(managerId, storeId, pargs)
+    ).rejects.toThrow(
+      "User does not have permission to create product in store"
+    );
+  });
+
+  it("✅ Update Product Details", async () => {
+    pargs.price = 16;
+    const pid = await service.createProduct(founderId, storeId, pargs);
+    await service.setEditingProductInStorePermission(
+      founderId,
+      storeId,
+      managerId,
+      true
+    );
+    await service.setProductPrice(managerId, pid, 17);
+    expect((await service.getProductPrice(managerId, pid)) === 17).toBe(true);
+  });
+  it("❎ Update Product Details - manager doesnt have permission", async () => {
+    pargs.price = 16;
+    const pid = await service.createProduct(founderId, storeId, pargs);
+    await expect(() =>
+      service.setProductPrice(managerId, pid, 17)
+    ).rejects.toThrow("User does not have permission to edit product");
+    expect((await service.getProductPrice(managerId, pid)) === 16).toBe(true);
+  });
+  //delete product
+  it("✅ Delete Product", async () => {
+    const pid = await service.createProduct(founderId, storeId, pargs);
+    await service.setRemovingProductFromStorePermission(
+      founderId,
+      storeId,
+      managerId,
+      true
+    );
+    await service.deleteProduct(managerId, pid);
+    expect(
+      (await service.getStoreProducts(founderId, storeId)).length === 0
+    ).toBe(true);
+  });
+  it("❎ Delete Product - manager doesnt have permission", async () => {
+    const pid = await service.createProduct(founderId, storeId, pargs);
+    await expect(() => service.deleteProduct(managerId, pid)).rejects.toThrow(
+      "User does not have permission to delete product"
+    );
+    expect(
+      (await service.getStoreProducts(founderId, storeId)).length === 1
+    ).toBe(true);
+  });
+});
 // Use Case 4.4
 describe("Owner Appointment", () => {
   let email: string,
@@ -183,6 +287,7 @@ describe("Owner Appointment", () => {
     expect(await service.isStoreOwner(oid, storeId)).toBe(true);
   });
 });
+
 // Use Case 4.8
 describe("Manager Firing", () => {
   beforeEach(async () => {

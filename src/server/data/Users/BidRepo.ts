@@ -123,11 +123,22 @@ export class BidRepo extends Testable {
         approvedBy: bid.ApprovedBy.concat(approverId),
       },
     });
-    bid.ApprovedBy.push(approverId);
     if (this.bids.has(bidId)) {
       this.bids.get(bidId)?.bid.ApprovedBy.push(approverId);
     }
-    if (bid.ApprovedBy.length === bid.Owners.length) {
+    let b = true;
+    ///compare two array if they are equal b = true
+    bid.ApprovedBy.forEach((element) => {
+      if (!bid.Owners.includes(element)) {
+        b = false;
+      }
+    });
+    bid.Owners.forEach((element) => {
+      if (!bid.ApprovedBy.includes(element) && element !== approverId) {
+        b = false;
+      }
+    });
+    if (b) {
       await getDB().bid.update({
         where: {
           id: bidId,

@@ -219,8 +219,9 @@ export interface IStoresController extends HasRepos {
   makeStoreOwner(
     currentId: string,
     storeId: string,
-    targetUserId: string
-  ): Promise<void>;
+    targetUserId: string,
+    idOfMakeOwnerObject?: string
+  ): Promise<string>;
   /**
    * This function makes a user a store manager.
    * @param currentId The id of the user that is currently logged in.
@@ -709,12 +710,8 @@ export class StoresController
       userId,
       await this.getStoreIdByProductId(userId, productId)
     );
-    const product = await StoreProduct.fromProductId(
-      productId,
-      this.Repos,
-      this.Controllers
-    );
-    return await product.getPriceForUser(userId);
+    console.log("getProductPrice");
+    return await this.Repos.Products.getSpecialPrice(userId, productId);
   }
 
   async getStoreIdByProductId(
@@ -726,8 +723,9 @@ export class StoresController
       this.Repos,
       this.Controllers
     );
-    await this.enforcePublicDataAccess(userId, (await product.getStore()).Id);
-    return (await product.getStore()).Id;
+    const storeId = (await product.getStore()).Id;
+    await this.enforcePublicDataAccess(userId, storeId);
+    return storeId;
   }
 
   async getCartPrice(userId: string): Promise<number> {
@@ -770,13 +768,23 @@ export class StoresController
           targetUserId
         );
       }
+      return idOfMakeOwnerObject;
     } else {
+      const supposeToApprove =
+        await this.Controllers.Jobs.getIdsThatNeedToApprove(storeId);
+      if (!supposeToApprove.includes(currentId)) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User does not have permission to make owner",
+        });
+      }
       const make = new MakeOwner(
         storeId,
         targetUserId,
         currentId,
-        await this.Controllers.Jobs.getIdsThatNeedToApprove(storeId)
+        supposeToApprove
       );
+      console.log(`owners ,, id`, make.getOwners(), make.getAppointerUserId());
       await this.Repos.Stores.addMakeOwner(
         make.getStoreId(),
         make.getTargetUserId(),
@@ -784,12 +792,15 @@ export class StoresController
         make.getId(),
         make.getOwners()
       );
+      console.log(`collapse before emit`);
       eventEmitter.emitEvent({
         channel: `tryToMakeNewOwner_${storeId}`,
         type: "makeOwner",
         makeOwnerObjectId: make.getId(),
       });
+      console.log(`collapse after emit`);
       await this.approveStoreOwner(make.getId(), currentId);
+      return make.getId();
     }
   }
   async makeStoreManager(
@@ -814,7 +825,7 @@ export class StoresController
       targetUserId
     );
     await this.Controllers.Users.removeOwnerFromHisBids(targetUserId, storeId);
-    await this.removeStoreOwnerFromPendingOfMakeOwner(currentId, storeId);
+    await this.removeStoreOwnerFromPendingOfMakeOwner(targetUserId, storeId);
     // eventEmitter.emit(`member is changed ${targetUserId}`, {
     //   changerId: currentId,
     //   changeeId: targetUserId,
@@ -1061,6 +1072,7 @@ export class StoresController
       .getDTO();
   }
   async addSpecialPriceToProduct(bid: Bid): Promise<void> {
+    console.log("addSpeicalPriceToProduct");
     await this.Repos.Products.addSpecialPrice(
       bid.UserId,
       bid.ProductId,
@@ -1129,6 +1141,8 @@ export class StoresController
   ) {
     const makes = await this.Repos.Stores.getMakeOwners(storeId);
     for (const make of makes) {
+      console.log(make.getApprovers());
+      console.log(userId);
       if (
         make.getState() === "WAITING" &&
         make.getOwners().includes(userId) &&

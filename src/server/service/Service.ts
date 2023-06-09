@@ -485,8 +485,8 @@ export class Service {
   async getBidsToMe(userId: string): Promise<BidDTO[]> {
     return await this.facade.getBidsToMe(userId);
   }
-  async approveBid(userId: string, bidId: string): Promise<void> {
-    await this.facade.approveBid(userId, bidId);
+  async approveBid(userId: string, bidId: string): Promise<string> {
+    return await this.facade.approveBid(userId, bidId);
   }
   async rejectBid(userId: string, bidId: string): Promise<void> {
     await this.facade.rejectBid(userId, bidId);

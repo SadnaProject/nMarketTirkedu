@@ -18,7 +18,7 @@ export default defineConfig({
       // "**/Bid.test.ts",
       // "Basket.test.ts",
       // "**/UsersController.test.ts",
-      // "**/Purchase.test.ts",
+      "**/Purchase.test.ts",
       //Done:
       // "**/Admin.test.ts",(except two tests, mentioned in the file)
       // "**/Member.test.ts",

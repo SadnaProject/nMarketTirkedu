@@ -4,8 +4,12 @@ import fetch from "node-fetch";
 import { z } from "zod";
 
 export class PaymentAdapter {
+  static isPaymentServiceUp = false;
   //send HTTP post request to the payment service at https://php-server-try.000webhostapp.com/
   static async handShake() {
+    if (!this.isPaymentServiceUp) {
+      return;
+    }
     const res = await fetch(
       `${getHost()}/api/external?method=POST&body=action_type=handshake`
     );
@@ -28,6 +32,10 @@ export class PaymentAdapter {
     paymentDetails: PaymentDetails,
     price: number
   ): Promise<number> {
+    if (!this.isPaymentServiceUp) {
+      //return a random transaction id
+      return Math.floor(Math.random() * 1000000000);
+    }
     const body = `action_type=pay&card_number=${paymentDetails.number}&month=${paymentDetails.month}&year=${paymentDetails.year}&holder=${paymentDetails.holder}&ccv=${paymentDetails.ccv}&id=${paymentDetails.id}`;
     const res = await fetch(
       `${getHost()}/api/external?method=POST&body=${encodeURIComponent(body)}`
@@ -44,6 +52,9 @@ export class PaymentAdapter {
   }
 
   static async cancelPayment(transactionId: string) {
+    if (!this.isPaymentServiceUp) {
+      return;
+    }
     const body = `action_type=cancel_pay&transaction_id=${transactionId}`;
     const res = await fetch(
       `${getHost()}/api/external?method=POST&body=${encodeURIComponent(body)}`

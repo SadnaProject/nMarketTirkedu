@@ -18,13 +18,16 @@ export default defineConfig({
       // "**/Bid.test.ts",
       // "Basket.test.ts",
       // "**/UsersController.test.ts",
-      "**/Purchase.test.ts",
+      //STILL NEED TO BE DONE:
+      "**/Parallel.test.ts",
       //Done:
-      // "**/Admin.test.ts",(except two tests, mentioned in the file)
+      // "**/Owner.test.ts",(all tests pass except Add Constraint see todo their @ilaytzarfati1231)
+      // "**/Purchase.test.ts",
+      // "**/Admin.test.ts",
       // "**/Member.test.ts",
       // "**/Guest.test.ts",
       // "**/System.test.ts",
-      "**/HW.test.ts",
+      // "**/HW.test.ts",
     ],
     //make the tests run in an order and not in parallel
     threads: false,

@@ -35,53 +35,53 @@ export type DeliveryDetails = {
 //Use Case 6.4
 describe("Get Purchase History by a buyer", () => {
   //TODO: @ilaytzarfati1231 check comment in getPriceForUser function in storeProduct
-  //   it("✅ Applied by system admin", async () => {
-  //     const storeName = generateStoreName();
-  //     const storeId = await service.createStore(uid, storeName);
-  //     const ownermail = "owner@gmail.com";
-  //     const ownerpass = "owner123";
-  //     const oid2 = await service.startSession();
-  //     await service.registerMember(oid2, ownermail, ownerpass);
-  //     const oid = await service.loginMember(oid2, ownermail, ownerpass);
-  //     await service.makeStoreOwner(uid, storeId, oid);
-  //     const pargs = generateProductArgs();
-  //     pargs.quantity = 2;
-  //     const pid = await service.createProduct(oid, storeId, pargs);
-  //     const memail = "member@gmail.com";
-  //     const mpassword = faker.internet.password();
-  //     const mid = await service.startSession();
-  //     await service.registerMember(mid, memail, mpassword);
-  //     const umid = await service.loginMember(mid, memail, mpassword);
-  //     await service.addProductToCart(umid, pid, 1);
-  //     const card = faker.finance.creditCardNumber();
-  //     const cCard: PaymentDetails = {
-  //       number: card,
-  //       ccv: "144",
-  //       holder: "Buya",
-  //       id: "111111111",
-  //       month: "3",
-  //       year: "2025",
-  //     };
-  //     const d: DeliveryDetails = {
-  //       address: "dsadas",
-  //       city: "asdasd",
-  //       country: "sadasd",
-  //       name: "bsajsa",
-  //       zip: "2143145",
-  //     };
-  //     await service.purchaseCart(umid, cCard, d);//TODO: this line results the next error:
-  //     const pargs2 = generateProductArgs();
-  //     pargs2.quantity = 3;
-  //     const pid2 = await service.createProduct(oid, storeId, pargs2);
-  //     await service.addProductToCart(umid, pid2, 2);
-  //     await service.purchaseCart(umid, cCard, d);
-  //     const hist = await service.getPurchasesByUser(uid, umid);
-  //     expect(
-  //       hist.length === 2 &&
-  //         hist.at(0)?.totalPrice === pargs.price &&
-  //         hist.at(1)?.totalPrice === 2 * pargs2.price
-  //     ).toBe(true);
-  //   });
+  it("✅ Applied by system admin", async () => {
+    const storeName = generateStoreName();
+    const storeId = await service.createStore(uid, storeName);
+    const ownermail = "owner@gmail.com";
+    const ownerpass = "owner123";
+    const oid2 = await service.startSession();
+    await service.registerMember(oid2, ownermail, ownerpass);
+    const oid = await service.loginMember(oid2, ownermail, ownerpass);
+    await service.makeStoreOwner(uid, storeId, oid);
+    const pargs = generateProductArgs();
+    pargs.quantity = 2;
+    const pid = await service.createProduct(oid, storeId, pargs);
+    const memail = "member@gmail.com";
+    const mpassword = faker.internet.password();
+    const mid = await service.startSession();
+    await service.registerMember(mid, memail, mpassword);
+    const umid = await service.loginMember(mid, memail, mpassword);
+    await service.addProductToCart(umid, pid, 1);
+    const card = faker.finance.creditCardNumber();
+    const cCard: PaymentDetails = {
+      number: card,
+      ccv: "144",
+      holder: "Buya",
+      id: "111111111",
+      month: "3",
+      year: "2025",
+    };
+    const d: DeliveryDetails = {
+      address: "dsadas",
+      city: "asdasd",
+      country: "sadasd",
+      name: "bsajsa",
+      zip: "2143145",
+    };
+    await service.purchaseCart(umid, cCard, d); //TODO: this line results the next error:
+    const pargs2 = generateProductArgs();
+    pargs2.quantity = 3;
+    const pid2 = await service.createProduct(oid, storeId, pargs2);
+    await service.addProductToCart(umid, pid2, 2);
+    await service.purchaseCart(umid, cCard, d);
+    const hist = await service.getPurchasesByUser(uid, umid);
+    expect(
+      hist.length === 2 &&
+        hist.at(0)?.totalPrice === pargs.price &&
+        hist.at(1)?.totalPrice === 2 * pargs2.price
+    ).toBe(true);
+  });
   it("❎Applied by non-system admin", async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
@@ -102,55 +102,55 @@ describe("Get Purchase History by a buyer", () => {
 });
 //Use Case 6.4
 //TODO: i think its the same reason as the previous test (getPurchaseHistoryByBuyer)
-// describe("Get Purchase History by a store", () => {
-//   it("✅ Applied by system admin", async () => {
-//     const storeName = generateStoreName();
-//     const storeId = await service.createStore(uid, storeName);
-//     const ownermail = "owner@gmail.com";
-//     const ownerpass = "owner123";
-//     const oid2 = await service.startSession();
-//     await service.registerMember(oid2, ownermail, ownerpass);
-//     const oid = await service.loginMember(oid2, ownermail, ownerpass);
-//     await service.makeStoreOwner(uid, storeId, oid);
-//     const pargs = generateProductArgs();
-//     pargs.quantity = 2;
-//     const pid = await service.createProduct(oid, storeId, pargs);
-//     const memail = "member@gmail.com";
-//     const mpassword = faker.internet.password();
-//     const mid = await service.startSession();
-//     await service.registerMember(mid, memail, mpassword);
-//     const umid = await service.loginMember(mid, memail, mpassword);
-//     await service.addProductToCart(umid, pid, 1);
-//     const card = faker.finance.creditCardNumber();
-//     const cCard: PaymentDetails = {
-//       number: card,
-//       ccv: "144",
-//       holder: "Buya",
-//       id: "111111111",
-//       month: "3",
-//       year: "2025",
-//     };
-//     const d: DeliveryDetails = {
-//       address: "dsadas",
-//       city: "asdasd",
-//       country: "sadasd",
-//       name: "bsajsa",
-//       zip: "2143145",
-//     };
-//     await service.purchaseCart(umid, cCard, d);
-//     const pargs2 = generateProductArgs();
-//     pargs2.quantity = 3;
-//     const pid2 = await service.createProduct(oid, storeId, pargs2);
-//     await service.addProductToCart(umid, pid2, 2);
-//     await service.purchaseCart(umid, cCard, d);
-//     const hist = await service.getPurchasesByStore(uid, storeId);
-//     expect(
-//       hist.length === 2 &&
-//         hist.at(0)?.price === pargs.price &&
-//         hist.at(1)?.price === 2 * pargs2.price
-//     ).toBe(true);
-//   });
-// });
+describe("Get Purchase History by a store", () => {
+  it("✅ Applied by system admin", async () => {
+    const storeName = generateStoreName();
+    const storeId = await service.createStore(uid, storeName);
+    const ownermail = "owner@gmail.com";
+    const ownerpass = "owner123";
+    const oid2 = await service.startSession();
+    await service.registerMember(oid2, ownermail, ownerpass);
+    const oid = await service.loginMember(oid2, ownermail, ownerpass);
+    await service.makeStoreOwner(uid, storeId, oid);
+    const pargs = generateProductArgs();
+    pargs.quantity = 2;
+    const pid = await service.createProduct(oid, storeId, pargs);
+    const memail = "member@gmail.com";
+    const mpassword = faker.internet.password();
+    const mid = await service.startSession();
+    await service.registerMember(mid, memail, mpassword);
+    const umid = await service.loginMember(mid, memail, mpassword);
+    await service.addProductToCart(umid, pid, 1);
+    const card = faker.finance.creditCardNumber();
+    const cCard: PaymentDetails = {
+      number: card,
+      ccv: "144",
+      holder: "Buya",
+      id: "111111111",
+      month: "3",
+      year: "2025",
+    };
+    const d: DeliveryDetails = {
+      address: "dsadas",
+      city: "asdasd",
+      country: "sadasd",
+      name: "bsajsa",
+      zip: "2143145",
+    };
+    await service.purchaseCart(umid, cCard, d);
+    const pargs2 = generateProductArgs();
+    pargs2.quantity = 3;
+    const pid2 = await service.createProduct(oid, storeId, pargs2);
+    await service.addProductToCart(umid, pid2, 2);
+    await service.purchaseCart(umid, cCard, d);
+    const hist = await service.getPurchasesByStore(uid, storeId);
+    expect(
+      hist.length === 2 &&
+        hist.at(0)?.price === pargs.price &&
+        hist.at(1)?.price === 2 * pargs2.price
+    ).toBe(true);
+  });
+});
 
 //DONE
 //Use Case 6.2

@@ -760,6 +760,17 @@ export class StoresController
     targetUserId: string,
     idOfMakeOwnerObject?: string
   ) {
+    if (
+      (await this.Controllers.Jobs.isStoreOwner(targetUserId, storeId)) ||
+      (await this.Controllers.Jobs.isStoreManager(targetUserId, storeId)) ||
+      (await this.Controllers.Jobs.isStoreFounder(targetUserId, storeId))
+    ) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "This user cannot be appointed as he is already a position holder in this store",
+      });
+    }
     if (idOfMakeOwnerObject) {
       if (await this.Repos.Stores.isApprovedOwner(idOfMakeOwnerObject)) {
         await this.Controllers.Jobs.makeStoreOwner(
@@ -938,7 +949,8 @@ export class StoresController
     storeId: string,
     constraintArgs: ConditionArgs
   ): Promise<string> {
-    if (!(await this.isStoreOwner(userId, storeId)))
+    // if (!((await this.isStoreOwner(userId, storeId))|| (await this.isStoreFounder(userId, storeId))))
+    if (!(await this.Controllers.Jobs.canModifyPurchasePolicy(userId, storeId)))
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to add constraint to store",

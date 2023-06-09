@@ -17,6 +17,7 @@ export class FounderRole extends Role {
     this.permissions.push("AppointStoreOwner");
     this.permissions.push("AppointStoreManager");
     this.permissions.push("receiveClosedStoreData");
+    this.permissions.push("ModifyPurchasePolicy");
   }
   // private static async createFounderRole(): Promise<FounderRole> {
   //   const founderRole = new FounderRole();

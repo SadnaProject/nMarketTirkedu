@@ -599,7 +599,19 @@ export class StoresRepo extends Testable {
         approvedBy: makeOwner.approvedBy.concat(userId),
       },
     });
-    if (makeOwner.Owners.length === makeOwner.approvedBy.length + 1) {
+    let b = true;
+    ///compare two array if they are equal b = true
+    makeOwner.approvedBy.forEach((element) => {
+      if (!Owners.includes(element)) {
+        b = false;
+      }
+    });
+    makeOwner.Owners.forEach((element) => {
+      if (!makeOwner.approvedBy.includes(element) && element !== userId) {
+        b = false;
+      }
+    });
+    if (b) {
       await getDB().makeOwner.update({
         where: {
           id: id,

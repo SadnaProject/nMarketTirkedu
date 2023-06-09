@@ -77,6 +77,9 @@ describe("Homework Scenario", () => {
  */
 describe("Remove Member", () => {
   it("Scenario 2", async () => {
+    await resetDB();
+    service = new Service();
+    await service.initializeAdmin();
     const id = await service.startSession();
     const uid = await service.loginMember(id, "admin@gmail.com", "admin");
     const ownermail = "owner@gmail.com";

@@ -147,7 +147,7 @@ export interface IUsersController {
   getAllBidsSendFromUser(userId: string): Promise<BidDTO[]>;
   getAllBidsSendToUser(userId: string): Promise<BidDTO[]>;
   counterBid(userId: string, bidId: string, price: number): Promise<void>;
-  approveBid(userId: string, bidId: string): Promise<void>;
+  approveBid(userId: string, bidId: string): Promise<string>;
   rejectBid(userId: string, bidId: string): Promise<void>;
   removeOwnerFromHisBids(userId: string, storeId: string): Promise<void>;
 }
@@ -393,18 +393,19 @@ export class UsersController
     }
     return bid.Id;
   }
-  async approveBid(userId: string, bidId: string): Promise<void> {
+  async approveBid(userId: string, bidId: string) {
     const bid = await this.Repos.Bids.getBid(bidId);
     if (
-      bid.Type == "Store" &&
-      !(
-        await this.Controllers.Jobs.getIdsThatNeedToApprove(
-          await this.Controllers.Stores.getStoreIdByProductId(
-            bid.UserId,
-            bid.ProductId
+      (bid.Type == "Store" &&
+        !(
+          await this.Controllers.Jobs.getIdsThatNeedToApprove(
+            await this.Controllers.Stores.getStoreIdByProductId(
+              bid.UserId,
+              bid.ProductId
+            )
           )
-        )
-      ).includes(userId)
+        ).includes(userId)) ||
+      (bid.Type === "Counter" && !bid.Owners.includes(userId))
     ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -432,7 +433,7 @@ export class UsersController
           });
           break;
         case "Counter":
-          await this.addBid({
+          return await this.addBid({
             userId: userId,
             type: "Store",
             price: bid.Price,
@@ -440,19 +441,11 @@ export class UsersController
           });
       }
     }
+    return bidId;
   }
   async rejectBid(userId: string, bidId: string): Promise<void> {
     const bid = await this.Repos.Bids.getBid(bidId);
-    if (
-      !(
-        await this.Controllers.Jobs.getIdsThatNeedToApprove(
-          await this.Controllers.Stores.getStoreIdByProductId(
-            bid.UserId,
-            bid.ProductId
-          )
-        )
-      ).includes(userId)
-    ) {
+    if (!bid.Owners.includes(userId)) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User doesn't have permission to reject bid",

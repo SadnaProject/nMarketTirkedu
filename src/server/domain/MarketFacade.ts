@@ -647,9 +647,9 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     return this.controllers.Users.getAllBidsSendToUser(userId);
   }
-  async approveBid(userId: string, bidId: string): Promise<void> {
+  async approveBid(userId: string, bidId: string) {
     this.validateConnection(userId);
-    await this.controllers.Users.approveBid(userId, bidId);
+    return await this.controllers.Users.approveBid(userId, bidId);
   }
   async rejectBid(userId: string, bidId: string): Promise<void> {
     this.validateConnection(userId);

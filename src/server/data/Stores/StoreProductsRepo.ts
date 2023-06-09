@@ -54,7 +54,22 @@ export class StoreProductsRepo extends Testable {
         productId: productId,
       },
     });
-    return specialPrice?.price;
+    if (!specialPrice) {
+      const product = await getDB().storeProduct.findUnique({
+        where: {
+          id: productId,
+        },
+      });
+      if (!product) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Product not found",
+        });
+      }
+      return product.price;
+    }
+    console.log(specialPrice.price);
+    return specialPrice.price;
   }
   public async getAllProducts() {
     const products = await getDB().storeProduct.findMany();

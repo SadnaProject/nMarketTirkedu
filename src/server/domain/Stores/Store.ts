@@ -151,10 +151,13 @@ export class Store extends Mixin(HasRepos, HasControllers) {
     for (const product of fullBasket.products) {
       price +=
         product.BasketQuantity *
-        (await (StoreProduct.fromDAO(
+        (await StoreProduct.fromDAO(
           await this.Repos.Products.getProductById(product.product.id),
           await this.Repos.Products.getSpecialPrices(product.product.id)
-        ).getPriceForUser(userId))) *
+        )
+          .initControllers(this.Controllers)
+          .initRepos(this.Repos)
+          .getPriceForUser(userId)) *
         (1 - product.Discount / 100);
     }
     return price;

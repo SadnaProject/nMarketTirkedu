@@ -602,15 +602,15 @@ export class StoresController
         message: "User is not a member",
       });
     }
-    const store = new Store(storeName)
-      .initRepos(this.Repos)
-      .initControllers(this.Controllers);
-    // todo needs to check if possible before doing any change
     if ((await this.Repos.Stores.getAllNames()).has(storeName))
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Store name already exists",
       });
+    const store = new Store(storeName)
+      .initRepos(this.Repos)
+      .initControllers(this.Controllers);
+    // todo needs to check if possible before doing any change
 
     await this.Repos.Stores.addStore(store.Name, store.Id);
     await this.Controllers.Jobs.InitializeStore(founderId, store.Id);

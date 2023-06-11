@@ -1007,7 +1007,7 @@ export class StoresController
     storeId: string,
     basket: BasketDTO
   ): Promise<boolean> {
-    return (
+    return await (
       await Store.fromStoreId(storeId, this.Repos, this.Controllers)
     ).checkIfBasketFulfillsPolicy(basket);
   }

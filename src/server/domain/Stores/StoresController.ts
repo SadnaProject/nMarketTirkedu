@@ -960,7 +960,7 @@ export class StoresController
     storeId: string,
     constraintId: string
   ): Promise<void> {
-    if (!(await this.isStoreOwner(userId, storeId)))
+    if (!(await this.Controllers.Jobs.canModifyPurchasePolicy(userId, storeId)))
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message:
@@ -975,7 +975,7 @@ export class StoresController
     storeId: string,
     discountArgs: DiscountArgs
   ): Promise<string> {
-    if (!(await this.isStoreOwner(userId, storeId)))
+    if (!(await this.Controllers.Jobs.canModifyPurchasePolicy(userId, storeId)))
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to add discount to store",
@@ -989,7 +989,7 @@ export class StoresController
     storeId: string,
     discountId: string
   ): Promise<void> {
-    if (!(await this.isStoreOwner(userId, storeId)))
+    if (!(await this.Controllers.Jobs.canModifyPurchasePolicy(userId, storeId)))
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to remove discount from store",

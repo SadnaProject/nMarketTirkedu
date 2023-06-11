@@ -31,7 +31,7 @@ describe("Bid", () => {
 
   itUnitIntegration("should approve the bid and update the state", () => {
     const ownerIds = ["owner1", "owner2"];
-    bid.Owners = ownerIds;
+    bid.setOwners(ownerIds);
 
     expect(bid.isApproved()).toBe(false);
 
@@ -49,7 +49,7 @@ describe("Bid", () => {
     const userId = "owner1";
     const ownerIds = [userId];
 
-    bid.Owners = ownerIds;
+    bid.setOwners(ownerIds);
 
     bid.reject(userId);
 
@@ -65,7 +65,7 @@ describe("Bid", () => {
     };
 
     const counterBid = new Bid(counterBidArgs);
-    counterBid.Owners = [userId];
+    counterBid.setOwners([userId]);
     expect(counterBid.Type).toBe("Counter");
 
     counterBid.approve(userId);
@@ -77,7 +77,7 @@ describe("Bid", () => {
     "should throw an error if a user tries to approve a bid they don't own",
     () => {
       const ownerIds = ["owner1", "owner2"];
-      bid.Owners = ownerIds;
+      bid.setOwners(ownerIds);
 
       expect(() => bid.approve("owner3")).toThrow(
         new TRPCError({

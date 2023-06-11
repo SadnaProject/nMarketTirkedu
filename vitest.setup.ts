@@ -1,5 +1,5 @@
+import { dbGlobal } from "server/data/helpers/db";
 import { beforeEach } from "vitest";
-import { db } from "server/db";
 // import { exec } from "child_process";
 
 // async function runCommand(command: string): Promise<void> {
@@ -15,7 +15,7 @@ import { db } from "server/db";
 // }
 
 export async function setup() {
-  await db.$executeRawUnsafe(
+  await dbGlobal.$executeRawUnsafe(
     "DO $$ DECLARE\
   r RECORD;\
 BEGIN\

@@ -478,7 +478,7 @@ export class StoresController
     );
     const store = await product.getStore();
     await this.enforcePublicDataAccess(userId, store.Id);
-    return product.isQuantityInStock(quantity);
+    return await product.isQuantityInStock(quantity);
   }
 
   async createProduct(

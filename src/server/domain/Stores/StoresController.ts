@@ -710,7 +710,6 @@ export class StoresController
       userId,
       await this.getStoreIdByProductId(userId, productId)
     );
-    console.log("getProductPrice");
     return await this.Repos.Products.getSpecialPrice(userId, productId);
   }
 
@@ -795,7 +794,6 @@ export class StoresController
         currentId,
         supposeToApprove
       );
-      console.log(`owners ,, id`, make.getOwners(), make.getAppointerUserId());
       await this.Repos.Stores.addMakeOwner(
         make.getStoreId(),
         make.getTargetUserId(),
@@ -803,13 +801,11 @@ export class StoresController
         make.getId(),
         make.getOwners()
       );
-      console.log(`collapse before emit`);
       eventEmitter.emitEvent({
         channel: `tryToMakeNewOwner_${storeId}`,
         type: "makeOwner",
         makeOwnerObjectId: make.getId(),
       });
-      console.log(`collapse after emit`);
       await this.approveStoreOwner(make.getId(), currentId);
       return make.getId();
     }
@@ -1084,7 +1080,6 @@ export class StoresController
       .getDTO();
   }
   async addSpecialPriceToProduct(bid: Bid): Promise<void> {
-    console.log("addSpeicalPriceToProduct");
     await this.Repos.Products.addSpecialPrice(
       bid.UserId,
       bid.ProductId,
@@ -1153,8 +1148,6 @@ export class StoresController
   ) {
     const makes = await this.Repos.Stores.getMakeOwners(storeId);
     for (const make of makes) {
-      console.log(make.getApprovers());
-      console.log(userId);
       if (
         make.getState() === "WAITING" &&
         make.getOwners().includes(userId) &&

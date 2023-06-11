@@ -21,7 +21,7 @@ export default defineConfig({
       //STILL NEED TO BE DONE:
       "**/Parallel.test.ts",
       //Done:
-      "**/Owner.test.ts", //(all tests pass except Add Constraint see todo their @ilaytzarfati1231)
+      //"**/Owner.test.ts", //(all tests pass except Add Constraint see todo their @ilaytzarfati1231)
       // "**/Purchase.test.ts",
       // "**/Admin.test.ts",
       // "**/Member.test.ts",

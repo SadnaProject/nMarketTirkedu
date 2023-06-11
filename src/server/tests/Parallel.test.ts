@@ -127,6 +127,8 @@ describe("Concurrent Purchase", () => {
       promises.push(purchase());
       promises.push(purchase2());
       const res = await Promise.allSettled(promises);
+      console.log(res[0]?.status);
+      console.log(res[1]?.status);
       expect(res[0]?.status !== res[1]?.status).toBe(true);
       //expect(res[0]?.status === "fulfilled").toBe(true);
     }
@@ -200,20 +202,31 @@ describe("Concurrent add owner", () => {
       await service.registerMember(oid2, ownermail, ownerpass);
       const oid = await service.loginMember(oid2, ownermail, ownerpass);
       await service.makeStoreOwner(uid, storeId, oid);
+      const ownermail2 = "owner2@gmail.com";
+      const ownerpass2 = "owner123";
+      const oid22 = await service.startSession();
+      await service.registerMember(oid22, ownermail2, ownerpass2);
+      const oid222 = await service.loginMember(oid22, ownermail2, ownerpass2);
+      const aid = await service.makeStoreOwner(uid, storeId, oid222);
+      await service.approveStoreOwner(aid, oid);
       const memail = "member@gmail.com";
       const mpassword = faker.internet.password();
       const mid = await service.startSession();
       await service.registerMember(mid, memail, mpassword);
       const umid = await service.loginMember(mid, memail, mpassword);
+      const aid1 = await service.makeStoreOwner(oid, storeId, umid);
+      const aid2 = await service.makeStoreOwner(oid222, storeId, umid);
       async function addO1() {
         await new Promise((resolve) => setTimeout(resolve, 0));
-        return service.makeStoreOwner(uid, storeId, umid);
+        await service.approveStoreOwner(aid1, uid);
+        return await service.approveStoreOwner(aid1, oid222);
       }
       async function addO2() {
         await new Promise((resolve) => setTimeout(resolve, 0));
-        return service.makeStoreOwner(oid, storeId, umid);
+        await service.approveStoreOwner(aid2, uid);
+        return await service.approveStoreOwner(aid2, oid);
       }
-      const promises: Promise<string>[] = [];
+      const promises: Promise<void>[] = [];
       promises.push(addO1());
       promises.push(addO2());
       const res = await Promise.allSettled(promises);
@@ -255,8 +268,7 @@ describe("Concurrent store open", () => {
       promises.push(addS1());
       promises.push(addS2());
       const res = await Promise.allSettled(promises);
-      //TODO: check why both succeed, when only one needs to succeed
-      //expect(res[0]?.status !== res[1]?.status).toBe(true);
+      expect(res[0]?.status !== res[1]?.status).toBe(true);
       expect(
         (res[0]?.status === "fulfilled" &&
           (await service.isStoreFounder(uid, res[0]?.value))) ||

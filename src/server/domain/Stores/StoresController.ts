@@ -602,15 +602,15 @@ export class StoresController
         message: "User is not a member",
       });
     }
-    const store = new Store(storeName)
-      .initRepos(this.Repos)
-      .initControllers(this.Controllers);
-    // todo needs to check if possible before doing any change
     if ((await this.Repos.Stores.getAllNames()).has(storeName))
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Store name already exists",
       });
+    const store = new Store(storeName)
+      .initRepos(this.Repos)
+      .initControllers(this.Controllers);
+    // todo needs to check if possible before doing any change
 
     await this.Repos.Stores.addStore(store.Name, store.Id);
     await this.Controllers.Jobs.InitializeStore(founderId, store.Id);
@@ -710,7 +710,6 @@ export class StoresController
       userId,
       await this.getStoreIdByProductId(userId, productId)
     );
-    console.log("getProductPrice");
     return await this.Repos.Products.getSpecialPrice(userId, productId);
   }
 
@@ -795,7 +794,6 @@ export class StoresController
         currentId,
         supposeToApprove
       );
-      console.log(`owners ,, id`, make.getOwners(), make.getAppointerUserId());
       await this.Repos.Stores.addMakeOwner(
         make.getStoreId(),
         make.getTargetUserId(),
@@ -803,13 +801,11 @@ export class StoresController
         make.getId(),
         make.getOwners()
       );
-      console.log(`collapse before emit`);
       eventEmitter.emitEvent({
         channel: `tryToMakeNewOwner_${storeId}`,
         type: "makeOwner",
         makeOwnerObjectId: make.getId(),
       });
-      console.log(`collapse after emit`);
       await this.approveStoreOwner(make.getId(), currentId);
       return make.getId();
     }
@@ -1007,7 +1003,7 @@ export class StoresController
     storeId: string,
     basket: BasketDTO
   ): Promise<boolean> {
-    return (
+    return await (
       await Store.fromStoreId(storeId, this.Repos, this.Controllers)
     ).checkIfBasketFulfillsPolicy(basket);
   }
@@ -1084,7 +1080,6 @@ export class StoresController
       .getDTO();
   }
   async addSpecialPriceToProduct(bid: Bid): Promise<void> {
-    console.log("addSpeicalPriceToProduct");
     await this.Repos.Products.addSpecialPrice(
       bid.UserId,
       bid.ProductId,
@@ -1153,8 +1148,6 @@ export class StoresController
   ) {
     const makes = await this.Repos.Stores.getMakeOwners(storeId);
     for (const make of makes) {
-      console.log(make.getApprovers());
-      console.log(userId);
       if (
         make.getState() === "WAITING" &&
         make.getOwners().includes(userId) &&

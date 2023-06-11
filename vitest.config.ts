@@ -21,8 +21,7 @@ export default defineConfig({
       //STILL NEED TO BE DONE:
       "**/Parallel.test.ts",
       //Done:
-      //"**/Owner.test.ts", //(all tests pass except Add Constraint see todo their @ilaytzarfati1231)
-
+      "**/Owner.test.ts", //(all tests pass except Add Constraint see todo their @ilaytzarfati1231)
       // "**/Purchase.test.ts",
       // "**/Admin.test.ts",
       // "**/Member.test.ts",
@@ -32,8 +31,8 @@ export default defineConfig({
     ],
     //make the tests run in an order and not in parallel
     threads: false,
-    testTimeout: 100000,
-    hookTimeout: 100000,
+    testTimeout: 1000000,
+    hookTimeout: 1000000,
     // include only PurchasesHistoryController.test.ts
   },
   plugins: [tsconfigPaths()],

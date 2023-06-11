@@ -131,7 +131,7 @@ model SimpleDiscount {
 
 model Store {
     id          String         @id
-    name        String
+    name        String         @unique
     isActive    Boolean
     products    StoreProduct[]
     discounts   Discount[]

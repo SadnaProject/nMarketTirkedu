@@ -68,7 +68,6 @@ export class StoreProductsRepo extends Testable {
       }
       return product.price;
     }
-    console.log(specialPrice.price);
     return specialPrice.price;
   }
   public async getAllProducts() {

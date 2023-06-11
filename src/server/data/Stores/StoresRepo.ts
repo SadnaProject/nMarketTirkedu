@@ -101,7 +101,7 @@ export class StoresRepo extends Testable {
   public async getConstraints(storeId: string): Promise<ConstraintPolicy> {
     const constraints = await getDB().constraint.findMany({
       where: {
-        id: storeId,
+        storeId: storeId,
       },
     });
     const constraintPolicy = new ConstraintPolicy(storeId);
@@ -220,7 +220,7 @@ export class StoresRepo extends Testable {
         subType: condition?.LiteralCondition.type,
         amount: condition?.LiteralCondition.amount ?? undefined,
         conditionType: condition?.LiteralCondition.conditionType,
-        searchFor: "",
+        searchFor: condition.LiteralCondition.searchFor ?? "",
       };
     }
     throw new TRPCError({
@@ -347,6 +347,7 @@ export class StoresRepo extends Testable {
             type: condition.subType,
             amount: condition.amount ?? undefined,
             conditionType: condition.conditionType,
+            searchFor: condition.searchFor,
           },
         });
         return (

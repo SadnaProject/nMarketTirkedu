@@ -29,7 +29,7 @@ export type DeliveryDetails = {
   zip: string;
 };
 
-//Use Case 4.1
+// //Use Case 4.1
 describe("Stock Management", () => {
   let email: string,
     password: string,
@@ -838,76 +838,94 @@ describe("Get details/permissions of role holders", () => {
 });
 
 // //Use Case 4.2
-// //TODO: doesnt work
-// describe("Add Constraint", () => {
-//   beforeEach(async () => {
-//     await resetDB();
-//     service = new Service();
-//   });
-//   it("✅ Only with 3 bananas", async () => {
-//     const email = faker.internet.email();
-//     const password = faker.internet.password();
-//     const id = await service.startSession();
-//     await service.registerMember(id, email, password);
-//     const uid = await service.loginMember(id, email, password);
-//     const storeName = generateStoreName();
-//     const storeId = await service.createStore(uid, storeName);
-//     const ownermail = "owner@gmail.com";
-//     const ownerpass = "owner123";
-//     const oid2 = await service.startSession();
-//     await service.registerMember(oid2, ownermail, ownerpass);
-//     const oid = await service.loginMember(oid2, ownermail, ownerpass);
-//     const pargs2 = generateProductArgs();
-//     pargs2.name = "Banana";
-//     pargs2.quantity = 5;
-//     const bananaId = await service.createProduct(uid, storeId, pargs2);
-//     pargs2.name = "tomato";
-//     const tomatoId = await service.createProduct(uid, storeId, pargs2);
-//     const cargs: ConditionArgs = {
-//       conditionType: "Exactly",
-//       type: "Literal",
-//       searchFor: bananaId,
-//       amount: 3,
-//       subType: "Price",
-//     };
-//     await service.addConstraintToStore(uid, storeId, cargs);//TODO: seems like it doesnt add to the DB what is it looking for
-//     await service.createProduct(uid, storeId, pargs2);
-//     await service.addProductToCart(oid, bananaId, 2);//shouldnt allow this because of constraint to buy 3 bananas exactly
-//     const card = faker.finance.creditCardNumber();
-//     const cCard: PaymentDetails = {
-//       number: card,
-//       ccv: "144",
-//       holder: "Buya",
-//       id: "111111111",
-//       month: "3",
-//       year: "2025",
-//     };
-//     const d: DeliveryDetails = {
-//       address: "dsadas",
-//       city: "asdasd",
-//       country: "sadasd",
-//       name: "bsajsa",
-//       zip: "2143145",
-//     };
-//     await expect(() => service.purchaseCart(oid, cCard, d)).rejects.toThrow(
-//       TRPCError
-//     );
-//     await service.addProductToCart(oid, tomatoId, 2);
-//     await expect(() => service.purchaseCart(oid, cCard, d)).rejects.toThrow(
-//       TRPCError
-//     );
-//     await service.editProductQuantityInCart(oid, bananaId, 3);
-//     await service.purchaseCart(oid, cCard, d);
-//     expect(
-//       !(await service.isProductQuantityInStock(uid, tomatoId, 3)) &&
-//         (await service.isProductQuantityInStock(uid, tomatoId, 2)) &&
-//         !(await service.isProductQuantityInStock(uid, bananaId, 3)) &&
-//         (await service.isProductQuantityInStock(uid, bananaId, 2))
-//     ).toBe(true);
-//   });
-// });
+//TODO: doesnt work
+describe("Add Constraint", () => {
+  beforeEach(async () => {
+    await resetDB();
+    service = new Service();
+  });
+  it("Only with 3 bananas", async () => {
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+    const id = await service.startSession();
+    await service.registerMember(id, email, password);
+    const uid = await service.loginMember(id, email, password);
+    const storeName = generateStoreName();
+    const storeId = await service.createStore(uid, storeName);
+    const ownermail = "owner@gmail.com";
+    const ownerpass = "owner123";
+    const oid2 = await service.startSession();
+    await service.registerMember(oid2, ownermail, ownerpass);
+    const oid = await service.loginMember(oid2, ownermail, ownerpass);
+    const pargs2 = generateProductArgs();
+    pargs2.name = "Banana";
+    pargs2.quantity = 5;
+    const bananaId = await service.createProduct(uid, storeId, pargs2);
+    pargs2.name = "tomato";
+    const tomatoId = await service.createProduct(uid, storeId, pargs2);
+    const cargs: ConditionArgs = {
+      conditionType: "Exactly",
+      type: "Literal",
+      searchFor: "Banana",
+      amount: 3,
+      subType: "Product",
+    };
+    await service.addConstraintToStore(uid, storeId, cargs); //TODO: seems like it doesnt add to the DB what is it looking for
+    await service.createProduct(uid, storeId, pargs2);
+    await service.addProductToCart(oid, bananaId, 2); //shouldnt allow this because of constraint to buy 3 bananas exactly
+    const card = faker.finance.creditCardNumber();
+    const cCard: PaymentDetails = {
+      number: card,
+      ccv: "144",
+      holder: "Buya",
+      id: "111111111",
+      month: "3",
+      year: "2025",
+    };
+    const d: DeliveryDetails = {
+      address: "dsadas",
+      city: "asdasd",
+      country: "sadasd",
+      name: "bsajsa",
+      zip: "2143145",
+    };
+    await expect(() => service.purchaseCart(oid, cCard, d)).rejects.toThrow(
+      TRPCError
+    );
+    await service.addProductToCart(oid, tomatoId, 3);
+    await expect(() => service.purchaseCart(oid, cCard, d)).rejects.toThrow(
+      TRPCError
+    );
+    await service.editProductQuantityInCart(oid, bananaId, 3);
+    await service.purchaseCart(oid, cCard, d);
+    const supposeToBeFalse = await service.isProductQuantityInStock(
+      uid,
+      tomatoId,
+      3
+    );
+    const supposeToBeFalse1 = await service.isProductQuantityInStock(
+      uid,
+      bananaId,
+      3
+    );
+    const supposeToBeTrue = await service.isProductQuantityInStock(
+      uid,
+      tomatoId,
+      2
+    );
+    const supposeToBeTrue1 = await service.isProductQuantityInStock(
+      uid,
+      bananaId,
+      2
+    );
+    expect(supposeToBeFalse).toBe(false);
+    expect(supposeToBeFalse1).toBe(false);
+    expect(supposeToBeTrue).toBe(true);
+    expect(supposeToBeTrue1).toBe(true);
+  });
+});
 
-//adding owner tests(after requirements change to require approval of all owners)
+// //adding owner tests(after requirements change to require approval of all owners)
 describe("Add Owner require approval", () => {
   let email: string,
     password: string,

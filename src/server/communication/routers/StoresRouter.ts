@@ -528,4 +528,22 @@ export const StoresRouter = createTRPCRouter({
         input.constraint
       );
     }),
+  removeDiscountFromStore: validSessionProcedure
+    .input(z.object({ storeId: z.string(), discountId: z.string() }))
+    .query(({ input, ctx }) => {
+      return service.removeDiscountFromStore(
+        ctx.session.user.id,
+        input.storeId,
+        input.discountId
+      );
+    }),
+  removeConstraintFromStore: validSessionProcedure
+    .input(z.object({ storeId: z.string(), constraintId: z.string() }))
+    .query(({ input, ctx }) => {
+      return service.removeConstraintFromStore(
+        ctx.session.user.id,
+        input.storeId,
+        input.constraintId
+      );
+    }),
 });

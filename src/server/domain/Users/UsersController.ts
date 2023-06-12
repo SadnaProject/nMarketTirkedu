@@ -510,7 +510,7 @@ export class UsersController
         bidDTO.productName = (
           await this.Controllers.Stores.getProductById(userId, bid.ProductId)
         ).name;
-        bids.push(bid.DTO);
+        bids.push(bidDTO);
       }
     }
     return bids;
@@ -523,7 +523,7 @@ export class UsersController
       bidDTO.productName = (
         await this.Controllers.Stores.getProductById(userId, bid.ProductId)
       ).name;
-      bids.push(bid.DTO);
+      bids.push(bidDTO);
     }
     return bids;
   }

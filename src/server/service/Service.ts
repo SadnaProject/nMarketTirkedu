@@ -16,6 +16,7 @@ import {
 } from "server/domain/Stores/DiscountPolicy/Discount";
 import { type ConditionArgs } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
 import { BidDTO, type BidArgs } from "server/domain/Users/Bid";
+import { MakeOwnerDTO } from "server/domain/Stores/MakeOwner";
 
 export type SearchArgs = {
   name?: string;
@@ -499,5 +500,8 @@ export class Service {
   }
   async approveStoreOwner(makeOwnerObjectId: string, approverId: string) {
     await this.facade.approveStoreOwner(makeOwnerObjectId, approverId);
+  }
+  async getMakeOwnerRequests(userId: string): Promise<MakeOwnerDTO[]> {
+    return await this.facade.getMakeOwnerRequests(userId);
   }
 }

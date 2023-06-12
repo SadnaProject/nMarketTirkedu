@@ -1,5 +1,16 @@
 import { randomUUID } from "crypto";
 import { BidState, MakeOwner as MakeOwnerDAO } from "@prisma/client";
+export type MakeOwnerDTO = {
+  id: string;
+  storeId: string;
+  targetUserId: string;
+  appointerUserId: string;
+  Owners: string[];
+  approveBy: string[];
+  rejectBy: string[];
+  state: BidState;
+  storeName: string;
+};
 export class MakeOwner {
   private storeId: string;
   private targetUserId: string;
@@ -69,5 +80,18 @@ export class MakeOwner {
     make.id = dao.id;
     make.state = dao.state;
     return make;
+  }
+  public toDTO(): MakeOwnerDTO {
+    return {
+      id: this.id,
+      storeId: this.storeId,
+      targetUserId: this.targetUserId,
+      appointerUserId: this.appointerUserId,
+      Owners: this.Owners,
+      approveBy: this.approveBy,
+      rejectBy: this.rejectBy,
+      state: this.state,
+      storeName: "",
+    };
   }
 }

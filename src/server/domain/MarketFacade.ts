@@ -23,6 +23,7 @@ import { Loggable, censored, loggable } from "./helpers/_Loggable";
 import { createControllers } from "./helpers/_createControllers";
 import { type Controllers } from "./helpers/_HasController";
 import { eventEmitter } from "./helpers/_EventEmitter";
+import { MakeOwnerDTO } from "./Stores/MakeOwner";
 
 // @transactional
 @loggable
@@ -700,5 +701,9 @@ export class MarketFacade extends Loggable {
   async counterBid(userId: string, bidId: string, price: number) {
     this.validateConnection(userId);
     await this.controllers.Users.counterBid(userId, bidId, price);
+  }
+  async getMakeOwnerRequests(userId: string): Promise<MakeOwnerDTO[]> {
+    this.validateConnection(userId);
+    return await this.controllers.Stores.getMakeOwnerRequests(userId);
   }
 }

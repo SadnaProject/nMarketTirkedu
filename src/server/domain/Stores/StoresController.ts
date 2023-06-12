@@ -24,7 +24,7 @@ import { type Bid, storeBidArgs } from "../Users/Bid";
 import { type StoreProduct as StoreProductDAO } from "@prisma/client";
 import { ConstraintPolicy } from "./PurchasePolicy/ConstraintPolicy";
 import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
-import { MakeOwner } from "./MakeOwner";
+import { MakeOwner, MakeOwnerDTO } from "./MakeOwner";
 
 export type SearchArgs = {
   name?: string;
@@ -321,6 +321,7 @@ export interface IStoresController extends HasRepos {
   getStoreNameById(userId: string, storeId: string): Promise<string>;
   approveStoreOwner(makeOwnerId: string, userId: string): Promise<void>;
   subscribeToStoreEvents(userId: string): Promise<void>;
+  getMakeOwnerRequests(userId: string): Promise<MakeOwnerDTO[]>;
 }
 
 @testable
@@ -1192,5 +1193,21 @@ export class StoresController
         make.getId()
       );
     }
+  }
+  async getMakeOwnerRequests(userId: string): Promise<MakeOwnerDTO[]> {
+    const allStores = await this.myStores(userId);
+    const stores = allStores.filter(
+      (store) => store.role === "Owner" || store.role === "Founder"
+    );
+    const makeOwnerRequests: MakeOwnerDTO[] = [];
+    for (const store of stores) {
+      const makeOwners = await this.Repos.Stores.getMakeOwners(store.store.id);
+      for (const makeOwner of makeOwners) {
+        const makeOwnerDTO = makeOwner.toDTO();
+        makeOwnerDTO.storeName = store.store.name;
+        makeOwnerRequests.push(makeOwnerDTO);
+      }
+    }
+    return makeOwnerRequests;
   }
 }

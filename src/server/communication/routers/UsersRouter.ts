@@ -255,4 +255,7 @@ export const UsersRouter = createTRPCRouter({
       const { bidId, price } = input;
       return service.counterBid(ctx.session.user.id, bidId, price);
     }),
+  getMakeOwnerRequests: validSessionProcedure.query(({ ctx }) => {
+    return service.getMakeOwnerRequests(ctx.session.user.id);
+  }),
 });

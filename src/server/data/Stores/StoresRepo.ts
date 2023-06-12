@@ -256,6 +256,7 @@ export class StoresRepo extends Testable {
         data: {
           amount: discount.amount,
           discountOn: discount.discountOn,
+          searchFor: discount.searchFor,
         },
       });
       await this.addCondition(discount.condition, undefined, simple.id);

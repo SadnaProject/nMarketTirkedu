@@ -125,6 +125,7 @@ model SimpleDiscount {
     id         String      @id @default(cuid())
     amount     Int
     discountOn DiscountOn
+    searchFor  String?
     Condition  Condition[]
     Discount   Discount[]
 }

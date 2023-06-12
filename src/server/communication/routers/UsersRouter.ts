@@ -194,6 +194,7 @@ export const UsersRouter = createTRPCRouter({
       eventEmitter.subscribeUser(ctx.session.user.id, (event) => {
         emit.next(event);
       });
+      void service.subscribeToStoreEvents(ctx.session.user.id);
       return () => {
         eventEmitter.unsubscribeUser(ctx.session.user.id);
       };

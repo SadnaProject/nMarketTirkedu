@@ -12,6 +12,7 @@ export class DiscountPolicy {
 
   public addDiscount(args: DiscountArgs, discountID: string) {
     this.discounts.set(discountID, buildDiscount(args));
+    console.log("discounts create", this.discounts);
     return discountID;
   }
   public removeDiscount(discountID: string) {
@@ -32,9 +33,11 @@ export class DiscountPolicy {
   }
   public getDiscounts() {
     const discountsArgs = new Map<string, DiscountArgs>();
+    console.log("discounts", this.discounts);
     this.discounts.forEach((discount, discountID) => {
       discountsArgs.set(discountID, discount.getArgs());
     });
+    console.log(discountsArgs);
     return discountsArgs;
   }
 }

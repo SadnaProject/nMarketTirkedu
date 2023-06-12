@@ -673,17 +673,17 @@ export class StoresController
     const founderId = await store.FounderId;
     const notifiedUserIds = [founderId, ...ownerIds, ...managerIds];
     for (const uid of notifiedUserIds) {
-      await this.Controllers.Users.addNotification(
-        uid,
-        "Store deactivated 💤",
-        `Store ${storeId} has been deactivated`
-      );
+      // await this.Controllers.Users.addNotification(
+      //   uid,
+      //   "Store deactivated 💤",
+      //   `Store ${storeId} has been deactivated`
+      // );
+      eventEmitter.emitEvent({
+        type: "storeChanged",
+        channel: `storeChanged_${storeId}`,
+        storeId,
+      });
     }
-    // eventEmitter.emit(`store is changed ${storeId}`, {
-    //   storeId: storeId,
-    //   userId: userId,
-    //   state: "decativated",
-    // });
   }
 
   async closeStorePermanently(userId: string, storeId: string): Promise<void> {

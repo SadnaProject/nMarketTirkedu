@@ -506,15 +506,26 @@ export class UsersController
     const allBids = await this.Repos.Bids.getAllBids();
     for (const bid of allBids) {
       if (bid.Owners.includes(userId)) {
+        const bidDTO = bid.DTO;
+        bidDTO.productName = (
+          await this.Controllers.Stores.getProductById(userId, bid.ProductId)
+        ).name;
         bids.push(bid.DTO);
       }
     }
     return bids;
   }
   async getAllBidsSendFromUser(userId: string): Promise<BidDTO[]> {
-    return (await this.Repos.Bids.getAllBidsSentByUser(userId)).map(
-      (bid) => bid.DTO
-    );
+    const bids: BidDTO[] = [];
+    const allBids = await this.Repos.Bids.getAllBidsSentByUser(userId);
+    for (const bid of allBids) {
+      const bidDTO = bid.DTO;
+      bidDTO.productName = (
+        await this.Controllers.Stores.getProductById(userId, bid.ProductId)
+      ).name;
+      bids.push(bid.DTO);
+    }
+    return bids;
   }
   async removeOwnerFromHisBids(userId: string, storeId: string): Promise<void> {
     const bids = await this.Repos.Bids.getAllBids();

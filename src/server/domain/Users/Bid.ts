@@ -30,7 +30,7 @@ export type BidArgs = z.infer<typeof bidArgsSchema>;
 export type BidDTO = {
   id: string;
   userId: string;
-  productId: string;
+  productName: string;
   price: number;
   approvedBy: string[];
   rejectedBy: string[];
@@ -143,7 +143,7 @@ export class Bid {
   public get DTO(): BidDTO {
     return {
       id: this.id,
-      productId: this.productId,
+      productName: this.productId,
       price: this.price,
       approvedBy: this.approvedBy,
       rejectedBy: this.rejectedBy,

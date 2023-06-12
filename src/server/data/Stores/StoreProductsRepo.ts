@@ -39,6 +39,24 @@ export class StoreProductsRepo extends Testable {
     productId: string,
     price: number
   ) {
+    const specialPrice = await getDB().specialPrice.findFirst({
+      where: {
+        userId: userId,
+        productId: productId,
+      },
+    });
+    if (specialPrice) {
+      await getDB().specialPrice.update({
+        where: {
+          id: specialPrice.id,
+        },
+        data: {
+          price: price,
+        },
+      });
+      return;
+    }
+
     await getDB().specialPrice.create({
       data: {
         userId: userId,

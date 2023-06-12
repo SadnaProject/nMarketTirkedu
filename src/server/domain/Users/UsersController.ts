@@ -481,6 +481,12 @@ export class UsersController
     price: number
   ): Promise<void> {
     const bid = await this.Repos.Bids.getBid(bidId);
+    if (bid.State !== "WAITING") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Bid is not waiting for approval",
+      });
+    }
     if (
       !(
         await this.Controllers.Jobs.getIdsThatNeedToApprove(

@@ -217,4 +217,10 @@ export const UsersRouter = createTRPCRouter({
         type,
       });
     }),
+  getBidsToMe: validSessionProcedure.query(({ ctx }) => {
+    return service.getBidsToMe(ctx.session.user.id);
+  }),
+  getBidsFromMe: validSessionProcedure.query(({ ctx }) => {
+    return service.getBidsFromMe(ctx.session.user.id);
+  }),
 });

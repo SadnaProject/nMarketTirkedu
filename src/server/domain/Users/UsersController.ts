@@ -406,6 +406,12 @@ export class UsersController
   }
   async approveBid(userId: string, bidId: string) {
     const bid = await this.Repos.Bids.getBid(bidId);
+    if (bid.State !== "WAITING") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Bid is not waiting for approval",
+      });
+    }
     if (
       (bid.Type == "Store" &&
         !(

@@ -186,7 +186,7 @@ export default function Navbar() {
                     </div>
                   </div>
                 </div>
-                <Profile id={session.user.id} onClick={() => void signOut()} />
+                <Profile id={session.user.id} onClick={() => void signOut()} title={session.user.email}/>
               </>
             ) : (
               <Link href={PATHS.login.path} passHref legacyBehavior>

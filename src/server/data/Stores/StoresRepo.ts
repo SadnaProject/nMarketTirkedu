@@ -127,7 +127,7 @@ export class StoresRepo extends Testable {
   public async getDiscounts(storeId: string): Promise<DiscountPolicy> {
     const discounts = await getDB().discount.findMany({
       where: {
-        id: storeId,
+        storeId: storeId,
       },
     });
     const discountPolicy = new DiscountPolicy(storeId);
@@ -164,7 +164,7 @@ export class StoresRepo extends Testable {
       }
       const conditionArgs = await getDB().condition.findFirst({
         where: {
-          discountId: discountId,
+          discountId: discount?.simpleId,
         },
       });
       if (!conditionArgs) {
@@ -177,6 +177,7 @@ export class StoresRepo extends Testable {
         type: "Simple",
         discountOn: discount?.simple.discountOn,
         amount: discount?.simple.amount,
+        searchFor: discount?.simple.searchFor ?? undefined,
         condition: await this.getCondition(conditionArgs?.id),
       };
     }

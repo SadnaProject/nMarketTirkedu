@@ -24,6 +24,7 @@ export class EventManager {
     if (!callback) {
       return;
     }
+    console.log("subscribe", channel, userId);
     this.eventEmitter.on(channel, callback);
     this.channelToUsers.set(channel, [
       ...(this.channelToUsers.get(channel) || []),
@@ -44,6 +45,7 @@ export class EventManager {
   }
 
   public emitEvent(event: Event) {
+    console.log("emit", event);
     this.eventEmitter.emit(event.channel, event);
     for (const userId of this.channelToUsers.get(event.channel) || []) {
       // check if the user is online

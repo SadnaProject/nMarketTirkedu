@@ -512,7 +512,7 @@ export const StoresRouter = createTRPCRouter({
     }),
   addDiscountToStore: validSessionProcedure
     .input(z.object({ storeId: z.string(), discount: discountArgsSchema }))
-    .query(({ input, ctx }) => {
+    .mutation(({ input, ctx }) => {
       return service.addDiscountToStore(
         ctx.session.user.id,
         input.storeId,
@@ -530,7 +530,7 @@ export const StoresRouter = createTRPCRouter({
     }),
   removeDiscountFromStore: validSessionProcedure
     .input(z.object({ storeId: z.string(), discountId: z.string() }))
-    .query(({ input, ctx }) => {
+    .mutation(({ input, ctx }) => {
       return service.removeDiscountFromStore(
         ctx.session.user.id,
         input.storeId,

@@ -31,6 +31,7 @@ export type BidDTO = {
   id: string;
   userId: string;
   productName: string;
+  productId: string;
   price: number;
   approvedBy: string[];
   rejectedBy: string[];
@@ -143,7 +144,8 @@ export class Bid {
   public get DTO(): BidDTO {
     return {
       id: this.id,
-      productName: this.productId,
+      productId: this.productId,
+      productName: "",
       price: this.price,
       approvedBy: this.approvedBy,
       rejectedBy: this.rejectedBy,

@@ -244,4 +244,22 @@ export const UsersRouter = createTRPCRouter({
       const { bidId } = input;
       return service.rejectBid(ctx.session.user.id, bidId);
     }),
+  counterBid: validSessionProcedure
+    .input(
+      z.object({
+        bidId: z.string().uuid(),
+        price: z.number().nonnegative(),
+        productId: z.string().uuid(),
+      })
+    )
+    .mutation(({ input, ctx }) => {
+      const { bidId, price, productId } = input;
+      return service.addBid({
+        previousBidId: bidId,
+        userId: ctx.session.user.id,
+        price: price,
+        productId: productId,
+        type: "Counter",
+      });
+    }),
 });

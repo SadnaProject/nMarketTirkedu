@@ -697,4 +697,8 @@ export class MarketFacade extends Loggable {
       memberId
     );
   }
+  async counterBid(userId: string, bidId: string, price: number) {
+    this.validateConnection(userId);
+    await this.controllers.Users.counterBid(userId, bidId, price);
+  }
 }

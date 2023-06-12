@@ -479,6 +479,9 @@ export class Service {
   async addBid(bid: BidArgs) {
     return await this.facade.addBid(bid);
   }
+  async counterBid(userId: string, bidId: string, price: number) {
+    return await this.facade.counterBid(userId, bidId, price);
+  }
   async getBidsFromMe(userId: string): Promise<BidDTO[]> {
     return await this.facade.getBidsFromMe(userId);
   }

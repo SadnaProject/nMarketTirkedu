@@ -254,12 +254,6 @@ export const UsersRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { bidId, price, productId } = input;
-      return service.addBid({
-        previousBidId: bidId,
-        userId: ctx.session.user.id,
-        price: price,
-        productId: productId,
-        type: "Counter",
-      });
+      return service.counterBid(ctx.session.user.id, bidId, price);
     }),
 });

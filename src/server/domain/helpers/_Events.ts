@@ -9,6 +9,7 @@ export type Event =
       channel: `storeChanged_${string}`;
       type: "storeChanged";
       storeId: string;
+      description: string;
       // more data
     }
   | {
@@ -20,6 +21,12 @@ export type Event =
   | {
       channel: `bidApproved_${string}`;
       type: "bidApproved";
+      bidId: string;
+      // more data
+    }
+  | {
+      channel: `bidRejected_${string}`;
+      type: "bidRejected";
       bidId: string;
       // more data
     }

@@ -631,22 +631,12 @@ export class StoresController
       this.Controllers
     );
     await store.setActive(true);
-    const ownerIds = await store.OwnersIds;
-    const managerIds = await store.ManagersIds;
-    const founderId = await store.FounderId;
-    const notifiedUserIds = [founderId, ...ownerIds, ...managerIds];
-    for (const uid of notifiedUserIds) {
-      await this.Controllers.Users.addNotification(
-        uid,
-        "Store activated 💃",
-        `Store ${storeId} has been activated`
-      );
-      // todo eventEmitter.emitEvent({
-      //   type:"storeChanged",
-      //   channel:"",
-      //   storeId
-      // });
-    }
+    eventEmitter.emitEvent({
+      type: "storeChanged",
+      channel: `storeChanged_${storeId}`,
+      storeId,
+      description: `Store ${storeId} has been activated`,
+    });
   }
 
   async deactivateStore(userId: string, storeId: string): Promise<void> {
@@ -668,22 +658,17 @@ export class StoresController
       });
     }
     await store.setActive(false);
-    const ownerIds = await store.OwnersIds;
-    const managerIds = await store.ManagersIds;
-    const founderId = await store.FounderId;
-    const notifiedUserIds = [founderId, ...ownerIds, ...managerIds];
-    for (const uid of notifiedUserIds) {
-      // await this.Controllers.Users.addNotification(
-      //   uid,
-      //   "Store deactivated 💤",
-      //   `Store ${storeId} has been deactivated`
-      // );
-      eventEmitter.emitEvent({
-        type: "storeChanged",
-        channel: `storeChanged_${storeId}`,
-        storeId,
-      });
-    }
+    // await this.Controllers.Users.addNotification(
+    //   uid,
+    //   "Store deactivated 💤",
+    //   `Store ${storeId} has been deactivated`
+    // );
+    eventEmitter.emitEvent({
+      type: "storeChanged",
+      channel: `storeChanged_${storeId}`,
+      storeId,
+      description: `Store ${storeId} has been deactivated`,
+    });
   }
 
   async closeStorePermanently(userId: string, storeId: string): Promise<void> {

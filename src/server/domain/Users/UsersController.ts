@@ -368,15 +368,17 @@ export class UsersController
         (await this.Repos.Users.getUser(oid)).addBidToMe(bid.Id);
         eventEmitter.emitEvent({
           bidId: bid.Id,
-          channel: `bidAdded_${oid}`,
+          channel: `bidAdded_${bid.Id}`,
           type: "bidAdded",
         });
       }
       (await this.Repos.Users.getUser(bid.UserId)).addBidFromMe(bid.Id);
       eventEmitter.subscribeChannel(`bidApproved_${bid.Id}`, bid.UserId);
+      eventEmitter.subscribeChannel(`bidRejected_${bid.Id}`, bid.UserId);
     } else {
       (await this.Repos.Users.getUser(bid.UserId)).addBidFromMe(bid.Id);
       eventEmitter.subscribeChannel(`bidApproved_${bid.Id}`, bid.UserId);
+      eventEmitter.subscribeChannel(`bidRejected_${bid.Id}`, bid.UserId);
       const targetUser = await this.Repos.Users.getUser(
         (
           await this.Repos.Bids.getBid(bidArgs.previousBidId)
@@ -387,7 +389,7 @@ export class UsersController
       targetUser.addBidToMe(bid.Id);
       eventEmitter.emitEvent({
         bidId: bid.Id,
-        channel: `bidAdded_${targetUser.Id}`,
+        channel: `bidAdded_${bid.Id}`,
         type: "bidAdded",
       });
     }
@@ -451,6 +453,11 @@ export class UsersController
       });
     }
     await this.Repos.Bids.rejectBid(bidId, userId);
+    eventEmitter.emitEvent({
+      bidId: bid.Id,
+      channel: `bidRejected_${bid.Id}`,
+      type: "bidRejected",
+    });
   }
   async counterBid(
     userId: string,

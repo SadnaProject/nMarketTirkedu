@@ -34,6 +34,7 @@ export class BidRepo extends Testable {
         state: bid.State,
         type: bid.Type,
         owners: bid.Owners,
+        previousBidId: bid.PreviousBidId,
       },
     });
     /// if the size is lower than 10 add it to the map

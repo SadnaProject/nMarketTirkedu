@@ -48,6 +48,7 @@ export class Bid {
   protected owners: string[] = [];
   protected state: BidState;
   protected type: "Store" | "Counter";
+  protected previousBidId?: string;
   constructor(bidArgs: BidArgs) {
     this.id = randomUUID();
     this.productId = bidArgs.productId;
@@ -57,6 +58,11 @@ export class Bid {
     this.rejectedBy = [];
     this.state = "WAITING";
     this.type = bidArgs.type;
+    if (bidArgs.type === "Counter") {
+      this.previousBidId = bidArgs.previousBidId;
+    } else {
+      this.previousBidId = undefined;
+    }
   }
   public get Id() {
     return this.id;
@@ -78,6 +84,9 @@ export class Bid {
       this.rejectedBy.length === 0
     )
       this.state = "APPROVED";
+  }
+  public get PreviousBidId() {
+    return this.previousBidId;
   }
 
   public get ApprovedBy() {

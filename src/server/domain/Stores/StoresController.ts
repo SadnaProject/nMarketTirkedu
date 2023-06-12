@@ -631,11 +631,22 @@ export class StoresController
       this.Controllers
     );
     await store.setActive(true);
+    const ownerIds = await store.OwnersIds;
+    const managerIds = await store.ManagersIds;
+    const founderId = await store.FounderId;
+    const notifiedUserIds = [founderId, ...ownerIds, ...managerIds];
+    for (const uid of notifiedUserIds) {
+      await this.Controllers.Users.addNotification(
+        uid,
+        "Store activated 💃",
+        `Store ${storeId} has been activated`
+      );
+    }
     eventEmitter.emitEvent({
       type: "storeChanged",
       channel: `storeChanged_${storeId}`,
       storeId,
-      description: `Store ${storeId} has been activated`,
+      description: `Store ${storeId} has been deactivated`,
     });
   }
 
@@ -658,11 +669,23 @@ export class StoresController
       });
     }
     await store.setActive(false);
+    const ownerIds = await store.OwnersIds;
+    const managerIds = await store.ManagersIds;
+    const founderId = await store.FounderId;
+    const notifiedUserIds = [founderId, ...ownerIds, ...managerIds];
+    for (const uid of notifiedUserIds) {
+      await this.Controllers.Users.addNotification(
+        uid,
+        "Store deactivated 💃",
+        `Store ${storeId} has been deactivated`
+      );
+    }
     // await this.Controllers.Users.addNotification(
     //   uid,
     //   "Store deactivated 💤",
     //   `Store ${storeId} has been deactivated`
     // );
+
     eventEmitter.emitEvent({
       type: "storeChanged",
       channel: `storeChanged_${storeId}`,
@@ -786,6 +809,17 @@ export class StoresController
         make.getId(),
         make.getOwners()
       );
+
+      const notifiedUserIds =
+        await this.Controllers.Jobs.getIdsThatNeedToApprove(storeId);
+      for (const uid of notifiedUserIds) {
+        await this.Controllers.Users.addNotification(
+          uid,
+          "try to make new owner in store 💃",
+          `try to make new owner in store ${storeId}`
+        );
+      }
+
       eventEmitter.emitEvent({
         channel: `tryToMakeNewOwner_${storeId}`,
         type: "makeOwner",

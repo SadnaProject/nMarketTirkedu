@@ -356,22 +356,26 @@ export class UsersController
   async addBid(bidArgs: BidArgs): Promise<string> {
     const bid = new Bid(bidArgs);
     if (bidArgs.type === "Store") {
-      const oids = await this.Controllers.Jobs.getIdsThatNeedToApprove(
-        await this.Controllers.Stores.getStoreIdByProductId(
-          bid.UserId,
-          bid.ProductId
-        )
+      const storeId = await this.Controllers.Stores.getStoreIdByProductId(
+        bid.UserId,
+        bid.ProductId
       );
+      const oids = await this.Controllers.Jobs.getIdsThatNeedToApprove(storeId);
       bid.setOwners(R.clone(oids));
       await this.Repos.Bids.addBid(bid);
       for (const oid of oids) {
         (await this.Repos.Users.getUser(oid)).addBidToMe(bid.Id);
-        eventEmitter.emitEvent({
-          bidId: bid.Id,
-          channel: `bidAdded_${bid.Id}`,
-          type: "bidAdded",
-        });
+        await this.Controllers.Users.addNotification(
+          oid,
+          "bid added to store 💃",
+          `bid added to store ${storeId}`
+        );
       }
+      eventEmitter.emitEvent({
+        bidId: bid.Id,
+        channel: `bidAdded_${bid.Id}`,
+        type: "bidAdded",
+      });
       (await this.Repos.Users.getUser(bid.UserId)).addBidFromMe(bid.Id);
       eventEmitter.subscribeChannel(`bidApproved_${bid.Id}`, bid.UserId);
       eventEmitter.subscribeChannel(`bidRejected_${bid.Id}`, bid.UserId);
@@ -387,6 +391,11 @@ export class UsersController
       bid.setOwners([targetUser.Id]);
       await this.Repos.Bids.addBid(bid);
       targetUser.addBidToMe(bid.Id);
+      await this.Controllers.Users.addNotification(
+        targetUser.Id,
+        "bid added to user 💃",
+        `bid added to user ${targetUser.Id}`
+      );
       eventEmitter.emitEvent({
         bidId: bid.Id,
         channel: `bidAdded_${bid.Id}`,
@@ -453,6 +462,7 @@ export class UsersController
       });
     }
     await this.Repos.Bids.rejectBid(bidId, userId);
+
     eventEmitter.emitEvent({
       bidId: bid.Id,
       channel: `bidRejected_${bid.Id}`,

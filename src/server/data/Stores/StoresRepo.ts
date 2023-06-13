@@ -661,6 +661,7 @@ export class StoresRepo extends Testable {
       },
       data: {
         rejectedBy: makeOwner.rejectedBy.concat(userId),
+        state: "REJECTED",
       },
     });
   }

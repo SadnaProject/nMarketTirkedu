@@ -1209,7 +1209,7 @@ export class StoresController
         const makeOwnerDTO = makeOwner.toDTO();
         makeOwnerDTO.storeName = store.store.name;
         makeOwnerDTO.userEmailAddress =
-          await this.Controllers.Auth.getUserEmail(userId);
+          await this.Controllers.Auth.getUserEmail(makeOwnerDTO.targetUserId);
         makeOwnerRequests.push(makeOwnerDTO);
       }
     }

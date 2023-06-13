@@ -1091,13 +1091,15 @@ export class StoresController
     userId: string,
     productId: string
   ): Promise<StoreProductDTO> {
-    return StoreProduct.fromDAO(
+    const product = StoreProduct.fromDAO(
       await this.Repos.Products.getProductById(productId),
       await this.Repos.Products.getSpecialPrices(productId)
     )
       .initControllers(this.Controllers)
-      .initRepos(this.Repos)
-      .getDTO();
+      .initRepos(this.Repos);
+    const productDTO = await product.getDTO();
+    productDTO.price = await product.getPriceForUser(userId);
+    return productDTO;
   }
   async addSpecialPriceToProduct(bid: Bid): Promise<void> {
     await this.Repos.Products.addSpecialPrice(

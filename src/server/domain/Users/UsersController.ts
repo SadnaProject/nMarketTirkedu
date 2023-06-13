@@ -373,7 +373,7 @@ export class UsersController
       }
       eventEmitter.emitEvent({
         bidId: bid.Id,
-        channel: `bidAdded_${bid.Id}`,
+        channel: `bidAdded_${storeId}`,
         type: "bidAdded",
       });
       (await this.Repos.Users.getUser(bid.UserId)).addBidFromMe(bid.Id);
@@ -502,7 +502,6 @@ export class UsersController
         message: "User doesn't have permission to counter bid",
       });
     }
-    bid.reject(userId);
     await this.Repos.Bids.rejectBid(bidId, userId);
     await this.addBid({
       previousBidId: bidId,

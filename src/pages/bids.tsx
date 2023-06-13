@@ -43,7 +43,7 @@ export default function Home() {
       <Gallery
         list={
           bidsToMe?.sort((a, b) =>
-            a.state === "WAITING" ? -1 : a.state === "APPROVED" ? -1 : 1
+            a.state === "WAITING" ? -1 : a.state === "APPROVED" ? 0 : 1
           ) ?? []
         }
         getId={(bid) => bid.id}

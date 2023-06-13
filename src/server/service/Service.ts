@@ -501,6 +501,9 @@ export class Service {
   async approveStoreOwner(makeOwnerObjectId: string, approverId: string) {
     await this.facade.approveStoreOwner(makeOwnerObjectId, approverId);
   }
+  async rejectStoreOwner(makeOwnerObjectId: string, approverId: string) {
+    await this.facade.rejectStoreOwner(makeOwnerObjectId, approverId);
+  }
   async getMakeOwnerRequests(userId: string): Promise<MakeOwnerDTO[]> {
     return await this.facade.getMakeOwnerRequests(userId);
   }

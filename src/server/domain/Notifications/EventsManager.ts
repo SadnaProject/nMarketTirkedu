@@ -5,14 +5,16 @@ import {
   type Notification,
 } from "server/data/Notifications/NotificationsRepo";
 import { randomUUID } from "crypto";
+import { HasControllers } from "../helpers/_HasController";
 
-export class EventManager {
+export class EventManager extends HasControllers {
   private eventEmitter: EventEmitter;
   private onlineUsers: Map<string, (msg: Event) => void>;
   private channelToUsers: Map<string, string[]>;
   private notificationsRepo: NotificationsRepo;
 
   constructor() {
+    super();
     this.eventEmitter = new EventEmitter();
     this.onlineUsers = new Map<string, (msg: Event) => void>();
     this.channelToUsers = new Map<string, string[]>();
@@ -44,16 +46,12 @@ export class EventManager {
     );
   }
 
-  public emitEvent(event: Event) {
+  public async emitEvent(event: Event) {
     console.log("emit", event);
     this.eventEmitter.emit(event.channel, event);
     for (const userId of this.channelToUsers.get(event.channel) || []) {
       // check if the user is online
-      this.notificationsRepo.addNotification(userId, {
-        ...event,
-        isRead: this.onlineUsers.has(userId),
-        id: randomUUID(),
-      });
+      await this.Controllers.Users.addNotification(userId, event.type, event.message);
     }
   }
 

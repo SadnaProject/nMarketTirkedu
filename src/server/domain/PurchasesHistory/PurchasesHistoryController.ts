@@ -257,10 +257,11 @@ export class PurchasesHistoryController
     await this.Repos.CartPurchases.addCartPurchase(cartPurchase);
     // for each basket in cartPurchase do addBasketPurchase
     for (const basket of cartPurchase.StoreIdToBasketPurchases.values()) {
-      eventEmitter.emitEvent({
+      await eventEmitter.emitEvent({
         type: "storePurchase",
         channel: `storePurchase_${basket.StoreId}`,
         storeId: basket.StoreId,
+        message: "You have a new purchase!",
       });
     }
     // for each <string, basket> in cart do addBasketPurchase

@@ -643,11 +643,12 @@ export class StoresController
         `Store ${storeId} has been activated`
       );
     }
-    eventEmitter.emitEvent({
+    await eventEmitter.emitEvent({
       type: "storeChanged",
       channel: `storeChanged_${storeId}`,
       storeId,
       description: `Store ${storeId} has been deactivated`,
+      message: "Store details has changed!",
     });
   }
 
@@ -687,11 +688,12 @@ export class StoresController
     //   `Store ${storeId} has been deactivated`
     // );
 
-    eventEmitter.emitEvent({
+    await eventEmitter.emitEvent({
       type: "storeChanged",
       channel: `storeChanged_${storeId}`,
       storeId,
       description: `Store ${storeId} has been deactivated`,
+      message: "Store details has changed!",
     });
   }
 
@@ -821,10 +823,11 @@ export class StoresController
         );
       }
 
-      eventEmitter.emitEvent({
+      await eventEmitter.emitEvent({
         channel: `tryToMakeNewOwner_${storeId}`,
         type: "makeOwner",
         makeOwnerObjectId: make.getId(),
+        message: "You have a new request to be an owner!",
       });
       await this.approveStoreOwner(make.getId(), currentId);
       return make.getId();

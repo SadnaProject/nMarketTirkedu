@@ -10,7 +10,12 @@ import Gallery from "components/gallery";
 import Collapse from "components/collapse";
 import Link from "next/link";
 import PATHS from "utils/paths";
-import { CartIcon, EditIcon, RightIcon } from "components/icons";
+import {
+  CartIcon,
+  CourtHammerIcon,
+  EditIcon,
+  RightIcon,
+} from "components/icons";
 import { api } from "server/communication/api";
 import { cachedQueryOptions } from "utils/query";
 import { onCartChangeEvent } from "utils/events";
@@ -20,20 +25,24 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-hot-toast";
 
-const formSchema = z.object({
+const quantitySchema = z.object({
   quantity: z.number().int().nonnegative(),
 });
-type FormValues = z.infer<typeof formSchema>;
+type quantityFormValues = z.infer<typeof quantitySchema>;
+
+const bidSchema = z.object({
+  price: z.number().nonnegative(),
+});
+type bidFormValues = z.infer<typeof bidSchema>;
 
 export default function Home() {
-  const {
-    register,
-    handleSubmit: handleSubmitChangeCartQuantity,
-    formState: { isSubmitting: isSubmittingChangeCartQuantity },
-    setValue,
-  } = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const quantityForm = useForm<quantityFormValues>({
+    resolver: zodResolver(quantitySchema),
     defaultValues: { quantity: 0 },
+  });
+  const bidForm = useForm<bidFormValues>({
+    resolver: zodResolver(bidSchema),
+    defaultValues: { price: 0 },
   });
   const router = useRouter();
   const { productId } = router.query;
@@ -52,6 +61,12 @@ export default function Home() {
       void refetchCart();
     },
   });
+  const { mutate: addBid } = api.users.addBid.useMutation({
+    ...cachedQueryOptions,
+    onSuccess: () => {
+      toast.success("Bid created");
+    },
+  });
   const { data: cart, refetch: refetchCart } = api.users.getCart.useQuery(
     undefined,
     cachedQueryOptions
@@ -68,16 +83,29 @@ export default function Home() {
         .get(storeId as string)
         ?.products.find((product) => product.storeProductId === productId);
       if (product) {
-        setValue("quantity", product.quantity);
+        quantityForm.setValue("quantity", product.quantity);
       }
     }
-  }, [cart, productId, storeId, setValue]);
+  }, [cart, productId, storeId, quantityForm.setValue]);
 
-  const handleChangeCartQuantity = handleSubmitChangeCartQuantity(
+  const handleChangeCartQuantity = quantityForm.handleSubmit(
     (data) => {
       addToCart({
         productId: productId as string,
         amount: data.quantity,
+      });
+    },
+    (e) => {
+      toast.error(Object.values(e)[0]?.message || "Something went wrong");
+    }
+  );
+
+  const handleCreateBid = bidForm.handleSubmit(
+    (data) => {
+      addBid({
+        type: "Store",
+        productId: productId as string,
+        price: data.price,
       });
     },
     (e) => {
@@ -118,16 +146,32 @@ export default function Home() {
         <div className="flex items-center justify-center gap-3">
           <Input
             className="max-w-[5rem] text-center"
-            {...register("quantity", {
+            {...quantityForm.register("quantity", {
               setValueAs: (v: string) => (v ? parseInt(v) : 0),
             })}
           />
           <Button
             onClick={() => void handleChangeCartQuantity()}
-            disabled={isSubmittingChangeCartQuantity}
+            disabled={quantityForm.formState.isSubmitting}
           >
             <CartIcon className="h-4 w-4" />
             Change Cart Quantity
+          </Button>
+        </div>
+        {/* todo guest cannot bid */}
+        <div className="flex items-center justify-center gap-3">
+          <Input
+            className="max-w-[5rem] text-center"
+            {...bidForm.register("price", {
+              setValueAs: (v: string) => (v ? parseInt(v) : 0),
+            })}
+          />
+          <Button
+            onClick={() => void handleCreateBid()}
+            disabled={bidForm.formState.isSubmitting}
+          >
+            <CourtHammerIcon />
+            Create bid
           </Button>
         </div>
         <Gallery

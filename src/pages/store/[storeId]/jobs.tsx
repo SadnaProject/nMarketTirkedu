@@ -53,7 +53,6 @@ export default function Home() {
     ...cachedQueryOptions,
     onSuccess: () => {
       document.dispatchEvent(new Event(onJobChangeEvent));
-      toast.success("Job added successfully");
     },
   });
   const { mutate: makeStoreManager } = api.stores.makeStoreManager.useMutation({

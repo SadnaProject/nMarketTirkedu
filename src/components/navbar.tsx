@@ -24,6 +24,7 @@ const publicLinks = [
 const privateLinks = [
   { name: "My Stores", path: PATHS.myStores.path },
   { name: "My Receipts", path: PATHS.myReceipts.path },
+  { name: "Bids", path: PATHS.bids.path },
 ] as const;
 
 const adminLinks = [
@@ -42,7 +43,10 @@ export default function Navbar() {
   );
   const { data: session } = useSession();
   const { data: notifications, refetch: refetchNotifications } =
-    api.users.getNotifications.useQuery();
+    api.users.getNotifications.useQuery(undefined, {
+      ...cachedQueryOptions,
+      enabled: session?.user !== undefined,
+    });
   api.users.subscribeToEvents.useSubscription(undefined, {
     onData: (data) => {
       console.log("yay", data);
@@ -54,12 +58,20 @@ export default function Navbar() {
         toast.success(
           `try to make new owner in store the object id is ${data.makeOwnerObjectId}`
         );
+      } else if (data.type === "bidAdded") {
+        toast.success(`A new bid has been added ${data.bidId}`);
+      } else {
+        toast.success(`Something has changed`);
       }
+      // todo add more
       void refetchNotifications();
     },
   });
   const { data: cartPrice, refetch: refetchCartPrice } =
-    api.stores.getCartPrice.useQuery(undefined, cachedQueryOptions);
+    api.stores.getCartPrice.useQuery(undefined, {
+      ...cachedQueryOptions,
+      enabled: session?.user !== undefined,
+    });
 
   useEffect(() => {
     const refetchCartPriceCallback = () => void refetchCartPrice();
@@ -186,7 +198,11 @@ export default function Navbar() {
                     </div>
                   </div>
                 </div>
-                <Profile id={session.user.id} onClick={() => void signOut()} title={session.user.email}/>
+                <Profile
+                  id={session.user.id}
+                  onClick={() => void signOut()}
+                  title={session.user.email}
+                />
               </>
             ) : (
               <Link href={PATHS.login.path} passHref legacyBehavior>

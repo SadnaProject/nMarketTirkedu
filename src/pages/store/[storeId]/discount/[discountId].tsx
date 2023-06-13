@@ -90,7 +90,7 @@ export default function Home() {
 
   return (
     <Layout className="max-w-none">
-      <StoreNavbar storeId={storeId} />
+      <StoreNavbar storeId={storeId as string} />
       <div
         className="hs-accordion-group flex w-full overflow-auto"
         data-hs-accordion-always-open

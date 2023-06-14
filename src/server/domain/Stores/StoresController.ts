@@ -636,13 +636,14 @@ export class StoresController
     const managerIds = await store.ManagersIds;
     const founderId = await store.FounderId;
     const notifiedUserIds = [founderId, ...ownerIds, ...managerIds];
-    for (const uid of notifiedUserIds) {
-      await this.Controllers.Users.addNotification(
-        uid,
-        "Store activated 💃",
-        `Store ${storeId} has been activated`
-      );
-    }
+    // for (const uid of notifiedUserIds) {
+    //   await this.Controllers.Users.addNotification(
+    //     uid,
+    //     "Store activated 💃",
+    //     `Store ${storeId} has been activated`
+    //   );
+    // }
+    eventEmitter.initControllers(this.Controllers);
     await eventEmitter.emitEvent({
       type: "storeChanged",
       channel: `storeChanged_${storeId}`,
@@ -687,7 +688,7 @@ export class StoresController
     //   "Store deactivated 💤",
     //   `Store ${storeId} has been deactivated`
     // );
-
+    eventEmitter.initControllers(this.Controllers);
     await eventEmitter.emitEvent({
       type: "storeChanged",
       channel: `storeChanged_${storeId}`,
@@ -815,14 +816,14 @@ export class StoresController
 
       const notifiedUserIds =
         await this.Controllers.Jobs.getIdsThatNeedToApprove(storeId);
-      for (const uid of notifiedUserIds) {
-        await this.Controllers.Users.addNotification(
-          uid,
-          "try to make new owner in store 💃",
-          `try to make new owner in store ${storeId}`
-        );
-      }
-
+      // for (const uid of notifiedUserIds) {
+      //   await this.Controllers.Users.addNotification(
+      //     uid,
+      //     "try to make new owner in store 💃",
+      //     `try to make new owner in store ${storeId}`
+      //   );
+      // }
+      eventEmitter.initControllers(this.Controllers);
       await eventEmitter.emitEvent({
         channel: `tryToMakeNewOwner_${storeId}`,
         type: "makeOwner",

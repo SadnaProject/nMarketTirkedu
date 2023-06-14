@@ -19,7 +19,7 @@ export default defineConfig({
       // "Basket.test.ts",
       // "**/UsersController.test.ts",
       //STILL NEED TO BE DONE:
-      "**/Parallel.test.ts",
+      "**/DeliveryAdaptor.test.ts",
       //Done:
       //"**/Owner.test.ts", //(all tests pass except Add Constraint see todo their @ilaytzarfati1231)
       // "**/Purchase.test.ts",

@@ -48,6 +48,7 @@
     "@trpc/next": "^10.28.0",
     "@trpc/react-query": "^10.28.0",
     "@trpc/server": "^10.28.0",
+    "axios": "^1.4.0",
     "dayjs": "^1.11.7",
     "fetch-node": "^0.0.1",
     "framer-motion": "^10.12.16",

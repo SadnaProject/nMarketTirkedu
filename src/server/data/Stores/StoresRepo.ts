@@ -260,6 +260,7 @@ export class StoresRepo extends Testable {
           searchFor: discount.searchFor,
         },
       });
+      console.log("inside addDiscountAndKeepHierarchy");
       await this.addCondition(discount.condition, undefined, simple.id);
       return (
         await getDB().discount.create({

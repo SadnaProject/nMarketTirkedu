@@ -322,6 +322,7 @@ export interface IStoresController extends HasRepos {
   approveStoreOwner(makeOwnerId: string, userId: string): Promise<void>;
   subscribeToStoreEvents(userId: string): Promise<void>;
   getMakeOwnerRequests(userId: string): Promise<MakeOwnerDTO[]>;
+  rejectStoreOwner(makeOwnerId: string, userId: string): Promise<void>;
 }
 
 @testable
@@ -1244,6 +1245,8 @@ export class StoresController
       for (const makeOwner of makeOwners) {
         const makeOwnerDTO = makeOwner.toDTO();
         makeOwnerDTO.storeName = store.store.name;
+        makeOwnerDTO.userEmailAddress =
+          await this.Controllers.Auth.getUserEmail(makeOwnerDTO.targetUserId);
         makeOwnerRequests.push(makeOwnerDTO);
       }
     }

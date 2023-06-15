@@ -23,6 +23,7 @@ import { Loggable, censored, loggable } from "./helpers/_Loggable";
 import { createControllers } from "./helpers/_createControllers";
 import { type Controllers } from "./helpers/_HasController";
 import { eventEmitter } from "./helpers/_EventEmitter";
+import { MakeOwnerDTO } from "./Stores/MakeOwner";
 
 // @transactional
 @loggable
@@ -229,7 +230,7 @@ export class MarketFacade extends Loggable {
   ) {
     this.validateConnection(currentId);
     // console.log("makeStoreOwner");
-    await this.controllers.Stores.makeStoreOwner(
+    return await this.controllers.Stores.makeStoreOwner(
       currentId,
       storeId,
       targetUserId
@@ -647,18 +648,15 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     return this.controllers.Users.getAllBidsSendToUser(userId);
   }
-  async approveBid(userId: string, bidId: string): Promise<void> {
+  async approveBid(userId: string, bidId: string) {
     this.validateConnection(userId);
-    await this.controllers.Users.approveBid(userId, bidId);
+    return await this.controllers.Users.approveBid(userId, bidId);
   }
   async rejectBid(userId: string, bidId: string): Promise<void> {
     this.validateConnection(userId);
     await this.controllers.Users.rejectBid(userId, bidId);
   }
-  removeVoteFromBid(userId: string, bidId: string): void {
-    this.validateConnection(userId);
-    this.controllers.Users.removeVoteFromBid(userId, bidId);
-  }
+
   async getJobsHierarchyOfStore(
     userId: string,
     storeId: string
@@ -688,5 +686,28 @@ export class MarketFacade extends Loggable {
   ): Promise<Permission[]> {
     this.validateConnection(userId);
     return await this.controllers.Jobs.getPermissionsOfUser(userId, storeId);
+  }
+  async subscribeToStoreEvents(userId: string) {
+    this.validateConnection(userId);
+    await this.controllers.Stores.subscribeToStoreEvents(userId);
+  }
+  async approveStoreOwner(makeOwnerObjectID: string, memberId: string) {
+    this.validateConnection(memberId);
+    await this.controllers.Stores.approveStoreOwner(
+      makeOwnerObjectID,
+      memberId
+    );
+  }
+  async rejectStoreOwner(makeOwnerObjectID: string, memberId: string) {
+    this.validateConnection(memberId);
+    await this.controllers.Stores.rejectStoreOwner(makeOwnerObjectID, memberId);
+  }
+  async counterBid(userId: string, bidId: string, price: number) {
+    this.validateConnection(userId);
+    await this.controllers.Users.counterBid(userId, bidId, price);
+  }
+  async getMakeOwnerRequests(userId: string): Promise<MakeOwnerDTO[]> {
+    this.validateConnection(userId);
+    return await this.controllers.Stores.getMakeOwnerRequests(userId);
   }
 }

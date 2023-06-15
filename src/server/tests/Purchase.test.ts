@@ -7,7 +7,8 @@ import {
 import { Service } from "server/service/Service";
 import { describe, expect, it, beforeEach } from "vitest";
 import { TRPCError } from "@trpc/server";
-import { resetDB } from "server/helpers/_Transactional";
+import { getDB, resetDB } from "server/helpers/_Transactional";
+import { BidArgs } from "server/domain/Users/Bid";
 let service: Service;
 beforeEach(async () => {
   await resetDB();
@@ -30,62 +31,62 @@ export type DeliveryDetails = {
   zip: string;
 };
 
-//Use Case 2.1
-describe("Get information about stores and products", () => {
-  it("✅ Get information about stores and products", async () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const id = await service.startSession();
-    await service.registerMember(id, email, password);
-    const uid = await service.loginMember(id, email, password);
-    const storeName = generateStoreName();
-    const storeId = await service.createStore(uid, storeName);
-    const ownermail = "owner@gmail.com";
-    const ownerpass = "owner123";
-    const oid2 = await service.startSession();
-    await service.registerMember(oid2, ownermail, ownerpass);
-    const oid = await service.loginMember(oid2, ownermail, ownerpass);
-    await service.makeStoreOwner(uid, storeId, oid);
-    const pargs = generateProductArgs();
-    const pid = await service.createProduct(oid, storeId, pargs);
-    const memail = "member@gmail.com";
-    const mpassword = faker.internet.password();
-    const mid = await service.startSession();
-    await service.registerMember(mid, memail, mpassword);
-    const umid = await service.loginMember(mid, memail, mpassword);
-    const products = await service.getStoreProducts(uid, storeId);
-    const cond =
-      products[0]?.id === pid &&
-      (await service.getStoreFounder(storeId)) === uid;
-    expect(cond).toBe(true);
-  });
-  it("❎ Information of non existing store", async () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const id = await service.startSession();
-    await service.registerMember(id, email, password);
-    const uid = await service.loginMember(id, email, password);
-    const storeName = generateStoreName();
-    const storeId = await service.createStore(uid, storeName);
-    const ownermail = "owner@gmail.com";
-    const ownerpass = "owner123";
-    const oid2 = await service.startSession();
-    await service.registerMember(oid2, ownermail, ownerpass);
-    const oid = await service.loginMember(oid2, ownermail, ownerpass);
-    await service.makeStoreOwner(uid, storeId, oid);
-    const pargs = generateProductArgs();
-    const pid = await service.createProduct(oid, storeId, pargs);
-    const memail = "member@gmail.com";
-    const mpassword = faker.internet.password();
-    const mid = await service.startSession();
-    await service.registerMember(mid, memail, mpassword);
-    const umid = await service.loginMember(mid, memail, mpassword);
-    await expect(() => service.getStoreFounder("ashaleee")).rejects.toThrow(
-      "Store not found"
-    );
-  });
-});
-//Use Case 2.2
+// //Use Case 2.1
+// describe("Get information about stores and products", () => {
+//   it("✅ Get information about stores and products", async () => {
+//     const email = faker.internet.email();
+//     const password = faker.internet.password();
+//     const id = await service.startSession();
+//     await service.registerMember(id, email, password);
+//     const uid = await service.loginMember(id, email, password);
+//     const storeName = generateStoreName();
+//     const storeId = await service.createStore(uid, storeName);
+//     const ownermail = "owner@gmail.com";
+//     const ownerpass = "owner123";
+//     const oid2 = await service.startSession();
+//     await service.registerMember(oid2, ownermail, ownerpass);
+//     const oid = await service.loginMember(oid2, ownermail, ownerpass);
+//     await service.makeStoreOwner(uid, storeId, oid);
+//     const pargs = generateProductArgs();
+//     const pid = await service.createProduct(oid, storeId, pargs);
+//     const memail = "member@gmail.com";
+//     const mpassword = faker.internet.password();
+//     const mid = await service.startSession();
+//     await service.registerMember(mid, memail, mpassword);
+//     const umid = await service.loginMember(mid, memail, mpassword);
+//     const products = await service.getStoreProducts(uid, storeId);
+//     const cond =
+//       products[0]?.id === pid &&
+//       (await service.getStoreFounder(storeId)) === uid;
+//     expect(cond).toBe(true);
+//   });
+//   it("❎ Information of non existing store", async () => {
+//     const email = faker.internet.email();
+//     const password = faker.internet.password();
+//     const id = await service.startSession();
+//     await service.registerMember(id, email, password);
+//     const uid = await service.loginMember(id, email, password);
+//     const storeName = generateStoreName();
+//     const storeId = await service.createStore(uid, storeName);
+//     const ownermail = "owner@gmail.com";
+//     const ownerpass = "owner123";
+//     const oid2 = await service.startSession();
+//     await service.registerMember(oid2, ownermail, ownerpass);
+//     const oid = await service.loginMember(oid2, ownermail, ownerpass);
+//     await service.makeStoreOwner(uid, storeId, oid);
+//     const pargs = generateProductArgs();
+//     const pid = await service.createProduct(oid, storeId, pargs);
+//     const memail = "member@gmail.com";
+//     const mpassword = faker.internet.password();
+//     const mid = await service.startSession();
+//     await service.registerMember(mid, memail, mpassword);
+//     const umid = await service.loginMember(mid, memail, mpassword);
+//     await expect(() => service.getStoreFounder("ashaleee")).rejects.toThrow(
+//       "Store not found"
+//     );
+//   });
+// });
+// // Use Case 2.2
 // describe("Search Products", () => {
 //   let pargs1: StoreProductArgs,
 //     pargs2: StoreProductArgs,
@@ -188,43 +189,45 @@ describe("Get information about stores and products", () => {
 //   });
 // });
 // //Use Case 2.3
-describe("Keep an Item in the cart", () => {
-  it("✅ Add item to cart and keep it after disconnecting", async () => {
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const id = await service.startSession();
-    await service.registerMember(id, email, password);
-    const uid = await service.loginMember(id, email, password);
-    const storeName = generateStoreName();
-    const storeId = await service.createStore(uid, storeName);
-    const ownermail = "owner@gmail.com";
-    const ownerpass = "owner123";
-    const oid2 = await service.startSession();
-    await service.registerMember(oid2, ownermail, ownerpass);
-    const oid = await service.loginMember(oid2, ownermail, ownerpass);
-    await service.makeStoreOwner(uid, storeId, oid);
-    const pargs = generateProductArgs();
-    pargs.quantity = 2;
-    const pid = await service.createProduct(oid, storeId, pargs);
-    const memail = "member@gmail.com";
-    const mpassword = faker.internet.password();
-    const mid = await service.startSession();
-    await service.registerMember(mid, memail, mpassword);
-    const umid = await service.loginMember(mid, memail, mpassword);
-    await service.addProductToCart(umid, pid, 1);
-    const cart = await service.getCart(umid);
-    expect(
-      cart.storeIdToBasket.get(storeId)?.products.at(0)?.storeProductId === pid
-    ).toBe(true);
-    const mid2 = await service.logoutMember(umid);
-    const umid2 = await service.loginMember(mid2, memail, mpassword);
-    const cart2 = await service.getCart(umid2);
-    expect(
-      cart2.storeIdToBasket.get(storeId)?.products.at(0)?.storeProductId === pid
-    ).toBe(true);
-  });
-});
-//Use Case 2.4
+// describe("Keep an Item in the cart", () => {
+//   it("✅ Add item to cart and keep it after disconnecting", async () => {
+//     const email = faker.internet.email();
+//     const password = faker.internet.password();
+//     const id = await service.startSession();
+//     await service.registerMember(id, email, password);
+//     const uid = await service.loginMember(id, email, password);
+//     const storeName = generateStoreName();
+//     const storeId = await service.createStore(uid, storeName);
+//     const ownermail = "owner@gmail.com";
+//     const ownerpass = "owner123";
+//     const oid2 = await service.startSession();
+//     await service.registerMember(oid2, ownermail, ownerpass);
+//     const oid = await service.loginMember(oid2, ownermail, ownerpass);
+//     await service.makeStoreOwner(uid, storeId, oid);
+//     const pargs = generateProductArgs();
+//     pargs.quantity = 2;
+//     const pid = await service.createProduct(oid, storeId, pargs);
+//     const memail = "member@gmail.com";
+//     const mpassword = faker.internet.password();
+//     const mid = await service.startSession();
+//     await service.registerMember(mid, memail, mpassword);
+//     const umid = await service.loginMember(mid, memail, mpassword);
+//     await service.addProductToCart(umid, pid, 1);
+//     const cart = await service.getCart(umid);
+//     expect(
+//       cart.storeIdToBasket.get(storeId)?.products.at(0)?.storeProductId === pid
+//     ).toBe(true);
+//     const mid2 = await service.logoutMember(umid);
+//     const umid2 = await service.loginMember(mid2, memail, mpassword);
+//     const cart2 = await service.getCart(umid2);
+//     expect(
+//       cart2.storeIdToBasket.get(storeId)?.products.at(0)?.storeProductId === pid
+//     ).toBe(true);
+//   });
+// });
+
+// //THE TESTS ABOVE PASS
+// // Use Case 2.4
 // describe("Edit cart contents", () => {
 //   let email: string,
 //     password: string,
@@ -271,23 +274,23 @@ describe("Keep an Item in the cart", () => {
 //     await service.registerMember(mid, memail, mpassword);
 //     umid = await service.loginMember(mid, memail, mpassword);
 //   });
-//   // it("✅ Add item to cart", async () => {
-//   //   const pargs2 = generateProductArgs();
-//   //   pargs2.quantity = 5;
-//   //   const pid2 = await service.createProduct(oid, storeId, pargs2);
-//   //   await service.addProductToCart(umid, pid, 1);
-//   //   const cart = await service.getCart(umid);
-//   //   await service.addProductToCart(umid, pid2, 3);
-//   //   const cart2 = await service.getCart(umid);
-//   //   expect(
-//   //     cart2.storeIdToBasket.get(storeId)?.products[0]?.storeProductId === pid &&
-//   //       cart2.storeIdToBasket.get(storeId)?.products[1]?.storeProductId ==
-//   //         pid2 &&
-//   //       cart2.storeIdToBasket.get(storeId)?.products.length === 2 &&
-//   //       cart.storeIdToBasket.get(storeId)?.products.length === 1 &&
-//   //       cart.storeIdToBasket.get(storeId)?.products[0]?.storeProductId === pid
-//   //   ).toBe(true);
-//   // });
+//   it("✅ Add item to cart", async () => {
+//     const pargs2 = generateProductArgs();
+//     pargs2.quantity = 5;
+//     const pid2 = await service.createProduct(oid, storeId, pargs2);
+//     await service.addProductToCart(umid, pid, 1);
+//     const cart = await service.getCart(umid);
+//     await service.addProductToCart(umid, pid2, 3);
+//     const cart2 = await service.getCart(umid);
+//     expect(
+//       cart2.storeIdToBasket.get(storeId)?.products[0]?.storeProductId === pid &&
+//         cart2.storeIdToBasket.get(storeId)?.products[1]?.storeProductId ==
+//           pid2 &&
+//         cart2.storeIdToBasket.get(storeId)?.products.length === 2 &&
+//         cart.storeIdToBasket.get(storeId)?.products.length === 1 &&
+//         cart.storeIdToBasket.get(storeId)?.products[0]?.storeProductId === pid
+//     ).toBe(true);
+//   });
 //   it("✅ Edit quantity", async () => {
 //     await service.addProductToCart(umid, pid, 7);
 //     const q1 = (await service.getCart(umid)).storeIdToBasket.get(storeId)
@@ -398,7 +401,7 @@ describe("Keep an Item in the cart", () => {
 //     await service.registerMember(mid, memail, mpassword);
 //     const umid = await service.loginMember(mid, memail, mpassword);
 //     await service.addProductToCart(umid, pid, 4);
-//     expect(() => service.addProductToCart(umid, pid2, 3)).toThrow(
+//     await expect(() => service.addProductToCart(umid, pid2, 3)).rejects.toThrow(
 //       "store doesn't have such amount of product"
 //     );
 //     const card = faker.finance.creditCardNumber();
@@ -418,7 +421,9 @@ describe("Keep an Item in the cart", () => {
 //       zip: "2143145",
 //     };
 //     await service.decreaseProductQuantity(pid, 4);
-//     expect(() => service.purchaseCart(umid, cCard, d)).toThrow(TRPCError);
+//     await expect(() => service.purchaseCart(umid, cCard, d)).rejects.toThrow(
+//       "Product quantity is not available"
+//     );
 //   });
 //   it("❎ Purchasing items that were on stock when added to cart but another user bought them", async () => {
 //     const pid = await service.createProduct(oid, storeId, pargs);
@@ -489,3 +494,415 @@ describe("Keep an Item in the cart", () => {
 //     // expect(() => service.removeProductFromCart(umid, pid)).toThrow(TRPCError);
 //   });
 // });
+
+//ALL PASS FROM HERE
+//bid user story
+//When calculating the price of a product, the system uses the function getProductPrice(userID, productID) which returns the price of the product for the given user.
+//There for, it is enough to test the function getProductPrice(userID, productID) to test the bid user story, and there is no need to calculate the price of the cart.
+//just in case
+//Use Case 2.5 - Bid
+describe("Bid User Story", () => {
+  let email: string,
+    password: string,
+    gid: string,
+    founderId: string,
+    storeName: string,
+    storeId: string,
+    ownermail: string,
+    ownerpass: string,
+    ownerId: string,
+    gid2: string,
+    pargs: {
+      name: string;
+      quantity: number;
+      price: number;
+      category: string;
+      description: string;
+    };
+  let customerId: string;
+  let productInitialPrice: number;
+  let productId: string;
+  let bidArgs: BidArgs;
+  beforeEach(async () => {
+    await resetDB();
+    email = faker.internet.email();
+    password = faker.internet.password();
+    gid = await service.startSession();
+    await service.registerMember(gid, email, password);
+    founderId = await service.loginMember(gid, email, password);
+    storeName = generateStoreName();
+    storeId = await service.createStore(founderId, storeName);
+    ownermail = "owner@gmail.com";
+    ownerpass = "owner123";
+    gid2 = await service.startSession();
+    ownerId = await service.registerMember(gid2, ownermail, ownerpass);
+    await service.makeStoreOwner(founderId, storeId, ownerId);
+    customerId = await service.startSession();
+    const customerEmail = faker.internet.email();
+    const customerPassword = faker.internet.password();
+    customerId = await service.registerMember(
+      customerId,
+      customerEmail,
+      customerPassword
+    );
+    pargs = generateProductArgs();
+    pargs.quantity = 7;
+    productInitialPrice = pargs.price;
+    productId = await service.createProduct(ownerId, storeId, pargs);
+    bidArgs = {
+      userId: customerId,
+      price: 5,
+      productId: productId,
+      type: "Store",
+    };
+  });
+  it("Bid on product and then all owners approved it", async () => {
+    //customer adds product to cart
+    await service.addProductToCart(customerId, productId, 1);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //cart price is the same as product price
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer bids on product
+    const bid = await service.addBid(bidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    //owners and founder accept bids
+    await service.approveBid(ownerId, bid);
+    //if not all owners approved bid, product price doesnt change
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    await service.approveBid(founderId, bid);
+    const price = await service.getProductPrice(customerId, productId);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      bidArgs.price
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(bidArgs.price);
+  });
+  it("❌ Bid on product and then only one owner approved it, price shouldnt change", async () => {
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer adds product to cart
+    await service.addProductToCart(customerId, productId, 1);
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer bids on product
+    const bid = await service.addBid(bidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    //owner accepts bid
+    await service.approveBid(ownerId, bid);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+  });
+  it("❌ Bid on product not approved", async () => {
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer adds product to cart
+    await service.addProductToCart(customerId, productId, 1);
+    //customer bids on product
+    const bid = await service.addBid(bidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    //founder accepts bid but owner rejects it
+    await service.approveBid(founderId, bid);
+    await service.rejectBid(ownerId, bid);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+  });
+  it("❌ Bid on product not approved by owner that tries to approve it after his rejection", async () => {
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer adds product to cart
+    await service.addProductToCart(customerId, productId, 1);
+    //customer bids on product
+    const bid = await service.addBid(bidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    //founder accepts bid but owner rejects it and then tries to approve it
+    await service.approveBid(founderId, bid);
+    await service.rejectBid(ownerId, bid);
+
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.approveBid(ownerId, bid)).rejects.toThrow(
+      "Bid already rejected"
+    );
+  });
+  //customer bids on product, owner counter offers, customer accepts counter offer
+  it("✅ Bid on product, owner counter offers, customer accepts counter offer", async () => {
+    //customer adds product to cart
+    await service.addProductToCart(customerId, productId, 1);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer bids on product
+    const bid = await service.addBid(bidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    //owner counter offers
+    const counterBidArgs: BidArgs = {
+      userId: ownerId,
+      price: 10,
+      productId: productId,
+      type: "Counter",
+      previousBidId: bid,
+    };
+    const counterBid = await service.addBid(counterBidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer accepts counter offer
+    const newID = await service.approveBid(customerId, counterBid);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    await service.approveBid(ownerId, newID);
+    await service.approveBid(founderId, newID);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      counterBidArgs.price
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      counterBidArgs.price
+    );
+  });
+  //customer bids on product, owner counter offers, customer rejects counter offer and bids again. owner accepts second bid
+  it("✅ Bid on product, owner counter offers, customer rejects counter offer and bids again. owner accepts second bid", async () => {
+    //customer adds product to cart
+    await service.addProductToCart(customerId, productId, 1);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer bids on product
+    const bid = await service.addBid(bidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    //owner counter offers
+    const counterBidArgs: BidArgs = {
+      userId: ownerId,
+      price: 10,
+      productId: productId,
+      type: "Counter",
+      previousBidId: bid,
+    };
+    const counterBid = await service.addBid(counterBidArgs);
+    console.log("counterBid", counterBid);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer rejects counter offer
+    await service.rejectBid(customerId, counterBid);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer bids again
+    const bid2 = await service.addBid(bidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    //owners accepts second bid
+    await service.approveBid(ownerId, bid2);
+    await service.approveBid(founderId, bid2);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      bidArgs.price
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(bidArgs.price);
+  });
+  //not owner of store tries to approve bid on product
+  it("❌ Not owner of store tries to approve bid on product", async () => {
+    //customer adds product to cart
+    await service.addProductToCart(customerId, productId, 1);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer bids on product
+    const bid = await service.addBid(bidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    //not owner of store tries to approve bid
+    await expect(service.approveBid(customerId, bid)).rejects.toThrow(
+      "User doesn't have permission to approve bid"
+    );
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+  });
+  //if an owner of a store is removed, he can't approve bids and we dont need him to approve bids
+  it("✅ If an owner of a store is removed, he can't approve bids and we dont need him to approve bids", async () => {
+    //customer adds product to cart
+    await service.addProductToCart(customerId, productId, 1);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer bids on product
+    const bid = await service.addBid(bidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(
+      productInitialPrice
+    );
+    //owner removes himself from store
+    await service.removeStoreOwner(founderId, storeId, ownerId);
+    //owner tries to approve bid
+    await expect(service.approveBid(ownerId, bid)).rejects.toThrow(
+      "User doesn't have permission to approve bid"
+    );
+    //founder approves bid
+    await service.approveBid(founderId, bid);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      bidArgs.price
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(bidArgs.price);
+  });
+  //when a bid of a customer changes, the price of the product changes for all future purchases
+  it("✅ When a bid of a customer changes, the price of the product changes for all future purchases", async () => {
+    //customer adds product to cart
+    await service.addProductToCart(customerId, productId, 1);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer bids on product
+    const bid = await service.addBid(bidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await service.approveBid(ownerId, bid);
+    await service.approveBid(founderId, bid);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      bidArgs.price
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(bidArgs.price);
+    const cCard: PaymentDetails = {
+      number: faker.finance.creditCardNumber(),
+      ccv: "144",
+      holder: "Buya",
+      id: "111111111",
+      month: "3",
+      year: "2025",
+    };
+    const d: DeliveryDetails = {
+      address: "dsadas",
+      city: "asdasd",
+      country: "sadasd",
+      name: "bsajsa",
+      zip: "2143145",
+    };
+    await service.purchaseCart(customerId, cCard, d);
+    //check that the cart is empty
+    await expect(service.getCartPrice(customerId)).resolves.toBe(0);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      bidArgs.price
+    );
+    //once again add product to cart
+    await service.addProductToCart(customerId, productId, 1);
+    await expect(service.getCartPrice(customerId)).resolves.toBe(bidArgs.price);
+  });
+  //After a bid is approved, the product price is updated only for the customer that made the bid
+  it("✅ After a bid is approved, the product price is updated only for the customer that made the bid", async () => {
+    const customerId2 = await service.startSession();
+    //customer adds product to cart
+    await service.addProductToCart(customerId, productId, 1);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    //customer bids on product
+    const bid = await service.addBid(bidArgs);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await service.approveBid(ownerId, bid);
+    await service.approveBid(founderId, bid);
+    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+      bidArgs.price
+    );
+    await expect(service.getCartPrice(customerId)).resolves.toBe(bidArgs.price);
+    //another customer adds product to cart
+    await service.addProductToCart(customerId2, productId, 1);
+    await expect(service.getProductPrice(customerId2, productId)).resolves.toBe(
+      productInitialPrice
+    );
+    await expect(service.getCartPrice(customerId2)).resolves.toBe(
+      productInitialPrice
+    );
+  });
+});

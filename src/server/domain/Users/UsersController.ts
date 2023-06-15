@@ -10,6 +10,7 @@ import { Testable, testable } from "server/helpers/_Testable";
 import { HasControllers } from "../helpers/_HasController";
 import { censored } from "../helpers/_Loggable";
 import { getDB } from "server/helpers/_Transactional";
+import { eventEmitter } from "../helpers/_EventEmitter";
 
 export interface IUsersController {
   /**
@@ -145,10 +146,10 @@ export interface IUsersController {
   addBid(BidArgs: BidArgs): Promise<string>;
   getAllBidsSendFromUser(userId: string): Promise<BidDTO[]>;
   getAllBidsSendToUser(userId: string): Promise<BidDTO[]>;
-  removeVoteFromBid(userId: string, bidId: string): void;
   counterBid(userId: string, bidId: string, price: number): Promise<void>;
-  approveBid(userId: string, bidId: string): Promise<void>;
+  approveBid(userId: string, bidId: string): Promise<string>;
   rejectBid(userId: string, bidId: string): Promise<void>;
+  removeOwnerFromHisBids(userId: string, storeId: string): Promise<void>;
 }
 
 @testable
@@ -290,9 +291,13 @@ export class UsersController
     await this.addUser(guestId);
     return guestId;
   }
+  subscribeForUserEvents(userId: string) {
+    eventEmitter.subscribeChannel(`bidAdded_${userId}`, userId);
+  }
   async register(email: string, @censored password: string): Promise<string> {
     const MemberId = await this.Controllers.Auth.register(email, password);
     await this.Repos.Users.addUser(MemberId);
+    this.subscribeForUserEvents(MemberId);
     return MemberId;
   }
   async login(
@@ -350,46 +355,68 @@ export class UsersController
   }
   async addBid(bidArgs: BidArgs): Promise<string> {
     const bid = new Bid(bidArgs);
-    this.Repos.Bids.addBid(bid);
     if (bidArgs.type === "Store") {
-      const oids = await this.Controllers.Jobs.getStoreOwnersIds(
-        await this.Controllers.Stores.getStoreIdByProductId(
-          bid.UserId,
-          bid.ProductId
-        )
+      const storeId = await this.Controllers.Stores.getStoreIdByProductId(
+        bid.UserId,
+        bid.ProductId
       );
+      const oids = await this.Controllers.Jobs.getIdsThatNeedToApprove(storeId);
+      bid.setOwners(R.clone(oids));
+      await this.Repos.Bids.addBid(bid);
       for (const oid of oids) {
-        (await this.Repos.Users.getUser(oid)).addBidFromMe(bid.Id);
+        (await this.Repos.Users.getUser(oid)).addBidToMe(bid.Id);
       }
-      bid.Owners = R.clone(
-        await this.Controllers.Jobs.getStoreOwnersIds(
-          await this.Controllers.Stores.getStoreIdByProductId(
-            bid.UserId,
-            bid.ProductId
-          )
-        )
-      );
+      eventEmitter.initControllers(this.Controllers);
+      await eventEmitter.emitEvent({
+        bidId: bid.Id,
+        channel: `bidAdded_${storeId}`,
+        type: "bidAdded",
+        message: `You have a new bid!`,
+      });
+      (await this.Repos.Users.getUser(bid.UserId)).addBidFromMe(bid.Id);
+      eventEmitter.subscribeChannel(`bidApproved_${bid.Id}`, bid.UserId);
+      eventEmitter.subscribeChannel(`bidRejected_${bid.Id}`, bid.UserId);
     } else {
       (await this.Repos.Users.getUser(bid.UserId)).addBidFromMe(bid.Id);
-      const targetUser = await this.Repos.Users.getUserByBidId(
-        bidArgs.previousBidId
+      eventEmitter.subscribeChannel(`bidApproved_${bid.Id}`, bid.UserId);
+      eventEmitter.subscribeChannel(`bidRejected_${bid.Id}`, bid.UserId);
+      const targetUser = await this.Repos.Users.getUser(
+        (
+          await this.Repos.Bids.getBid(bidArgs.previousBidId)
+        ).UserId
       );
-      bid.Owners = [targetUser.Id];
+      bid.setOwners([targetUser.Id]);
+      await this.Repos.Bids.addBid(bid);
       targetUser.addBidToMe(bid.Id);
+      eventEmitter.initControllers(this.Controllers);
+      await eventEmitter.emitEvent({
+        bidId: bid.Id,
+        channel: `bidAdded_${targetUser.Id}`,
+        type: "bidAdded",
+        message: `You have a new bid!`,
+      });
     }
     return bid.Id;
   }
-  async approveBid(userId: string, bidId: string): Promise<void> {
-    const bid = this.Repos.Bids.getBid(bidId);
+  async approveBid(userId: string, bidId: string) {
+    const bid = await this.Repos.Bids.getBid(bidId);
+    if (bid.State !== "WAITING") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Bid is not waiting for approval",
+      });
+    }
     if (
-      bid.Type == "Store" &&
-      !(await this.Controllers.Jobs.isStoreOwner(
-        userId,
-        await this.Controllers.Stores.getStoreIdByProductId(
-          bid.UserId,
-          bid.ProductId
-        )
-      ))
+      (bid.Type == "Store" &&
+        !(
+          await this.Controllers.Jobs.getIdsThatNeedToApprove(
+            await this.Controllers.Stores.getStoreIdByProductId(
+              bid.UserId,
+              bid.ProductId
+            )
+          )
+        ).includes(userId)) ||
+      (bid.Type === "Counter" && !bid.Owners.includes(userId))
     ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
@@ -402,62 +429,87 @@ export class UsersController
         message: "User doesn't have this bid",
       });
     }
-    bid.approve(userId);
-    if (bid.isApproved()) {
+    await this.Repos.Bids.approveBid(bidId, userId);
+    // await this.Repos.Bids.updateBid(bid); //TODO:  needed!!!!
+    const state = await this.Repos.Bids.bidState(bidId);
+
+    if (state === "APPROVED") {
+      eventEmitter.initControllers(this.Controllers);
+      await eventEmitter.emitEvent({
+        bidId: bid.Id,
+        channel: `bidApproved_${bid.Id}`,
+        type: "bidApproved",
+        message: `Your bid has been approved!`,
+      });
       switch (bid.Type) {
         case "Store":
           await this.Controllers.Stores.addSpecialPriceToProduct(bid);
+
           break;
         case "Counter":
-          await this.addBid({
+          return await this.addBid({
             userId: userId,
-            type: "Counter",
+            type: "Store",
             price: bid.Price,
             productId: bid.ProductId,
-            previousBidId: bid.Id,
           });
       }
     }
+    return bidId;
   }
   async rejectBid(userId: string, bidId: string): Promise<void> {
-    const bid = this.Repos.Bids.getBid(bidId);
-    if (
-      !(await this.Controllers.Jobs.isStoreOwner(
-        userId,
-        await this.Controllers.Stores.getStoreIdByProductId(
-          bid.UserId,
-          bid.ProductId
-        )
-      ))
-    ) {
+    const bid = await this.Repos.Bids.getBid(bidId);
+    if (!bid.Owners.includes(userId)) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User doesn't have permission to reject bid",
       });
     }
-    bid.reject(userId);
+    await this.Repos.Bids.rejectBid(bidId, userId);
+    eventEmitter.initControllers(this.Controllers);
+    await eventEmitter.emitEvent({
+      bidId: bid.Id,
+      channel: `bidRejected_${bid.Id}`,
+      type: "bidRejected",
+      message: `Your bid has been rejected!`,
+    });
   }
   async counterBid(
     userId: string,
     bidId: string,
     price: number
   ): Promise<void> {
-    const bid = this.Repos.Bids.getBid(bidId);
+    const bid = await this.Repos.Bids.getBid(bidId);
+    if (bid.State !== "WAITING") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Bid is not waiting for approval",
+      });
+    }
     if (
-      !(await this.Controllers.Jobs.isStoreOwner(
-        userId,
-        await this.Controllers.Stores.getStoreIdByProductId(
-          bid.UserId,
-          bid.ProductId
+      !(
+        await this.Controllers.Jobs.getIdsThatNeedToApprove(
+          await this.Controllers.Stores.getStoreIdByProductId(
+            bid.UserId,
+            bid.ProductId
+          )
         )
-      ))
+      ).includes(userId)
     ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User doesn't have permission to counter bid",
       });
     }
-    bid.reject(userId);
+    await this.Repos.Bids.rejectBid(bidId, userId);
+    eventEmitter.initControllers(this.Controllers);
+    await eventEmitter.emitEvent({
+      bidId: bid.Id,
+      channel: `bidRejected_${bid.Id}`,
+      type: "bidRejected",
+      message: `Your bid has been rejected!`,
+    });
+
     await this.addBid({
       previousBidId: bidId,
       price: price,
@@ -466,22 +518,63 @@ export class UsersController
       type: "Counter",
     });
   }
-  removeVoteFromBid(userId: string, bidId: string): void {
-    const bid = this.Repos.Bids.getBid(bidId);
-    bid.removeVote(userId);
-  }
+
   async getAllBidsSendToUser(userId: string): Promise<BidDTO[]> {
     const bids: BidDTO[] = [];
-    (await this.Repos.Users.getUser(userId)).BidsToMe.forEach((bidId) =>
-      bids.push(this.Repos.Bids.getBid(bidId).DTO)
-    );
+    const allBids = await this.Repos.Bids.getAllBids();
+    for (const bid of allBids) {
+      if (bid.Owners.includes(userId)) {
+        const bidDTO = bid.DTO;
+        bidDTO.productName = (
+          await this.Controllers.Stores.getProductById(userId, bid.ProductId)
+        ).name;
+        bids.push(bidDTO);
+      }
+    }
     return bids;
   }
   async getAllBidsSendFromUser(userId: string): Promise<BidDTO[]> {
     const bids: BidDTO[] = [];
-    (await this.Repos.Users.getUser(userId)).BidsFromMe.forEach((bidId) =>
-      bids.push(this.Repos.Bids.getBid(bidId).DTO)
-    );
+    const allBids = await this.Repos.Bids.getAllBidsSentByUser(userId);
+    for (const bid of allBids) {
+      const bidDTO = bid.DTO;
+      bidDTO.productName = (
+        await this.Controllers.Stores.getProductById(userId, bid.ProductId)
+      ).name;
+      bids.push(bidDTO);
+    }
     return bids;
+  }
+  async removeOwnerFromHisBids(userId: string, storeId: string): Promise<void> {
+    const bids = await this.Repos.Bids.getAllBids();
+    for (const bid of bids) {
+      if (
+        bid.Owners.includes(userId) &&
+        bid.State === "WAITING" &&
+        bid.Type === "Store" &&
+        (await this.Controllers.Stores.getStoreIdByProductId(
+          bid.UserId,
+          bid.ProductId
+        )) === storeId
+      ) {
+        await this.Repos.Bids.removeOwnerFromBid(bid.Id, userId);
+        await this.updateBid(bid.Id);
+      }
+    }
+  }
+  async updateBid(bidId: string): Promise<void> {
+    const bid = await this.Repos.Bids.getBid(bidId);
+    if (bid.State === "WAITING") {
+      if (bid.Owners === bid.ApprovedBy) {
+        await this.Repos.Bids.forceApprove(bidId);
+        eventEmitter.initControllers(this.Controllers);
+        await eventEmitter.emitEvent({
+          bidId: bid.Id,
+          channel: `bidApproved_${bid.Id}`,
+          type: "bidApproved",
+          message: `Your bid has been approved!`,
+        });
+      }
+    }
   }
 }

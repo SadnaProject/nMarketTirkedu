@@ -2,6 +2,7 @@ import { getDB } from "server/helpers/_Transactional";
 import { Cart, type CartDTO } from "./Cart";
 import { Notification } from "./Notification";
 import { TRPCError } from "@trpc/server";
+import { string } from "zod";
 
 export class User {
   private id: string;
@@ -136,8 +137,20 @@ export class User {
       where: { userId: dto.id },
     });
     //fix bids later
+    const bidsFromMe = await getDB().bid.findMany({
+      where: { userId: dto.id },
+    });
+    const bidsToMe = await getDB().bid.findMany();
     const stores = new Set(products.map((p) => p.storeId));
     u.cart = await Cart.createFromArgs(u.Id, Array.from(stores));
+    u.bidsFromMe = bidsFromMe.map((b) => b.id);
+    u.bidsToMe = [];
+    for (const bid of bidsToMe) {
+      if (bid.owners.includes(dto.id)) {
+        u.bidsToMe.push(bid.id);
+      }
+    }
+
     return u;
   }
 }

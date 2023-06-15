@@ -229,8 +229,8 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
     await this.Repos.Products.addSpecialPrice(userId, this.Id, price);
     this.SpecialPrices.set(userId, price);
   }
-  public getPriceForUser(userId: string): number {
-    const p = this.SpecialPrices.get(userId);
+  public async getPriceForUser(userId: string): Promise<number> {
+    const p = await this.Repos.Products.getSpecialPrice(userId, this.Id); //TODO:@ilaytzarfati1231 when the acceptance test "Get Purchase History by a buyer"(it: "✅ Applied by system admin") comes here, it fails with the error "Error: Repos are not initialized"(it happens in the line:  await service.purchaseCart(umid, cCard, d);)
     return p !== undefined ? p : this.Price;
   }
   public async getDAO(): Promise<StoreProductDAO> {

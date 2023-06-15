@@ -16,11 +16,11 @@ export class ConstraintPolicy {
     return constraintID;
   }
   public isSatisfiedBy(basket: FullBasketDTO) {
-    return this.constraints.size === 0
-      ? true
-      : Array.from(this.constraints.values()).every((constraint) =>
-          constraint.isSatisfiedBy(basket)
-        );
+    if (this.constraints.size === 0) return true;
+    for (const constraint of this.constraints.values()) {
+      if (!constraint.isSatisfiedBy(basket)) return false;
+    }
+    return true;
   }
   public removeConstraint(constraintID: string) {
     const constraint = this.constraints.get(constraintID);

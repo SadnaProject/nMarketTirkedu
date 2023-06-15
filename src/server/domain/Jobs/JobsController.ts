@@ -328,6 +328,10 @@ export interface IJobsController extends HasRepos {
    *  This function checks if a user can get members data.
    */
   canGetMembersData(userId: string): Promise<boolean>;
+  /**
+   * This function returns all the id's that needs to approve
+   */
+  getIdsThatNeedToApprove(storeId: string): Promise<string[]>;
 }
 @testable
 export class JobsController
@@ -925,5 +929,11 @@ export class JobsController
   }
   async canGetMembersData(userId: string): Promise<boolean> {
     return await this.isSystemAdmin(userId);
+  }
+  async getIdsThatNeedToApprove(storeId: string): Promise<string[]> {
+    const ownersIds = await this.getStoreOwnersIds(storeId);
+    const foundersIds = await this.getStoreFounderId(storeId);
+    ownersIds.push(foundersIds);
+    return ownersIds;
   }
 }

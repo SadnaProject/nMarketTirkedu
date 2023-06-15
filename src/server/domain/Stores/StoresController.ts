@@ -24,6 +24,7 @@ import { type Bid, storeBidArgs } from "../Users/Bid";
 import { type StoreProduct as StoreProductDAO } from "@prisma/client";
 import { ConstraintPolicy } from "./PurchasePolicy/ConstraintPolicy";
 import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
+import { MakeOwner, MakeOwnerDTO } from "./MakeOwner";
 
 export type SearchArgs = {
   name?: string;
@@ -218,8 +219,9 @@ export interface IStoresController extends HasRepos {
   makeStoreOwner(
     currentId: string,
     storeId: string,
-    targetUserId: string
-  ): Promise<void>;
+    targetUserId: string,
+    idOfMakeOwnerObject?: string
+  ): Promise<string>;
   /**
    * This function makes a user a store manager.
    * @param currentId The id of the user that is currently logged in.
@@ -317,6 +319,10 @@ export interface IStoresController extends HasRepos {
     storeId: string
   ): Promise<Map<string, ConditionArgs>>;
   getStoreNameById(userId: string, storeId: string): Promise<string>;
+  approveStoreOwner(makeOwnerId: string, userId: string): Promise<void>;
+  subscribeToStoreEvents(userId: string): Promise<void>;
+  getMakeOwnerRequests(userId: string): Promise<MakeOwnerDTO[]>;
+  rejectStoreOwner(makeOwnerId: string, userId: string): Promise<void>;
 }
 
 @testable
@@ -474,7 +480,7 @@ export class StoresController
     );
     const store = await product.getStore();
     await this.enforcePublicDataAccess(userId, store.Id);
-    return product.isQuantityInStock(quantity);
+    return await product.isQuantityInStock(quantity);
   }
 
   async createProduct(
@@ -598,18 +604,19 @@ export class StoresController
         message: "User is not a member",
       });
     }
-    const store = new Store(storeName)
-      .initRepos(this.Repos)
-      .initControllers(this.Controllers);
-    // todo needs to check if possible before doing any change
     if ((await this.Repos.Stores.getAllNames()).has(storeName))
       throw new TRPCError({
         code: "BAD_REQUEST",
         message: "Store name already exists",
       });
+    const store = new Store(storeName)
+      .initRepos(this.Repos)
+      .initControllers(this.Controllers);
+    // todo needs to check if possible before doing any change
 
     await this.Repos.Stores.addStore(store.Name, store.Id);
     await this.Controllers.Jobs.InitializeStore(founderId, store.Id);
+    await this.subscribeToStoreEvents(founderId);
     // TODO needs to create here event for the store
     return store.Id;
   }
@@ -631,18 +638,21 @@ export class StoresController
     const managerIds = await store.ManagersIds;
     const founderId = await store.FounderId;
     const notifiedUserIds = [founderId, ...ownerIds, ...managerIds];
-    for (const uid of notifiedUserIds) {
-      await this.Controllers.Users.addNotification(
-        uid,
-        "Store activated 💃",
-        `Store ${storeId} has been activated`
-      );
-      // todo eventEmitter.emitEvent({
-      //   type:"storeChanged",
-      //   channel:"",
-      //   storeId
-      // });
-    }
+    // for (const uid of notifiedUserIds) {
+    //   await this.Controllers.Users.addNotification(
+    //     uid,
+    //     "Store activated 💃",
+    //     `Store ${storeId} has been activated`
+    //   );
+    // }
+    eventEmitter.initControllers(this.Controllers);
+    await eventEmitter.emitEvent({
+      type: "storeChanged",
+      channel: `storeChanged_${storeId}`,
+      storeId,
+      description: `Store ${storeId} has been deactivated`,
+      message: "Store details has changed!",
+    });
   }
 
   async deactivateStore(userId: string, storeId: string): Promise<void> {
@@ -671,15 +681,23 @@ export class StoresController
     for (const uid of notifiedUserIds) {
       await this.Controllers.Users.addNotification(
         uid,
-        "Store deactivated 💤",
+        "Store deactivated 💃",
         `Store ${storeId} has been deactivated`
       );
     }
-    // eventEmitter.emit(`store is changed ${storeId}`, {
-    //   storeId: storeId,
-    //   userId: userId,
-    //   state: "decativated",
-    // });
+    // await this.Controllers.Users.addNotification(
+    //   uid,
+    //   "Store deactivated 💤",
+    //   `Store ${storeId} has been deactivated`
+    // );
+    eventEmitter.initControllers(this.Controllers);
+    await eventEmitter.emitEvent({
+      type: "storeChanged",
+      channel: `storeChanged_${storeId}`,
+      storeId,
+      description: `Store ${storeId} has been deactivated`,
+      message: "Store details has changed!",
+    });
   }
 
   async closeStorePermanently(userId: string, storeId: string): Promise<void> {
@@ -706,12 +724,7 @@ export class StoresController
       userId,
       await this.getStoreIdByProductId(userId, productId)
     );
-    const product = await StoreProduct.fromProductId(
-      productId,
-      this.Repos,
-      this.Controllers
-    );
-    return product.getPriceForUser(userId);
+    return await this.Repos.Products.getSpecialPrice(userId, productId);
   }
 
   async getStoreIdByProductId(
@@ -723,8 +736,9 @@ export class StoresController
       this.Repos,
       this.Controllers
     );
-    await this.enforcePublicDataAccess(userId, (await product.getStore()).Id);
-    return (await product.getStore()).Id;
+    const storeId = (await product.getStore()).Id;
+    await this.enforcePublicDataAccess(userId, storeId);
+    return storeId;
   }
 
   async getCartPrice(userId: string): Promise<number> {
@@ -756,17 +770,92 @@ export class StoresController
   async makeStoreOwner(
     currentId: string,
     storeId: string,
-    targetUserId: string
+    targetUserId: string,
+    idOfMakeOwnerObject?: string
   ) {
-    await this.Controllers.Jobs.makeStoreOwner(
-      currentId,
-      storeId,
-      targetUserId
-    );
-    // eventEmitter.emit(`receive bid for store ${storeId}`, {
-    //   storeId: storeId,
-    //   userId: targetUserId,
-    // });
+    if (
+      (await this.Controllers.Jobs.isStoreOwner(targetUserId, storeId)) ||
+      (await this.Controllers.Jobs.isStoreManager(targetUserId, storeId)) ||
+      (await this.Controllers.Jobs.isStoreFounder(targetUserId, storeId))
+    ) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "This user cannot be appointed as he is already a position holder in this store",
+      });
+    }
+    if (idOfMakeOwnerObject) {
+      if (await this.Repos.Stores.isApprovedOwner(idOfMakeOwnerObject)) {
+        await this.Controllers.Jobs.makeStoreOwner(
+          currentId,
+          storeId,
+          targetUserId
+        );
+        eventEmitter.initControllers(this.Controllers);
+        await eventEmitter.emitEvent({
+          type: "makeOwner",
+          channel: `ApproveMakeNewOwner_${idOfMakeOwnerObject}`,
+          makeOwnerObjectId: idOfMakeOwnerObject,
+          message: "You have a new owner in the store !",
+        });
+        eventEmitter.subscribeChannel(`storeChanged_${storeId}`, targetUserId);
+        eventEmitter.subscribeChannel(`bidAdded_${storeId}`, targetUserId);
+      }
+      return idOfMakeOwnerObject;
+    } else {
+      const supposeToApprove =
+        await this.Controllers.Jobs.getIdsThatNeedToApprove(storeId);
+      if (!supposeToApprove.includes(currentId)) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User does not have permission to make owner",
+        });
+      }
+      const make = new MakeOwner(
+        storeId,
+        targetUserId,
+        currentId,
+        supposeToApprove
+      );
+      await this.Repos.Stores.addMakeOwner(
+        make.getStoreId(),
+        make.getTargetUserId(),
+        make.getAppointerUserId(),
+        make.getId(),
+        make.getOwners()
+      );
+
+      const notifiedUserIds =
+        await this.Controllers.Jobs.getIdsThatNeedToApprove(storeId);
+      // for (const uid of notifiedUserIds) {
+      //   await this.Controllers.Users.addNotification(
+      //     uid,
+      //     "try to make new owner in store 💃",
+      //     `try to make new owner in store ${storeId}`
+      //   );
+      // }
+
+      eventEmitter.initControllers(this.Controllers);
+      await eventEmitter.emitEvent({
+        channel: `tryToMakeNewOwner_${storeId}`,
+        type: "makeOwner",
+        makeOwnerObjectId: make.getId(),
+        message: "You have a new request to be an owner!",
+      });
+      for (const uid of notifiedUserIds) {
+        eventEmitter.subscribeChannel(
+          `ApproveMakeNewOwner_${make.getId()}`,
+          uid
+        );
+        eventEmitter.subscribeChannel(
+          `RejectMakeNewOwner_${make.getId()}`,
+          uid
+        );
+      }
+
+      await this.approveStoreOwner(make.getId(), currentId);
+      return make.getId();
+    }
   }
   async makeStoreManager(
     currentId: string,
@@ -789,6 +878,8 @@ export class StoresController
       storeId,
       targetUserId
     );
+    await this.Controllers.Users.removeOwnerFromHisBids(targetUserId, storeId);
+    await this.removeStoreOwnerFromPendingOfMakeOwner(targetUserId, storeId);
     // eventEmitter.emit(`member is changed ${targetUserId}`, {
     //   changerId: currentId,
     //   changeeId: targetUserId,
@@ -901,7 +992,8 @@ export class StoresController
     storeId: string,
     constraintArgs: ConditionArgs
   ): Promise<string> {
-    if (!(await this.isStoreOwner(userId, storeId)))
+    // if (!((await this.isStoreOwner(userId, storeId))|| (await this.isStoreFounder(userId, storeId))))
+    if (!(await this.Controllers.Jobs.canModifyPurchasePolicy(userId, storeId)))
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to add constraint to store",
@@ -915,7 +1007,7 @@ export class StoresController
     storeId: string,
     constraintId: string
   ): Promise<void> {
-    if (!(await this.isStoreOwner(userId, storeId)))
+    if (!(await this.Controllers.Jobs.canModifyPurchasePolicy(userId, storeId)))
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message:
@@ -930,7 +1022,7 @@ export class StoresController
     storeId: string,
     discountArgs: DiscountArgs
   ): Promise<string> {
-    if (!(await this.isStoreOwner(userId, storeId)))
+    if (!(await this.Controllers.Jobs.canModifyPurchasePolicy(userId, storeId)))
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to add discount to store",
@@ -944,7 +1036,7 @@ export class StoresController
     storeId: string,
     discountId: string
   ): Promise<void> {
-    if (!(await this.isStoreOwner(userId, storeId)))
+    if (!(await this.Controllers.Jobs.canModifyPurchasePolicy(userId, storeId)))
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User does not have permission to remove discount from store",
@@ -958,7 +1050,7 @@ export class StoresController
     storeId: string,
     basket: BasketDTO
   ): Promise<boolean> {
-    return (
+    return await (
       await Store.fromStoreId(storeId, this.Repos, this.Controllers)
     ).checkIfBasketFulfillsPolicy(basket);
   }
@@ -1026,21 +1118,22 @@ export class StoresController
     userId: string,
     productId: string
   ): Promise<StoreProductDTO> {
-    return StoreProduct.fromDAO(
+    const product = StoreProduct.fromDAO(
       await this.Repos.Products.getProductById(productId),
       await this.Repos.Products.getSpecialPrices(productId)
     )
       .initControllers(this.Controllers)
-      .initRepos(this.Repos)
-      .getDTO();
+      .initRepos(this.Repos);
+    const productDTO = await product.getDTO();
+    productDTO.price = await product.getPriceForUser(userId);
+    return productDTO;
   }
   async addSpecialPriceToProduct(bid: Bid): Promise<void> {
-    const product = StoreProduct.fromDAO(
-      await this.Repos.Products.getProductById(bid.ProductId),
-      await this.Repos.Products.getSpecialPrices(bid.ProductId)
+    await this.Repos.Products.addSpecialPrice(
+      bid.UserId,
+      bid.ProductId,
+      bid.Price
     );
-    product.initControllers(this.Controllers).initRepos(this.Repos);
-    await product.addSpecialPrice(bid.UserId, bid.Price);
   }
   async getConstraintPolicy(
     userId: string,
@@ -1062,10 +1155,104 @@ export class StoresController
     return (await Store.fromStoreId(storeId, this.Repos, this.Controllers))
       .Name;
   }
+  async subscribeToMakeOwnerEvents(userId: string): Promise<void> {
+    const myStores = await this.myStores(userId);
+    const onlyOwners = myStores.filter(
+      (store) => store.role === "Owner" || store.role === "Founder"
+    );
+    for (const store of onlyOwners) {
+      eventEmitter.subscribeChannel(
+        `tryToMakeNewOwner_${store.store.id}`,
+        userId
+      );
+    }
+  }
   async subscribeToStoreEvents(userId: string): Promise<void> {
     const myStores = await this.myStores(userId);
     for (const store of myStores) {
       eventEmitter.subscribeChannel(`storeChanged_${store.store.id}`, userId);
+      eventEmitter.subscribeChannel(`bidAdded_${store.store.id}`, userId);
     }
+    await this.subscribeToMakeOwnerEvents(userId);
+  }
+
+  async approveStoreOwner(makeOwnerId: string, userId: string) {
+    await this.Repos.Stores.approveOwner(makeOwnerId, userId);
+    const make = await this.Repos.Stores.getMakeOwner(makeOwnerId);
+    if (make.isApproved()) {
+      await this.makeStoreOwner(
+        make.getAppointerUserId(),
+        make.getStoreId(),
+        make.getTargetUserId(),
+        make.getId()
+      );
+    }
+  }
+  async rejectStoreOwner(makeOwnerId: string, userId: string) {
+    await this.Repos.Stores.rejectMakeOwner(makeOwnerId, userId);
+    eventEmitter.initControllers(this.Controllers);
+    await eventEmitter.emitEvent({
+      channel: `RejectMakeNewOwner_${makeOwnerId}`,
+      type: "makeOwner",
+      makeOwnerObjectId: makeOwnerId,
+      message: `The request of adding new owner has been declined!`,
+    });
+  }
+  async removeStoreOwnerFromPendingOfMakeOwner(
+    userId: string,
+    storeId: string
+  ) {
+    const makes = await this.Repos.Stores.getMakeOwners(storeId);
+    for (const make of makes) {
+      if (
+        make.getState() === "WAITING" &&
+        make.getOwners().includes(userId) &&
+        !make.getApprovers().includes(userId) &&
+        !make.getRejectors().includes(userId)
+      ) {
+        await this.Repos.Stores.removeOwnerForMakeOwner(make.getId(), userId);
+        await this.updateMakeOwnerState(make.getId());
+      }
+    }
+  }
+  async updateMakeOwnerState(makeOwnerId: string) {
+    const make = await this.Repos.Stores.getMakeOwner(makeOwnerId);
+    if (
+      make.getRejectors().length === 0 &&
+      make.getOwners().length === make.getApprovers().length
+    ) {
+      await this.Repos.Stores.forceApproveMake(makeOwnerId);
+      eventEmitter.initControllers(this.Controllers);
+      await eventEmitter.emitEvent({
+        type: "makeOwner",
+        channel: `ApproveMakeNewOwner_${makeOwnerId}`,
+        makeOwnerObjectId: makeOwnerId,
+        message: "You have a new owner in the store !",
+      });
+      await this.makeStoreOwner(
+        make.getAppointerUserId(),
+        make.getStoreId(),
+        make.getTargetUserId(),
+        make.getId()
+      );
+    }
+  }
+  async getMakeOwnerRequests(userId: string): Promise<MakeOwnerDTO[]> {
+    const allStores = await this.myStores(userId);
+    const stores = allStores.filter(
+      (store) => store.role === "Owner" || store.role === "Founder"
+    );
+    const makeOwnerRequests: MakeOwnerDTO[] = [];
+    for (const store of stores) {
+      const makeOwners = await this.Repos.Stores.getMakeOwners(store.store.id);
+      for (const makeOwner of makeOwners) {
+        const makeOwnerDTO = makeOwner.toDTO();
+        makeOwnerDTO.storeName = store.store.name;
+        makeOwnerDTO.userEmailAddress =
+          await this.Controllers.Auth.getUserEmail(makeOwnerDTO.targetUserId);
+        makeOwnerRequests.push(makeOwnerDTO);
+      }
+    }
+    return makeOwnerRequests;
   }
 }

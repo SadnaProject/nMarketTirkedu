@@ -1,4 +1,4 @@
-import Layout from "../../_layout";
+import Layout from "../../../_layout";
 import { useRouter } from "next/router";
 import { z } from "zod";
 import StoreNavbar from "components/storeNavbar";
@@ -30,17 +30,16 @@ import { useCallback, useEffect } from "react";
 
 const defaultCondition: ConditionArgs = {
   type: "Literal",
-  amount: 10,
+  amount: 0,
   conditionType: "Exactly",
   subType: "Product",
-  searchFor: "Banana",
+  searchFor: "",
 };
 
 const defaultDiscount: DiscountArgs = {
   type: "Simple",
-  amount: 10,
+  amount: 0,
   discountOn: "product",
-  searchFor: "Banana",
   condition: defaultCondition,
 };
 
@@ -93,7 +92,7 @@ export default function Home() {
     <Layout className="max-w-none">
       <StoreNavbar storeId={storeId as string} />
       <div
-        className="hs-accordion-group flex w-full flex-col overflow-auto"
+        className="hs-accordion-group flex w-full overflow-auto"
         data-hs-accordion-always-open
       >
         <FormProvider {...formMethods}>

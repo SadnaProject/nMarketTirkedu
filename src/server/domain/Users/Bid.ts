@@ -1,9 +1,11 @@
 import { randomUUID } from "crypto";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { Bid as BidDAO } from "@prisma/client";
 
 const bidStateSchema = z.enum(["APPROVED", "WAITING", "REJECTED"]);
 export type BidState = z.infer<typeof bidStateSchema>;
+//this is a bid from the user to the store
 export const storeBidArgsSchema = z.object({
   userId: z.string().uuid(),
   price: z.number().nonnegative(),
@@ -11,6 +13,7 @@ export const storeBidArgsSchema = z.object({
   type: z.literal("Store"),
 });
 export type storeBidArgs = z.infer<typeof storeBidArgsSchema>;
+//this is a bid from the store to the user
 export const counterBidArgsSchema = z.object({
   userId: z.string().uuid(),
   price: z.number().nonnegative(),
@@ -27,6 +30,7 @@ export type BidArgs = z.infer<typeof bidArgsSchema>;
 export type BidDTO = {
   id: string;
   userId: string;
+  productName: string;
   productId: string;
   price: number;
   approvedBy: string[];
@@ -44,6 +48,7 @@ export class Bid {
   protected owners: string[] = [];
   protected state: BidState;
   protected type: "Store" | "Counter";
+  protected previousBidId?: string;
   constructor(bidArgs: BidArgs) {
     this.id = randomUUID();
     this.productId = bidArgs.productId;
@@ -53,6 +58,11 @@ export class Bid {
     this.rejectedBy = [];
     this.state = "WAITING";
     this.type = bidArgs.type;
+    if (bidArgs.type === "Counter") {
+      this.previousBidId = bidArgs.previousBidId;
+    } else {
+      this.previousBidId = undefined;
+    }
   }
   public get Id() {
     return this.id;
@@ -75,6 +85,9 @@ export class Bid {
     )
       this.state = "APPROVED";
   }
+  public get PreviousBidId() {
+    return this.previousBidId;
+  }
 
   public get ApprovedBy() {
     return this.approvedBy;
@@ -86,11 +99,17 @@ export class Bid {
   public get Price() {
     return this.price;
   }
-  public set Owners(owners: string[]) {
+  public get Owners() {
+    return this.owners;
+  }
+  public setOwners(owners: string[]) {
     this.owners = owners;
   }
   public get State() {
     return this.state;
+  }
+  public setState(state: BidState) {
+    this.state = state;
   }
   public get UserId() {
     return this.userId;
@@ -99,12 +118,12 @@ export class Bid {
     if (!this.owners.includes(userId))
       throw new TRPCError({
         code: "UNAUTHORIZED",
-        message: "this user can't approve this bid",
+        message: "this user can't reject this bid",
       });
     if (this.approvedBy.includes(userId))
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "this user has already approved this bid",
+        message: "this user has already reject this bid",
       });
     this.rejectedBy.push(userId);
     this.state = "REJECTED";
@@ -135,6 +154,7 @@ export class Bid {
     return {
       id: this.id,
       productId: this.productId,
+      productName: "",
       price: this.price,
       approvedBy: this.approvedBy,
       rejectedBy: this.rejectedBy,
@@ -142,5 +162,44 @@ export class Bid {
       state: this.state,
       type: this.type,
     };
+  }
+  public get RejectedBy() {
+    return this.rejectedBy;
+  }
+
+  public static fromDAO(bidDAO: BidDAO) {
+    if (bidDAO.type === "Counter") {
+      if (!bidDAO.previousBidId)
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "previousBidId is required for counter bid",
+        });
+      const bid = new Bid({
+        userId: bidDAO.userId,
+        price: bidDAO.price,
+        productId: bidDAO.productId,
+        previousBidId: bidDAO.previousBidId,
+        type: bidDAO.type,
+      });
+      bid.id = bidDAO.id;
+      bid.approvedBy = bidDAO.approvedBy;
+      bid.rejectedBy = bidDAO.rejectedBy;
+      bid.state = bidDAO.state;
+      bid.setOwners(bidDAO.owners);
+      return bid;
+    } else {
+      const bid = new Bid({
+        userId: bidDAO.userId,
+        price: bidDAO.price,
+        productId: bidDAO.productId,
+        type: bidDAO.type,
+      });
+      bid.id = bidDAO.id;
+      bid.approvedBy = bidDAO.approvedBy;
+      bid.rejectedBy = bidDAO.rejectedBy;
+      bid.state = bidDAO.state;
+      bid.setOwners(bidDAO.owners);
+      return bid;
+    }
   }
 }

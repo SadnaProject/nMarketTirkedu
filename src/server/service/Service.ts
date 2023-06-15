@@ -15,7 +15,8 @@ import {
   type IDiscount,
 } from "server/domain/Stores/DiscountPolicy/Discount";
 import { type ConditionArgs } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
-import { type BidArgs } from "server/domain/Users/Bid";
+import { BidDTO, type BidArgs } from "server/domain/Users/Bid";
+import { MakeOwnerDTO } from "server/domain/Stores/MakeOwner";
 
 export type SearchArgs = {
   name?: string;
@@ -478,5 +479,32 @@ export class Service {
   }
   async addBid(bid: BidArgs) {
     return await this.facade.addBid(bid);
+  }
+  async counterBid(userId: string, bidId: string, price: number) {
+    return await this.facade.counterBid(userId, bidId, price);
+  }
+  async getBidsFromMe(userId: string): Promise<BidDTO[]> {
+    return await this.facade.getBidsFromMe(userId);
+  }
+  async getBidsToMe(userId: string): Promise<BidDTO[]> {
+    return await this.facade.getBidsToMe(userId);
+  }
+  async approveBid(userId: string, bidId: string): Promise<string> {
+    return await this.facade.approveBid(userId, bidId);
+  }
+  async rejectBid(userId: string, bidId: string): Promise<void> {
+    await this.facade.rejectBid(userId, bidId);
+  }
+  async subscribeToStoreEvents(userId: string) {
+    await this.facade.subscribeToStoreEvents(userId);
+  }
+  async approveStoreOwner(makeOwnerObjectId: string, approverId: string) {
+    await this.facade.approveStoreOwner(makeOwnerObjectId, approverId);
+  }
+  async rejectStoreOwner(makeOwnerObjectId: string, approverId: string) {
+    await this.facade.rejectStoreOwner(makeOwnerObjectId, approverId);
+  }
+  async getMakeOwnerRequests(userId: string): Promise<MakeOwnerDTO[]> {
+    return await this.facade.getMakeOwnerRequests(userId);
   }
 }

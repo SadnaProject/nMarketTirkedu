@@ -194,6 +194,7 @@ export const UsersRouter = createTRPCRouter({
       eventEmitter.subscribeUser(ctx.session.user.id, (event) => {
         emit.next(event);
       });
+      void service.subscribeToStoreEvents(ctx.session.user.id);
       return () => {
         eventEmitter.unsubscribeUser(ctx.session.user.id);
       };
@@ -215,5 +216,66 @@ export const UsersRouter = createTRPCRouter({
         price,
         type,
       });
+    }),
+  getBidsToMe: validSessionProcedure.query(({ ctx }) => {
+    return service.getBidsToMe(ctx.session.user.id);
+  }),
+  getBidsFromMe: validSessionProcedure.query(({ ctx }) => {
+    return service.getBidsFromMe(ctx.session.user.id);
+  }),
+  approveBid: validSessionProcedure
+
+    .input(
+      z.object({
+        bidId: z.string().uuid(),
+      })
+    )
+    .mutation(({ input, ctx }) => {
+      const { bidId } = input;
+      return service.approveBid(ctx.session.user.id, bidId);
+    }),
+  rejectBid: validSessionProcedure
+    .input(
+      z.object({
+        bidId: z.string().uuid(),
+      })
+    )
+    .mutation(({ input, ctx }) => {
+      const { bidId } = input;
+      return service.rejectBid(ctx.session.user.id, bidId);
+    }),
+  counterBid: validSessionProcedure
+    .input(
+      z.object({
+        bidId: z.string().uuid(),
+        price: z.number().nonnegative(),
+      })
+    )
+    .mutation(({ input, ctx }) => {
+      const { bidId, price } = input;
+      return service.counterBid(ctx.session.user.id, bidId, price);
+    }),
+  getMakeOwnerRequests: validSessionProcedure.query(({ ctx }) => {
+    return service.getMakeOwnerRequests(ctx.session.user.id);
+  }),
+  approveMakeOwnerRequest: validSessionProcedure
+    .input(
+      z.object({
+        makeOwnerRequestId: z.string().uuid(),
+      })
+    )
+    .mutation(({ input, ctx }) => {
+      const { makeOwnerRequestId } = input;
+      return service.approveStoreOwner(makeOwnerRequestId, ctx.session.user.id);
+    }),
+  rejectMakeOwnerRequest: validSessionProcedure
+    .input(
+      z.object({
+        makeOwnerRequestId: z.string().uuid(),
+      })
+    )
+    .mutation(({ input, ctx }) => {
+      const { makeOwnerRequestId } = input;
+      return service.rejectStoreOwner(makeOwnerRequestId, ctx.session.user.id);
     }),
 });

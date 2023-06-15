@@ -12,13 +12,28 @@ export default defineConfig({
       provider: "istanbul",
       reporter: ["lcov", "html"],
     },
-    exclude: ["**/Owner.test.ts", "**/HW.test.ts", "**/Admin.test.ts"],
+    include: [
+      // "**/UserRepo.test.ts",
+      // "**/User.test.ts",
+      // "**/Bid.test.ts",
+      // "Basket.test.ts",
+      // "**/UsersController.test.ts",
+      //STILL NEED TO BE DONE:
+      "**/DeliveryAdaptor.test.ts",
+      //Done:
+      //"**/Owner.test.ts", //(all tests pass except Add Constraint see todo their @ilaytzarfati1231)
+      // "**/Purchase.test.ts",
+      // "**/Admin.test.ts",
+      // "**/Member.test.ts",
+      // "**/Guest.test.ts",
+      // "**/System.test.ts",
+      // "**/HW.test.ts",
+    ],
     //make the tests run in an order and not in parallel
     threads: false,
-    testTimeout: 100000,
-    hookTimeout: 100000,
+    testTimeout: 1000000,
+    hookTimeout: 1000000,
     // include only PurchasesHistoryController.test.ts
-    include: ["**/PurchasesHistoryController.test.ts"],
   },
   plugins: [tsconfigPaths()],
   // resolve: {

@@ -39,6 +39,24 @@ export class StoreProductsRepo extends Testable {
     productId: string,
     price: number
   ) {
+    const specialPrice = await getDB().specialPrice.findFirst({
+      where: {
+        userId: userId,
+        productId: productId,
+      },
+    });
+    if (specialPrice) {
+      await getDB().specialPrice.update({
+        where: {
+          id: specialPrice.id,
+        },
+        data: {
+          price: price,
+        },
+      });
+      return;
+    }
+
     await getDB().specialPrice.create({
       data: {
         userId: userId,
@@ -54,7 +72,21 @@ export class StoreProductsRepo extends Testable {
         productId: productId,
       },
     });
-    return specialPrice?.price;
+    if (!specialPrice) {
+      const product = await getDB().storeProduct.findUnique({
+        where: {
+          id: productId,
+        },
+      });
+      if (!product) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Product not found",
+        });
+      }
+      return product.price;
+    }
+    return specialPrice.price;
   }
   public async getAllProducts() {
     const products = await getDB().storeProduct.findMany();

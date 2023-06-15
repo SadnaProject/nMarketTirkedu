@@ -42,6 +42,11 @@ const PATHS = {
     path: (storeId: string) => `/store/${storeId}/discounts`,
     for: ["member"],
   },
+  storeDiscount: {
+    path: (storeId: string, discountId: string) =>
+      `/store/${storeId}/discount/${discountId}`,
+    for: ["member"],
+  },
   storePolicy: {
     path: (storeId: string) => `/store/${storeId}/policy`,
     for: ["member"],
@@ -52,6 +57,11 @@ const PATHS = {
   },
   myStores: { path: "/myStores", for: ["member"] },
   myReceipts: { path: "/myReceipts", for: ["member"] },
+  bids: { path: "/bids", for: ["member"] },
+  storeMakeOwnerRequests: {
+    path: (storeId: string) => `/store/${storeId}/makeOwnerRequests`,
+    for: ["member"],
+  },
   receipt: {
     path: (receiptId: string) => `/receipt/${receiptId}`,
     for: ["guest", "member"],

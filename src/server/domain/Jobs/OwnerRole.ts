@@ -14,6 +14,7 @@ export class OwnerRole extends Role {
     this.permissions.push("AppointStoreOwner");
     this.permissions.push("AppointStoreManager");
     this.permissions.push("receiveClosedStoreData");
+    this.permissions.push("ModifyPurchasePolicy");
   }
 
   grantPermission(permission: EditablePermission): Promise<void> {

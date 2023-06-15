@@ -49,6 +49,7 @@
     "@trpc/react-query": "^10.28.0",
     "@trpc/server": "^10.28.0",
     "dayjs": "^1.11.7",
+    "fetch-node": "^0.0.1",
     "framer-motion": "^10.12.16",
     "fuzzysearch-ts": "^1.0.3",
     "lottie-react": "^2.4.0",

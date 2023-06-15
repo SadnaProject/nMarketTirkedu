@@ -125,18 +125,20 @@ model SimpleDiscount {
     id         String      @id @default(cuid())
     amount     Int
     discountOn DiscountOn
+    searchFor  String?
     Condition  Condition[]
     Discount   Discount[]
 }
 
 model Store {
     id          String         @id
-    name        String
+    name        String         @unique
     isActive    Boolean
     products    StoreProduct[]
     discounts   Discount[]
     Constraints Constraint[]
     Condition   Condition[]
+    MakeOwner   MakeOwner[]
 }
 
 model StoreProduct {
@@ -149,6 +151,7 @@ model StoreProduct {
     quantity     Int
     description  String
     SpecialPrice SpecialPrice[]
+    Bid          Bid[]
 }
 
 model SpecialPrice {
@@ -181,14 +184,13 @@ model BasketProduct {
     // basket         Basket @relation(fields: [userId, storeId], references: [userId, storeId], onDelete: Cascade)
     storeId        String
     userId         String
-    bids           Bid[]
+    user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Basket {
-    userId   String
-    storeId  String
-    // products BasketProduct[]
-    cart     Cart            @relation(fields: [userId], references: [userId], onDelete: Cascade)
+    userId  String
+    storeId String
+    cart    Cart   @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
     @@unique([userId, storeId])
 }
@@ -213,16 +215,18 @@ enum BidState {
 }
 
 model Bid {
-    id         String        @id @default(cuid())
-    userId     String
-    user       User          @relation(fields: [userId], references: [id])
-    productId  String
-    product    BasketProduct @relation(fields: [productId], references: [storeProductId])
-    price      Float
-    approvedBy String[]
-    rejectedBy String[]
-    state      BidState
-    type       BidType
+    id            String       @id @default(cuid())
+    userId        String
+    user          User         @relation(fields: [userId], references: [id])
+    productId     String
+    product       StoreProduct @relation(fields: [productId], references: [id])
+    price         Float
+    approvedBy    String[]
+    rejectedBy    String[]
+    state         BidState
+    type          BidType
+    previousBidId String?
+    owners        String[]
 }
 
 model User {
@@ -234,18 +238,20 @@ model User {
     cart           Cart?
     notifications  Notification[]
     bids           Bid[]
+    MakeOwner      MakeOwner[]
+    BasketProduct  BasketProduct[]
 }
 
 model ProductReview {
     title           String
     description     String
     userId          String
-    user            User             @relation(fields: [userId], references: [id])
+    user            User            @relation(fields: [userId], references: [id])
     rating          Int
     productId       String
     purchaseId      String
     storeId         String
-    createdAt       DateTime         @default(now())
+    createdAt       DateTime        @default(now())
     productPurchase ProductPurchase @relation(fields: [purchaseId, productId], references: [purchaseId, productId])
 
     @@id([userId, productId])
@@ -346,6 +352,19 @@ model PositionHolder {
     assignedBy              PositionHolder?  @relation("PositionHolderToAssignees", fields: [assignerId, storeId], references: [userId, storeId])
 
     @@id([userId, storeId])
+}
+
+model MakeOwner {
+    id          String   @id
+    userId      String
+    user        User     @relation(fields: [userId], references: [id])
+    storeId     String
+    store       Store    @relation(fields: [storeId], references: [id])
+    Owners      String[]
+    appointedBy String
+    rejectedBy  String[]
+    state       BidState
+    approvedBy  String[]
 }
 
 //TODO maybe better to just save a field in the users table.

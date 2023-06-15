@@ -616,6 +616,7 @@ export class StoresController
 
     await this.Repos.Stores.addStore(store.Name, store.Id);
     await this.Controllers.Jobs.InitializeStore(founderId, store.Id);
+    await this.subscribeToStoreEvents(founderId);
     // TODO needs to create here event for the store
     return store.Id;
   }
@@ -797,6 +798,8 @@ export class StoresController
           makeOwnerObjectId: idOfMakeOwnerObject,
           message: "You have a new owner in the store !",
         });
+        eventEmitter.subscribeChannel(`storeChanged_${storeId}`, targetUserId);
+        eventEmitter.subscribeChannel(`bidAdded_${storeId}`, targetUserId);
       }
       return idOfMakeOwnerObject;
     } else {

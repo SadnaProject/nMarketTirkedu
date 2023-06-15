@@ -78,6 +78,11 @@ export default function StoreNavbar({ storeId }: Props) {
       icon: <JobsIcon />,
     },
     {
+      name: "Make Owner Requests",
+      href: PATHS.storeMakeOwnerRequests.path(storeId ?? ""),
+      icon: <JobsIcon />,
+    },
+    {
       name: "Revenue",
       href: PATHS.storeRevenue.path(storeId ?? ""),
       icon: <RevenueIcon />,

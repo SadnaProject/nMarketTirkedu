@@ -266,7 +266,7 @@ export const UsersRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { makeOwnerRequestId } = input;
-      return service.approveStoreOwner(ctx.session.user.id, makeOwnerRequestId);
+      return service.approveStoreOwner(makeOwnerRequestId, ctx.session.user.id);
     }),
   rejectMakeOwnerRequest: validSessionProcedure
     .input(
@@ -276,6 +276,6 @@ export const UsersRouter = createTRPCRouter({
     )
     .mutation(({ input, ctx }) => {
       const { makeOwnerRequestId } = input;
-      return service.rejectStoreOwner(ctx.session.user.id, makeOwnerRequestId);
+      return service.rejectStoreOwner(makeOwnerRequestId, ctx.session.user.id);
     }),
 });

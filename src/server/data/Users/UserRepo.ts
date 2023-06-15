@@ -2,6 +2,7 @@ import { Testable, testable } from "server/helpers/_Testable";
 import { User } from "server/domain/Users/User";
 import { TRPCError } from "@trpc/server";
 import { getDB } from "server/helpers/_Transactional";
+import { inc, includes } from "ramda";
 
 @testable
 export class UserRepo extends Testable {
@@ -39,7 +40,12 @@ export class UserRepo extends Testable {
   public async getUser(id: string): Promise<User> {
     let user = this.users.get(id);
     if (user === undefined) {
-      const userdb = await getDB().user.findUnique({ where: { id: id } });
+      const userdb = await getDB().user.findUnique({
+        where: { id: id },
+        include: {
+          notifications: true,
+        },
+      });
       if (userdb === null) {
         throw new TRPCError({
           code: "BAD_REQUEST",

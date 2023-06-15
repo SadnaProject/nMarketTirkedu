@@ -1,9 +1,5 @@
 import EventEmitter from "events";
 import { type Channel, type Event } from "../helpers/_Events";
-import {
-  NotificationsRepo,
-  type Notification,
-} from "server/data/Notifications/NotificationsRepo";
 import { randomUUID } from "crypto";
 import { HasControllers } from "../helpers/_HasController";
 
@@ -11,14 +7,12 @@ export class EventManager extends HasControllers {
   private eventEmitter: EventEmitter;
   private onlineUsers: Map<string, (msg: Event) => void>;
   private channelToUsers: Map<string, string[]>;
-  private notificationsRepo: NotificationsRepo;
 
   constructor() {
     super();
     this.eventEmitter = new EventEmitter();
     this.onlineUsers = new Map<string, (msg: Event) => void>();
     this.channelToUsers = new Map<string, string[]>();
-    this.notificationsRepo = new NotificationsRepo();
   }
 
   public subscribeChannel(channel: Channel, userId: string) {
@@ -85,9 +79,5 @@ export class EventManager extends HasControllers {
         );
       }
     });
-  }
-
-  public getUnreadNotifications(userId: string): Notification[] {
-    return this.notificationsRepo.getUnreadNotifications(userId);
   }
 }

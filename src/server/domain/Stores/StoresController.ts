@@ -650,8 +650,7 @@ export class StoresController
       type: "storeChanged",
       channel: `storeChanged_${storeId}`,
       storeId,
-      description: `Store ${storeId} has been deactivated`,
-      message: "Store details has changed!",
+      message: `Store ${storeId} has been deactivated`,
     });
   }
 
@@ -695,8 +694,7 @@ export class StoresController
       type: "storeChanged",
       channel: `storeChanged_${storeId}`,
       storeId,
-      description: `Store ${storeId} has been deactivated`,
-      message: "Store details has changed!",
+      message: `Store ${storeId} has been deactivated`,
     });
   }
 

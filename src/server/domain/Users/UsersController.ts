@@ -100,7 +100,7 @@ export interface IUsersController {
    * @returns The user's unread notifications.
    * @throws Error if the user is not in the system.
    */
-  getUnreadNotifications(userId: string): Promise<Notification[]>;
+  getUnreadNotifications(userId: string): Promise<string[]>;
   /**
    * This function will add notifications to the user's notifications.
    * @param userId The id of the user that is currently logged in.
@@ -272,9 +272,10 @@ export class UsersController
     const user = await this.Repos.Users.getUser(userId);
     await user.readNotification(notificationId);
   }
-  async getUnreadNotifications(userId: string): Promise<Notification[]> {
+  async getUnreadNotifications(userId: string): Promise<string[]> {
     const user = await this.Repos.Users.getUser(userId);
-    return user.Notifications.filter((notification) => !notification.IsRead);
+    const notifications = user.Notifications.filter((notification) => !notification.IsRead);
+    return notifications.map((notification) => notification.getMesssage());
   }
   async addNotification(
     userId: string,

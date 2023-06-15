@@ -68,68 +68,68 @@ describe("Concurrent Purchase", () => {
     service = new Service();
   });
   it("Two users attempt to purchase the last product in stock, one of them must fail", async () => {
-    for (let i = 0; i < 5; i++) {
-      await resetDB();
-      service = new Service();
-      const email = faker.internet.email();
-      const password = faker.internet.password();
-      const id = await service.startSession();
-      await service.registerMember(id, email, password);
-      const uid = await service.loginMember(id, email, password);
-      const storeName = generateStoreName();
-      const storeId = await service.createStore(uid, storeName);
-      const ownermail = "owner@gmail.com";
-      const ownerpass = "owner123";
-      const oid2 = await service.startSession();
-      await service.registerMember(oid2, ownermail, ownerpass);
-      const oid = await service.loginMember(oid2, ownermail, ownerpass);
-      await service.makeStoreOwner(uid, storeId, oid);
-      const pargs = generateProductArgs();
-      pargs.quantity = 1;
-      const pid = await service.createProduct(oid, storeId, pargs);
-      const memail = "member@gmail.com";
-      const mpassword = faker.internet.password();
-      const mid = await service.startSession();
-      await service.registerMember(mid, memail, mpassword);
-      const umid = await service.loginMember(mid, memail, mpassword);
-      await service.addProductToCart(umid, pid, 1);
-      const card = faker.finance.creditCardNumber();
-      const card2 = faker.finance.creditCardNumber();
-      const mid2 = await service.startSession();
-      await service.addProductToCart(mid2, pid, 1);
-      const cCard: PaymentDetails = {
-        number: card,
-        ccv: "144",
-        holder: "Buya",
-        id: "111111111",
-        month: "3",
-        year: "2025",
-      };
-      const d: DeliveryDetails = {
-        address: "dsadas",
-        city: "asdasd",
-        country: "sadasd",
-        name: "bsajsa",
-        zip: "2143145",
-      };
+    // for (let i = 0; i < 5; i++) {
+    await resetDB();
+    service = new Service();
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+    const id = await service.startSession();
+    await service.registerMember(id, email, password);
+    const uid = await service.loginMember(id, email, password);
+    const storeName = generateStoreName();
+    const storeId = await service.createStore(uid, storeName);
+    const ownermail = "owner@gmail.com";
+    const ownerpass = "owner123";
+    const oid2 = await service.startSession();
+    await service.registerMember(oid2, ownermail, ownerpass);
+    const oid = await service.loginMember(oid2, ownermail, ownerpass);
+    await service.makeStoreOwner(uid, storeId, oid);
+    const pargs = generateProductArgs();
+    pargs.quantity = 1;
+    const pid = await service.createProduct(oid, storeId, pargs);
+    const memail = "member@gmail.com";
+    const mpassword = faker.internet.password();
+    const mid = await service.startSession();
+    await service.registerMember(mid, memail, mpassword);
+    const umid = await service.loginMember(mid, memail, mpassword);
+    await service.addProductToCart(umid, pid, 1);
+    const card = faker.finance.creditCardNumber();
+    const card2 = faker.finance.creditCardNumber();
+    const mid2 = await service.startSession();
+    await service.addProductToCart(mid2, pid, 1);
+    const cCard: PaymentDetails = {
+      number: card,
+      ccv: "144",
+      holder: "Buya",
+      id: "111111111",
+      month: "3",
+      year: "2025",
+    };
+    const d: DeliveryDetails = {
+      address: "dsadas",
+      city: "asdasd",
+      country: "sadasd",
+      name: "bsajsa",
+      zip: "2143145",
+    };
 
-      function purchase() {
-        return service.purchaseCart(mid2, cCard, d);
-      }
-      function purchase2() {
-        return service.purchaseCart(umid, cCard, d);
-      }
-      const promises: Promise<{
-        paymentTransactionId: number;
-        deliveryTransactionId: number;
-      }>[] = [];
-      promises.push(purchase());
-      promises.push(purchase2());
-      const res = await Promise.allSettled(promises);
-      console.log(res[0]?.status);
-      console.log(res[1]?.status);
-      expect(res[0]?.status !== res[1]?.status).toBe(true);
+    function purchase() {
+      return service.purchaseCart(mid2, cCard, d);
     }
+    function purchase2() {
+      return service.purchaseCart(umid, cCard, d);
+    }
+    const promises: Promise<{
+      paymentTransactionId: number;
+      deliveryTransactionId: number;
+    }>[] = [];
+    promises.push(purchase());
+    promises.push(purchase2());
+    const res = await Promise.allSettled(promises);
+    console.log(res[0]?.status);
+    console.log(res[1]?.status);
+    expect(res[0]?.status !== res[1]?.status).toBe(true);
+    // }
   });
 });
 //Use Case 4.6

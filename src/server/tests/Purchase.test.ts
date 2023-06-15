@@ -1,14 +1,24 @@
 import { faker } from "@faker-js/faker/locale/en";
 import { type StoreProductArgs } from "server/domain/Stores/StoreProduct";
-import {
-  generateProductArgs,
-  generateStoreName,
-} from "server/data/Stores/helpers/_data";
+
 import { Service } from "server/service/Service";
 import { describe, expect, it, beforeEach } from "vitest";
 import { TRPCError } from "@trpc/server";
 import { getDB, resetDB } from "server/helpers/_Transactional";
 import { BidArgs } from "server/domain/Users/Bid";
+import { ConditionArgs } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
+import {
+  createCompositeConditionArgs,
+  createCompositeDiscountArgs,
+  createLiteralConditionArgs,
+  createPromise,
+  createSimpleDiscountArgs,
+  createStore,
+  createStoreWithProduct,
+  createTimeConditionArgs,
+  generateProductArgs,
+  generateStoreName,
+} from "../../server/data/Stores/helpers/_data";
 let service: Service;
 beforeEach(async () => {
   await resetDB();
@@ -495,414 +505,1160 @@ export type DeliveryDetails = {
 //   });
 // });
 
-//ALL PASS FROM HERE
-//bid user story
-//When calculating the price of a product, the system uses the function getProductPrice(userID, productID) which returns the price of the product for the given user.
-//There for, it is enough to test the function getProductPrice(userID, productID) to test the bid user story, and there is no need to calculate the price of the cart.
-//just in case
-//Use Case 2.5 - Bid
-describe("Bid User Story", () => {
-  let email: string,
-    password: string,
-    gid: string,
-    founderId: string,
-    storeName: string,
-    storeId: string,
-    ownermail: string,
-    ownerpass: string,
-    ownerId: string,
-    gid2: string,
-    pargs: {
-      name: string;
-      quantity: number;
-      price: number;
-      category: string;
-      description: string;
-    };
+// // ALL PASS FROM HERE
+// // bid user story
+// // When calculating the price of a product, the system uses the function getProductPrice(userID, productID) which returns the price of the product for the given user.
+// // There for, it is enough to test the function getProductPrice(userID, productID) to test the bid user story, and there is no need to calculate the price of the cart.
+// // just in case
+// // Use Case 2.5 - Bid
+// describe("Bid User Story", () => {
+//   let email: string,
+//     password: string,
+//     gid: string,
+//     founderId: string,
+//     storeName: string,
+//     storeId: string,
+//     ownermail: string,
+//     ownerpass: string,
+//     ownerId: string,
+//     gid2: string,
+//     pargs: {
+//       name: string;
+//       quantity: number;
+//       price: number;
+//       category: string;
+//       description: string;
+//     };
+//   let customerId: string;
+//   let productInitialPrice: number;
+//   let productId: string;
+//   let bidArgs: BidArgs;
+//   beforeEach(async () => {
+//     await resetDB();
+//     email = faker.internet.email();
+//     password = faker.internet.password();
+//     gid = await service.startSession();
+//     await service.registerMember(gid, email, password);
+//     founderId = await service.loginMember(gid, email, password);
+//     storeName = generateStoreName();
+//     storeId = await service.createStore(founderId, storeName);
+//     ownermail = "owner@gmail.com";
+//     ownerpass = "owner123";
+//     gid2 = await service.startSession();
+//     ownerId = await service.registerMember(gid2, ownermail, ownerpass);
+//     await service.makeStoreOwner(founderId, storeId, ownerId);
+//     customerId = await service.startSession();
+//     const customerEmail = faker.internet.email();
+//     const customerPassword = faker.internet.password();
+//     customerId = await service.registerMember(
+//       customerId,
+//       customerEmail,
+//       customerPassword
+//     );
+//     pargs = generateProductArgs();
+//     pargs.quantity = 7;
+//     productInitialPrice = pargs.price;
+//     productId = await service.createProduct(ownerId, storeId, pargs);
+//     bidArgs = {
+//       userId: customerId,
+//       price: 5,
+//       productId: productId,
+//       type: "Store",
+//     };
+//   });
+//   it("Bid on product and then all owners approved it", async () => {
+//     //customer adds product to cart
+//     await service.addProductToCart(customerId, productId, 1);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //cart price is the same as product price
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //customer bids on product
+//     const bid = await service.addBid(bidArgs);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //owners and founder accept bids
+//     await service.approveBid(ownerId, bid);
+//     //if not all owners approved bid, product price doesnt change
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await service.approveBid(founderId, bid);
+//     const price = await service.getProductPrice(customerId, productId);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       bidArgs.price
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(bidArgs.price);
+//   });
+//   it("❌ Bid on product and then only one owner approved it, price shouldnt change", async () => {
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //customer adds product to cart
+//     await service.addProductToCart(customerId, productId, 1);
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //customer bids on product
+//     const bid = await service.addBid(bidArgs);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //owner accepts bid
+//     await service.approveBid(ownerId, bid);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//   });
+//   it("❌ Bid on product not approved", async () => {
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //customer adds product to cart
+//     await service.addProductToCart(customerId, productId, 1);
+//     //customer bids on product
+//     const bid = await service.addBid(bidArgs);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //founder accepts bid but owner rejects it
+//     await service.approveBid(founderId, bid);
+//     await service.rejectBid(ownerId, bid);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//   });
+//   it("❌ Bid on product not approved by owner that tries to approve it after his rejection", async () => {
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //customer adds product to cart
+//     await service.addProductToCart(customerId, productId, 1);
+//     //customer bids on product
+//     const bid = await service.addBid(bidArgs);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //founder accepts bid but owner rejects it and then tries to approve it
+//     await service.approveBid(founderId, bid);
+//     await service.rejectBid(ownerId, bid);
+
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.approveBid(ownerId, bid)).rejects.toThrow(
+//       "Bid already rejected"
+//     );
+//   });
+//   //customer bids on product, owner counter offers, customer accepts counter offer
+//   it("✅ Bid on product, owner counter offers, customer accepts counter offer", async () => {
+//     //customer adds product to cart
+//     await service.addProductToCart(customerId, productId, 1);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //customer bids on product
+//     const bid = await service.addBid(bidArgs);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //owner counter offers
+//     const counterBidArgs: BidArgs = {
+//       userId: ownerId,
+//       price: 10,
+//       productId: productId,
+//       type: "Counter",
+//       previousBidId: bid,
+//     };
+//     const counterBid = await service.addBid(counterBidArgs);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //customer accepts counter offer
+//     const newID = await service.approveBid(customerId, counterBid);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await service.approveBid(ownerId, newID);
+//     await service.approveBid(founderId, newID);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       counterBidArgs.price
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       counterBidArgs.price
+//     );
+//   });
+//   //customer bids on product, owner counter offers, customer rejects counter offer and bids again. owner accepts second bid
+//   it("✅ Bid on product, owner counter offers, customer rejects counter offer and bids again. owner accepts second bid", async () => {
+//     //customer adds product to cart
+//     await service.addProductToCart(customerId, productId, 1);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //customer bids on product
+//     const bid = await service.addBid(bidArgs);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //owner counter offers
+//     const counterBidArgs: BidArgs = {
+//       userId: ownerId,
+//       price: 10,
+//       productId: productId,
+//       type: "Counter",
+//       previousBidId: bid,
+//     };
+//     const counterBid = await service.addBid(counterBidArgs);
+//     console.log("counterBid", counterBid);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //customer rejects counter offer
+//     await service.rejectBid(customerId, counterBid);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //customer bids again
+//     const bid2 = await service.addBid(bidArgs);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //owners accepts second bid
+//     await service.approveBid(ownerId, bid2);
+//     await service.approveBid(founderId, bid2);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       bidArgs.price
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(bidArgs.price);
+//   });
+//   //not owner of store tries to approve bid on product
+//   it("❌ Not owner of store tries to approve bid on product", async () => {
+//     //customer adds product to cart
+//     await service.addProductToCart(customerId, productId, 1);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //customer bids on product
+//     const bid = await service.addBid(bidArgs);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //not owner of store tries to approve bid
+//     await expect(service.approveBid(customerId, bid)).rejects.toThrow(
+//       "User doesn't have permission to approve bid"
+//     );
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//   });
+//   //if an owner of a store is removed, he can't approve bids and we dont need him to approve bids
+//   it("✅ If an owner of a store is removed, he can't approve bids and we dont need him to approve bids", async () => {
+//     //customer adds product to cart
+//     await service.addProductToCart(customerId, productId, 1);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //customer bids on product
+//     const bid = await service.addBid(bidArgs);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //owner removes himself from store
+//     await service.removeStoreOwner(founderId, storeId, ownerId);
+//     //owner tries to approve bid
+//     await expect(service.approveBid(ownerId, bid)).rejects.toThrow(
+//       "User doesn't have permission to approve bid"
+//     );
+//     //founder approves bid
+//     await service.approveBid(founderId, bid);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       bidArgs.price
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(bidArgs.price);
+//   });
+//   //when a bid of a customer changes, the price of the product changes for all future purchases
+//   it("✅ When a bid of a customer changes, the price of the product changes for all future purchases", async () => {
+//     //customer adds product to cart
+//     await service.addProductToCart(customerId, productId, 1);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //customer bids on product
+//     const bid = await service.addBid(bidArgs);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await service.approveBid(ownerId, bid);
+//     await service.approveBid(founderId, bid);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       bidArgs.price
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(bidArgs.price);
+//     const cCard: PaymentDetails = {
+//       number: faker.finance.creditCardNumber(),
+//       ccv: "144",
+//       holder: "Buya",
+//       id: "111111111",
+//       month: "3",
+//       year: "2025",
+//     };
+//     const d: DeliveryDetails = {
+//       address: "dsadas",
+//       city: "asdasd",
+//       country: "sadasd",
+//       name: "bsajsa",
+//       zip: "2143145",
+//     };
+//     await service.purchaseCart(customerId, cCard, d);
+//     //check that the cart is empty
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(0);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       bidArgs.price
+//     );
+//     //once again add product to cart
+//     await service.addProductToCart(customerId, productId, 1);
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(bidArgs.price);
+//   });
+//   //After a bid is approved, the product price is updated only for the customer that made the bid
+//   it("✅ After a bid is approved, the product price is updated only for the customer that made the bid", async () => {
+//     const customerId2 = await service.startSession();
+//     //customer adds product to cart
+//     await service.addProductToCart(customerId, productId, 1);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     //customer bids on product
+//     const bid = await service.addBid(bidArgs);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await service.approveBid(ownerId, bid);
+//     await service.approveBid(founderId, bid);
+//     await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
+//       bidArgs.price
+//     );
+//     await expect(service.getCartPrice(customerId)).resolves.toBe(bidArgs.price);
+//     //another customer adds product to cart
+//     await service.addProductToCart(customerId2, productId, 1);
+//     await expect(service.getProductPrice(customerId2, productId)).resolves.toBe(
+//       productInitialPrice
+//     );
+//     await expect(service.getCartPrice(customerId2)).resolves.toBe(
+//       productInitialPrice
+//     );
+//   });
+// });
+
+// describe("Add Constraint", () => {
+//   beforeEach(async () => {
+//     await resetDB();
+//     service = new Service();
+//   });
+//   it("Only with 3 bananas", async () => {
+//     const email = faker.internet.email();
+//     const password = faker.internet.password();
+//     const id = await service.startSession();
+//     await service.registerMember(id, email, password);
+//     const uid = await service.loginMember(id, email, password);
+//     const storeName = generateStoreName();
+//     const storeId = await service.createStore(uid, storeName);
+//     const ownermail = "owner@gmail.com";
+//     const ownerpass = "owner123";
+//     const oid2 = await service.startSession();
+//     await service.registerMember(oid2, ownermail, ownerpass);
+//     const oid = await service.loginMember(oid2, ownermail, ownerpass);
+//     const pargs2 = generateProductArgs();
+//     pargs2.name = "Banana";
+//     pargs2.quantity = 5;
+//     const bananaId = await service.createProduct(uid, storeId, pargs2);
+//     pargs2.name = "tomato";
+//     const tomatoId = await service.createProduct(uid, storeId, pargs2);
+//     const cargs: ConditionArgs = {
+//       conditionType: "Exactly",
+//       type: "Literal",
+//       searchFor: "Banana",
+//       amount: 3,
+//       subType: "Product",
+//     };
+//     await service.addConstraintToStore(uid, storeId, cargs); //TODO: seems like it doesnt add to the DB what is it looking for
+//     await service.createProduct(uid, storeId, pargs2);
+//     await service.addProductToCart(oid, bananaId, 2); //shouldn't allow this because of constraint to buy 3 bananas exactly
+//     const card = faker.finance.creditCardNumber();
+//     const cCard: PaymentDetails = {
+//       number: card,
+//       ccv: "144",
+//       holder: "Buya",
+//       id: "111111111",
+//       month: "3",
+//       year: "2025",
+//     };
+//     const d: DeliveryDetails = {
+//       address: "dsadas",
+//       city: "asdasd",
+//       country: "sadasd",
+//       name: "bsajsa",
+//       zip: "2143145",
+//     };
+//     await expect(() => service.purchaseCart(oid, cCard, d)).rejects.toThrow(
+//       TRPCError
+//     );
+//     await service.addProductToCart(oid, tomatoId, 3);
+//     await expect(() => service.purchaseCart(oid, cCard, d)).rejects.toThrow(
+//       TRPCError
+//     );
+//     await service.editProductQuantityInCart(oid, bananaId, 3);
+//     await service.purchaseCart(oid, cCard, d);
+//     const supposeToBeFalse = await service.isProductQuantityInStock(
+//       uid,
+//       tomatoId,
+//       3
+//     );
+//     const supposeToBeFalse1 = await service.isProductQuantityInStock(
+//       uid,
+//       bananaId,
+//       3
+//     );
+//     const supposeToBeTrue = await service.isProductQuantityInStock(
+//       uid,
+//       tomatoId,
+//       2
+//     );
+//     const supposeToBeTrue1 = await service.isProductQuantityInStock(
+//       uid,
+//       bananaId,
+//       2
+//     );
+//     expect(supposeToBeFalse).toBe(false);
+//     expect(supposeToBeFalse1).toBe(false);
+//     expect(supposeToBeTrue).toBe(true);
+//     expect(supposeToBeTrue1).toBe(true);
+//   });
+// });
+// async function generateForDiscountAndConstraintTests(testType: string) {
+//   // const controllers;// = createTestControllers(testType, "Stores");
+
+//   const productData = generateProductArgs();
+//   productData.name = "Milk";
+//   productData.category = "Food";
+//   // const repos = createTestRepos(testType);
+//   const email = faker.internet.email();
+//   const password = faker.internet.password();
+//   const id = await service.startSession();
+//   await service.registerMember(id, email, password);
+//   const founderId = await service.loginMember(id, email, password);
+//   const storeName = generateStoreName();
+//   const storeId = await service.createStore(founderId, storeName);
+//   const bananaId = await service.createProduct(founderId, storeId, productData);
+
+//   productData.quantity = 5;
+//   const product2Data = generateProductArgs();
+//   product2Data.name = "Meat";
+//   product2Data.category = "Meat";
+//   const product1BasketQuantity = 55;
+//   const product2BasketQuantity = 23;
+//   const product2Id = await service.createProduct(
+//     founderId,
+//     storeId,
+//     product2Data
+//   );
+
+//   const price = await store.getBasketPrice("", basket);
+//   return {
+//     price,
+//     product,
+//     product2,
+//     store,
+//     basket,
+//     product1BasketQuantity,
+//     product2BasketQuantity,
+//   };
+// }
+describe("Discounts", () => {
+  let email;
+  let milkData: StoreProductArgs;
+  let meatData: StoreProductArgs;
+  let password: string;
+  let id: string;
+  let founderId: string;
+  let storeId: string;
+  let storeName: string;
+  let milkId: string;
+  let meatId: string;
   let customerId: string;
-  let productInitialPrice: number;
-  let productId: string;
-  let bidArgs: BidArgs;
   beforeEach(async () => {
     await resetDB();
+    service = new Service();
+    milkData = generateProductArgs();
+    milkData.quantity = 5;
+    milkData.name = "Milk";
+    milkData.category = "Food";
     email = faker.internet.email();
     password = faker.internet.password();
-    gid = await service.startSession();
-    await service.registerMember(gid, email, password);
-    founderId = await service.loginMember(gid, email, password);
+    id = await service.startSession();
+    await service.registerMember(id, email, password);
+    founderId = await service.loginMember(id, email, password);
     storeName = generateStoreName();
     storeId = await service.createStore(founderId, storeName);
-    ownermail = "owner@gmail.com";
-    ownerpass = "owner123";
-    gid2 = await service.startSession();
-    ownerId = await service.registerMember(gid2, ownermail, ownerpass);
-    await service.makeStoreOwner(founderId, storeId, ownerId);
+    milkId = await service.createProduct(founderId, storeId, milkData);
+
+    milkData.quantity = 5;
+    meatData = generateProductArgs();
+    meatData.name = "Meat";
+    meatData.category = "Meat";
+    meatData.quantity = 5;
+    const product1BasketQuantity = 55;
+    const product2BasketQuantity = 23;
+    const meatId = await service.createProduct(founderId, storeId, meatData);
+
     customerId = await service.startSession();
-    const customerEmail = faker.internet.email();
-    const customerPassword = faker.internet.password();
-    customerId = await service.registerMember(
-      customerId,
-      customerEmail,
-      customerPassword
-    );
-    pargs = generateProductArgs();
-    pargs.quantity = 7;
-    productInitialPrice = pargs.price;
-    productId = await service.createProduct(ownerId, storeId, pargs);
-    bidArgs = {
-      userId: customerId,
-      price: 5,
-      productId: productId,
-      type: "Store",
-    };
   });
-  it("Bid on product and then all owners approved it", async () => {
-    //customer adds product to cart
-    await service.addProductToCart(customerId, productId, 1);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
+  it("add simple product discount", async () => {
+    //add product to basket
+    await service.addProductToCart(customerId, milkId, 1);
+    const initialPrice = await service.getCartPrice(customerId);
+    let suppose = milkData.price;
+    expect(initialPrice).toBe(suppose);
+    const DiscountArgs = createSimpleDiscountArgs(
+      milkData.name,
+      15,
+      "product",
+      createLiteralConditionArgs(milkData.name, 1, "Product", "AtLeast")
     );
-    //cart price is the same as product price
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
+    console.log("herefffffffffffffffffffffffffffffffffffffffffffffffff");
+    const discountId = await service.addDiscountToStore(
+      founderId,
+      storeId,
+      DiscountArgs
     );
-    //customer bids on product
-    const bid = await service.addBid(bidArgs);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    //owners and founder accept bids
-    await service.approveBid(ownerId, bid);
-    //if not all owners approved bid, product price doesnt change
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    await service.approveBid(founderId, bid);
-    const price = await service.getProductPrice(customerId, productId);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      bidArgs.price
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(bidArgs.price);
-  });
-  it("❌ Bid on product and then only one owner approved it, price shouldnt change", async () => {
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    //customer adds product to cart
-    await service.addProductToCart(customerId, productId, 1);
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    //customer bids on product
-    const bid = await service.addBid(bidArgs);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    //owner accepts bid
-    await service.approveBid(ownerId, bid);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-  });
-  it("❌ Bid on product not approved", async () => {
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    //customer adds product to cart
-    await service.addProductToCart(customerId, productId, 1);
-    //customer bids on product
-    const bid = await service.addBid(bidArgs);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    //founder accepts bid but owner rejects it
-    await service.approveBid(founderId, bid);
-    await service.rejectBid(ownerId, bid);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-  });
-  it("❌ Bid on product not approved by owner that tries to approve it after his rejection", async () => {
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    //customer adds product to cart
-    await service.addProductToCart(customerId, productId, 1);
-    //customer bids on product
-    const bid = await service.addBid(bidArgs);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    //founder accepts bid but owner rejects it and then tries to approve it
-    await service.approveBid(founderId, bid);
-    await service.rejectBid(ownerId, bid);
+    console.log("discountId", discountId);
+    console.log("herefffffffffffffffffffffffffffffffffffffffffffffffff");
 
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.approveBid(ownerId, bid)).rejects.toThrow(
-      "Bid already rejected"
-    );
+    const priceWithDiscount = await service.getCartPrice(customerId);
+    suppose = milkData.price * (85 / 100);
+    expect(priceWithDiscount).toBe(suppose);
+    await service.removeDiscountFromStore(founderId, storeId, discountId);
+    expect(await service.getCartPrice(customerId)).toBe(suppose);
   });
-  //customer bids on product, owner counter offers, customer accepts counter offer
-  it("✅ Bid on product, owner counter offers, customer accepts counter offer", async () => {
-    //customer adds product to cart
-    await service.addProductToCart(customerId, productId, 1);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    //customer bids on product
-    const bid = await service.addBid(bidArgs);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    //owner counter offers
-    const counterBidArgs: BidArgs = {
-      userId: ownerId,
-      price: 10,
-      productId: productId,
-      type: "Counter",
-      previousBidId: bid,
-    };
-    const counterBid = await service.addBid(counterBidArgs);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    //customer accepts counter offer
-    const newID = await service.approveBid(customerId, counterBid);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    await service.approveBid(ownerId, newID);
-    await service.approveBid(founderId, newID);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      counterBidArgs.price
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      counterBidArgs.price
-    );
-  });
-  //customer bids on product, owner counter offers, customer rejects counter offer and bids again. owner accepts second bid
-  it("✅ Bid on product, owner counter offers, customer rejects counter offer and bids again. owner accepts second bid", async () => {
-    //customer adds product to cart
-    await service.addProductToCart(customerId, productId, 1);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    //customer bids on product
-    const bid = await service.addBid(bidArgs);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    //owner counter offers
-    const counterBidArgs: BidArgs = {
-      userId: ownerId,
-      price: 10,
-      productId: productId,
-      type: "Counter",
-      previousBidId: bid,
-    };
-    const counterBid = await service.addBid(counterBidArgs);
-    console.log("counterBid", counterBid);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    //customer rejects counter offer
-    await service.rejectBid(customerId, counterBid);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    //customer bids again
-    const bid2 = await service.addBid(bidArgs);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    //owners accepts second bid
-    await service.approveBid(ownerId, bid2);
-    await service.approveBid(founderId, bid2);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      bidArgs.price
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(bidArgs.price);
-  });
-  //not owner of store tries to approve bid on product
-  it("❌ Not owner of store tries to approve bid on product", async () => {
-    //customer adds product to cart
-    await service.addProductToCart(customerId, productId, 1);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
+  // it("add simple category discount", async () => {
+  //   //add product to basket
+  //   await service.addProductToCart(customerId, milkId, 1);
+  //   const initialPrice = await service.getCartPrice(customerId);
+  //   let suppose = milkData.price;
+  //   expect(initialPrice).toBe(suppose);
+  //   const DiscountArgs = createSimpleDiscountArgs(
+  //     milkData.category,
+  //     15,
+  //     "category",
+  //     createLiteralConditionArgs(milkData.category, 1, "Category", "AtLeast")
+  //   );
+  //   const discountId = await service.addDiscountToStore(
+  //     founderId,
+  //     storeId,
+  //     DiscountArgs
+  //   );
+  //   const priceWithDiscount = await service.getCartPrice(customerId);
+  //   suppose = milkData.price * (85 / 100);
+  //   expect(priceWithDiscount).toBe(suppose);
+  //   await service.removeDiscountFromStore(founderId, storeId, discountId);
+  //   expect(await service.getCartPrice(customerId)).toBe(suppose);
+  // });
+  // it("add simple category discount", async () => {
+  //   const {
+  //     price,
+  //     product,
+  //     product2,
+  //     store,
+  //     basket,
+  //     product1BasketQuantity,
+  //     product2BasketQuantity,
+  //   } = await generateForDiscountAndConstraintTests();
+  //   const discountId = await store.addDiscount(
+  //     createSimpleDiscountArgs(
+  //       product.Category,
+  //       15,
+  //       "category",
+  //       createLiteralConditionArgs(product.Category, 1, "Category", "AtLeast")
+  //     )
+  //   );
+  //   const priceWithDiscount = await store.getBasketPrice("", basket);
+  //   expect(priceWithDiscount).toBe(
+  //     product.Price * product1BasketQuantity * (85 / 100) +
+  //       product2.Price * product2BasketQuantity
+  //   );
+  //   await store.removeDiscount(discountId);
+  //   expect(await store.getBasketPrice("", basket)).toBe(price);
+  // });
+  // it("add simple price discount", async () => {
+  //   //add product to basket
+  //   await service.addProductToCart(customerId, milkId, 1);
+  //   await service.addProductToCart(customerId, meatId, 1);
+  //   const initialPrice = await service.getCartPrice(customerId);
+  //   let suppose = milkData.price;
+  //   expect(initialPrice).toBe(suppose);
+  //   const DiscountArgs = createSimpleDiscountArgs(
+  //     milkData.category,
+  //     15,
+  //     "category",
+  //     createLiteralConditionArgs(
+  //       milkData.category,
+  //       milkData.price - 5,
+  //       "Price",
+  //       "AtLeast"
+  //     )
+  //   );
+  //   const discountId = await service.addDiscountToStore(
+  //     founderId,
+  //     storeId,
+  //     DiscountArgs
+  //   );
+  //   const priceWithDiscount = await service.getCartPrice(customerId);
+  //   suppose = milkData.price * (85 / 100) + meatData.price;
+  //   expect(priceWithDiscount).toBe(suppose);
+  //   await service.removeDiscountFromStore(founderId, storeId, discountId);
+  //   await expect(service.getCartPrice(customerId)).resolves.toBe(suppose);
+  //   const DiscountArgs2 = createSimpleDiscountArgs(
+  //     milkData.category,
+  //     15,
+  //     "category",
+  //     createLiteralConditionArgs(
+  //       milkData.category,
+  //       milkData.price - 5,
+  //       "Price",
+  //       "AtMost"
+  //     )
+  //   );
+  //   const discountId2 = await service.addDiscountToStore(
+  //     founderId,
+  //     storeId,
+  //     DiscountArgs2
+  //   );
+  //   const priceWithDiscount2 = await service.getCartPrice(customerId);
+  //   suppose = milkData.price + meatData.price;
+  //   expect(priceWithDiscount2).toBe(initialPrice);
+  // });
 
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    //customer bids on product
-    const bid = await service.addBid(bidArgs);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    //not owner of store tries to approve bid
-    await expect(service.approveBid(customerId, bid)).rejects.toThrow(
-      "User doesn't have permission to approve bid"
-    );
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-  });
-  //if an owner of a store is removed, he can't approve bids and we dont need him to approve bids
-  it("✅ If an owner of a store is removed, he can't approve bids and we dont need him to approve bids", async () => {
-    //customer adds product to cart
-    await service.addProductToCart(customerId, productId, 1);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    //customer bids on product
-    const bid = await service.addBid(bidArgs);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(
-      productInitialPrice
-    );
-    //owner removes himself from store
-    await service.removeStoreOwner(founderId, storeId, ownerId);
-    //owner tries to approve bid
-    await expect(service.approveBid(ownerId, bid)).rejects.toThrow(
-      "User doesn't have permission to approve bid"
-    );
-    //founder approves bid
-    await service.approveBid(founderId, bid);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      bidArgs.price
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(bidArgs.price);
-  });
-  //when a bid of a customer changes, the price of the product changes for all future purchases
-  it("✅ When a bid of a customer changes, the price of the product changes for all future purchases", async () => {
-    //customer adds product to cart
-    await service.addProductToCart(customerId, productId, 1);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    //customer bids on product
-    const bid = await service.addBid(bidArgs);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await service.approveBid(ownerId, bid);
-    await service.approveBid(founderId, bid);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      bidArgs.price
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(bidArgs.price);
-    const cCard: PaymentDetails = {
-      number: faker.finance.creditCardNumber(),
-      ccv: "144",
-      holder: "Buya",
-      id: "111111111",
-      month: "3",
-      year: "2025",
-    };
-    const d: DeliveryDetails = {
-      address: "dsadas",
-      city: "asdasd",
-      country: "sadasd",
-      name: "bsajsa",
-      zip: "2143145",
-    };
-    await service.purchaseCart(customerId, cCard, d);
-    //check that the cart is empty
-    await expect(service.getCartPrice(customerId)).resolves.toBe(0);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      bidArgs.price
-    );
-    //once again add product to cart
-    await service.addProductToCart(customerId, productId, 1);
-    await expect(service.getCartPrice(customerId)).resolves.toBe(bidArgs.price);
-  });
-  //After a bid is approved, the product price is updated only for the customer that made the bid
-  it("✅ After a bid is approved, the product price is updated only for the customer that made the bid", async () => {
-    const customerId2 = await service.startSession();
-    //customer adds product to cart
-    await service.addProductToCart(customerId, productId, 1);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    //customer bids on product
-    const bid = await service.addBid(bidArgs);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await service.approveBid(ownerId, bid);
-    await service.approveBid(founderId, bid);
-    await expect(service.getProductPrice(customerId, productId)).resolves.toBe(
-      bidArgs.price
-    );
-    await expect(service.getCartPrice(customerId)).resolves.toBe(bidArgs.price);
-    //another customer adds product to cart
-    await service.addProductToCart(customerId2, productId, 1);
-    await expect(service.getProductPrice(customerId2, productId)).resolves.toBe(
-      productInitialPrice
-    );
-    await expect(service.getCartPrice(customerId2)).resolves.toBe(
-      productInitialPrice
-    );
-  });
+  // it("add simple price discount", async () => {
+  //   const {
+  //     price,
+  //     product,
+  //     product2,
+  //     store,
+  //     basket,
+  //     product1BasketQuantity,
+  //     product2BasketQuantity,
+  //   } = await generateForDiscountAndConstraintTests();
+  //   const discountId = await store.addDiscount(
+  //     createSimpleDiscountArgs(
+  //       product.Category,
+  //       15,
+  //       "category",
+  //       createLiteralConditionArgs(
+  //         product.Category,
+  //         price - 5,
+  //         "Price",
+  //         "AtLeast"
+  //       )
+  //     )
+  //   );
+  //   const priceWithDiscount = await store.getBasketPrice("", basket);
+  //   expect(priceWithDiscount).toBe(
+  //     product.Price * product1BasketQuantity * (85 / 100) +
+  //       product2.Price * product2BasketQuantity
+  //   );
+  //   await store.removeDiscount(discountId);
+  //   expect(await store.getBasketPrice("", basket)).toBe(price);
+  //   const discountId1 = await store.addDiscount(
+  //     createSimpleDiscountArgs(
+  //       product.Category,
+  //       15,
+  //       "category",
+  //       createLiteralConditionArgs(
+  //         product.Category,
+  //         price - 5,
+  //         "Price",
+  //         "AtMost"
+  //       )
+  //     )
+  //   );
+  //   const priceWithDiscount1 = await store.getBasketPrice("", basket);
+  //   expect(priceWithDiscount1).toBe(price);
+  //   await store.removeDiscount(discountId1);
+  //   expect(await store.getBasketPrice("", basket)).toBe(price);
+  // });
+  // it("add simple basket discount", async () => {
+  //   const {
+  //     price,
+  //     product,
+  //     product2,
+  //     store,
+  //     basket,
+  //     product1BasketQuantity,
+  //     product2BasketQuantity,
+  //   } = await generateForDiscountAndConstraintTests();
+  //   const discountId = await store.addDiscount(
+  //     createSimpleDiscountArgs(
+  //       product.Category,
+  //       15,
+  //       "store",
+  //       createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
+  //     )
+  //   );
+  //   const priceWithDiscount = await store.getBasketPrice("", basket);
+  //   expect(priceWithDiscount).toBe(
+  //     product.Price * product1BasketQuantity * (85 / 100) +
+  //       product2.Price * product2BasketQuantity * (85 / 100)
+  //   );
+  //   await store.removeDiscount(discountId);
+  //   expect(await store.getBasketPrice("", basket)).toBe(price);
+  // });
+  // it("add max discount with simple condition", async () => {
+  //   const {
+  //     price,
+  //     product,
+  //     product2,
+  //     store,
+  //     basket,
+  //     product1BasketQuantity,
+  //     product2BasketQuantity,
+  //   } = await generateForDiscountAndConstraintTests();
+  //   const discountId = await store.addDiscount(
+  //     createCompositeDiscountArgs(
+  //       createSimpleDiscountArgs(
+  //         product.Category,
+  //         15,
+  //         "category",
+  //         createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
+  //       ),
+  //       createSimpleDiscountArgs(
+  //         product.Category,
+  //         15,
+  //         "store",
+  //         createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
+  //       ),
+  //       "Max"
+  //     )
+  //   );
+  //   const priceWithDiscount = await store.getBasketPrice("", basket);
+  //   expect(priceWithDiscount).toBe(
+  //     product.Price * product1BasketQuantity * (85 / 100) +
+  //       product2.Price * product2BasketQuantity * (85 / 100)
+  //   );
+  //   await store.removeDiscount(discountId);
+  //   expect(await store.getBasketPrice("", basket)).toBe(price);
+  // });
+  // it("add compose ADD discount with simple condition", async () => {
+  //   const {
+  //     price,
+  //     product,
+  //     product2,
+  //     store,
+  //     basket,
+  //     product1BasketQuantity,
+  //     product2BasketQuantity,
+  //   } = await generateForDiscountAndConstraintTests();
+  //   const discountId = await store.addDiscount(
+  //     createCompositeDiscountArgs(
+  //       createSimpleDiscountArgs(
+  //         product.Category,
+  //         15,
+  //         "category",
+  //         createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
+  //       ),
+  //       createSimpleDiscountArgs(
+  //         product.Category,
+  //         15,
+  //         "store",
+  //         createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
+  //       ),
+  //       "Add"
+  //     )
+  //   );
+  //   const priceWithDiscount = await store.getBasketPrice("", basket);
+  //   expect(priceWithDiscount).toBe(
+  //     product.Price * product1BasketQuantity * (70 / 100) +
+  //       product2.Price * product2BasketQuantity * (85 / 100)
+  //   );
+  //   await store.removeDiscount(discountId);
+  //   expect(await store.getBasketPrice("", basket)).toBe(price);
+  // });
+  // it("add compose discount with And condition", async () => {
+  //   const {
+  //     price,
+  //     product,
+  //     product2,
+  //     store,
+  //     basket,
+  //     product1BasketQuantity,
+  //     product2BasketQuantity,
+  //   } = await generateForDiscountAndConstraintTests();
+
+  //   const discountId = await store.addDiscount(
+  //     createCompositeDiscountArgs(
+  //       createSimpleDiscountArgs(
+  //         product.Category,
+  //         15,
+  //         "category",
+  //         createCompositeConditionArgs(
+  //           "And",
+  //           createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast"),
+  //           createLiteralConditionArgs(product.Category, 1, "Store", "AtMost")
+  //         )
+  //       ),
+  //       createSimpleDiscountArgs(
+  //         product.Category,
+  //         15,
+  //         "store",
+  //         createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
+  //       ),
+  //       "Add"
+  //     )
+  //   );
+  //   const priceWithDiscount = await store.getBasketPrice("", basket);
+  //   expect(priceWithDiscount).toBe(
+  //     product.Price * product1BasketQuantity * (85 / 100) +
+  //       product2.Price * product2BasketQuantity * (85 / 100)
+  //   );
+  //   await store.removeDiscount(discountId);
+  //   expect(await store.getBasketPrice("", basket)).toBe(price);
+  // });
+  // it("add compose MAX discount with compose logic implies condition", async () => {
+  //   const {
+  //     price,
+  //     product,
+  //     product2,
+  //     store,
+  //     basket,
+  //     product1BasketQuantity,
+  //     product2BasketQuantity,
+  //   } = await generateForDiscountAndConstraintTests();
+  //   const discountId = await store.addDiscount({
+  //     type: "Add",
+  //     left: {
+  //       condition: {
+  //         type: "Composite",
+  //         subType: "And",
+  //         left: {
+  //           type: "Literal",
+  //           subType: "Product",
+  //           amount: 1,
+  //           conditionType: "AtLeast",
+  //           searchFor: product.Name,
+  //         },
+  //         right: {
+  //           type: "Literal",
+  //           subType: "Product",
+  //           amount: 70,
+  //           conditionType: "AtMost",
+  //           searchFor: product.Name,
+  //         },
+  //       },
+  //       amount: 15,
+  //       discountOn: "product",
+  //       searchFor: product.Name,
+  //       type: "Simple",
+  //     },
+  //     right: {
+  //       condition: {
+  //         type: "Composite",
+  //         subType: "And",
+  //         left: {
+  //           type: "Literal",
+  //           subType: "Product",
+  //           amount: 1,
+  //           conditionType: "AtLeast",
+  //           searchFor: product.Name,
+  //         },
+  //         right: {
+  //           type: "Literal",
+  //           subType: "Product",
+  //           amount: 70,
+  //           conditionType: "AtMost",
+  //           searchFor: product.Name,
+  //         },
+  //       },
+  //       amount: 25,
+  //       discountOn: "product",
+  //       searchFor: product.Name,
+  //       type: "Simple",
+  //     },
+  //   });
+  //   const priceWithDiscount = await store.getBasketPrice("", basket);
+  //   expect(priceWithDiscount).toBe(
+  //     product.Price * product1BasketQuantity * (60 / 100) +
+  //       product2.Price * product2BasketQuantity
+  //   );
+  //   await store.removeDiscount(discountId);
+  //   expect(await store.getBasketPrice("", basket)).toBe(price);
+  //   const discountId1 = await store.addDiscount({
+  //     type: "Add",
+  //     left: {
+  //       condition: {
+  //         type: "Composite",
+  //         subType: "And",
+  //         left: {
+  //           type: "Literal",
+  //           subType: "Product",
+  //           amount: 1,
+  //           conditionType: "AtLeast",
+  //           searchFor: product.Name,
+  //         },
+  //         right: {
+  //           type: "Literal",
+  //           subType: "Product",
+  //           amount: 70,
+  //           conditionType: "AtMost",
+  //           searchFor: product.Name,
+  //         },
+  //       },
+  //       amount: 15,
+  //       discountOn: "product",
+  //       searchFor: product.Name,
+  //       type: "Simple",
+  //     },
+  //     right: {
+  //       condition: {
+  //         type: "Composite",
+  //         subType: "And",
+  //         left: {
+  //           type: "Literal",
+  //           subType: "Product",
+  //           amount: 1,
+  //           conditionType: "AtLeast",
+  //           searchFor: product.Name,
+  //         },
+  //         right: {
+  //           type: "Literal",
+  //           subType: "Product",
+  //           amount: 2,
+  //           conditionType: "AtMost",
+  //           searchFor: product.Name,
+  //         },
+  //       },
+  //       amount: 25,
+  //       discountOn: "product",
+  //       searchFor: product.Name,
+  //       type: "Simple",
+  //     },
+  //   });
+  //   const priceWithDiscount1 = await store.getBasketPrice("", basket);
+  //   expect(priceWithDiscount1).toBe(
+  //     product.Price * product1BasketQuantity * (85 / 100) +
+  //       product2.Price * product2BasketQuantity
+  //   );
+  //   await store.removeDiscount(discountId1);
+  //   expect(await store.getBasketPrice("", basket)).toBe(price);
+  // });
 });
+// describe("Constraint tests", () => {
+//   it("add simple constraint to store and check if it works", async () => {
+//     const {
+//       price,
+//       product,
+//       product2,
+//       store,
+//       basket,
+//       product1BasketQuantity,
+//       product2BasketQuantity,
+//     } = await generateForDiscountAndConstraintTests();
+//     const constraintId = await store.addConstraint(
+//       createLiteralConditionArgs("", 1, "Store", "AtMost")
+//     );
+//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
+//     await store.removeConstraint(constraintId);
+//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+//   });
+//   it("add composite AND constraint to store and check if it works", async () => {
+//     const {
+//       price,
+//       product,
+//       product2,
+//       store,
+//       basket,
+//       product1BasketQuantity,
+//       product2BasketQuantity,
+//     } = await generateForDiscountAndConstraintTests();
+//     const constraintId = await store.addConstraint(
+//       createCompositeConditionArgs(
+//         "And",
+//         createLiteralConditionArgs("", 1, "Store", "AtLeast"),
+//         createLiteralConditionArgs("", 1, "Store", "AtMost")
+//       )
+//     );
+//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
+//     await store.removeConstraint(constraintId);
+//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+//   });
+//   it("add composite implies constraint to store and check if it works", async () => {
+//     const {
+//       price,
+//       product,
+//       product2,
+//       store,
+//       basket,
+//       product1BasketQuantity,
+//       product2BasketQuantity,
+//     } = await generateForDiscountAndConstraintTests();
+//     const constraintId = await store.addConstraint(
+//       createCompositeConditionArgs(
+//         "Implies",
+//         createLiteralConditionArgs("", 1, "Store", "AtMost"),
+//         createLiteralConditionArgs("", 1, "Store", "AtLeast")
+//       )
+//     );
+//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+//     const constraintId2 = await store.addConstraint(
+//       createCompositeConditionArgs(
+//         "Implies",
+//         createLiteralConditionArgs("", 1, "Store", "AtLeast"),
+//         createLiteralConditionArgs("", 1, "Store", "AtMost")
+//       )
+//     );
+//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
+//   });
+//   it("add composite xor constraint to store and check if it works", async () => {
+//     const {
+//       price,
+//       product,
+//       product2,
+//       store,
+//       basket,
+//       product1BasketQuantity,
+//       product2BasketQuantity,
+//     } = await generateForDiscountAndConstraintTests();
+//     const constraintId = await store.addConstraint(
+//       createCompositeConditionArgs(
+//         "Xor",
+//         createLiteralConditionArgs("", 1, "Store", "AtMost"),
+//         createLiteralConditionArgs("", 1, "Store", "AtLeast")
+//       )
+//     );
+//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+//     const constraintId2 = await store.addConstraint(
+//       createCompositeConditionArgs(
+//         "Xor",
+//         createLiteralConditionArgs("", 1, "Store", "AtLeast"),
+//         createLiteralConditionArgs("", 5, "Store", "AtLeast")
+//       )
+//     );
+//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
+//   });
+//   it("add composite or constraint to store and check if it works", async () => {
+//     const {
+//       price,
+//       product,
+//       product2,
+//       store,
+//       basket,
+//       product1BasketQuantity,
+//       product2BasketQuantity,
+//     } = await generateForDiscountAndConstraintTests();
+//     const constraintId = await store.addConstraint(
+//       createCompositeConditionArgs(
+//         "Or",
+//         createLiteralConditionArgs("", 1, "Store", "AtMost"),
+//         createLiteralConditionArgs("", 1, "Store", "AtLeast")
+//       )
+//     );
+//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+//     const constraintId2 = await store.addConstraint(
+//       createCompositeConditionArgs(
+//         "Or",
+//         createLiteralConditionArgs("", 1, "Store", "AtMost"),
+//         createLiteralConditionArgs("NO_SUCH_PRODUCT", 5, "Product", "AtLeast")
+//       )
+//     );
+//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
+//   });
+//   it("add time constraint to store and check if it works", async () => {
+//     const {
+//       price,
+//       product,
+//       product2,
+//       store,
+//       basket,
+//       product1BasketQuantity,
+//       product2BasketQuantity,
+//     } = await generateForDiscountAndConstraintTests();
+//     const date = new Date();
+//     const constraintId = await store.addConstraint(
+//       createTimeConditionArgs(
+//         "After",
+//         date.getFullYear() + 1,
+//         undefined,
+//         undefined,
+//         undefined
+//       )
+//     );
+//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
+//     await store.removeConstraint(constraintId);
+//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
+//   });
+// });

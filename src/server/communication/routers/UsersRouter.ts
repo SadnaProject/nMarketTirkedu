@@ -258,4 +258,24 @@ export const UsersRouter = createTRPCRouter({
   getMakeOwnerRequests: validSessionProcedure.query(({ ctx }) => {
     return service.getMakeOwnerRequests(ctx.session.user.id);
   }),
+  approveMakeOwnerRequest: validSessionProcedure
+    .input(
+      z.object({
+        makeOwnerRequestId: z.string().uuid(),
+      })
+    )
+    .mutation(({ input, ctx }) => {
+      const { makeOwnerRequestId } = input;
+      return service.approveStoreOwner(ctx.session.user.id, makeOwnerRequestId);
+    }),
+  rejectMakeOwnerRequest: validSessionProcedure
+    .input(
+      z.object({
+        makeOwnerRequestId: z.string().uuid(),
+      })
+    )
+    .mutation(({ input, ctx }) => {
+      const { makeOwnerRequestId } = input;
+      return service.rejectStoreOwner(ctx.session.user.id, makeOwnerRequestId);
+    }),
 });

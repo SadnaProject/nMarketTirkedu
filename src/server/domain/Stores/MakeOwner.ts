@@ -10,6 +10,7 @@ export type MakeOwnerDTO = {
   rejectBy: string[];
   state: BidState;
   storeName: string;
+  userEmailAddress: string;
 };
 export class MakeOwner {
   private storeId: string;
@@ -92,6 +93,7 @@ export class MakeOwner {
       rejectBy: this.rejectBy,
       state: this.state,
       storeName: "",
+      userEmailAddress: "",
     };
   }
 }

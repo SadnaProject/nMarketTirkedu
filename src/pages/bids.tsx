@@ -48,7 +48,7 @@ export default function Home() {
         }
         getId={(bid) => bid.id}
         getItem={(bid) => <BidCard bid={bid} />}
-        className="grid-cols-1 lg:grid-cols-4"
+        className="grid-cols-1 lg:grid-cols-3"
       />
     </Layout>
   );

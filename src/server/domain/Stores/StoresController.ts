@@ -789,6 +789,13 @@ export class StoresController
           storeId,
           targetUserId
         );
+        eventEmitter.initControllers(this.Controllers);
+        await eventEmitter.emitEvent({
+          type: "makeOwner",
+          channel: `ApproveMakeNewOwner_${idOfMakeOwnerObject}`,
+          makeOwnerObjectId: idOfMakeOwnerObject,
+          message: "You have a new owner in the store !",
+        });
       }
       return idOfMakeOwnerObject;
     } else {
@@ -823,6 +830,7 @@ export class StoresController
       //     `try to make new owner in store ${storeId}`
       //   );
       // }
+
       eventEmitter.initControllers(this.Controllers);
       await eventEmitter.emitEvent({
         channel: `tryToMakeNewOwner_${storeId}`,
@@ -830,6 +838,17 @@ export class StoresController
         makeOwnerObjectId: make.getId(),
         message: "You have a new request to be an owner!",
       });
+      for (const uid of notifiedUserIds) {
+        eventEmitter.subscribeChannel(
+          `ApproveMakeNewOwner_${make.getId()}`,
+          uid
+        );
+        eventEmitter.subscribeChannel(
+          `RejectMakeNewOwner_${make.getId()}`,
+          uid
+        );
+      }
+
       await this.approveStoreOwner(make.getId(), currentId);
       return make.getId();
     }
@@ -1167,6 +1186,13 @@ export class StoresController
   }
   async rejectStoreOwner(makeOwnerId: string, userId: string) {
     await this.Repos.Stores.rejectMakeOwner(makeOwnerId, userId);
+    eventEmitter.initControllers(this.Controllers);
+    await eventEmitter.emitEvent({
+      channel: `RejectMakeNewOwner_${makeOwnerId}`,
+      type: "makeOwner",
+      makeOwnerObjectId: makeOwnerId,
+      message: `The request of adding new owner has been declined!`,
+    });
   }
   async removeStoreOwnerFromPendingOfMakeOwner(
     userId: string,
@@ -1192,6 +1218,13 @@ export class StoresController
       make.getOwners().length === make.getApprovers().length
     ) {
       await this.Repos.Stores.forceApproveMake(makeOwnerId);
+      eventEmitter.initControllers(this.Controllers);
+      await eventEmitter.emitEvent({
+        type: "makeOwner",
+        channel: `ApproveMakeNewOwner_${makeOwnerId}`,
+        makeOwnerObjectId: makeOwnerId,
+        message: "You have a new owner in the store !",
+      });
       await this.makeStoreOwner(
         make.getAppointerUserId(),
         make.getStoreId(),

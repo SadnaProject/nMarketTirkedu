@@ -41,6 +41,20 @@ export type Event =
       makeOwnerObjectId: string;
       message: "You have a new request to be an owner!";
       // more data
+    }
+  | {
+      channel: `ApproveMakeNewOwner_${string}`;
+      type: "makeOwner";
+      makeOwnerObjectId: string;
+      message: "You have a new owner in the store !";
+      // more data
+    }
+  | {
+      channel: `RejectMakeNewOwner_${string}`;
+      type: "makeOwner";
+      makeOwnerObjectId: string;
+      message: "The request of adding new owner has been declined!";
+      // more data
     };
 
 export type Channel = Event["channel"];

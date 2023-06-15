@@ -54,4 +54,7 @@ export class Notification {
     i.id = dto.id;
     return i;
   }
+  public getMesssage(): string {
+    return this.message;
+  }
 }

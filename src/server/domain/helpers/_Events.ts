@@ -3,57 +3,56 @@ export type Event =
       channel: `storePurchase_${string}`;
       type: "storePurchase";
       storeId: string;
-      message: "You have a new purchase!";
+      message: string;
       // more data
     }
   | {
       channel: `storeChanged_${string}`;
       type: "storeChanged";
       storeId: string;
-      description: string;
-      message: "Store details has changed!";
+      message: string;
       // more data
     }
   | {
       channel: `bidAdded_${string}`;
       type: "bidAdded";
       bidId: string;
-      message: "You have a new bid!";
+      message: string;
       // more data
     }
   | {
       channel: `bidApproved_${string}`;
       type: "bidApproved";
       bidId: string;
-      message: "Your bid has been approved!";
+      message: string;
       // more data
     }
   | {
       channel: `bidRejected_${string}`;
       type: "bidRejected";
       bidId: string;
-      message: "Your bid has been rejected!";
+      message: string;
       // more data
     }
   | {
       channel: `tryToMakeNewOwner_${string}`;
       type: "makeOwner";
       makeOwnerObjectId: string;
-      message: "You have a new request to be an owner!";
+      message: string;
       // more data
     }
   | {
       channel: `ApproveMakeNewOwner_${string}`;
       type: "makeOwner";
       makeOwnerObjectId: string;
-      message: "You have a new owner in the store !";
+      message: string;
       // more data
     }
   | {
       channel: `RejectMakeNewOwner_${string}`;
       type: "makeOwner";
       makeOwnerObjectId: string;
-      message: "The request of adding new owner has been declined!";
+      message: string;
       // more data
     };
 

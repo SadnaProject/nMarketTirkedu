@@ -48,22 +48,27 @@ export default function Navbar() {
       enabled: session?.user !== undefined,
     });
   api.users.subscribeToEvents.useSubscription(undefined, {
-    onData: (data) => {
-      console.log("yay", data);
-      if (data.type === "storeChanged") {
-        toast.success(`The state of store ${data.storeId} has changed`);
-      } else if (data.type === "storePurchase") {
-        toast.success(`A purchase has been made in store ${data.storeId}`);
-      } else if (data.type === "makeOwner") {
-        toast.success(
-          `try to make new owner in store the object id is ${data.makeOwnerObjectId}`
-        );
-      } else if (data.type === "bidAdded") {
-        toast.success(`A new bid has been added ${data.bidId}`);
-      } else {
-        toast.success(`Something has changed`);
+    onData: (event) => {
+      switch (event.type) {
+        case "storeChanged":
+          toast.success(event.description);
+          break;
+        case "storePurchase":
+          toast.success(`A purchase has been made in store`);
+          break;
+        case "makeOwner":
+          toast.success(`A request for new owner has been made`);
+          break;
+        case "bidAdded":
+          toast.success(`A new bid has been added`);
+          break;
+        case "bidApproved":
+          toast.success(`A bid has been approved`);
+          break;
+        case "bidRejected":
+          toast.success(`A bid has been rejected`);
+          break;
       }
-      // todo add more
       void refetchNotifications();
     },
   });

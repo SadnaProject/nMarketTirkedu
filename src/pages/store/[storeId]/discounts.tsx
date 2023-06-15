@@ -93,7 +93,7 @@ export default function Home() {
     <Layout className="max-w-none">
       <StoreNavbar storeId={storeId as string} />
       <div
-        className="hs-accordion-group flex w-full overflow-auto"
+        className="hs-accordion-group flex w-full flex-col overflow-auto"
         data-hs-accordion-always-open
       >
         <FormProvider {...formMethods}>

@@ -58,7 +58,10 @@ const PATHS = {
   myStores: { path: "/myStores", for: ["member"] },
   myReceipts: { path: "/myReceipts", for: ["member"] },
   bids: { path: "/bids", for: ["member"] },
-  bid: { path: (bidId: string) => `/bid/${bidId}`, for: ["member"] },
+  storeMakeOwnerRequests: {
+    path: (storeId: string) => `/store/${storeId}/makeOwnerRequests`,
+    for: ["member"],
+  },
   receipt: {
     path: (receiptId: string) => `/receipt/${receiptId}`,
     for: ["guest", "member"],

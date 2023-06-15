@@ -365,16 +365,13 @@ export class UsersController
       await this.Repos.Bids.addBid(bid);
       for (const oid of oids) {
         (await this.Repos.Users.getUser(oid)).addBidToMe(bid.Id);
-        await this.Controllers.Users.addNotification(
-          oid,
-          "bid added to store 💃",
-          `bid added to store ${storeId}`
-        );
       }
-      eventEmitter.emitEvent({
+      eventEmitter.initControllers(this.Controllers);
+      await eventEmitter.emitEvent({
         bidId: bid.Id,
         channel: `bidAdded_${storeId}`,
         type: "bidAdded",
+        message: `You have a new bid!`,
       });
       (await this.Repos.Users.getUser(bid.UserId)).addBidFromMe(bid.Id);
       eventEmitter.subscribeChannel(`bidApproved_${bid.Id}`, bid.UserId);
@@ -391,15 +388,12 @@ export class UsersController
       bid.setOwners([targetUser.Id]);
       await this.Repos.Bids.addBid(bid);
       targetUser.addBidToMe(bid.Id);
-      await this.Controllers.Users.addNotification(
-        targetUser.Id,
-        "bid added to user 💃",
-        `bid added to user ${targetUser.Id}`
-      );
-      eventEmitter.emitEvent({
+      eventEmitter.initControllers(this.Controllers);
+      await eventEmitter.emitEvent({
         bidId: bid.Id,
-        channel: `bidAdded_${bid.Id}`,
+        channel: `bidAdded_${targetUser.Id}`,
         type: "bidAdded",
+        message: `You have a new bid!`,
       });
     }
     return bid.Id;
@@ -438,15 +432,19 @@ export class UsersController
     await this.Repos.Bids.approveBid(bidId, userId);
     // await this.Repos.Bids.updateBid(bid); //TODO:  needed!!!!
     const state = await this.Repos.Bids.bidState(bidId);
+
     if (state === "APPROVED") {
+      eventEmitter.initControllers(this.Controllers);
+      await eventEmitter.emitEvent({
+        bidId: bid.Id,
+        channel: `bidApproved_${bid.Id}`,
+        type: "bidApproved",
+        message: `Your bid has been approved!`,
+      });
       switch (bid.Type) {
         case "Store":
           await this.Controllers.Stores.addSpecialPriceToProduct(bid);
-          eventEmitter.emitEvent({
-            bidId: bid.Id,
-            channel: `bidApproved_${bid.Id}`,
-            type: "bidApproved",
-          });
+
           break;
         case "Counter":
           return await this.addBid({
@@ -468,11 +466,12 @@ export class UsersController
       });
     }
     await this.Repos.Bids.rejectBid(bidId, userId);
-
-    eventEmitter.emitEvent({
+    eventEmitter.initControllers(this.Controllers);
+    await eventEmitter.emitEvent({
       bidId: bid.Id,
       channel: `bidRejected_${bid.Id}`,
       type: "bidRejected",
+      message: `Your bid has been rejected!`,
     });
   }
   async counterBid(
@@ -503,6 +502,14 @@ export class UsersController
       });
     }
     await this.Repos.Bids.rejectBid(bidId, userId);
+    eventEmitter.initControllers(this.Controllers);
+    await eventEmitter.emitEvent({
+      bidId: bid.Id,
+      channel: `bidRejected_${bid.Id}`,
+      type: "bidRejected",
+      message: `Your bid has been rejected!`,
+    });
+
     await this.addBid({
       previousBidId: bidId,
       price: price,
@@ -560,6 +567,13 @@ export class UsersController
     if (bid.State === "WAITING") {
       if (bid.Owners === bid.ApprovedBy) {
         await this.Repos.Bids.forceApprove(bidId);
+        eventEmitter.initControllers(this.Controllers);
+        await eventEmitter.emitEvent({
+          bidId: bid.Id,
+          channel: `bidApproved_${bid.Id}`,
+          type: "bidApproved",
+          message: `Your bid has been approved!`,
+        });
       }
     }
   }

@@ -5,7 +5,7 @@ import { z } from "zod";
 import axios from "axios";
 
 export class DeliveryAdaptor {
-  static isDeliveryServiceUp = true;
+  static isDeliveryServiceUp = false;
   static url = "http://127.0.0.1:5000/";
   static async handShake() {
     if (!this.isDeliveryServiceUp) {

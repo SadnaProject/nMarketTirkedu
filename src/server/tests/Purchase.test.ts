@@ -19,6 +19,7 @@ import {
   generateProductArgs,
   generateStoreName,
 } from "../../server/data/Stores/helpers/_data";
+import { init } from "ramda";
 let service: Service;
 beforeEach(async () => {
   await resetDB();
@@ -917,7 +918,7 @@ export type DeliveryDetails = {
 //   });
 // });
 
-// describe("Add Constraint", () => {
+// describe("Constraint Tests", () => {
 //   beforeEach(async () => {
 //     await resetDB();
 //     service = new Service();
@@ -968,11 +969,11 @@ export type DeliveryDetails = {
 //       zip: "2143145",
 //     };
 //     await expect(() => service.purchaseCart(oid, cCard, d)).rejects.toThrow(
-//       TRPCError
+//       "Basket does not satisfy store constraints"
 //     );
 //     await service.addProductToCart(oid, tomatoId, 3);
 //     await expect(() => service.purchaseCart(oid, cCard, d)).rejects.toThrow(
-//       TRPCError
+//       "Basket does not satisfy store constraints"
 //     );
 //     await service.editProductQuantityInCart(oid, bananaId, 3);
 //     await service.purchaseCart(oid, cCard, d);
@@ -1002,45 +1003,245 @@ export type DeliveryDetails = {
 //     expect(supposeToBeTrue1).toBe(true);
 //   });
 // });
-// async function generateForDiscountAndConstraintTests(testType: string) {
-//   // const controllers;// = createTestControllers(testType, "Stores");
+async function getProductQuantity(
+  userId: string,
+  storeId: string,
+  productId: string
+): Promise<number> {
+  const storeProducts = await service.getStoreProducts(userId, storeId);
+  const product = storeProducts.find((p) => p.id === productId);
+  if (!product) throw new Error("product not found");
+  return product.quantity;
+}
 
-//   const productData = generateProductArgs();
-//   productData.name = "Milk";
-//   productData.category = "Food";
-//   // const repos = createTestRepos(testType);
-//   const email = faker.internet.email();
-//   const password = faker.internet.password();
-//   const id = await service.startSession();
-//   await service.registerMember(id, email, password);
-//   const founderId = await service.loginMember(id, email, password);
-//   const storeName = generateStoreName();
-//   const storeId = await service.createStore(founderId, storeName);
-//   const bananaId = await service.createProduct(founderId, storeId, productData);
+describe("Constraint tests", () => {
+  let email;
+  let milkData: StoreProductArgs;
+  let meatData: StoreProductArgs;
+  let password: string;
+  let id: string;
+  let founderId: string;
+  let storeId: string;
+  let storeName: string;
+  let milkId: string;
+  let meatId: string;
+  let customerId: string;
+  let cCard: PaymentDetails;
+  let d: DeliveryDetails;
+  beforeEach(async () => {
+    await resetDB();
+    service = new Service();
+    milkData = generateProductArgs();
+    milkData.quantity = 5;
+    milkData.name = "Milk";
+    milkData.category = "Food";
+    email = faker.internet.email();
+    password = faker.internet.password();
+    id = await service.startSession();
+    await service.registerMember(id, email, password);
+    founderId = await service.loginMember(id, email, password);
+    storeName = generateStoreName();
+    storeId = await service.createStore(founderId, storeName);
+    milkId = await service.createProduct(founderId, storeId, milkData);
 
-//   productData.quantity = 5;
-//   const product2Data = generateProductArgs();
-//   product2Data.name = "Meat";
-//   product2Data.category = "Meat";
-//   const product1BasketQuantity = 55;
-//   const product2BasketQuantity = 23;
-//   const product2Id = await service.createProduct(
-//     founderId,
-//     storeId,
-//     product2Data
-//   );
+    milkData.quantity = 5;
+    meatData = generateProductArgs();
+    meatData.name = "Meat";
+    meatData.category = "Meat";
+    meatData.quantity = 5;
+    const product1BasketQuantity = 55;
+    const product2BasketQuantity = 23;
+    meatId = await service.createProduct(founderId, storeId, meatData);
 
-//   const price = await store.getBasketPrice("", basket);
-//   return {
-//     price,
-//     product,
-//     product2,
-//     store,
-//     basket,
-//     product1BasketQuantity,
-//     product2BasketQuantity,
-//   };
-// }
+    customerId = await service.startSession();
+    const card = faker.finance.creditCardNumber();
+    cCard = {
+      number: card,
+      ccv: "144",
+      holder: "Buya",
+      id: "111111111",
+      month: "3",
+      year: "2025",
+    };
+    d = {
+      address: "dsadas",
+      city: "asdasd",
+      country: "sadasd",
+      name: "bsajsa",
+      zip: "2143145",
+    };
+  });
+  it("add simple constraint to product and check if it works", async () => {
+    const cargs: ConditionArgs = {
+      conditionType: "Exactly",
+      type: "Literal",
+      searchFor: "Milk",
+      amount: 3,
+      subType: "Product",
+    };
+    await service.addConstraintToStore(founderId, storeId, cargs);
+    await service.addProductToCart(customerId, milkId, 2);
+    // let storeProducts = await service.getStoreProducts(founderId, storeId);
+    // let product = storeProducts.find((p) => p.id === milkId);
+    // if (!product) throw new Error("product not found");
+
+    // expect(product.quantity).toBe(3);
+    const initialQuantity = await getProductQuantity(
+      founderId,
+      storeId,
+      milkId
+    );
+    await expect(() =>
+      service.purchaseCart(customerId, cCard, d)
+    ).rejects.toThrow("Basket does not satisfy store constraints");
+    const productQuantity = await getProductQuantity(
+      founderId,
+      storeId,
+      milkId
+    );
+    expect(productQuantity).toBe(initialQuantity);
+    await service.addProductToCart(customerId, milkId, 3);
+    await service.purchaseCart(customerId, cCard, d);
+    // storeProducts = await service.getStoreProducts(founderId, storeId);
+    // product = storeProducts.find((p) => p.id === milkId);
+    // if (!product) throw new Error("product not found");
+    await expect(getProductQuantity(founderId, storeId, milkId)).resolves.toBe(
+      initialQuantity - 3
+    );
+  });
+
+  it("add composite AND constraint to store and check if it works", async () => {
+    const condition = createCompositeConditionArgs(
+      "And",
+      createLiteralConditionArgs("", 2, "Store", "AtLeast"),
+      createLiteralConditionArgs("", 2, "Store", "AtMost")
+    );
+    const initialQuantity = await getProductQuantity(
+      founderId,
+      storeId,
+      milkId
+    );
+    await service.addConstraintToStore(founderId, storeId, condition);
+    await service.addProductToCart(customerId, milkId, 1);
+
+    // await service.addProductToCart(customerId, meatId, 1);
+    await expect(() =>
+      service.purchaseCart(customerId, cCard, d)
+    ).rejects.toThrow("Basket does not satisfy store constraints");
+    await expect(getProductQuantity(founderId, storeId, milkId)).resolves.toBe(
+      initialQuantity
+    );
+    await service.addProductToCart(customerId, milkId, 3);
+    await expect(() =>
+      service.purchaseCart(customerId, cCard, d)
+    ).rejects.toThrow("Basket does not satisfy store constraints");
+    await expect(getProductQuantity(founderId, storeId, milkId)).resolves.toBe(
+      initialQuantity
+    );
+    await service.addProductToCart(customerId, milkId, 1);
+    await service.addProductToCart(customerId, meatId, 1);
+    await service.purchaseCart(customerId, cCard, d);
+    await expect(getProductQuantity(founderId, storeId, milkId)).resolves.toBe(
+      initialQuantity - 1
+    );
+    await expect(getProductQuantity(founderId, storeId, meatId)).resolves.toBe(
+      initialQuantity - 1
+    );
+  });
+
+  it("add composite xor constraint to store and check if it works", async () => {
+    const condition = createCompositeConditionArgs(
+      "Xor",
+      createLiteralConditionArgs("", 3, "Store", "AtMost"),
+      createLiteralConditionArgs("", 1, "Store", "AtLeast")
+    );
+    const initialQuantity = await getProductQuantity(
+      founderId,
+      storeId,
+      milkId
+    );
+    const constraintId = await service.addConstraintToStore(
+      founderId,
+      storeId,
+      condition
+    );
+    await service.addProductToCart(customerId, milkId, 1);
+    await service.addProductToCart(customerId, meatId, 1);
+    await expect(() =>
+      service.purchaseCart(customerId, cCard, d)
+    ).rejects.toThrow("Basket does not satisfy store constraints");
+    await expect(getProductQuantity(founderId, storeId, milkId)).resolves.toBe(
+      initialQuantity
+    );
+    await expect(getProductQuantity(founderId, storeId, meatId)).resolves.toBe(
+      initialQuantity
+    );
+    await service.removeConstraintFromStore(founderId, storeId, constraintId);
+    const condition2 = createCompositeConditionArgs(
+      "Xor",
+      createLiteralConditionArgs("", 5, "Store", "AtLeast"),
+      createLiteralConditionArgs("", 2, "Store", "AtLeast")
+    );
+    const constraintId2 = await service.addConstraintToStore(
+      founderId,
+      storeId,
+      condition2
+    );
+    await service.addProductToCart(customerId, milkId, 1);
+    await service.addProductToCart(customerId, meatId, 1);
+    await service.purchaseCart(customerId, cCard, d);
+    await expect(getProductQuantity(founderId, storeId, milkId)).resolves.toBe(
+      initialQuantity - 1
+    );
+    await expect(getProductQuantity(founderId, storeId, meatId)).resolves.toBe(
+      initialQuantity - 1
+    );
+  });
+
+  it("add time constraint to store and check if it works", async () => {
+    const date = new Date();
+    const constraintId = await service.addConstraintToStore(
+      founderId,
+      storeId,
+      createTimeConditionArgs(
+        "After",
+        date.getFullYear() + 1,
+        undefined,
+        undefined,
+        undefined
+      )
+    );
+    await service.addProductToCart(customerId, milkId, 1);
+    const initialQuantity = await getProductQuantity(
+      founderId,
+      storeId,
+      milkId
+    );
+    await expect(() =>
+      service.purchaseCart(customerId, cCard, d)
+    ).rejects.toThrow("Basket does not satisfy store constraints");
+    await expect(getProductQuantity(founderId, storeId, milkId)).resolves.toBe(
+      initialQuantity
+    );
+    await service.removeConstraintFromStore(founderId, storeId, constraintId);
+    const constraintId2 = await service.addConstraintToStore(
+      founderId,
+      storeId,
+      createTimeConditionArgs(
+        "After",
+        date.getFullYear() - 1,
+        undefined,
+        undefined,
+        undefined
+      )
+    );
+    await service.purchaseCart(customerId, cCard, d);
+    await expect(getProductQuantity(founderId, storeId, milkId)).resolves.toBe(
+      initialQuantity - 1
+    );
+  });
+});
+
 describe("Discounts", () => {
   let email;
   let milkData: StoreProductArgs;
@@ -1076,7 +1277,7 @@ describe("Discounts", () => {
     meatData.quantity = 5;
     const product1BasketQuantity = 55;
     const product2BasketQuantity = 23;
-    const meatId = await service.createProduct(founderId, storeId, meatData);
+    meatId = await service.createProduct(founderId, storeId, meatData);
 
     customerId = await service.startSession();
   });
@@ -1092,573 +1293,177 @@ describe("Discounts", () => {
       "product",
       createLiteralConditionArgs(milkData.name, 1, "Product", "AtLeast")
     );
-    console.log("herefffffffffffffffffffffffffffffffffffffffffffffffff");
     const discountId = await service.addDiscountToStore(
       founderId,
       storeId,
       DiscountArgs
     );
-    console.log("discountId", discountId);
-    console.log("herefffffffffffffffffffffffffffffffffffffffffffffffff");
 
     const priceWithDiscount = await service.getCartPrice(customerId);
     suppose = milkData.price * (85 / 100);
     expect(priceWithDiscount).toBe(suppose);
     await service.removeDiscountFromStore(founderId, storeId, discountId);
-    expect(await service.getCartPrice(customerId)).toBe(suppose);
+    expect(await service.getCartPrice(customerId)).toBe(initialPrice);
   });
-  // it("add simple category discount", async () => {
-  //   //add product to basket
-  //   await service.addProductToCart(customerId, milkId, 1);
-  //   const initialPrice = await service.getCartPrice(customerId);
-  //   let suppose = milkData.price;
-  //   expect(initialPrice).toBe(suppose);
-  //   const DiscountArgs = createSimpleDiscountArgs(
-  //     milkData.category,
-  //     15,
-  //     "category",
-  //     createLiteralConditionArgs(milkData.category, 1, "Category", "AtLeast")
-  //   );
-  //   const discountId = await service.addDiscountToStore(
-  //     founderId,
-  //     storeId,
-  //     DiscountArgs
-  //   );
-  //   const priceWithDiscount = await service.getCartPrice(customerId);
-  //   suppose = milkData.price * (85 / 100);
-  //   expect(priceWithDiscount).toBe(suppose);
-  //   await service.removeDiscountFromStore(founderId, storeId, discountId);
-  //   expect(await service.getCartPrice(customerId)).toBe(suppose);
-  // });
-  // it("add simple category discount", async () => {
-  //   const {
-  //     price,
-  //     product,
-  //     product2,
-  //     store,
-  //     basket,
-  //     product1BasketQuantity,
-  //     product2BasketQuantity,
-  //   } = await generateForDiscountAndConstraintTests();
-  //   const discountId = await store.addDiscount(
-  //     createSimpleDiscountArgs(
-  //       product.Category,
-  //       15,
-  //       "category",
-  //       createLiteralConditionArgs(product.Category, 1, "Category", "AtLeast")
-  //     )
-  //   );
-  //   const priceWithDiscount = await store.getBasketPrice("", basket);
-  //   expect(priceWithDiscount).toBe(
-  //     product.Price * product1BasketQuantity * (85 / 100) +
-  //       product2.Price * product2BasketQuantity
-  //   );
-  //   await store.removeDiscount(discountId);
-  //   expect(await store.getBasketPrice("", basket)).toBe(price);
-  // });
-  // it("add simple price discount", async () => {
-  //   //add product to basket
-  //   await service.addProductToCart(customerId, milkId, 1);
-  //   await service.addProductToCart(customerId, meatId, 1);
-  //   const initialPrice = await service.getCartPrice(customerId);
-  //   let suppose = milkData.price;
-  //   expect(initialPrice).toBe(suppose);
-  //   const DiscountArgs = createSimpleDiscountArgs(
-  //     milkData.category,
-  //     15,
-  //     "category",
-  //     createLiteralConditionArgs(
-  //       milkData.category,
-  //       milkData.price - 5,
-  //       "Price",
-  //       "AtLeast"
-  //     )
-  //   );
-  //   const discountId = await service.addDiscountToStore(
-  //     founderId,
-  //     storeId,
-  //     DiscountArgs
-  //   );
-  //   const priceWithDiscount = await service.getCartPrice(customerId);
-  //   suppose = milkData.price * (85 / 100) + meatData.price;
-  //   expect(priceWithDiscount).toBe(suppose);
-  //   await service.removeDiscountFromStore(founderId, storeId, discountId);
-  //   await expect(service.getCartPrice(customerId)).resolves.toBe(suppose);
-  //   const DiscountArgs2 = createSimpleDiscountArgs(
-  //     milkData.category,
-  //     15,
-  //     "category",
-  //     createLiteralConditionArgs(
-  //       milkData.category,
-  //       milkData.price - 5,
-  //       "Price",
-  //       "AtMost"
-  //     )
-  //   );
-  //   const discountId2 = await service.addDiscountToStore(
-  //     founderId,
-  //     storeId,
-  //     DiscountArgs2
-  //   );
-  //   const priceWithDiscount2 = await service.getCartPrice(customerId);
-  //   suppose = milkData.price + meatData.price;
-  //   expect(priceWithDiscount2).toBe(initialPrice);
-  // });
+  it("add simple category discount", async () => {
+    //add product to basket
+    await service.addProductToCart(customerId, milkId, 1);
+    const initialPrice = await service.getCartPrice(customerId);
+    let suppose = milkData.price;
+    expect(initialPrice).toBe(suppose);
+    const DiscountArgs = createSimpleDiscountArgs(
+      milkData.category,
+      15,
+      "category",
+      createLiteralConditionArgs(milkData.category, 1, "Category", "AtLeast")
+    );
+    const discountId = await service.addDiscountToStore(
+      founderId,
+      storeId,
+      DiscountArgs
+    );
+    const priceWithDiscount = await service.getCartPrice(customerId);
+    suppose = milkData.price * (85 / 100);
+    expect(priceWithDiscount).toBe(suppose);
+    await service.removeDiscountFromStore(founderId, storeId, discountId);
+    expect(await service.getCartPrice(customerId)).toBe(initialPrice);
+  });
 
-  // it("add simple price discount", async () => {
-  //   const {
-  //     price,
-  //     product,
-  //     product2,
-  //     store,
-  //     basket,
-  //     product1BasketQuantity,
-  //     product2BasketQuantity,
-  //   } = await generateForDiscountAndConstraintTests();
-  //   const discountId = await store.addDiscount(
-  //     createSimpleDiscountArgs(
-  //       product.Category,
-  //       15,
-  //       "category",
-  //       createLiteralConditionArgs(
-  //         product.Category,
-  //         price - 5,
-  //         "Price",
-  //         "AtLeast"
-  //       )
-  //     )
-  //   );
-  //   const priceWithDiscount = await store.getBasketPrice("", basket);
-  //   expect(priceWithDiscount).toBe(
-  //     product.Price * product1BasketQuantity * (85 / 100) +
-  //       product2.Price * product2BasketQuantity
-  //   );
-  //   await store.removeDiscount(discountId);
-  //   expect(await store.getBasketPrice("", basket)).toBe(price);
-  //   const discountId1 = await store.addDiscount(
-  //     createSimpleDiscountArgs(
-  //       product.Category,
-  //       15,
-  //       "category",
-  //       createLiteralConditionArgs(
-  //         product.Category,
-  //         price - 5,
-  //         "Price",
-  //         "AtMost"
-  //       )
-  //     )
-  //   );
-  //   const priceWithDiscount1 = await store.getBasketPrice("", basket);
-  //   expect(priceWithDiscount1).toBe(price);
-  //   await store.removeDiscount(discountId1);
-  //   expect(await store.getBasketPrice("", basket)).toBe(price);
-  // });
-  // it("add simple basket discount", async () => {
-  //   const {
-  //     price,
-  //     product,
-  //     product2,
-  //     store,
-  //     basket,
-  //     product1BasketQuantity,
-  //     product2BasketQuantity,
-  //   } = await generateForDiscountAndConstraintTests();
-  //   const discountId = await store.addDiscount(
-  //     createSimpleDiscountArgs(
-  //       product.Category,
-  //       15,
-  //       "store",
-  //       createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
-  //     )
-  //   );
-  //   const priceWithDiscount = await store.getBasketPrice("", basket);
-  //   expect(priceWithDiscount).toBe(
-  //     product.Price * product1BasketQuantity * (85 / 100) +
-  //       product2.Price * product2BasketQuantity * (85 / 100)
-  //   );
-  //   await store.removeDiscount(discountId);
-  //   expect(await store.getBasketPrice("", basket)).toBe(price);
-  // });
-  // it("add max discount with simple condition", async () => {
-  //   const {
-  //     price,
-  //     product,
-  //     product2,
-  //     store,
-  //     basket,
-  //     product1BasketQuantity,
-  //     product2BasketQuantity,
-  //   } = await generateForDiscountAndConstraintTests();
-  //   const discountId = await store.addDiscount(
-  //     createCompositeDiscountArgs(
-  //       createSimpleDiscountArgs(
-  //         product.Category,
-  //         15,
-  //         "category",
-  //         createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
-  //       ),
-  //       createSimpleDiscountArgs(
-  //         product.Category,
-  //         15,
-  //         "store",
-  //         createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
-  //       ),
-  //       "Max"
-  //     )
-  //   );
-  //   const priceWithDiscount = await store.getBasketPrice("", basket);
-  //   expect(priceWithDiscount).toBe(
-  //     product.Price * product1BasketQuantity * (85 / 100) +
-  //       product2.Price * product2BasketQuantity * (85 / 100)
-  //   );
-  //   await store.removeDiscount(discountId);
-  //   expect(await store.getBasketPrice("", basket)).toBe(price);
-  // });
-  // it("add compose ADD discount with simple condition", async () => {
-  //   const {
-  //     price,
-  //     product,
-  //     product2,
-  //     store,
-  //     basket,
-  //     product1BasketQuantity,
-  //     product2BasketQuantity,
-  //   } = await generateForDiscountAndConstraintTests();
-  //   const discountId = await store.addDiscount(
-  //     createCompositeDiscountArgs(
-  //       createSimpleDiscountArgs(
-  //         product.Category,
-  //         15,
-  //         "category",
-  //         createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
-  //       ),
-  //       createSimpleDiscountArgs(
-  //         product.Category,
-  //         15,
-  //         "store",
-  //         createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
-  //       ),
-  //       "Add"
-  //     )
-  //   );
-  //   const priceWithDiscount = await store.getBasketPrice("", basket);
-  //   expect(priceWithDiscount).toBe(
-  //     product.Price * product1BasketQuantity * (70 / 100) +
-  //       product2.Price * product2BasketQuantity * (85 / 100)
-  //   );
-  //   await store.removeDiscount(discountId);
-  //   expect(await store.getBasketPrice("", basket)).toBe(price);
-  // });
-  // it("add compose discount with And condition", async () => {
-  //   const {
-  //     price,
-  //     product,
-  //     product2,
-  //     store,
-  //     basket,
-  //     product1BasketQuantity,
-  //     product2BasketQuantity,
-  //   } = await generateForDiscountAndConstraintTests();
+  it("add simple price discount", async () => {
+    //add product to basket
+    await service.addProductToCart(customerId, milkId, 1);
+    await service.addProductToCart(customerId, meatId, 1);
+    const initialPrice = await service.getCartPrice(customerId);
+    let suppose = milkData.price + meatData.price;
+    expect(initialPrice).toBe(suppose);
+    const DiscountArgs = createSimpleDiscountArgs(
+      milkData.category,
+      15,
+      "category",
+      createLiteralConditionArgs(
+        milkData.category,
+        milkData.price - 5,
+        "Price",
+        "AtLeast"
+      )
+    );
+    const discountId = await service.addDiscountToStore(
+      founderId,
+      storeId,
+      DiscountArgs
+    );
+    const priceWithDiscount = await service.getCartPrice(customerId);
+    suppose = milkData.price * (85 / 100) + meatData.price;
+    expect(priceWithDiscount).toBe(suppose);
+    await service.removeDiscountFromStore(founderId, storeId, discountId);
+    await expect(service.getCartPrice(customerId)).resolves.toBe(initialPrice);
+    const DiscountArgs2 = createSimpleDiscountArgs(
+      milkData.category,
+      15,
+      "category",
+      createLiteralConditionArgs(
+        milkData.category,
+        milkData.price - 5,
+        "Price",
+        "AtMost"
+      )
+    );
+    const discountId2 = await service.addDiscountToStore(
+      founderId,
+      storeId,
+      DiscountArgs2
+    );
+    const priceWithDiscount2 = await service.getCartPrice(customerId);
+    suppose = milkData.price + meatData.price;
+    expect(priceWithDiscount2).toBe(initialPrice);
+  });
 
-  //   const discountId = await store.addDiscount(
-  //     createCompositeDiscountArgs(
-  //       createSimpleDiscountArgs(
-  //         product.Category,
-  //         15,
-  //         "category",
-  //         createCompositeConditionArgs(
-  //           "And",
-  //           createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast"),
-  //           createLiteralConditionArgs(product.Category, 1, "Store", "AtMost")
-  //         )
-  //       ),
-  //       createSimpleDiscountArgs(
-  //         product.Category,
-  //         15,
-  //         "store",
-  //         createLiteralConditionArgs(product.Category, 1, "Store", "AtLeast")
-  //       ),
-  //       "Add"
-  //     )
-  //   );
-  //   const priceWithDiscount = await store.getBasketPrice("", basket);
-  //   expect(priceWithDiscount).toBe(
-  //     product.Price * product1BasketQuantity * (85 / 100) +
-  //       product2.Price * product2BasketQuantity * (85 / 100)
-  //   );
-  //   await store.removeDiscount(discountId);
-  //   expect(await store.getBasketPrice("", basket)).toBe(price);
-  // });
-  // it("add compose MAX discount with compose logic implies condition", async () => {
-  //   const {
-  //     price,
-  //     product,
-  //     product2,
-  //     store,
-  //     basket,
-  //     product1BasketQuantity,
-  //     product2BasketQuantity,
-  //   } = await generateForDiscountAndConstraintTests();
-  //   const discountId = await store.addDiscount({
-  //     type: "Add",
-  //     left: {
-  //       condition: {
-  //         type: "Composite",
-  //         subType: "And",
-  //         left: {
-  //           type: "Literal",
-  //           subType: "Product",
-  //           amount: 1,
-  //           conditionType: "AtLeast",
-  //           searchFor: product.Name,
-  //         },
-  //         right: {
-  //           type: "Literal",
-  //           subType: "Product",
-  //           amount: 70,
-  //           conditionType: "AtMost",
-  //           searchFor: product.Name,
-  //         },
-  //       },
-  //       amount: 15,
-  //       discountOn: "product",
-  //       searchFor: product.Name,
-  //       type: "Simple",
-  //     },
-  //     right: {
-  //       condition: {
-  //         type: "Composite",
-  //         subType: "And",
-  //         left: {
-  //           type: "Literal",
-  //           subType: "Product",
-  //           amount: 1,
-  //           conditionType: "AtLeast",
-  //           searchFor: product.Name,
-  //         },
-  //         right: {
-  //           type: "Literal",
-  //           subType: "Product",
-  //           amount: 70,
-  //           conditionType: "AtMost",
-  //           searchFor: product.Name,
-  //         },
-  //       },
-  //       amount: 25,
-  //       discountOn: "product",
-  //       searchFor: product.Name,
-  //       type: "Simple",
-  //     },
-  //   });
-  //   const priceWithDiscount = await store.getBasketPrice("", basket);
-  //   expect(priceWithDiscount).toBe(
-  //     product.Price * product1BasketQuantity * (60 / 100) +
-  //       product2.Price * product2BasketQuantity
-  //   );
-  //   await store.removeDiscount(discountId);
-  //   expect(await store.getBasketPrice("", basket)).toBe(price);
-  //   const discountId1 = await store.addDiscount({
-  //     type: "Add",
-  //     left: {
-  //       condition: {
-  //         type: "Composite",
-  //         subType: "And",
-  //         left: {
-  //           type: "Literal",
-  //           subType: "Product",
-  //           amount: 1,
-  //           conditionType: "AtLeast",
-  //           searchFor: product.Name,
-  //         },
-  //         right: {
-  //           type: "Literal",
-  //           subType: "Product",
-  //           amount: 70,
-  //           conditionType: "AtMost",
-  //           searchFor: product.Name,
-  //         },
-  //       },
-  //       amount: 15,
-  //       discountOn: "product",
-  //       searchFor: product.Name,
-  //       type: "Simple",
-  //     },
-  //     right: {
-  //       condition: {
-  //         type: "Composite",
-  //         subType: "And",
-  //         left: {
-  //           type: "Literal",
-  //           subType: "Product",
-  //           amount: 1,
-  //           conditionType: "AtLeast",
-  //           searchFor: product.Name,
-  //         },
-  //         right: {
-  //           type: "Literal",
-  //           subType: "Product",
-  //           amount: 2,
-  //           conditionType: "AtMost",
-  //           searchFor: product.Name,
-  //         },
-  //       },
-  //       amount: 25,
-  //       discountOn: "product",
-  //       searchFor: product.Name,
-  //       type: "Simple",
-  //     },
-  //   });
-  //   const priceWithDiscount1 = await store.getBasketPrice("", basket);
-  //   expect(priceWithDiscount1).toBe(
-  //     product.Price * product1BasketQuantity * (85 / 100) +
-  //       product2.Price * product2BasketQuantity
-  //   );
-  //   await store.removeDiscount(discountId1);
-  //   expect(await store.getBasketPrice("", basket)).toBe(price);
-  // });
+  it("add simple basket discount", async () => {
+    await service.addProductToCart(customerId, milkId, 1);
+    await service.addProductToCart(customerId, meatId, 1);
+    const initialPrice = await service.getCartPrice(customerId);
+    const DiscountArgs = createSimpleDiscountArgs(
+      milkData.category,
+      15,
+      "store",
+      createLiteralConditionArgs(milkData.category, 1, "Store", "AtLeast")
+    );
+    const discountId = await service.addDiscountToStore(
+      founderId,
+      storeId,
+      DiscountArgs
+    );
+    const priceWithDiscount = await service.getCartPrice(customerId);
+    const suppose = milkData.price * (85 / 100) + meatData.price * (85 / 100);
+    expect(priceWithDiscount).toBe(suppose);
+    await service.removeDiscountFromStore(founderId, storeId, discountId);
+    await expect(service.getCartPrice(customerId)).resolves.toBe(initialPrice);
+  });
+
+  it("add max discount with simple condition", async () => {
+    //add product to basket
+    await service.addProductToCart(customerId, milkId, 1);
+    await service.addProductToCart(customerId, meatId, 1);
+    const initialPrice = await service.getCartPrice(customerId);
+    let suppose = milkData.price + meatData.price;
+    expect(initialPrice).toBe(suppose);
+    const DiscountArgs = createCompositeDiscountArgs(
+      createSimpleDiscountArgs(
+        milkData.category,
+        15,
+        "category",
+        createLiteralConditionArgs(milkData.category, 1, "Store", "AtLeast")
+      ),
+      createSimpleDiscountArgs(
+        milkData.category,
+        15,
+        "store",
+        createLiteralConditionArgs(milkData.category, 1, "Store", "AtLeast")
+      ),
+      "Max"
+    );
+    const discountId = await service.addDiscountToStore(
+      founderId,
+      storeId,
+      DiscountArgs
+    );
+    const priceWithDiscount = await service.getCartPrice(customerId);
+    suppose = milkData.price * (85 / 100) + meatData.price * (85 / 100);
+    expect(priceWithDiscount).toBe(suppose);
+    await service.removeDiscountFromStore(founderId, storeId, discountId);
+    await expect(service.getCartPrice(customerId)).resolves.toBe(initialPrice);
+  });
+
+  it("add compose ADD discount with simple condition", async () => {
+    //add product to basket
+    await service.addProductToCart(customerId, milkId, 1);
+    await service.addProductToCart(customerId, meatId, 1);
+    const initialPrice = await service.getCartPrice(customerId);
+    let suppose = milkData.price + meatData.price;
+    const DiscountArgs = createCompositeDiscountArgs(
+      createSimpleDiscountArgs(
+        milkData.category,
+        15,
+        "category",
+        createLiteralConditionArgs(milkData.category, 1, "Store", "AtLeast")
+      ),
+      createSimpleDiscountArgs(
+        milkData.category,
+        15,
+        "store",
+        createLiteralConditionArgs(milkData.category, 1, "Store", "AtLeast")
+      ),
+      "Add"
+    );
+    const discountId = await service.addDiscountToStore(
+      founderId,
+      storeId,
+      DiscountArgs
+    );
+    const priceWithDiscount = await service.getCartPrice(customerId);
+    suppose = milkData.price * (70 / 100) + meatData.price * (85 / 100);
+    expect(priceWithDiscount).toBe(suppose);
+    await service.removeDiscountFromStore(founderId, storeId, discountId);
+    await expect(service.getCartPrice(customerId)).resolves.toBe(initialPrice);
+  });
 });
-// describe("Constraint tests", () => {
-//   it("add simple constraint to store and check if it works", async () => {
-//     const {
-//       price,
-//       product,
-//       product2,
-//       store,
-//       basket,
-//       product1BasketQuantity,
-//       product2BasketQuantity,
-//     } = await generateForDiscountAndConstraintTests();
-//     const constraintId = await store.addConstraint(
-//       createLiteralConditionArgs("", 1, "Store", "AtMost")
-//     );
-//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
-//     await store.removeConstraint(constraintId);
-//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
-//   });
-//   it("add composite AND constraint to store and check if it works", async () => {
-//     const {
-//       price,
-//       product,
-//       product2,
-//       store,
-//       basket,
-//       product1BasketQuantity,
-//       product2BasketQuantity,
-//     } = await generateForDiscountAndConstraintTests();
-//     const constraintId = await store.addConstraint(
-//       createCompositeConditionArgs(
-//         "And",
-//         createLiteralConditionArgs("", 1, "Store", "AtLeast"),
-//         createLiteralConditionArgs("", 1, "Store", "AtMost")
-//       )
-//     );
-//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
-//     await store.removeConstraint(constraintId);
-//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
-//   });
-//   it("add composite implies constraint to store and check if it works", async () => {
-//     const {
-//       price,
-//       product,
-//       product2,
-//       store,
-//       basket,
-//       product1BasketQuantity,
-//       product2BasketQuantity,
-//     } = await generateForDiscountAndConstraintTests();
-//     const constraintId = await store.addConstraint(
-//       createCompositeConditionArgs(
-//         "Implies",
-//         createLiteralConditionArgs("", 1, "Store", "AtMost"),
-//         createLiteralConditionArgs("", 1, "Store", "AtLeast")
-//       )
-//     );
-//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
-//     const constraintId2 = await store.addConstraint(
-//       createCompositeConditionArgs(
-//         "Implies",
-//         createLiteralConditionArgs("", 1, "Store", "AtLeast"),
-//         createLiteralConditionArgs("", 1, "Store", "AtMost")
-//       )
-//     );
-//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
-//   });
-//   it("add composite xor constraint to store and check if it works", async () => {
-//     const {
-//       price,
-//       product,
-//       product2,
-//       store,
-//       basket,
-//       product1BasketQuantity,
-//       product2BasketQuantity,
-//     } = await generateForDiscountAndConstraintTests();
-//     const constraintId = await store.addConstraint(
-//       createCompositeConditionArgs(
-//         "Xor",
-//         createLiteralConditionArgs("", 1, "Store", "AtMost"),
-//         createLiteralConditionArgs("", 1, "Store", "AtLeast")
-//       )
-//     );
-//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
-//     const constraintId2 = await store.addConstraint(
-//       createCompositeConditionArgs(
-//         "Xor",
-//         createLiteralConditionArgs("", 1, "Store", "AtLeast"),
-//         createLiteralConditionArgs("", 5, "Store", "AtLeast")
-//       )
-//     );
-//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
-//   });
-//   it("add composite or constraint to store and check if it works", async () => {
-//     const {
-//       price,
-//       product,
-//       product2,
-//       store,
-//       basket,
-//       product1BasketQuantity,
-//       product2BasketQuantity,
-//     } = await generateForDiscountAndConstraintTests();
-//     const constraintId = await store.addConstraint(
-//       createCompositeConditionArgs(
-//         "Or",
-//         createLiteralConditionArgs("", 1, "Store", "AtMost"),
-//         createLiteralConditionArgs("", 1, "Store", "AtLeast")
-//       )
-//     );
-//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
-//     const constraintId2 = await store.addConstraint(
-//       createCompositeConditionArgs(
-//         "Or",
-//         createLiteralConditionArgs("", 1, "Store", "AtMost"),
-//         createLiteralConditionArgs("NO_SUCH_PRODUCT", 5, "Product", "AtLeast")
-//       )
-//     );
-//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
-//   });
-//   it("add time constraint to store and check if it works", async () => {
-//     const {
-//       price,
-//       product,
-//       product2,
-//       store,
-//       basket,
-//       product1BasketQuantity,
-//       product2BasketQuantity,
-//     } = await generateForDiscountAndConstraintTests();
-//     const date = new Date();
-//     const constraintId = await store.addConstraint(
-//       createTimeConditionArgs(
-//         "After",
-//         date.getFullYear() + 1,
-//         undefined,
-//         undefined,
-//         undefined
-//       )
-//     );
-//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(false);
-//     await store.removeConstraint(constraintId);
-//     expect(await store.checkIfBasketFulfillsPolicy(basket)).toBe(true);
-//   });
-// });

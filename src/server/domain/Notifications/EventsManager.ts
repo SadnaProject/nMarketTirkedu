@@ -49,9 +49,19 @@ export class EventManager extends HasControllers {
   public async emitEvent(event: Event) {
     console.log("emit", event);
     this.eventEmitter.emit(event.channel, event);
-    for (const userId of this.channelToUsers.get(event.channel) || []) {
-      // check if the user is online
-      await this.Controllers.Users.addNotification(userId, event.type, event.message);
+    const users = this.channelToUsers.get(event.channel);
+    if (users) {
+      for (const userId of users) {
+        // check if the user is online
+        console.log("emit to user", userId);
+        await this.Controllers.Users.addNotification(
+          userId,
+          event.type,
+          event.message
+        );
+      }
+    } else {
+      console.log("users undefined", users);
     }
   }
 

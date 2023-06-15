@@ -18,11 +18,20 @@ export default defineConfig({
       // "**/Bid.test.ts",
       // "Basket.test.ts",
       // "**/UsersController.test.ts",
+      //purchaseHistory component tests
+      "**/PurchaseHistoryController.test.ts",
+      "**/Review.test.ts",
+      "**/ProductReview.test.ts",
+      "**/ProductPurchaseHistory.test.ts",
+      "**/PaymentAdaptor.test.ts",
+      "**/DeliveryAdaptor.test.ts",
+      "**/CartPurchaseHistory.test.ts",
+      "**/BasketPurchaseHistory.test.ts",
       //STILL NEED TO BE DONE:
       // "**/DeliveryAdaptor.test.ts",
       //Done:
       //"**/Owner.test.ts", //(all tests pass except Add Constraint see todo their @ilaytzarfati1231)
-      "**/Purchase.test.ts",
+      // "**/Purchase.test.ts",
       // "**/Admin.test.ts",
       // "**/Member.test.ts",
       // "**/Guest.test.ts",

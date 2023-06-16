@@ -3,7 +3,12 @@ import Layout from "./_layout";
 import Link from "next/link";
 import Card from "components/card";
 import PATHS, { useGuestRedirect } from "utils/paths";
-import { CourtHammerIcon, ThumbDownIcon, ThumbUpIcon } from "components/icons";
+import {
+  CourtHammerIcon,
+  RightIcon,
+  ThumbDownIcon,
+  ThumbUpIcon,
+} from "components/icons";
 import { api } from "server/communication/api";
 import { cachedQueryOptions } from "utils/query";
 import { type BidDTO } from "server/domain/Users/Bid";
@@ -21,25 +26,26 @@ import Badge, { GreenBadge, RedBadge } from "components/Badge";
 export default function Home() {
   useGuestRedirect();
 
-  const { data: bidsToMe, refetch: refetchGetBidsToMe } =
+  const { data: bidsToMe, refetch: refetchBidsToMe } =
     api.users.getBidsToMe.useQuery(undefined, cachedQueryOptions);
+  const { data: bidsFromMe, refetch: refetchBidsFromMe } =
+    api.users.getBidsFromMe.useQuery(undefined, cachedQueryOptions);
 
   useEffect(() => {
-    const refetchGetBidsToMeCallback = () => {
-      void refetchGetBidsToMe();
+    const refetchBidsCallback = () => {
+      void refetchBidsToMe();
+      void refetchBidsFromMe();
     };
-    document.addEventListener(onBidChangeEvent, refetchGetBidsToMeCallback);
+    document.addEventListener(onBidChangeEvent, refetchBidsCallback);
     return () => {
-      document.removeEventListener(
-        onBidChangeEvent,
-        refetchGetBidsToMeCallback
-      );
+      document.removeEventListener(onBidChangeEvent, refetchBidsCallback);
     };
-  }, [refetchGetBidsToMe]);
+  }, [refetchBidsToMe, refetchBidsFromMe]);
 
   return (
     <Layout>
       <h1>Bids</h1>
+      <h2>Bids To Me</h2>
       <Gallery
         list={
           bidsToMe?.sort((a, b) =>
@@ -47,7 +53,18 @@ export default function Home() {
           ) ?? []
         }
         getId={(bid) => bid.id}
-        getItem={(bid) => <BidCard bid={bid} />}
+        getItem={(bid) => <BidCard bid={bid} canVote={true} />}
+        className="grid-cols-1 lg:grid-cols-3"
+      />
+      <h2>Bids From Me</h2>
+      <Gallery
+        list={
+          bidsFromMe?.sort((a, b) =>
+            a.state === "WAITING" ? -1 : a.state === "APPROVED" ? 0 : 1
+          ) ?? []
+        }
+        getId={(bid) => bid.id}
+        getItem={(bid) => <BidCard bid={bid} canVote={false} />}
         className="grid-cols-1 lg:grid-cols-3"
       />
     </Layout>
@@ -56,6 +73,7 @@ export default function Home() {
 
 type BidCardProps = {
   bid: BidDTO;
+  canVote: boolean;
 };
 
 const bidSchema = z.object({
@@ -63,7 +81,7 @@ const bidSchema = z.object({
 });
 type bidFormValues = z.infer<typeof bidSchema>;
 
-function BidCard({ bid }: BidCardProps) {
+function BidCard({ bid, canVote }: BidCardProps) {
   const bidForm = useForm<bidFormValues>({
     resolver: zodResolver(bidSchema),
     defaultValues: { price: 0 },
@@ -110,7 +128,15 @@ function BidCard({ bid }: BidCardProps) {
 
   return (
     <Card className="mt-0 h-full">
-      <h3 className="text-lg font-bold text-slate-800">{bid.productName}</h3>
+      <div className="flex justify-between">
+        <Link
+          href={PATHS.product.path(bid.productId)}
+          className="group flex w-fit items-center text-lg font-bold text-slate-800"
+        >
+          <h3 className="transition-all group-hover:mr-1">{bid.productName}</h3>
+          <RightIcon />
+        </Link>
+      </div>
       <Price price={bid.price} />
       {bid.state === "APPROVED" && (
         <GreenBadge>
@@ -123,7 +149,7 @@ function BidCard({ bid }: BidCardProps) {
           Rejected
         </RedBadge>
       )}
-      {bid.state === "WAITING" && (
+      {canVote && bid.state === "WAITING" && (
         <>
           <div className="flex items-center justify-center gap-3">
             <Button

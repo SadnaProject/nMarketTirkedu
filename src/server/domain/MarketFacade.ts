@@ -105,6 +105,10 @@ export class MarketFacade extends Loggable {
     this.validateConnection(userId);
     return this.controllers.Users.getCart(userId);
   }
+  public getCartUI(userId: string) {
+    this.validateConnection(userId);
+    return this.controllers.Users.getCartUI(userId);
+  }
   public getNotifications(userId: string) {
     this.validateConnection(userId);
     return this.controllers.Users.getNotifications(userId);

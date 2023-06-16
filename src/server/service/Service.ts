@@ -60,6 +60,9 @@ export class Service {
   public getCart(userId: string) {
     return this.facade.getCart(userId);
   }
+  public getCartUI(userId: string) {
+    return this.facade.getCartUI(userId);
+  }
   public getNotifications(userId: string) {
     return this.facade.getNotifications(userId);
   }

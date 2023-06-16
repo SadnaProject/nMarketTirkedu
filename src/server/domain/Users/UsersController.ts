@@ -1,6 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import { Mixin } from "ts-mixer";
-import { type CartDTO } from "./Cart";
+import { ExtendedCartDTO, type CartDTO } from "./Cart";
 import { Notification } from "./Notification";
 import { HasRepos, createRepos } from "./helpers/_HasRepos";
 import { type PaymentDetails } from "../PurchasesHistory/PaymentAdaptor";
@@ -63,6 +63,12 @@ export interface IUsersController {
    * @returns The cart of the user.
    */
   getCart(userId: string): Promise<CartDTO>;
+  /**
+   * This function gets the cart of a user.
+   * @param userId The id of the user that is currently logged in.
+   * @returns The cart of the user.
+   */
+  getCartUI(userId: string): Promise<ExtendedCartDTO>;
   /**
    * This function purchases the cart of a user.
    * @param userId The id of the user that is currently logged in.
@@ -239,6 +245,11 @@ export class UsersController
   async getCart(userId: string): Promise<CartDTO> {
     return (await this.Repos.Users.getUser(userId)).Cart;
   }
+
+  async getCartUI(userId: string): Promise<ExtendedCartDTO> {
+    return await (await this.Repos.Users.getUser(userId)).getCartUI();
+  }
+
   async purchaseCart(
     userId: string,
     @censored creditCard: PaymentDetails,

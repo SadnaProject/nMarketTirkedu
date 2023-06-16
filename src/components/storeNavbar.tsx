@@ -80,7 +80,7 @@ export default function StoreNavbar({ storeId }: Props) {
     {
       name: "Make Owner Requests",
       href: PATHS.storeMakeOwnerRequests.path(storeId ?? ""),
-      icon: <JobsIcon />,
+      icon: <></>,
     },
     {
       name: "Revenue",

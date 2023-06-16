@@ -9,12 +9,13 @@ import { twMerge } from "tailwind-merge";
 import Profile from "./profile";
 import Price from "./price";
 import { api } from "server/communication/api";
-import { cachedQueryOptions, onError } from "utils/query";
+import { cachedQueryOptions } from "utils/query";
 import Badge from "./Badge";
 import { useEffect } from "react";
 import { onCartChangeEvent } from "utils/events";
 import { CartIcon } from "./icons";
 import { toast } from "react-hot-toast";
+import { type Event } from "server/domain/helpers/_Events";
 
 const publicLinks = [
   { name: "Products", path: PATHS.products.path },
@@ -31,6 +32,23 @@ const adminLinks = [
   // { name: "Admin Panel", path: PATHS.adminPanel.path },
   { name: "Users", path: PATHS.online.path },
 ] as const;
+
+function eventToString(event: Event | Notification) {
+  switch (event.type) {
+    case "storeChanged":
+      return event.description;
+    case "storePurchase":
+      return `A purchase has been made in store`;
+    case "makeOwner":
+      return `A request for new owner has been made`;
+    case "bidAdded":
+      return `A new bid has been added`;
+    case "bidApproved":
+      return `A bid has been approved`;
+    case "bidRejected":
+      return `A bid has been rejected`;
+  }
+}
 
 export default function Navbar() {
   const router = useRouter();
@@ -49,26 +67,7 @@ export default function Navbar() {
     });
   api.users.subscribeToEvents.useSubscription(undefined, {
     onData: (event) => {
-      switch (event.type) {
-        case "storeChanged":
-          toast.success(event.description);
-          break;
-        case "storePurchase":
-          toast.success(`A purchase has been made in store`);
-          break;
-        case "makeOwner":
-          toast.success(`A request for new owner has been made`);
-          break;
-        case "bidAdded":
-          toast.success(`A new bid has been added`);
-          break;
-        case "bidApproved":
-          toast.success(`A bid has been approved`);
-          break;
-        case "bidRejected":
-          toast.success(`A bid has been rejected`);
-          break;
-      }
+      toast.success(eventToString(event));
       void refetchNotifications();
     },
   });
@@ -188,7 +187,7 @@ export default function Navbar() {
                           <div className="flex cursor-pointer items-center gap-x-1.5 rounded-md px-3 py-2 text-sm text-slate-800 hover:bg-slate-100 focus:ring-2 focus:ring-blue-500">
                             {/* <CashIcon /> */}
                             <div className="flex items-center gap-x-1">
-                              Store state has changed
+                              {eventToString(notification)}
                               {/* <Link href={PATHS.chat.path("todo")}>
                                 <Badge>Omer</Badge>
                               </Link>

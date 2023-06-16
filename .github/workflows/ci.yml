@@ -8,6 +8,7 @@ env:
   NEXTAUTH_SECRET: "SECRET"
   WS_URL: "ws://localhost:3001"
   HOST: "localhost:3000"
+  EXTERNALS: "TRUE"
 
 jobs:
   typecheck:

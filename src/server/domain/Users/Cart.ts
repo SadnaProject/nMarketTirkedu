@@ -1,9 +1,13 @@
 import { getDB } from "server/helpers/_Transactional";
-import { type BasketDTO, Basket } from "./Basket";
+import { type ExtendedBasketDTO, BasketDTO, Basket } from "./Basket";
 import { TRPCError } from "@trpc/server";
 
 export type CartDTO = {
   storeIdToBasket: Map<string, BasketDTO>;
+  userId: string;
+};
+export type ExtendedCartDTO = {
+  storeIdToBasket: Map<string, ExtendedBasketDTO>;
   userId: string;
 };
 export class Cart {
@@ -153,6 +157,20 @@ export class Cart {
     const c = new Cart(userId);
     for (const s of storenames) {
       c.storeIdToBasket.set(s, await Basket.createFromArgs(userId, s));
+    }
+    return c;
+  }
+  static async createFromArgsUI(
+    userId: string,
+    storeids: string[]
+  ): Promise<ExtendedCartDTO> {
+    const c: ExtendedCartDTO = {
+      storeIdToBasket: new Map(),
+      userId: userId,
+    };
+    c.userId = userId;
+    for (const s of storeids) {
+      c.storeIdToBasket.set(s, await Basket.createFromArgsUI(userId, s));
     }
     return c;
   }

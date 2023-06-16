@@ -24,7 +24,7 @@ import { type Bid, storeBidArgs } from "../Users/Bid";
 import { type StoreProduct as StoreProductDAO } from "@prisma/client";
 import { ConstraintPolicy } from "./PurchasePolicy/ConstraintPolicy";
 import { DiscountPolicy } from "./DiscountPolicy/DiscountPolicy";
-import { MakeOwner, MakeOwnerDTO } from "./MakeOwner";
+import { MakeOwner, type MakeOwnerDTO } from "./MakeOwner";
 
 export type SearchArgs = {
   name?: string;
@@ -650,7 +650,10 @@ export class StoresController
       type: "storeChanged",
       channel: `storeChanged_${storeId}`,
       storeId,
-      message: `Store ${storeId} has been deactivated`,
+      message: `Store ${await this.getStoreNameById(
+        userId,
+        storeId
+      )} has been activated`,
     });
   }
 
@@ -677,11 +680,12 @@ export class StoresController
     const managerIds = await store.ManagersIds;
     const founderId = await store.FounderId;
     const notifiedUserIds = [founderId, ...ownerIds, ...managerIds];
+    const storeName = await this.getStoreNameById(userId, storeId);
     for (const uid of notifiedUserIds) {
       await this.Controllers.Users.addNotification(
         uid,
         "Store deactivated 💃",
-        `Store ${storeId} has been deactivated`
+        `Store ${storeName} has been deactivated`
       );
     }
     // await this.Controllers.Users.addNotification(
@@ -694,7 +698,7 @@ export class StoresController
       type: "storeChanged",
       channel: `storeChanged_${storeId}`,
       storeId,
-      message: `Store ${storeId} has been deactivated`,
+      message: `Store ${storeName} has been deactivated`,
     });
   }
 

@@ -84,8 +84,7 @@ export class PositionHolder {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
-          "User does not have permission to appoint store owner for store with id: " +
-          this.storeId,
+          "User does not have permission to appoint store owner for store",
       });
     }
     // await this.addPositionHolder(
@@ -129,8 +128,7 @@ export class PositionHolder {
       throw new TRPCError({
         code: "BAD_REQUEST",
         message:
-          "User does not have permission to appoint store manager for store with id: " +
-          this.storeId,
+          "User does not have permission to appoint store manager for store",
       });
     }
 
@@ -171,9 +169,7 @@ export class PositionHolder {
     if (index === -1) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message:
-          "User is not appointed by this position holder for store with id: " +
-          this.storeId,
+        message: "User is not appointed by this position holder for store",
       });
     }
     await getDB().positionHolder.delete({
@@ -193,9 +189,7 @@ export class PositionHolder {
       //TODO search in db for a second chance
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message:
-          "User is not appointed by this position holder for store with id: " +
-          this.storeId,
+        message: "User is not appointed by this position holder for store ",
       });
     }
     if (permissionStatus) {

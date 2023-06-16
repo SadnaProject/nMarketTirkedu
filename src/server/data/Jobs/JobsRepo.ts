@@ -114,10 +114,7 @@ export class JobsRepo extends Testable {
       if (dbPositionHolder === null) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message:
-            "store founder not found for store with id: " +
-            storeId +
-            " not found",
+          message: "store founder not found for store not found",
         });
       }
       const founder = await this.getPositionHolderFromDB(
@@ -145,11 +142,7 @@ export class JobsRepo extends Testable {
     if (dbPositionHolder === null) {
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message:
-          "position holder with userId: " +
-          userId +
-          " not found in store: " +
-          storeId,
+        message: "position holder not found in store: ",
       });
     } else {
       if (dbPositionHolder.assignedPositionHolders.length == 0) {

@@ -12,6 +12,7 @@
     "db-seed": "cross-env PORT=3002 NODE_ENV=development tsx prisma/configurationFile.ts --tsconfig tsconfig.json",
     "db-Init_file_case1Meeting": "cross-env PORT=3002 NODE_ENV=development tsx prisma/Init_file_case1Meeting.ts --tsconfig tsconfig.json",
     "db-Init_file_case2Meeting": "cross-env PORT=3002 NODE_ENV=development tsx prisma/Init_file_case2.ts --tsconfig tsconfig.json",
+    "db-Init_file_case_new": "cross-env PORT=3002 NODE_ENV=development tsx prisma/Init_file_case_new.ts --tsconfig tsconfig.json",
     "studio": "prisma studio",
     "lint-fix": "eslint --fix ./src && prettier --write ./src",
     "gen-test": "npx playwright codegen localhost:3000",

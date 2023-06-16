@@ -4,22 +4,10 @@
  * @link https://www.prisma.io/docs/guides/database/seed-database
  */
 /**
- The system needs to be ready for the next script(+ an acceptance test for it✅):
-  *Our comment: this is after admin was created in the previous script.
-  Users: u1, u2, u3. u1 is founder of store s1. u1 appoint u2 as s1 store owner. 
-  u2 appoint u3 as s1 store owner.
-  
-  u3 tries to remove u2 – expected failure
-  u1 removes u2 – expected success.
-  Expected results: u3 is removed. How?
-
-  Expected flow: u1 🡪 ‘u1-u2-Ownership-appointment’ 🡪 s1 & u2
-  🡪 u2.remove-owner(u3,s1)` 
-   
-   
-   
-   
-   Scenario test: visiting members info II.6.6 -> remove member II.6.2
+ *  Register U1 (system admin), U2, U3, U4, U5
+*  U2 logs in and opens a new store S
+*  U2 adds a new product "Apple" with cost=20 and quantity=10.
+* U2 logs out
 
  */
 
@@ -69,12 +57,29 @@ async function main() {
     getUser(3).email,
     getUser(3).password
   );
-  await service.loginMember(gId, getUser(1).email, getUser(1).password);
-  const storeId = await service.createStore(u1Id, getStore(1).name);
-  await service.makeStoreOwner(u1Id, storeId, u2Id);
-  const approveStoreOwner = await service.makeStoreOwner(u2Id, storeId, u3Id);
-  await service.approveStoreOwner(approveStoreOwner, u1Id);
-  await service.disconnectUser(u1Id);
+  const u4Id = await service.registerMember(
+    gId,
+    getUser(4).email,
+    getUser(4).password
+  );
+  const u5Id = await service.registerMember(
+    gId,
+    getUser(5).email,
+    getUser(5).password
+  );
+  await service.loginMember(gId, getUser(2).email, getUser(2).password);
+  const storeId = await service.createStore(u2Id, "s");
+  // await service.makeStoreOwner(u1Id, storeId, u2Id);
+  // const approveStoreOwner = await service.makeStoreOwner(u2Id, storeId, u3Id);
+  // await service.approveStoreOwner(approveStoreOwner, u1Id);
+  await service.createProduct(u2Id, storeId, {
+    name: "Apple",
+    price: 20,
+    quantity: 10,
+    category: "Fruit",
+    description: "Fresh apple",
+  });
+  await service.disconnectUser(u2Id);
 }
 
 main()

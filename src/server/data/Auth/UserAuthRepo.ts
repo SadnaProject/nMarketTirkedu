@@ -89,7 +89,7 @@ export class UserAuthRepo extends Testable {
     }
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: "user with id: " + userId + " not found",
+      message: "user with not found",
     });
   }
   public async doesMemberExistByEmail(email: string): Promise<boolean> {
@@ -123,7 +123,7 @@ export class UserAuthRepo extends Testable {
     if (!(await this.doesMemberExistById(userId)))
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "user with id: " + userId + " not found",
+        message: "user with id: not found",
       });
     //remove from db
     await getDB().userAuth.delete({ where: { id: userId } });
@@ -149,7 +149,7 @@ export class UserAuthRepo extends Testable {
     if (user === undefined)
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message: "User with id: " + userId + " not found",
+        message: "User with id: not found",
       });
     return user;
   }
@@ -160,10 +160,7 @@ export class UserAuthRepo extends Testable {
     if (!this.doesGuestExistById(userId))
       throw new TRPCError({
         code: "BAD_REQUEST",
-        message:
-          "User with id: " +
-          userId +
-          " is not a guest, please try again with a different user",
+        message: "User is not a guest, please try again with a different user",
       });
     this.guests = this.guests.filter((user) => user.UserId !== userId);
   }

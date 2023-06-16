@@ -18,6 +18,7 @@ export default defineConfig({
     // "**/Bid.test.ts",
     // "Basket.test.ts",
     // "**/UsersController.test.ts",
+    // "**/AuthController.test.ts",
     //purchaseHistory component tests
     // "**/PurchaseHistoryController.test.ts",
     // "**/Review.test.ts",

@@ -85,12 +85,14 @@ export class Service {
   public addNotification(
     userId: string,
     notificationType: string,
-    notificationMsg: string
+    notificationMsg: string,
+    isOnline: boolean
   ) {
     return this.facade.addNotification(
       userId,
       notificationType,
-      notificationMsg
+      notificationMsg,
+      isOnline
     );
   }
   public getUnreadNotifications(userId: string) {

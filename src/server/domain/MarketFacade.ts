@@ -24,6 +24,7 @@ import { createControllers } from "./helpers/_createControllers";
 import { type Controllers } from "./helpers/_HasController";
 import { eventEmitter } from "./helpers/_EventEmitter";
 import { MakeOwnerDTO } from "./Stores/MakeOwner";
+import { is } from "ramda";
 
 // @transactional
 @loggable
@@ -136,12 +137,14 @@ export class MarketFacade extends Loggable {
   public async addNotification(
     userId: string,
     notificationType: string,
-    notificationMsg: string
+    notificationMsg: string,
+    isOnline: boolean
   ) {
     await this.controllers.Users.addNotification(
       userId,
       notificationType,
-      notificationMsg
+      notificationMsg,
+      isOnline
     );
   }
   public getUnreadNotifications(userId: string) {

@@ -32,7 +32,7 @@ export class User {
     );
     return (await dtos).map((dto) => Notification.createFromDTO(dto));
   }
-  public async addNotification(notification: Notification): Promise<void> {
+  public async addNotification(notification: Notification, isOnline: boolean): Promise<void> {
     this.notifications.push(notification);
     await getDB().notification.create({
       data: {
@@ -40,7 +40,7 @@ export class User {
         id: notification.Id,
         type: notification.Type,
         message: notification.Message,
-        isRead: notification.IsRead,
+        isRead: isOnline,
       },
     });
   }

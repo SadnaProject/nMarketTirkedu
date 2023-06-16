@@ -12,24 +12,32 @@ export default defineConfig({
       provider: "istanbul",
       reporter: ["lcov", "html"],
     },
-    include: [
-      // "**/UserRepo.test.ts",
-      // "**/User.test.ts",
-      // "**/Bid.test.ts",
-      // "Basket.test.ts",
-      // "**/UsersController.test.ts",
-      //STILL NEED TO BE DONE:
-      // "**/DeliveryAdaptor.test.ts",
-      //Done:
-      //"**/Owner.test.ts", //(all tests pass except Add Constraint see todo their @ilaytzarfati1231)
-      // run PurchasesHistoryController.test.ts
-      "**/PurchasesHistoryController.test.ts",
-      // "**/Admin.test.ts",
-      // "**/Member.test.ts",
-      // "**/Guest.test.ts",
-      // "**/System.test.ts",
-      // "**/HW.test.ts",
-    ],
+    // include: [
+    // "**/UserRepo.test.ts",
+    // "**/User.test.ts",
+    // "**/Bid.test.ts",
+    // "Basket.test.ts",
+    // "**/UsersController.test.ts",
+    //purchaseHistory component tests
+    // "**/PurchaseHistoryController.test.ts",
+    // "**/Review.test.ts",
+    // "**/ProductReview.test.ts",
+    // "**/ProductPurchaseHistory.test.ts",
+    // "**/PaymentAdaptor.test.ts",
+    // "**/DeliveryAdaptor.test.ts",
+    // "**/CartPurchaseHistory.test.ts",
+    // "**/BasketPurchaseHistory.test.ts",
+    //STILL NEED TO BE DONE:
+    // "**/DeliveryAdaptor.test.ts",
+    //Done:
+    //"**/Owner.test.ts", //(all tests pass except Add Constraint see todo their @ilaytzarfati1231)
+    // "**/Purchase.test.ts",
+    // "**/Admin.test.ts",
+    // "**/Member.test.ts",
+    // "**/Guest.test.ts",
+    // "**/System.test.ts",
+    // "**/HW.test.ts",
+    // ],
     //make the tests run in an order and not in parallel
     threads: false,
     testTimeout: 1000000,

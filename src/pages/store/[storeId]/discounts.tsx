@@ -1,6 +1,5 @@
 import Layout from "../../_layout";
 import { useRouter } from "next/router";
-import { z } from "zod";
 import StoreNavbar from "components/storeNavbar";
 import Button from "components/button";
 import { SmallDropdown } from "components/dropdown";
@@ -15,6 +14,8 @@ import {
   DocumentIcon,
   FolderIcon,
   PlusDocumentIcon,
+  RemoveIcon,
+  SaveIcon,
   TextDocumentIcon,
   TimeIcon,
 } from "components/icons";
@@ -26,21 +27,22 @@ import { type ConditionArgs } from "server/domain/Stores/Conditions/CompositeLog
 import Input from "components/input";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { onDiscountChangeEvent, onDiscountSaveEvent } from "utils/events";
 
 const defaultCondition: ConditionArgs = {
   type: "Literal",
-  amount: 10,
+  amount: 0,
   conditionType: "Exactly",
   subType: "Product",
-  searchFor: "Banana",
+  searchFor: "",
 };
 
 const defaultDiscount: DiscountArgs = {
   type: "Simple",
-  amount: 10,
+  amount: 0,
   discountOn: "product",
-  searchFor: "Banana",
+  searchFor: "",
   condition: defaultCondition,
 };
 
@@ -48,46 +50,32 @@ export default function Home() {
   useGuestRedirect();
   const router = useRouter();
   const { storeId } = router.query;
-  const formMethods = useForm<DiscountArgs>({
-    resolver: zodResolver(discountArgsSchema),
-    defaultValues: defaultDiscount,
-    mode: "all",
-    criteriaMode: "all",
-    reValidateMode: "onChange",
-  });
-  const { data: discounts } = api.stores.getStoreDiscounts.useQuery(
-    { storeId: storeId as string },
-    { ...cachedQueryOptions, enabled: !!storeId }
-  );
   const { mutate: addDiscount } = api.stores.addDiscountToStore.useMutation({
     ...cachedQueryOptions,
     onSuccess: (discountId) => {
+      document.dispatchEvent(new Event(onDiscountChangeEvent));
       toast.success("Discount added successfully");
-      void router.push(PATHS.storeDiscount.path(storeId as string, discountId));
+      // void router.push(PATHS.storeDiscount.path(storeId as string, discountId));
     },
   });
-  const { mutate: deleteDiscount } =
-    api.stores.removeDiscountFromStore.useMutation({
-      ...cachedQueryOptions,
-      onSuccess: () => {
-        toast.success("Discount added successfully");
-      },
-    });
+  const { data: discounts, refetch: refetchDiscounts } =
+    api.stores.getStoreDiscounts.useQuery(
+      { storeId: storeId as string },
+      { ...cachedQueryOptions, enabled: !!storeId }
+    );
 
   useEffect(() => {
-    console.log(discounts);
-  }, [discounts]);
-
-  const handleSetDiscount = formMethods.handleSubmit(
-    (data) => {
-      console.log(data);
-      // setDiscount({ discount: {} });
-    },
-    () => {
-      toast.error("Discount is invalid");
-      console.log(formMethods.getValues());
-    }
-  );
+    const refetchDiscountsCallback = () => {
+      void refetchDiscounts();
+    };
+    document.addEventListener(onDiscountChangeEvent, refetchDiscountsCallback);
+    return () => {
+      document.removeEventListener(
+        onDiscountChangeEvent,
+        refetchDiscountsCallback
+      );
+    };
+  }, [refetchDiscounts]);
 
   return (
     <Layout className="max-w-none">
@@ -96,12 +84,17 @@ export default function Home() {
         className="hs-accordion-group flex w-full flex-col overflow-auto"
         data-hs-accordion-always-open
       >
-        <FormProvider {...formMethods}>
-          {discounts &&
-            Object.values(Object.fromEntries(discounts)).map((discount, i) => (
-              <Discount key={`discount-${i}`} discount={discount} />
-            ))}
-        </FormProvider>
+        <h2>Ordered by chronological update date:</h2>
+        {discounts &&
+          Object.entries(Object.fromEntries(discounts)).map(
+            ([discountId, discount], i) => (
+              <FullDiscount
+                key={`discount-${Math.random()}`}
+                discount={discount}
+                id={discountId}
+              />
+            )
+          )}
       </div>
       <Button
         className="rounded-full"
@@ -113,30 +106,94 @@ export default function Home() {
         }
       >
         <CreateIcon />
+        Create
       </Button>
-
-      {/* <Button onClick={() => void handleSetDiscount()}>Save</Button> */}
     </Layout>
+  );
+}
+
+type FullDiscountProps = {
+  discount: DiscountArgs;
+  id: string;
+};
+
+function FullDiscount({ discount, id }: FullDiscountProps) {
+  const router = useRouter();
+  const { storeId } = router.query;
+  const formMethods = useForm<DiscountArgs>({
+    resolver: zodResolver(discountArgsSchema),
+    defaultValues: discount,
+    mode: "all",
+    criteriaMode: "all",
+    reValidateMode: "onChange",
+  });
+
+  // useEffect(() => {
+  //   const handleSaveCallback = () => void handleSave();
+  //   document.addEventListener(onDiscountSaveEvent, handleSaveCallback);
+  //   return () => {
+  //     document.removeEventListener(onDiscountSaveEvent, handleSaveCallback);
+  //   };
+  // }, [handleSave]);
+
+  return (
+    <FormProvider {...formMethods}>
+      <Discount discount={formMethods.getValues()} id={id} />
+    </FormProvider>
   );
 }
 
 type DiscountProps = {
   prefix?: string;
   discount: DiscountArgs;
+  id?: string;
 };
 
 export function Discount({
+  id,
   discount = defaultDiscount,
   prefix = "",
 }: DiscountProps) {
+  const router = useRouter();
+  const { storeId } = router.query;
   const {
     register,
     formState: { errors }, //! DON'T DELETE THIS LINE. IT MAKES THE UI UPDATE
+    handleSubmit,
   } = useFormContext<DiscountArgs>();
+  const { mutate: removeDiscount } =
+    api.stores.removeDiscountFromStore.useMutation({
+      ...cachedQueryOptions,
+      onSuccess: () => {
+        document.dispatchEvent(new Event(onDiscountChangeEvent));
+        toast.success("Change to discount was made successfully");
+      },
+    });
+  const { mutate: addDiscount } = api.stores.addDiscountToStore.useMutation({
+    ...cachedQueryOptions,
+    onSuccess: () => {
+      if (!id) return;
+      removeDiscount({ storeId: storeId as string, discountId: id });
+    },
+  });
 
   const getPath = useCallback(
     <T extends string>(field: T) => `${prefix}${field}` as T,
     [prefix]
+  );
+
+  const handleSave = handleSubmit(
+    (data) => {
+      console.log(data);
+      addDiscount({
+        storeId: storeId as string,
+        discount: data,
+      });
+    },
+    () => {
+      toast.error("Discount is invalid");
+      // console.log(getValues());
+    }
   );
 
   return (
@@ -200,25 +257,39 @@ export function Discount({
           </>
         )}
       </div>
-      {/* <button
-        className="ml-2 inline peer-hover:opacity-100 hover:opacity-100 sm:opacity-0"
-        data-hs-overlay={`#hs-modal-${prefix}`}
-      >
-        <RemoveIcon />
-      </button> */}
-      <Modal
-        id={`hs-modal-${prefix}`}
-        title="Confirm deletion"
-        content={`Are you sure you want to remove this discount?`}
-        footer={
-          <Button
-            onClick={() => toast.success("")}
+      {id && (
+        <>
+          <button
+            className="ml-2 inline" //peer-hover:opacity-100 hover:opacity-100 sm:opacity-0"
             data-hs-overlay={`#hs-modal-${prefix}`}
           >
-            Apply changes
-          </Button>
-        }
-      />
+            <RemoveIcon />
+          </button>
+          <button
+            onClick={
+              () => void handleSave()
+              //document.dispatchEvent(new Event(onDiscountSaveEvent))
+            }
+          >
+            <SaveIcon />
+          </button>
+          <Modal
+            id={`hs-modal-${prefix}`}
+            title="Confirm deletion"
+            content={`Are you sure you want to remove this discount?`}
+            footer={
+              <Button
+                onClick={() =>
+                  removeDiscount({ storeId: storeId as string, discountId: id })
+                }
+                data-hs-overlay={`#hs-modal-${prefix}`}
+              >
+                Apply changes
+              </Button>
+            }
+          />
+        </>
+      )}
       <div
         id={`hs-basic-always-open-collapse-${prefix}`}
         className="hs-accordion-content w-full overflow-hidden pl-6 transition-[height] duration-300"
@@ -314,7 +385,7 @@ function Condition({
               className="w-12 px-1 py-1 text-center"
               placeholder="0"
               {...register(getPath("amount"), {
-                setValueAs: (v: string) => (v ? parseInt(v) : undefined),
+                setValueAs: (v: string) => (v ? parseInt(v) : 0),
               })}
             />{" "}
             of

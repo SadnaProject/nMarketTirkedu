@@ -24,6 +24,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-hot-toast";
+import { useSession } from "next-auth/react";
 
 const quantitySchema = z.object({
   quantity: z.number().int().nonnegative(),
@@ -36,6 +37,7 @@ const bidSchema = z.object({
 type bidFormValues = z.infer<typeof bidSchema>;
 
 export default function Home() {
+  const { data: session } = useSession();
   const quantityForm = useForm<quantityFormValues>({
     resolver: zodResolver(quantitySchema),
     defaultValues: { quantity: 0 },
@@ -158,22 +160,23 @@ export default function Home() {
             Change Cart Quantity
           </Button>
         </div>
-        {/* todo guest cannot bid */}
-        <div className="flex items-center justify-center gap-3">
-          <Input
-            className="max-w-[5rem] text-center"
-            {...bidForm.register("price", {
-              setValueAs: (v: string) => (v ? parseInt(v) : 0),
-            })}
-          />
-          <Button
-            onClick={() => void handleCreateBid()}
-            disabled={bidForm.formState.isSubmitting}
-          >
-            <CourtHammerIcon />
-            Create bid
-          </Button>
-        </div>
+        {session?.user.type === "member" && (
+          <div className="flex items-center justify-center gap-3">
+            <Input
+              className="max-w-[5rem] text-center"
+              {...bidForm.register("price", {
+                setValueAs: (v: string) => (v ? parseInt(v) : 0),
+              })}
+            />
+            <Button
+              onClick={() => void handleCreateBid()}
+              disabled={bidForm.formState.isSubmitting}
+            >
+              <CourtHammerIcon />
+              Create bid
+            </Button>
+          </div>
+        )}
         <Gallery
           className="sm:grid-cols-1 lg:grid-cols-1"
           list={[1, 2, 3, 4, 5]}

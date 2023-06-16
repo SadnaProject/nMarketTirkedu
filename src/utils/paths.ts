@@ -42,11 +42,6 @@ const PATHS = {
     path: (storeId: string) => `/store/${storeId}/discounts`,
     for: ["member"],
   },
-  storeDiscount: {
-    path: (storeId: string, discountId: string) =>
-      `/store/${storeId}/discount/${discountId}`,
-    for: ["member"],
-  },
   storePolicy: {
     path: (storeId: string) => `/store/${storeId}/policy`,
     for: ["member"],

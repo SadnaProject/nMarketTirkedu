@@ -1,5 +1,5 @@
 import { getDB } from "server/helpers/_Transactional";
-import { Cart, type CartDTO } from "./Cart";
+import { Cart, ExtendedCartDTO, type CartDTO } from "./Cart";
 import { Notification } from "./Notification";
 import { TRPCError } from "@trpc/server";
 import { string } from "zod";
@@ -152,5 +152,13 @@ export class User {
     }
 
     return u;
+  }
+  public async getCartUI(): Promise<ExtendedCartDTO> {
+    const products = await getDB().basketProduct.findMany({
+      where: { userId: this.id },
+    });
+    const stores = new Set(products.map((p) => p.storeId));
+    const cart = await Cart.createFromArgsUI(this.id, Array.from(stores));
+    return cart;
   }
 }

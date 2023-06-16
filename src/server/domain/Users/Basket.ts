@@ -8,6 +8,13 @@ export type BasketDTO = {
   //new
   userId: string;
 };
+export type ExtendedBasketDTO = {
+  storeId: string;
+  storeName: string;
+  products: BasketProductDTO[];
+  //new
+  userId: string;
+};
 export class Basket {
   private storeId: string;
   private products: BasketProduct[];
@@ -137,6 +144,34 @@ export class Basket {
       where: { userId: userId, storeId: storeId },
     });
     b.products = products.map((p) => BasketProduct.createFromDTO(p));
+    return b;
+  }
+  static async createFromArgsUI(
+    userId: string,
+    storeId: string
+  ): Promise<ExtendedBasketDTO> {
+    const b: ExtendedBasketDTO = {
+      storeId: storeId,
+      storeName: "",
+      products: [],
+      userId: userId,
+    };
+    const store = await getDB().store.findUnique({
+      where: {
+        id: storeId,
+      },
+    });
+    if (!store) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Store not found",
+      });
+    }
+    b.storeName = store?.name;
+    const products = await getDB().basketProduct.findMany({
+      where: { userId: userId, storeId: storeId },
+    });
+    b.products = products;
     return b;
   }
   public toString(): string {

@@ -2,6 +2,7 @@ import EventEmitter from "events";
 import { type Channel, type Event } from "../helpers/_Events";
 import { randomUUID } from "crypto";
 import { HasControllers } from "../helpers/_HasController";
+import { is } from "ramda";
 
 export class EventManager extends HasControllers {
   private eventEmitter: EventEmitter;
@@ -48,10 +49,12 @@ export class EventManager extends HasControllers {
       for (const userId of users) {
         // check if the user is online
         console.log("emit to user", userId);
+        const isOnline = this.onlineUsers.has(userId);
         await this.Controllers.Users.addNotification(
           userId,
           event.type,
-          event.message
+          event.message,
+          isOnline
         );
       }
     } else {

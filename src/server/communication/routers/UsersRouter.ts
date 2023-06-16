@@ -114,14 +114,16 @@ export const UsersRouter = createTRPCRouter({
       z.object({
         notificationType: z.string(),
         notification: z.string(),
+        isOnline: z.boolean(),
       })
     )
     .mutation(({ input, ctx }) => {
-      const { notificationType, notification } = input;
+      const { notificationType, notification, isOnline } = input;
       return service.addNotification(
         ctx.session.user.id,
         notificationType,
-        notification
+        notification,
+        isOnline
       );
     }),
   getUnreadNotifications: validSessionProcedure.query(({ ctx }) => {

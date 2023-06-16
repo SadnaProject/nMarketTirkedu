@@ -323,7 +323,8 @@ describe("get unread notifications", () => {
       const notificationId = await controllers.Users.addNotification(
         userId,
         "test",
-        "test"
+        "test",
+        false
       );
       const notificationSizeAfter = (
         await controllers.Users.getNotifications(userId)

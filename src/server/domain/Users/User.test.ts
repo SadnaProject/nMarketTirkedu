@@ -182,7 +182,7 @@ describe("addNotification", () => {
       },
     });
     const user = new User(id);
-    await user.addNotification(new Notification("test", "test"));
+    await user.addNotification(new Notification("test", "test"),false);
     expect(user.Notifications.length).toBe(1);
   });
 });
@@ -202,7 +202,7 @@ describe("readNotification", () => {
     const user = new User(id);
     const notification = new Notification("test", "test");
     const notificationId = notification.Id;
-    await user.addNotification(notification);
+    await user.addNotification(notification,false);
     await user.readNotification(notificationId);
     expect(
       user.Notifications.filter((n) => n.Id === notificationId)[0]?.IsRead

@@ -680,14 +680,13 @@ export class StoresController
     const managerIds = await store.ManagersIds;
     const founderId = await store.FounderId;
     const notifiedUserIds = [founderId, ...ownerIds, ...managerIds];
-    const storeName = await this.getStoreNameById(userId, storeId);
-    for (const uid of notifiedUserIds) {
-      await this.Controllers.Users.addNotification(
-        uid,
-        "Store deactivated 💃",
-        `Store ${storeName} has been deactivated`
-      );
-    }
+    // for (const uid of notifiedUserIds) {
+    //   await this.Controllers.Users.addNotification(
+    //     uid,
+    //     "Store deactivated 💃",
+    //     `Store ${storeId} has been deactivated`
+    //   );
+    // }
     // await this.Controllers.Users.addNotification(
     //   uid,
     //   "Store deactivated 💤",

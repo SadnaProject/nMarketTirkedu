@@ -11,6 +11,7 @@ import { HasControllers } from "../helpers/_HasController";
 import { censored } from "../helpers/_Loggable";
 import { getDB } from "server/helpers/_Transactional";
 import { eventEmitter } from "../helpers/_EventEmitter";
+import { fa } from "@faker-js/faker";
 
 export interface IUsersController {
   /**
@@ -117,7 +118,8 @@ export interface IUsersController {
   addNotification(
     userId: string,
     notificationType: string,
-    notificationMsg: string
+    notificationMsg: string,
+    isOnline: boolean
   ): Promise<string>;
   /**
    * This function will return the user's notifications.
@@ -278,7 +280,7 @@ export class UsersController
     );
     const notificationMsg = `The cart ${cart.toString()} has been purchased for ${price}.`;
     const notification = new Notification("purchase", notificationMsg);
-    await user.addNotification(notification);
+    await user.addNotification(notification, false);
     await user.clearCart(); /// notice we clear the cart in the end of the purchase.
     return rid;
   }
@@ -305,11 +307,12 @@ export class UsersController
   async addNotification(
     userId: string,
     notificationType: string,
-    notificationMsg: string
+    notificationMsg: string,
+    isRead: boolean
   ): Promise<string> {
     const user = await this.Repos.Users.getUser(userId);
     const notification = new Notification(notificationType, notificationMsg);
-    await user.addNotification(notification);
+    await user.addNotification(notification, isRead);
     return notification.Id;
   }
   async startSession(): Promise<string> {

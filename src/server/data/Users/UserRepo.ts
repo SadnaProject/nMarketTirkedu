@@ -51,6 +51,7 @@ export class UserRepo extends Testable {
           },
         },
       });
+      // console.log("db size: ",userdb?.cart?.baskets.length)
       if (userdb === null) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -60,6 +61,7 @@ export class UserRepo extends Testable {
       user = await User.UserFromDTO(userdb);
       if (this.users.size < 10) this.users.set(id, user);
     }
+    // console.log("size ", user.Cart.storeIdToBasket.size);
     return user;
   }
 

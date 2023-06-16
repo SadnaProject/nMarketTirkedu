@@ -142,6 +142,7 @@ export class User {
     });
     const bidsToMe = await getDB().bid.findMany();
     const stores = new Set(products.map((p) => p.storeId));
+    // console.log(stores.size);
     u.cart = await Cart.createFromArgs(u.Id, Array.from(stores));
     u.bidsFromMe = bidsFromMe.map((b) => b.id);
     u.bidsToMe = [];

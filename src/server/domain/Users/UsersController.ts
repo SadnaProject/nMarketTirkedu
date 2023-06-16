@@ -280,7 +280,7 @@ export class UsersController
     );
     const notificationMsg = `The cart ${cart.toString()} has been purchased for ${price}.`;
     const notification = new Notification("purchase", notificationMsg);
-    await user.addNotification(notification, false);
+    await user.addNotification(notification, true);
     await user.clearCart(); /// notice we clear the cart in the end of the purchase.
     return rid;
   }

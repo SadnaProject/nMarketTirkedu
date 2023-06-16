@@ -914,6 +914,14 @@ describe("PurchaseCart", () => {
         },
       },
     });
+    await getDB().basketProduct.create({
+      data: {
+        userId: "admin",
+        storeId: "storeId",
+        quantity: 1,
+        storeProductId: "productId",
+      },
+    });
     await getDB().storeProduct.create({
       data: {
         id: "productId",
@@ -947,7 +955,6 @@ describe("PurchaseCart", () => {
       );
     }
   });
-
   it("❎purchase adaptor returns false", async () => {
     const cartPurchase = new CartPurchase(
       "userId",

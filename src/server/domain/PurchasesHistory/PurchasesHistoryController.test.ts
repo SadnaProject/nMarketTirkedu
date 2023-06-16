@@ -1085,14 +1085,6 @@ describe("PurchaseCart", () => {
     vi.spyOn(controllers.Stores, "decreaseProductQuantity").mockReturnValue(
       Promise.resolve()
     );
-    await controllers.PurchasesHistory.purchaseCart(
-      "admin",
-      cartDTO,
-      1,
-      paymentDetails,
-      deliveryDetails
-    );
-
     await expect(() =>
       controllers.PurchasesHistory.purchaseCart(
         "admin",

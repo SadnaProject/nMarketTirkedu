@@ -44,6 +44,11 @@ export class UserRepo extends Testable {
         where: { id: id },
         include: {
           notifications: true,
+          cart: {
+            include: {
+              baskets: true,
+            },
+          },
         },
       });
       if (userdb === null) {

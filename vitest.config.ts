@@ -22,7 +22,8 @@ export default defineConfig({
       // "**/DeliveryAdaptor.test.ts",
       //Done:
       //"**/Owner.test.ts", //(all tests pass except Add Constraint see todo their @ilaytzarfati1231)
-      "**/Purchase.test.ts",
+      // run PurchasesHistoryController.test.ts
+      "**/PurchasesHistoryController.test.ts",
       // "**/Admin.test.ts",
       // "**/Member.test.ts",
       // "**/Guest.test.ts",

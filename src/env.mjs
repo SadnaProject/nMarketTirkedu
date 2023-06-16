@@ -21,6 +21,7 @@ const server = z.object({
   // Add `.min(1) on ID and SECRET if you want to make sure they're not empty
   WS_URL: z.string(),
   HOST: z.string(),
+  EXTERNALS: z.string(),
 });
 
 /**
@@ -44,6 +45,7 @@ const processEnv = {
   NEXTAUTH_URL: process.env.NEXTAUTH_URL,
   WS_URL: process.env.WS_URL,
   HOST: process.env.HOST,
+  EXTERNALS: process.env.EXTERNALS,
   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
 };
 

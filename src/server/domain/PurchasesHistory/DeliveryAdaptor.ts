@@ -3,9 +3,10 @@ import fetch from "node-fetch";
 import { getHost } from "../helpers/hostname";
 import { z } from "zod";
 import axios from "axios";
+import { env } from "env.mjs";
 
 export class DeliveryAdaptor {
-  static isDeliveryServiceUp = false;
+  static isDeliveryServiceUp = env.EXTERNALS == "TRUE"
   static url = "http://127.0.0.1:5000/";
   static async handShake() {
     if (!this.isDeliveryServiceUp) {

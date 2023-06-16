@@ -119,6 +119,12 @@ export interface IUsersController {
     notificationType: string,
     notificationMsg: string
   ): Promise<string>;
+  /**
+   * This function will return the user's notifications.
+   * @param userId The id of the user that is currently logged in.
+   * @returns The user's notifications.
+   */
+  getAllMessages(userId: string): Promise<string[]>;
   register(email: string, password: string): Promise<string>;
   /**
    * This function will start new session for user.
@@ -170,6 +176,12 @@ export class UsersController
   async getNotifications(userId: string): Promise<Notification[]> {
     return (await this.Repos.Users.getUser(userId)).Notifications;
   }
+  async getAllMessages(userId: string): Promise<string[]> {
+    const notifications = (await this.Repos.Users.getUser(userId))
+      .Notifications;
+    return notifications.map((notification) => notification.getMesssage());
+  }
+
   async addProductToCart(
     userId: string,
     productId: string,

@@ -692,6 +692,7 @@ export class StoresController
     //   "Store deactivated 💤",
     //   `Store ${storeId} has been deactivated`
     // );
+    const storeName = await this.getStoreNameById(userId, storeId);
     eventEmitter.initControllers(this.Controllers);
     await eventEmitter.emitEvent({
       type: "storeChanged",

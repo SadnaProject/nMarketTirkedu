@@ -247,7 +247,14 @@ export class UsersController
   }
 
   async getCartUI(userId: string): Promise<ExtendedCartDTO> {
-    return await (await this.Repos.Users.getUser(userId)).getCartUI();
+    const cart = await (await this.Repos.Users.getUser(userId)).getCartUI();
+    for (const b of cart.storeIdToBasket) {
+      const bas = b[1];
+      for (const p of bas.storeProducts) {
+        p.price = await this.Controllers.Stores.getProductPrice(userId, p.id);
+      }
+    }
+    return cart;
   }
 
   async purchaseCart(

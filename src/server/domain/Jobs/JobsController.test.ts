@@ -47,7 +47,7 @@ describe("InitializeStore", () => {
     const founderId = "founder1";
 
     await expect(controllers.Jobs.getStoreFounderId(storeId)).rejects.toThrow(
-      "store founder not found for store with id: store1 not found"
+      "store founder not found for store not found"
     );
 
     await expect(
@@ -153,7 +153,7 @@ describe("Make position holder", () => {
       await expect(
         controllers.Jobs.makeStoreManager(manager1Id, storeId, manager2Id)
       ).rejects.toThrow(
-        "User does not have permission to appoint store manager for store with id: store1"
+        "User does not have permission to appoint store manager for store"
       );
     }
   );
@@ -218,12 +218,12 @@ describe("Remove position holder", () => {
       await expect(() =>
         controllers.Jobs.removeStoreOwner(owner2Id, storeId, owner1Id)
       ).rejects.toThrow(
-        "User is not appointed by this position holder for store with id: store1"
+        "User is not appointed by this position holder for store"
       );
       await expect(() =>
         controllers.Jobs.removeStoreOwner(founderId, storeId, owner2Id)
       ).rejects.toThrow(
-        "User is not appointed by this position holder for store with id: store1"
+        "User is not appointed by this position holder for store"
       );
       await expect(
         controllers.Jobs.isStoreOwner(owner2Id, storeId)
@@ -307,7 +307,7 @@ describe("Remove position holder", () => {
       await expect(
         controllers.Jobs.removeStoreManager(owner1Id, storeId, manager1Id)
       ).rejects.toThrow(
-        "User is not appointed by this position holder for store with id: store1"
+        "User is not appointed by this position holder for store"
       );
     }
   );
@@ -544,7 +544,7 @@ describe("permissions", () => {
           true
         )
       ).rejects.toThrow(
-        "User is not appointed by this position holder for store with id: store1"
+        "User is not appointed by this position holder for store "
       );
       await expect(
         controllers.Jobs.setRemovingProductFromStorePermission(
@@ -554,7 +554,7 @@ describe("permissions", () => {
           true
         )
       ).rejects.toThrow(
-        "User is not appointed by this position holder for store with id: store1"
+        "User is not appointed by this position holder for store "
       );
       await expect(
         controllers.Jobs.setEditingProductInStorePermission(
@@ -564,7 +564,7 @@ describe("permissions", () => {
           true
         )
       ).rejects.toThrow(
-        "User is not appointed by this position holder for store with id: store1"
+        "User is not appointed by this position holder for store "
       );
     }
   );

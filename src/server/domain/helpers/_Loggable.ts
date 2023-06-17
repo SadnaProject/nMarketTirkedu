@@ -58,6 +58,7 @@ export function loggable(target: { prototype: Object }) {
           name: propertyName,
           args: censoredArgs,
           error: null,
+          time: new Date(),
         } satisfies Log);
         return res;
       } catch (e) {
@@ -65,6 +66,7 @@ export function loggable(target: { prototype: Object }) {
           name: propertyName,
           args: censoredArgs,
           error: e,
+          time: new Date(),
         } satisfies Log;
         // log error
         this.logs.push(log);
@@ -80,7 +82,7 @@ export function loggable(target: { prototype: Object }) {
   }
 }
 
-type Log = { name: string; args: any[]; error: any };
+type Log = { name: string; args: any[]; error: any; time: Date };
 
 export class Loggable {
   private logs: Log[] = [];

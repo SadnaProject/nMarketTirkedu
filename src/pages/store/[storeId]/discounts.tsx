@@ -28,7 +28,7 @@ import Input from "components/input";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect, useState } from "react";
-import { onDiscountChangeEvent, onDiscountSaveEvent } from "utils/events";
+import { onDiscountChangeEvent } from "utils/events";
 
 const defaultCondition: ConditionArgs = {
   type: "Literal",
@@ -96,18 +96,28 @@ export default function Home() {
             )
           )}
       </div>
-      <Button
-        className="rounded-full"
-        onClick={() =>
-          addDiscount({
-            storeId: storeId as string,
-            discount: defaultDiscount,
-          })
-        }
-      >
+      <Button className="rounded-full" data-hs-overlay={`#hs-modal-create`}>
         <CreateIcon />
         Create
       </Button>
+      <Modal
+        id={`hs-modal-create`}
+        title="Confirm creation"
+        content={`Are you sure you want to create a new discount? All unsaved changes will be lost.`}
+        footer={
+          <Button
+            onClick={() =>
+              addDiscount({
+                storeId: storeId as string,
+                discount: defaultDiscount,
+              })
+            }
+            data-hs-overlay={`#hs-modal-create`}
+          >
+            Apply changes
+          </Button>
+        }
+      />
     </Layout>
   );
 }

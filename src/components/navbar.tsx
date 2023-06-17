@@ -31,6 +31,7 @@ const privateLinks = [
 const adminLinks = [
   // { name: "Admin Panel", path: PATHS.adminPanel.path },
   { name: "Users", path: PATHS.online.path },
+  { name: "Logs", path: PATHS.logs.path },
 ] as const;
 
 function eventToString(event: Event) {
@@ -70,6 +71,7 @@ export default function Navbar() {
       toast.success(eventToString(event));
       void refetchNotifications();
     },
+    onError: (error) => console.log("subscribeToEvents error", error),
   });
   const { data: cartPrice, refetch: refetchCartPrice } =
     api.stores.getCartPrice.useQuery(undefined, {
@@ -177,28 +179,31 @@ export default function Navbar() {
                     aria-labelledby="hs-dropdown-with-dividers"
                   >
                     <div className="py-2 first:pt-0 last:pb-0">
-                      {notifications?.map((notification, i) => (
-                        <Link
-                          key={`notification-${i}`}
-                          passHref
-                          legacyBehavior
-                          href={PATHS.receipt.path("todo")}
-                        >
-                          <div className="flex cursor-pointer items-center gap-x-1.5 rounded-md px-3 py-2 text-sm text-slate-800 hover:bg-slate-100 focus:ring-2 focus:ring-blue-500">
-                            {/* <CashIcon /> */}
-                            <div className="flex items-center gap-x-1">
-                              {notification}
-                              {/* <Link href={PATHS.chat.path("todo")}>
+                      {notifications
+                        ?.slice()
+                        .reverse()
+                        .map((notification, i) => (
+                          <Link
+                            key={`notification-${i}`}
+                            passHref
+                            legacyBehavior
+                            href={PATHS.receipt.path("todo")}
+                          >
+                            <div className="flex cursor-pointer items-center gap-x-1.5 rounded-md px-3 py-2 text-sm text-slate-800 hover:bg-slate-100 focus:ring-2 focus:ring-blue-500">
+                              {/* <CashIcon /> */}
+                              <div className="flex items-center gap-x-1">
+                                {notification}
+                                {/* <Link href={PATHS.chat.path("todo")}>
                                 <Badge>Omer</Badge>
                               </Link>
                               bought from
                               <Link href={PATHS.store.path("todo")}>
                                 <Badge>H&M</Badge>
                               </Link> */}
+                              </div>
                             </div>
-                          </div>
-                        </Link>
-                      ))}
+                          </Link>
+                        ))}
                     </div>
                   </div>
                 </div>

@@ -13,6 +13,7 @@ type Path = {
 const PATHS = {
   home: { path: "/", for: ["guest", "member"] },
   online: { path: "/online", for: ["admin"] },
+  logs: { path: "/logs", for: ["admin"] },
   register: { path: "/register", for: ["guest"] },
   login: { path: "/login", for: ["guest"] },
   products: { path: "/products", for: ["guest", "member"] },

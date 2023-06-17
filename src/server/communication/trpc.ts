@@ -84,6 +84,7 @@ import { ZodError } from "zod";
 import { type NodeHTTPCreateContextFnOptions } from "@trpc/server/dist/adapters/node-http";
 import { type IncomingMessage } from "http";
 import { getSession } from "next-auth/react";
+import { Prisma } from "@prisma/client";
 
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
@@ -96,6 +97,18 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
           ...shape.data,
           zodError: error.cause.flatten(),
         },
+      };
+    }
+    if (
+      error.cause instanceof Prisma.PrismaClientKnownRequestError ||
+      error.cause instanceof Prisma.PrismaClientUnknownRequestError ||
+      error.cause instanceof Prisma.PrismaClientRustPanicError ||
+      error.cause instanceof Prisma.PrismaClientInitializationError ||
+      error.cause instanceof Prisma.PrismaClientValidationError
+    ) {
+      return {
+        ...shape,
+        message: "Something went wrong",
       };
     }
     return shape;

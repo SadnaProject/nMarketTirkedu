@@ -10,6 +10,7 @@ import { observable } from "@trpc/server/observable";
 import { eventEmitter } from "server/domain/helpers/_EventEmitter";
 import { type Event } from "server/domain/helpers/_Events";
 import { BidArgs } from "server/domain/Users/Bid";
+import { TRPCError } from "@trpc/server";
 
 export const UsersRouter = createTRPCRouter({
   addProductToCart: validSessionProcedure
@@ -196,7 +197,12 @@ export const UsersRouter = createTRPCRouter({
       eventEmitter.subscribeUser(ctx.session.user.id, (event) => {
         emit.next(event);
       });
-      void service.subscribeToStoreEvents(ctx.session.user.id);
+      const thing = async () => {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      };
+      thing();
+      // service.subscribeToStoreEvents(ctx.session.user.id)
       return () => {
         eventEmitter.unsubscribeUser(ctx.session.user.id);
       };

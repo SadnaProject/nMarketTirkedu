@@ -73,7 +73,25 @@ describe("addProduct", () => {
 });
 describe("removeProduct", () => {
   it("should remove a product from the basket", async () => {
-    const basket = new Basket(randomUUID(), randomUUID());
+    const id = randomUUID();
+    await getDB().user.create({
+      data: {
+        id: id,
+      },
+    });
+    await getDB().cart.create({
+      data: {
+        userId: id,
+      },
+    });
+    await getDB().store.create({
+      data: {
+        name: "s",
+        id: id,
+        isActive: true,
+      },
+    });
+    const basket = new Basket(id, id);
     const productId = randomUUID();
     const quantity = 1;
     await basket.addProduct(productId, quantity);
@@ -83,7 +101,25 @@ describe("removeProduct", () => {
     ).toBe(0);
   });
   it("should throw an error if the product is not in the basket", async () => {
-    const basket = new Basket(randomUUID(), randomUUID());
+    const id = randomUUID();
+    await getDB().user.create({
+      data: {
+        id: id,
+      },
+    });
+    await getDB().cart.create({
+      data: {
+        userId: id,
+      },
+    });
+    await getDB().store.create({
+      data: {
+        name: "s",
+        id: id,
+        isActive: true,
+      },
+    });
+    const basket = new Basket(id, id);
     const productId = randomUUID();
     const quantity = 1;
     await basket.addProduct(productId, quantity);
@@ -95,7 +131,25 @@ describe("removeProduct", () => {
 });
 describe("editProductQuantity", () => {
   it("should edit the quantity of a product in the basket", async () => {
-    const basket = new Basket(randomUUID(), randomUUID());
+    const id = randomUUID();
+    await getDB().user.create({
+      data: {
+        id: id,
+      },
+    });
+    await getDB().cart.create({
+      data: {
+        userId: id,
+      },
+    });
+    await getDB().store.create({
+      data: {
+        name: "s",
+        id: id,
+        isActive: true,
+      },
+    });
+    const basket = new Basket(id, id);
     const productId = randomUUID();
     const quantity = 1;
     await basket.addProduct(productId, quantity);
@@ -115,7 +169,25 @@ describe("editProductQuantity", () => {
     ).toBe(0);
   });
   it("should remove the product from the basket if the quantity is below 0", async () => {
-    const basket = new Basket(randomUUID(), randomUUID());
+    const id = randomUUID();
+    await getDB().user.create({
+      data: {
+        id: id,
+      },
+    });
+    await getDB().cart.create({
+      data: {
+        userId: id,
+      },
+    });
+    await getDB().store.create({
+      data: {
+        name: "s",
+        id: id,
+        isActive: true,
+      },
+    });
+    const basket = new Basket(id, id);
     const productId = randomUUID();
     const quantity = 1;
     await basket.addProduct(productId, quantity);
@@ -128,7 +200,25 @@ describe("editProductQuantity", () => {
     ).toBe(quantity);
   });
   it("should throw an error if the product is not in the basket", async () => {
-    const basket = new Basket(randomUUID(), randomUUID());
+    const id = randomUUID();
+    await getDB().user.create({
+      data: {
+        id: id,
+      },
+    });
+    await getDB().cart.create({
+      data: {
+        userId: id,
+      },
+    });
+    await getDB().store.create({
+      data: {
+        name: "s",
+        id: id,
+        isActive: true,
+      },
+    });
+    const basket = new Basket(id, id);
     const productId = randomUUID();
     const quantity = 1;
     await basket.addProduct(productId, quantity);

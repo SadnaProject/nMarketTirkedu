@@ -128,7 +128,7 @@ describe("remove product", () => {
     ).rejects.toThrow("User not found");
     await expect(() =>
       controllers.Users.removeProductFromCart(userId, productId)
-    ).rejects.toThrow("The requested basket not found");
+    ).rejects.toThrow("Product not found");
     vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockResolvedValue(
       true
     );

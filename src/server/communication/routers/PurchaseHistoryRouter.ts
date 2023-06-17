@@ -67,4 +67,25 @@ export const PurchasesHistoryRouter = createTRPCRouter({
   getMyPurchases: validSessionProcedure.query(({ ctx }) => {
     return service.getMyPurchaseHistory(ctx.session.user.id);
   }),
+  getPurchase: validSessionProcedure
+    .input(
+      z.object({
+        purchaseId: z.string(),
+      })
+    )
+    .query(({ input }) => {
+      const { purchaseId } = input;
+      return service.getPurchase(purchaseId);
+    }),
+  getPurchasesByUser: validSessionProcedure
+    .input(
+      z.object({
+        adminId: z.string(),
+        userId: z.string(),
+      })
+    )
+    .query(({ input }) => {
+      const { adminId, userId } = input;
+      return service.getPurchasesByUser(adminId, userId);
+    }),
 });

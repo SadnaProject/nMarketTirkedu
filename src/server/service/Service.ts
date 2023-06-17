@@ -384,6 +384,9 @@ export class Service {
   public logoutMember(userId: string): Promise<string> {
     return this.facade.logoutMember(userId);
   }
+  public getPurchase(purchaseId: string): Promise<CartPurchaseDTO> {
+    return this.facade.getPurchase(purchaseId);
+  }
   public getPurchasesByUser(
     adminId: string,
     userId: string

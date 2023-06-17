@@ -30,7 +30,7 @@ export default function Home() {
             <Badge>{error.time.toLocaleString()}</Badge>
             <GreenBadge>{error.name}</GreenBadge>
             {error.args.map((arg, j) => (
-              <Badge key={`error-${i}-param-${j}`}>{arg}</Badge>
+              <Badge key={`error-${i}-param-${j}`}>{JSON.stringify(arg)}</Badge>
             ))}
             <RedBadge>{error.error}</RedBadge>
           </div>
@@ -44,7 +44,7 @@ export default function Home() {
             <Badge>{log.time.toLocaleString()}</Badge>
             <GreenBadge>{log.name}</GreenBadge>
             {log.args.map((arg, j) => (
-              <Badge key={`log-${i}-param-${j}`}>{arg}</Badge>
+              <Badge key={`log-${i}-param-${j}`}>{JSON.stringify(arg)}</Badge>
             ))}
             <RedBadge>{log.error}</RedBadge>
           </div>

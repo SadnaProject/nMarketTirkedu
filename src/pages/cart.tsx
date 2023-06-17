@@ -63,11 +63,12 @@ export default function Home() {
     cachedQueryOptions
   );
   const router = useRouter();
-  const { mutate: purchaseCart } = api.users.purchaseCart.useMutation({
-    ...cachedQueryOptions,
-    onSuccess: (ids) =>
-      router.push(PATHS.receipt.path(ids.paymentTransactionId.toString())),
-  });
+  const { mutate: purchaseCart, isLoading: isMakingPurchase } =
+    api.users.purchaseCart.useMutation({
+      ...cachedQueryOptions,
+      onSuccess: (ids) =>
+        router.push(PATHS.receipt.path(ids.paymentTransactionId.toString())),
+    });
   const { data: cartPrice } = api.stores.getCartPrice.useQuery(
     undefined,
     cachedQueryOptions
@@ -96,46 +97,55 @@ export default function Home() {
             <>
               {Object.values(Object.fromEntries(cart.storeIdToBasket)).map(
                 (basket) => (
-                  <>
-                    <div key={basket.storeId} className="flex justify-between">
+                  <div key={basket.storeId}>
+                    <div className="flex justify-between">
                       <Link
                         href={PATHS.store.path(basket.storeId)}
                         className="group flex w-fit items-center text-slate-700"
                       >
                         <h2 className="transition-all group-hover:mr-1">
-                          {basket.storeId}
-                          {/* todo */}
+                          {basket.storeName}
                         </h2>
                         <RightIcon />
                       </Link>
                       {/* <Price price={95451.89} className="text-slate-700" /> */}
                     </div>
-                    {basket.products.map((product) => (
-                      <Card key={product.storeProductId}>
-                        <Link
-                          href={PATHS.product.path(product.storeProductId)}
-                          className="group flex w-fit items-center text-slate-700"
-                        >
-                          <h3 className="text-lg font-bold transition-all group-hover:mr-1">
-                            {product.storeProductId}
-                            {/* todo */}
-                          </h3>
-                          <RightIcon className="h-5 w-5" />
-                        </Link>
-                        <span className="flex items-center gap-2 font-bold text-slate-700">
-                          <ItemsIcon />
-                          {product.quantity} items
-                        </span>
-                        {/* <Collapse id={`desc-${product.storeProductId}`}>
-                          {product.description}
-                        </Collapse>
-                        <div className="flex flex-col items-center justify-between md:flex-row">
-                          <Price price={product.price} /> todo
-                          <Rating rating={product.rating} />
-                        </div> */}
-                      </Card>
-                    ))}
-                  </>
+                    {basket.products.map((product) => {
+                      const storeProduct = basket.storeProducts.find(
+                        (sp) => sp.id === product.storeProductId
+                      );
+                      if (!storeProduct) return <Spinner />;
+                      return (
+                        <Card key={product.storeProductId}>
+                          <Link
+                            href={PATHS.product.path(product.storeProductId)}
+                            className="group flex w-fit items-center text-slate-700"
+                          >
+                            <h3 className="text-lg font-bold transition-all group-hover:mr-1">
+                              {storeProduct.name}
+                            </h3>
+                            <RightIcon className="h-5 w-5" />
+                          </Link>
+                          <span className="flex items-center gap-2 font-bold text-slate-700">
+                            <ItemsIcon />
+                            {product.quantity} items
+                          </span>
+                          <Collapse id={`desc-${storeProduct.id}`}>
+                            {storeProduct.description}
+                          </Collapse>
+                          <div className="flex flex-col items-center justify-between md:flex-row">
+                            <Price price={storeProduct.price} />
+                            <div className="flex items-center gap-2">
+                              <span className="text-xl">Total</span>
+                              <Price
+                                price={storeProduct.price * product.quantity}
+                              />
+                            </div>
+                          </div>
+                        </Card>
+                      );
+                    })}
+                  </div>
                 )
               )}
               <div className="flex gap-10 self-center">
@@ -143,12 +153,16 @@ export default function Home() {
                 <Price price={cartPrice ?? 0} />
               </div>
               <div className="self-center">
-                <Button
-                  data-hs-overlay={"#hs-modal-purchase"}
-                  className="text-xl"
-                >
-                  Purchase Cart
-                </Button>
+                {isMakingPurchase ? (
+                  <Spinner className="text-gray-700" />
+                ) : (
+                  <Button
+                    data-hs-overlay={"#hs-modal-purchase"}
+                    className="text-xl"
+                  >
+                    Purchase Cart
+                  </Button>
+                )}
               </div>
             </>
           ))}
@@ -229,6 +243,7 @@ export default function Home() {
         }
         footer={
           <Button
+            data-hs-overlay={"#hs-modal-purchase"}
             onClick={() => {
               console.log(errors);
               void handlePurchase();

@@ -9,26 +9,22 @@ import { api } from "server/communication/api";
 import { cachedQueryOptions } from "utils/query";
 import { useGuestRedirect } from "utils/paths";
 import {
-  ChartDocumentIcon,
   CreateIcon,
   DocumentIcon,
   FolderIcon,
-  PlusDocumentIcon,
   RemoveIcon,
   SaveIcon,
-  TextDocumentIcon,
   TimeIcon,
 } from "components/icons";
 import {
-  discountArgsSchema,
-  type DiscountArgs,
-} from "server/domain/Stores/DiscountPolicy/Discount";
-import { type ConditionArgs } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
+  conditionSchema,
+  type ConditionArgs,
+} from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
 import Input from "components/input";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useEffect } from "react";
-import { onDiscountChangeEvent } from "utils/events";
+import { onConstraintChangeEvent } from "utils/events";
 
 const defaultCondition: ConditionArgs = {
   type: "Literal",
@@ -38,47 +34,40 @@ const defaultCondition: ConditionArgs = {
   searchFor: "",
 };
 
-const defaultDiscount: DiscountArgs = {
-  type: "Simple",
-  amount: 0,
-  discountOn: "product",
-  searchFor: "",
-  condition: defaultCondition,
-};
-
 export default function Home() {
   useGuestRedirect();
   const router = useRouter();
   const { storeId } = router.query;
-  const { mutate: addDiscount } = api.stores.addDiscountToStore.useMutation({
-    ...cachedQueryOptions,
-    onSuccess: () => {
-      document.dispatchEvent(new Event(onDiscountChangeEvent));
-      toast.success("Discount added successfully");
-    },
-  });
-  const { data: discounts, refetch: refetchDiscounts } =
-    api.stores.getStoreDiscounts.useQuery(
+  const { mutate: addConstraint } = api.stores.addConstraintToStore.useMutation(
+    {
+      ...cachedQueryOptions,
+      onSuccess: () => {
+        document.dispatchEvent(new Event(onConstraintChangeEvent));
+        toast.success("Constraint added successfully");
+      },
+    }
+  );
+  const { data: constraints, refetch: refetchConstraints } =
+    api.stores.getStoreConstraints.useQuery(
       { storeId: storeId as string },
       { ...cachedQueryOptions, enabled: !!storeId }
     );
 
   useEffect(() => {
-    console.log(discounts);
-  }, [discounts]);
-
-  useEffect(() => {
-    const refetchDiscountsCallback = () => {
-      void refetchDiscounts();
+    const refetchConstraintsCallback = () => {
+      void refetchConstraints();
     };
-    document.addEventListener(onDiscountChangeEvent, refetchDiscountsCallback);
+    document.addEventListener(
+      onConstraintChangeEvent,
+      refetchConstraintsCallback
+    );
     return () => {
       document.removeEventListener(
-        onDiscountChangeEvent,
-        refetchDiscountsCallback
+        onConstraintChangeEvent,
+        refetchConstraintsCallback
       );
     };
-  }, [refetchDiscounts]);
+  }, [refetchConstraints]);
 
   return (
     <Layout className="max-w-none">
@@ -88,13 +77,13 @@ export default function Home() {
         data-hs-accordion-always-open
       >
         <h2>Ordered by chronological update date:</h2>
-        {discounts &&
-          Object.entries(Object.fromEntries(discounts)).map(
-            ([discountId, discount], i) => (
-              <FullDiscount
-                key={`discount-${discountId}`}
-                discount={discount}
-                id={discountId}
+        {constraints &&
+          Object.entries(Object.fromEntries(constraints)).map(
+            ([constraintId, constraint], i) => (
+              <FullConstraint
+                key={`constraint-${constraintId}`}
+                constraint={constraint}
+                id={constraintId}
               />
             )
           )}
@@ -106,13 +95,13 @@ export default function Home() {
       <Modal
         id={`hs-modal-create`}
         title="Confirm creation"
-        content={`Are you sure you want to create a new discount? All unsaved changes will be lost.`}
+        content={`Are you sure you want to create a new constraint? All unsaved changes will be lost.`}
         footer={
           <Button
             onClick={() =>
-              addDiscount({
+              addConstraint({
                 storeId: storeId as string,
-                discount: defaultDiscount,
+                constraint: defaultCondition,
               })
             }
             data-hs-overlay={`#hs-modal-create`}
@@ -125,15 +114,15 @@ export default function Home() {
   );
 }
 
-type FullDiscountProps = {
-  discount: DiscountArgs;
+type FullConstraintProps = {
+  constraint: ConditionArgs;
   id: string;
 };
 
-function FullDiscount({ discount, id }: FullDiscountProps) {
-  const formMethods = useForm<DiscountArgs>({
-    resolver: zodResolver(discountArgsSchema),
-    defaultValues: discount,
+function FullConstraint({ constraint: constraint, id }: FullConstraintProps) {
+  const formMethods = useForm<ConditionArgs>({
+    resolver: zodResolver(conditionSchema),
+    defaultValues: constraint,
     mode: "all",
     criteriaMode: "all",
     reValidateMode: "onChange",
@@ -141,40 +130,42 @@ function FullDiscount({ discount, id }: FullDiscountProps) {
 
   return (
     <FormProvider {...formMethods}>
-      <Discount discount={formMethods.getValues()} id={id} />
+      <Condition condition={formMethods.getValues()} id={id} />
     </FormProvider>
   );
 }
 
-type DiscountProps = {
+type ConditionProps = {
   prefix?: string;
-  discount: DiscountArgs;
+  condition: ConditionArgs;
   id?: string;
 };
 
-export function Discount({ id, discount, prefix = "" }: DiscountProps) {
+function Condition({ condition, prefix = "", id }: ConditionProps) {
   const router = useRouter();
   const { storeId } = router.query;
   const {
     register,
     formState: { errors }, //! DON'T DELETE THIS LINE. IT MAKES THE UI UPDATE
     handleSubmit,
-  } = useFormContext<DiscountArgs>();
-  const { mutate: removeDiscount } =
-    api.stores.removeDiscountFromStore.useMutation({
+  } = useFormContext<ConditionArgs>();
+  const { mutate: removeConstraint } =
+    api.stores.removeConstraintFromStore.useMutation({
       ...cachedQueryOptions,
       onSuccess: () => {
-        document.dispatchEvent(new Event(onDiscountChangeEvent));
-        toast.success("Change to discount was made successfully");
+        document.dispatchEvent(new Event(onConstraintChangeEvent));
+        toast.success("Change to constraint was made successfully");
       },
     });
-  const { mutate: addDiscount } = api.stores.addDiscountToStore.useMutation({
-    ...cachedQueryOptions,
-    onSuccess: () => {
-      if (!id) return;
-      removeDiscount({ storeId: storeId as string, discountId: id });
-    },
-  });
+  const { mutate: addConstraint } = api.stores.addConstraintToStore.useMutation(
+    {
+      ...cachedQueryOptions,
+      onSuccess: () => {
+        if (!id) return;
+        removeConstraint({ storeId: storeId as string, constraintId: id });
+      },
+    }
+  );
 
   const getPath = useCallback(
     <T extends string>(field: T) => `${prefix}${field}` as T,
@@ -184,144 +175,14 @@ export function Discount({ id, discount, prefix = "" }: DiscountProps) {
   const handleSave = handleSubmit(
     (data) => {
       console.log(data);
-      addDiscount({
+      addConstraint({
         storeId: storeId as string,
-        discount: data,
+        constraint: data,
       });
     },
     () => {
-      toast.error("Discount is invalid");
+      toast.error("Constraint is invalid");
     }
-  );
-
-  return (
-    <div
-      className="hs-accordion active"
-      id={`hs-basic-always-open-heading-${prefix}`}
-    >
-      <button
-        className="hs-accordion-toggle peer inline-flex items-center gap-x-3 py-3 text-left font-semibold text-gray-800 transition hs-accordion-active:text-blue-600 hover:text-gray-500"
-        aria-controls={`hs-basic-always-open-collapse-${prefix}`}
-      >
-        {discount.type === "Simple" && <TextDocumentIcon />}
-        {discount.type === "Add" && <PlusDocumentIcon />}
-        {discount.type === "Max" && <ChartDocumentIcon />}
-      </button>
-      <div className="ml-2 inline-flex flex-wrap gap-2 align-super">
-        <div className="w-20">
-          <SmallDropdown
-            options={
-              [
-                { label: "Simple", value: "Simple" },
-                { label: "Add", value: "Add" },
-                { label: "Max", value: "Max" },
-              ] satisfies {
-                label: string;
-                value: typeof discount.type;
-              }[]
-            }
-            {...register(getPath("type"))}
-          />
-        </div>
-        discount:
-        {discount.type === "Simple" && (
-          <>
-            <Input
-              className="w-12 px-1 py-1 text-center"
-              placeholder="0"
-              {...register(getPath("amount"), { valueAsNumber: true })}
-            />
-            % on
-            <div className="w-24">
-              <SmallDropdown
-                options={
-                  [
-                    { label: "Product", value: "product" },
-                    { label: "Category", value: "category" },
-                    { label: "Store", value: "store" },
-                  ] satisfies {
-                    label: string;
-                    value: typeof discount.discountOn;
-                  }[]
-                }
-                {...register(getPath("discountOn"))}
-              />
-            </div>
-            <Input
-              className="w-40 px-1 py-1 text-center"
-              {...register(getPath("searchFor"))}
-            />
-            if:
-          </>
-        )}
-      </div>
-      {id && (
-        <>
-          <button
-            className="ml-2 inline" //peer-hover:opacity-100 hover:opacity-100 sm:opacity-0"
-            data-hs-overlay={`#hs-modal-${prefix}`}
-          >
-            <RemoveIcon />
-          </button>
-          <button onClick={() => void handleSave()}>
-            <SaveIcon />
-          </button>
-          <Modal
-            id={`hs-modal-${prefix}`}
-            title="Confirm deletion"
-            content={`Are you sure you want to remove this discount?`}
-            footer={
-              <Button
-                onClick={() =>
-                  removeDiscount({ storeId: storeId as string, discountId: id })
-                }
-                data-hs-overlay={`#hs-modal-${prefix}`}
-              >
-                Apply changes
-              </Button>
-            }
-          />
-        </>
-      )}
-      <div
-        id={`hs-basic-always-open-collapse-${prefix}`}
-        className="hs-accordion-content w-full overflow-hidden pl-6 transition-[height] duration-300"
-        aria-labelledby={`hs-basic-always-open-heading-${prefix}`}
-      >
-        {discount.type === "Simple" && (
-          <Condition
-            condition={discount.condition}
-            prefix={`${getPath("condition")}.`}
-          />
-        )}
-        {(discount.type === "Add" || discount.type === "Max") && (
-          <>
-            <Discount prefix={`${getPath("left")}.`} discount={discount.left} />
-            <Discount
-              prefix={`${getPath("right")}.`}
-              discount={discount.right}
-            />
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-type ConditionProps = {
-  prefix?: string;
-  condition: ConditionArgs;
-};
-
-function Condition({ condition, prefix = "" }: ConditionProps) {
-  const {
-    register,
-    formState: { errors }, //! DON'T DELETE THIS LINE. IT MAKES THE UI UPDATE
-  } = useFormContext<ConditionArgs>();
-
-  const getPath = useCallback(
-    <T extends string>(field: T) => `${prefix}${field}` as T,
-    [prefix]
   );
 
   return (
@@ -465,6 +326,37 @@ function Condition({ condition, prefix = "" }: ConditionProps) {
           </>
         )}
       </div>
+      {id && (
+        <>
+          <button
+            className="ml-2 inline" //peer-hover:opacity-100 hover:opacity-100 sm:opacity-0"
+            data-hs-overlay={`#hs-modal-${prefix}`}
+          >
+            <RemoveIcon />
+          </button>
+          <button onClick={() => void handleSave()}>
+            <SaveIcon />
+          </button>
+          <Modal
+            id={`hs-modal-${prefix}`}
+            title="Confirm deletion"
+            content={`Are you sure you want to remove this constraint?`}
+            footer={
+              <Button
+                onClick={() =>
+                  removeConstraint({
+                    storeId: storeId as string,
+                    constraintId: id,
+                  })
+                }
+                data-hs-overlay={`#hs-modal-${prefix}`}
+              >
+                Apply changes
+              </Button>
+            }
+          />
+        </>
+      )}
       <div
         id={`hs-basic-always-open-collapse-${prefix}`}
         className="hs-accordion-content w-full overflow-hidden pl-6 transition-[height] duration-300"

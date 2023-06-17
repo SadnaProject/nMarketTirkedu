@@ -521,7 +521,7 @@ export const StoresRouter = createTRPCRouter({
     }),
   addConstraintToStore: validSessionProcedure
     .input(z.object({ storeId: z.string(), constraint: conditionSchema }))
-    .query(({ input, ctx }) => {
+    .mutation(({ input, ctx }) => {
       return service.addConstraintToStore(
         ctx.session.user.id,
         input.storeId,
@@ -539,7 +539,7 @@ export const StoresRouter = createTRPCRouter({
     }),
   removeConstraintFromStore: validSessionProcedure
     .input(z.object({ storeId: z.string(), constraintId: z.string() }))
-    .query(({ input, ctx }) => {
+    .mutation(({ input, ctx }) => {
       return service.removeConstraintFromStore(
         ctx.session.user.id,
         input.storeId,

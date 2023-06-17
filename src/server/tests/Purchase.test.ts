@@ -676,7 +676,7 @@ describe("Bid User Story", () => {
       productInitialPrice
     );
     await expect(service.approveBid(ownerId, bid)).rejects.toThrow(
-      "Bid already rejected"
+      "Bid is not waiting for approval"
     );
   });
   //customer bids on product, owner counter offers, customer accepts counter offer

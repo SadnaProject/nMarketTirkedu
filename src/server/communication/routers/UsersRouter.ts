@@ -50,7 +50,7 @@ export const UsersRouter = createTRPCRouter({
       );
     }),
   getCart: validSessionProcedure.query(({ ctx }) => {
-    return service.getCart(ctx.session.user.id);
+    return service.getCartUI(ctx.session.user.id);
   }),
   getNotifications: validSessionProcedure.query(({ ctx }) => {
     return service.getNotifications(ctx.session.user.id);
@@ -197,12 +197,7 @@ export const UsersRouter = createTRPCRouter({
       eventEmitter.subscribeUser(ctx.session.user.id, (event) => {
         emit.next(event);
       });
-      const thing = async () => {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      };
-      thing();
-      // service.subscribeToStoreEvents(ctx.session.user.id)
+      void service.subscribeToStoreEvents(ctx.session.user.id);
       return () => {
         eventEmitter.unsubscribeUser(ctx.session.user.id);
       };

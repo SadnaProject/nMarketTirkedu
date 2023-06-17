@@ -25,7 +25,7 @@ let repos: Repos;
 const ownerRole: OwnerRole = OwnerRole.getOwnerRole();
 const founderRole: FounderRole = FounderRole.getFounderRole();
 // let controllers: Controllers;
-beforeEach(async () => {
+beforeEach(() => {
   const testType = "integration";
   // controllers = createTestControllers(testType, "Users");
   // repos = createTestRepos(testType, "jobs");

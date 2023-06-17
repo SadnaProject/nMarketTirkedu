@@ -329,7 +329,7 @@ export interface IJobsController extends HasRepos {
    */
   canGetMembersData(userId: string): Promise<boolean>;
   /**
-   * This function returns all the id's that needs to approve
+   * This function returns all the id's that needs to approve.
    */
   getIdsThatNeedToApprove(storeId: string): Promise<string[]>;
 }

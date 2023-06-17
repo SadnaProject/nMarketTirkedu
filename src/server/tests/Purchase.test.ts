@@ -5,8 +5,8 @@ import { Service } from "server/service/Service";
 import { describe, expect, it, beforeEach } from "vitest";
 import { TRPCError } from "@trpc/server";
 import { getDB, resetDB } from "server/helpers/_Transactional";
-import { BidArgs } from "server/domain/Users/Bid";
-import { ConditionArgs } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
+import { type BidArgs } from "server/domain/Users/Bid";
+import { type ConditionArgs } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
 import {
   createCompositeConditionArgs,
   createCompositeDiscountArgs,

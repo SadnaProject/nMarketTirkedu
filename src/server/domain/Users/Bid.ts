@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { Bid as BidDAO } from "@prisma/client";
+import { type Bid as BidDAO } from "@prisma/client";
 
 const bidStateSchema = z.enum(["APPROVED", "WAITING", "REJECTED"]);
 export type BidState = z.infer<typeof bidStateSchema>;

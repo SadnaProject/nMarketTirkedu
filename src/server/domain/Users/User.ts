@@ -32,7 +32,10 @@ export class User {
     );
     return (await dtos).map((dto) => Notification.createFromDTO(dto));
   }
-  public async addNotification(notification: Notification, isOnline: boolean): Promise<void> {
+  public async addNotification(
+    notification: Notification,
+    isOnline: boolean
+  ): Promise<void> {
     this.notifications.push(notification);
     await getDB().notification.create({
       data: {
@@ -88,6 +91,8 @@ export class User {
   }
   public async clearCart(): Promise<void> {
     this.cart = new Cart(this.id);
+    await getDB().basketProduct.deleteMany({ where: { userId: this.id } });
+    await getDB().basket.deleteMany({ where: { userId: this.id } });
     await getDB().cart.delete({ where: { userId: this.id } });
     await getDB().cart.create({
       data: {

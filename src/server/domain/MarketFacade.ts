@@ -552,6 +552,9 @@ export class MarketFacade extends Loggable {
     await this.controllers.Users.disconnect(userId);
   }
 
+  public async getPurchase(purchaseId: string): Promise<CartPurchaseDTO> {
+    return await this.controllers.PurchasesHistory.getPurchase(purchaseId);
+  }
   public async getPurchasesByUser(
     adminId: string,
     userId: string

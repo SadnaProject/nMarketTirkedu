@@ -15,8 +15,8 @@ import {
   type IDiscount,
 } from "server/domain/Stores/DiscountPolicy/Discount";
 import { type ConditionArgs } from "server/domain/Stores/Conditions/CompositeLogicalCondition/Condition";
-import { BidDTO, type BidArgs } from "server/domain/Users/Bid";
-import { MakeOwnerDTO } from "server/domain/Stores/MakeOwner";
+import { type BidDTO, type BidArgs } from "server/domain/Users/Bid";
+import { type MakeOwnerDTO } from "server/domain/Stores/MakeOwner";
 
 export type SearchArgs = {
   name?: string;

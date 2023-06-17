@@ -23,7 +23,7 @@ import { Loggable, censored, loggable } from "./helpers/_Loggable";
 import { createControllers } from "./helpers/_createControllers";
 import { type Controllers } from "./helpers/_HasController";
 import { eventEmitter } from "./helpers/_EventEmitter";
-import { MakeOwnerDTO } from "./Stores/MakeOwner";
+import { type MakeOwnerDTO } from "./Stores/MakeOwner";
 import { is } from "ramda";
 
 // @transactional

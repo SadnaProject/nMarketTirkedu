@@ -1,5 +1,5 @@
 import { getDB } from "server/helpers/_Transactional";
-import { type ExtendedBasketDTO, BasketDTO, Basket } from "./Basket";
+import { type ExtendedBasketDTO, type BasketDTO, Basket } from "./Basket";
 import { TRPCError } from "@trpc/server";
 
 export type CartDTO = {

@@ -1,5 +1,6 @@
 import { getDB } from "server/helpers/_Transactional";
 import { type BasketProductDTO, BasketProduct } from "./BasketProduct";
+import { type StoreProduct as DataStoreProduct } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 
 export type BasketDTO = {
@@ -12,6 +13,7 @@ export type ExtendedBasketDTO = {
   storeId: string;
   storeName: string;
   products: BasketProductDTO[];
+  storeProducts: DataStoreProduct[];
   //new
   userId: string;
 };
@@ -154,6 +156,7 @@ export class Basket {
       storeId: storeId,
       storeName: "",
       products: [],
+      storeProducts: [],
       userId: userId,
     };
     const store = await getDB().store.findUnique({
@@ -172,6 +175,18 @@ export class Basket {
       where: { userId: userId, storeId: storeId },
     });
     b.products = products;
+    for (const p of products) {
+      const prod = await getDB().storeProduct.findUnique({
+        where: { id: p.storeProductId },
+      });
+      if (!prod) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Store product not found",
+        });
+      }
+      b.storeProducts.push(prod);
+    }
     return b;
   }
   public toString(): string {

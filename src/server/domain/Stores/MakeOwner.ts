@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { BidState, MakeOwner as MakeOwnerDAO } from "@prisma/client";
+import { BidState, type MakeOwner as MakeOwnerDAO } from "@prisma/client";
 export type MakeOwnerDTO = {
   id: string;
   storeId: string;

@@ -80,12 +80,11 @@ export const PurchasesHistoryRouter = createTRPCRouter({
   getPurchasesByUser: validSessionProcedure
     .input(
       z.object({
-        adminId: z.string(),
         userId: z.string(),
       })
     )
-    .query(({ input }) => {
-      const { adminId, userId } = input;
-      return service.getPurchasesByUser(adminId, userId);
+    .query(({ input, ctx }) => {
+      const { userId } = input;
+      return service.getPurchasesByUser(ctx.session.user.id, userId);
     }),
 });

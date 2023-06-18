@@ -798,7 +798,7 @@ export class StoresController
           type: "makeOwner",
           channel: `ApproveMakeNewOwner_${idOfMakeOwnerObject}`,
           makeOwnerObjectId: idOfMakeOwnerObject,
-          message: "You have a new owner in the store !",
+          message: "You have a new owner in the store!",
         });
         eventEmitter.subscribeChannel(`storeChanged_${storeId}`, targetUserId);
         eventEmitter.subscribeChannel(`bidAdded_${storeId}`, targetUserId);
@@ -1229,7 +1229,7 @@ export class StoresController
         type: "makeOwner",
         channel: `ApproveMakeNewOwner_${makeOwnerId}`,
         makeOwnerObjectId: makeOwnerId,
-        message: "You have a new owner in the store !",
+        message: "You have a new owner in the store!",
       });
       await this.makeStoreOwner(
         make.getAppointerUserId(),

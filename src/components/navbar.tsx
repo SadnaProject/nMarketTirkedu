@@ -20,11 +20,11 @@ import { type Event } from "server/domain/helpers/_Events";
 const publicLinks = [
   { name: "Products", path: PATHS.products.path },
   { name: "Stores", path: PATHS.stores.path },
+  { name: "My Receipts", path: PATHS.myReceipts.path },
 ] as const;
 
 const privateLinks = [
   { name: "My Stores", path: PATHS.myStores.path },
-  { name: "My Receipts", path: PATHS.myReceipts.path },
   { name: "Bids", path: PATHS.bids.path },
 ] as const;
 
@@ -183,26 +183,22 @@ export default function Navbar() {
                         ?.slice()
                         .reverse()
                         .map((notification, i) => (
-                          <Link
+                          <div
                             key={`notification-${i}`}
-                            passHref
-                            legacyBehavior
-                            href={PATHS.receipt.path("todo")}
+                            className="flex cursor-pointer items-center gap-x-1.5 rounded-md px-3 py-2 text-sm text-slate-800 hover:bg-slate-100 focus:ring-2 focus:ring-blue-500"
                           >
-                            <div className="flex cursor-pointer items-center gap-x-1.5 rounded-md px-3 py-2 text-sm text-slate-800 hover:bg-slate-100 focus:ring-2 focus:ring-blue-500">
-                              {/* <CashIcon /> */}
-                              <div className="flex items-center gap-x-1">
-                                {notification}
-                                {/* <Link href={PATHS.chat.path("todo")}>
+                            {/* <CashIcon /> */}
+                            <div className="flex items-center gap-x-1">
+                              {notification}
+                              {/* <Link href={PATHS.chat.path("todo")}>
                                 <Badge>Omer</Badge>
                               </Link>
                               bought from
                               <Link href={PATHS.store.path("todo")}>
                                 <Badge>H&M</Badge>
                               </Link> */}
-                              </div>
                             </div>
-                          </Link>
+                          </div>
                         ))}
                     </div>
                   </div>

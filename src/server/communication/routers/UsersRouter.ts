@@ -197,7 +197,16 @@ export const UsersRouter = createTRPCRouter({
       eventEmitter.subscribeUser(ctx.session.user.id, (event) => {
         emit.next(event);
       });
-      void service.subscribeToStoreEvents(ctx.session.user.id);
+      service.subscribeToStoreEvents(ctx.session.user.id).catch((err) => {
+        console.log("reconnect failed", err);
+      });
+
+      // setTimeout(() => {
+      //   try {
+      //   } catch (err) {
+      //     console.log(err);
+      //   }
+      // }, 1);
       return () => {
         eventEmitter.unsubscribeUser(ctx.session.user.id);
       };

@@ -71,31 +71,37 @@ export default function StoreNavbar({ storeId }: Props) {
       name: "Products",
       href: PATHS.store.path(storeId ?? ""),
       icon: <OverviewIcon />,
+      visible: true,
     },
     {
       name: "Jobs",
       href: PATHS.storeJobs.path(storeId ?? ""),
       icon: <JobsIcon />,
+      visible: isMyStore || isSystemAdmin,
     },
     {
       name: "Make Owner Requests",
       href: PATHS.storeMakeOwnerRequests.path(storeId ?? ""),
       icon: <></>,
+      visible: isMyStore,
     },
     {
       name: "Revenue",
       href: PATHS.storeRevenue.path(storeId ?? ""),
       icon: <RevenueIcon />,
+      visible: isMyStore || isSystemAdmin,
     },
     {
       name: "Discounts",
       href: PATHS.storeDiscounts.path(storeId ?? ""),
       icon: <DiscountIcon />,
+      visible: true,
     },
     {
       name: "Policy",
       href: PATHS.storePolicy.path(storeId ?? ""),
       icon: <BookIcon />,
+      visible: true,
     },
   ];
 
@@ -135,9 +141,11 @@ export default function StoreNavbar({ storeId }: Props) {
               }
             />
           </div>
-          {isMyStore && (
-            <nav className="flex w-full max-w-2xl space-x-2 overflow-x-auto">
-              {links.map((link) => (
+
+          <nav className="flex w-full max-w-2xl space-x-2 overflow-x-auto">
+            {links
+              .filter((link) => link.visible)
+              .map((link) => (
                 <Link
                   key={link.name}
                   className={twMerge(
@@ -152,8 +160,7 @@ export default function StoreNavbar({ storeId }: Props) {
                   {link.name}
                 </Link>
               ))}
-            </nav>
-          )}
+          </nav>
         </>
       )}
     </>

@@ -358,6 +358,7 @@ export class UsersController
   }
   subscribeForUserEvents(userId: string) {
     eventEmitter.subscribeChannel(`bidAdded_${userId}`, userId);
+    eventEmitter.subscribeChannel(`NewStoreOwner_${userId}`, userId);
   }
   async register(email: string, @censored password: string): Promise<string> {
     const MemberId = await this.Controllers.Auth.register(email, password);

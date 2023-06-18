@@ -800,6 +800,13 @@ export class StoresController
           makeOwnerObjectId: idOfMakeOwnerObject,
           message: "You have a new owner in the store!",
         });
+        const storeName = await this.getStoreNameById(currentId, storeId);
+        await eventEmitter.emitEvent({
+          type: "makeOwner",
+          channel: `NewStore_${targetUserId}`,
+          makeOwnerObjectId: idOfMakeOwnerObject,
+          message: `You are now a owner of store name _${storeName}!`,
+        });
         eventEmitter.subscribeChannel(`storeChanged_${storeId}`, targetUserId);
         eventEmitter.subscribeChannel(`bidAdded_${storeId}`, targetUserId);
         eventEmitter.subscribeChannel(`storePurchase$${storeId}`, targetUserId);
@@ -874,6 +881,7 @@ export class StoresController
       storeId,
       targetUserId
     );
+    await this.subscribeToStoreEvents(targetUserId);
   }
   async removeStoreOwner(
     currentId: string,

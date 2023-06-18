@@ -27,7 +27,9 @@ import { ConstraintPolicy } from "./PurchasePolicy/ConstraintPolicy";
 import { resetDB } from "server/helpers/_Transactional";
 
 async function generateForDiscountAndConstraintTests(testType: string) {
+  testType = "integration";
   const controllers = createTestControllers(testType, "Stores");
+  // const controllers = createTestControllers("integration", "Stores");
   vi.spyOn(controllers.PurchasesHistory, "getReviewsByProduct").mockReturnValue(
     createPromise({ avgRating: 0, reviews: [] })
   );
@@ -152,6 +154,7 @@ beforeEach(async () => {
 
 describe("constructor", () => {
   itUnitIntegration("✅creates a store", async (testType) => {
+    testType = "integration";
     const storeName = generateStoreName();
     const controllers = createTestControllers(testType, "Stores");
     const repos = createTestRepos(testType);
@@ -167,6 +170,7 @@ describe("constructor", () => {
 
 describe("createProduct", () => {
   itUnitIntegration("✅creates a product", async (testType) => {
+    testType = "integration";
     const controllers = createTestControllers(testType, "Stores");
     const repos = createTestRepos(testType);
     const storeName = generateStoreName();
@@ -244,6 +248,7 @@ describe("createProduct", () => {
 });
 describe("get basket price", () => {
   itUnitIntegration("✅gets basket price", async (testType) => {
+    testType = "integration";
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
@@ -290,6 +295,7 @@ describe("get basket price", () => {
 });
 describe("Discounts", () => {
   itUnitIntegration("add simple product discount", async (testType) => {
+    testType = "integration";
     const {
       price,
       product,
@@ -340,6 +346,7 @@ describe("Discounts", () => {
     expect(await store.getBasketPrice("", basket)).toBe(price);
   });
   itUnitIntegration("add simple category discount", async (testType) => {
+    testType = "integration";
     const {
       price,
       product,
@@ -381,6 +388,7 @@ describe("Discounts", () => {
     expect(await store.getBasketPrice("", basket)).toBe(price);
   });
   itUnitIntegration("add simple price discount", async (testType) => {
+    testType = "integration";
     const {
       price,
       product,
@@ -444,6 +452,7 @@ describe("Discounts", () => {
     expect(await store.getBasketPrice("", basket)).toBe(price);
   });
   itUnitIntegration("add simple basket discount", async (testType) => {
+    testType = "integration";
     const {
       price,
       product,
@@ -487,6 +496,7 @@ describe("Discounts", () => {
   itUnitIntegration(
     "add max discount with simple condition",
     async (testType) => {
+      testType = "integration";
       const {
         price,
         product,
@@ -540,6 +550,7 @@ describe("Discounts", () => {
   itUnitIntegration(
     "add compose ADD discount with simple condition",
     async (testType) => {
+      testType = "integration";
       const {
         price,
         product,
@@ -586,6 +597,7 @@ describe("Discounts", () => {
   itUnitIntegration(
     "add compose discount with And condition",
     async (testType) => {
+      testType = "integration";
       const {
         price,
         product,
@@ -634,6 +646,7 @@ describe("Discounts", () => {
   itUnitIntegration(
     "add compose MAX discount with compose logic implies condition",
     async (testType) => {
+      testType = "integration";
       const {
         price,
         product,
@@ -766,6 +779,7 @@ describe("Constraint tests", () => {
   itUnitIntegration(
     "add simple constraint to store and check if it works",
     async (testType) => {
+      testType = "integration";
       const {
         price,
         product,
@@ -786,6 +800,7 @@ describe("Constraint tests", () => {
   itUnitIntegration(
     "add composite AND constraint to store and check if it works",
     async (testType) => {
+      testType = "integration";
       const {
         price,
         product,
@@ -810,6 +825,7 @@ describe("Constraint tests", () => {
   itUnitIntegration(
     "add composite implies constraint to store and check if it works",
     async (testType) => {
+      testType = "integration";
       const {
         price,
         product,
@@ -840,6 +856,7 @@ describe("Constraint tests", () => {
   itUnitIntegration(
     "add composite xor constraint to store and check if it works",
     async (testType) => {
+      testType = "integration";
       const {
         price,
         product,
@@ -870,6 +887,7 @@ describe("Constraint tests", () => {
   itUnitIntegration(
     "add composite or constraint to store and check if it works",
     async (testType) => {
+      testType = "integration";
       const {
         price,
         product,
@@ -900,6 +918,7 @@ describe("Constraint tests", () => {
   itUnitIntegration(
     "add time constraint to store and check if it works",
     async (testType) => {
+      testType = "integration";
       const {
         price,
         product,

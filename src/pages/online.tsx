@@ -1,10 +1,11 @@
-import { useGuestRedirect } from "utils/paths";
+import PATHS, { useGuestRedirect } from "utils/paths";
 import Layout from "./_layout";
 import { api } from "server/communication/api";
 import { cachedQueryOptions } from "utils/query";
-import { RemoveIcon } from "components/icons";
+import { RemoveIcon, ShoppingIcon } from "components/icons";
 import { Modal } from "components/modal";
 import Button from "components/button";
+import Link from "next/link";
 
 export default function Home() {
   useGuestRedirect();
@@ -25,6 +26,9 @@ export default function Home() {
       {connectedUser?.map((id) => (
         <div key={id} className="flex gap-2">
           {id}
+          <Link href={PATHS.userPurchases.path(id)}>
+            <ShoppingIcon />
+          </Link>
           <button data-hs-overlay={`#hs-modal-remove-${id}`}>
             <RemoveIcon />
           </button>
@@ -47,6 +51,9 @@ export default function Home() {
       {unconnectedUser?.map((id) => (
         <div key={id} className="flex gap-2">
           {id}
+          <Link href={PATHS.userPurchases.path(id)}>
+            <ShoppingIcon />
+          </Link>
           <button data-hs-overlay={`#hs-modal-remove-${id}`}>
             <RemoveIcon />
           </button>

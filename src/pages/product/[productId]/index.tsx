@@ -14,6 +14,7 @@ import {
   CartIcon,
   CourtHammerIcon,
   EditIcon,
+  RemoveIcon,
   RightIcon,
 } from "components/icons";
 import { api } from "server/communication/api";
@@ -25,6 +26,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-hot-toast";
 import { useSession } from "next-auth/react";
+import { Modal } from "components/modal";
 
 const quantitySchema = z.object({
   quantity: z.number().int().nonnegative(),
@@ -78,6 +80,17 @@ export default function Home() {
       { storeId: storeId as string },
       { ...cachedQueryOptions, enabled: !!storeId }
     );
+  const { data: canRemoveProduct } = api.jobs.getPermissionsOfUser.useQuery(
+    { storeId: storeId as string, userId: session?.user.id as string },
+    { ...cachedQueryOptions, enabled: !!storeId }
+  );
+  const { mutate: deleteProduct } = api.stores.deleteProduct.useMutation({
+    ...cachedQueryOptions,
+    onSuccess: () => {
+      document.dispatchEvent(new Event(onCartChangeEvent));
+      void router.push(PATHS.store.path(storeId as string));
+    },
+  });
 
   useEffect(() => {
     if (cart) {
@@ -132,11 +145,34 @@ export default function Home() {
         <Card className="relative mt-0">
           <div className="flex justify-between">
             <h1>{product.name}</h1>
-            {storeId && canEditProductInStore && (
-              <Link href={PATHS.editProduct.path(productId as string)}>
-                <EditIcon />
-              </Link>
-            )}
+            <div className="flex gap-2">
+              {storeId && canEditProductInStore && (
+                <Link href={PATHS.editProduct.path(productId as string)}>
+                  <EditIcon />
+                </Link>
+              )}
+              {storeId &&
+                canRemoveProduct?.find((p) => p === "RemoveProduct") && (
+                  <button data-hs-overlay="#hs-modal-remove">
+                    <RemoveIcon />
+                  </button>
+                )}
+              <Modal
+                id="hs-modal-remove"
+                title="Confirm deletion"
+                content={"Are you sure you want to delete this product?"}
+                footer={
+                  <Button
+                    onClick={() =>
+                      deleteProduct({ productId: productId as string })
+                    }
+                    data-hs-overlay="#hs-modal-remove"
+                  >
+                    Apply changes
+                  </Button>
+                }
+              />
+            </div>
           </div>
           <span className="font-bold text-slate-700">{product.category}</span>
           <Collapse id={`desc`}>{product.description}</Collapse>

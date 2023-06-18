@@ -21,6 +21,10 @@ const PATHS = {
     path: (productId: string) => `/product/${productId}`,
     for: ["guest", "member"],
   },
+  userPurchases: {
+    path: (uid: string) => `/userPurchases/${uid}`,
+    for: ["admin"],
+  },
   editProduct: {
     path: (productId: string) => `/product/${productId}/edit`,
     for: ["member"],

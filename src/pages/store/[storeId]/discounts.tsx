@@ -7,7 +7,6 @@ import { toast } from "react-hot-toast";
 import { Modal } from "components/modal";
 import { api } from "server/communication/api";
 import { cachedQueryOptions } from "utils/query";
-import { useGuestRedirect } from "utils/paths";
 import {
   ChartDocumentIcon,
   CreateIcon,
@@ -27,8 +26,9 @@ import { type ConditionArgs } from "server/domain/Stores/Conditions/CompositeLog
 import Input from "components/input";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { onDiscountChangeEvent } from "utils/events";
+import { twMerge } from "tailwind-merge";
 
 const defaultCondition: ConditionArgs = {
   type: "Literal",
@@ -47,7 +47,6 @@ const defaultDiscount: DiscountArgs = {
 };
 
 export default function Home() {
-  useGuestRedirect();
   const router = useRouter();
   const { storeId } = router.query;
   const { mutate: addDiscount } = api.stores.addDiscountToStore.useMutation({
@@ -62,6 +61,16 @@ export default function Home() {
       { storeId: storeId as string },
       { ...cachedQueryOptions, enabled: !!storeId }
     );
+  const { data: myStores } = api.stores.myStores.useQuery(
+    undefined,
+    cachedQueryOptions
+  );
+  const [isMyStore, setIsMyStore] = useState(false);
+  useEffect(() => {
+    if (myStores) {
+      setIsMyStore(myStores.some((myStore) => myStore.store.id === storeId));
+    }
+  }, [myStores, storeId]);
 
   useEffect(() => {
     console.log(discounts);
@@ -84,7 +93,10 @@ export default function Home() {
     <Layout className="max-w-none">
       <StoreNavbar storeId={storeId as string} />
       <div
-        className="hs-accordion-group flex w-full flex-col overflow-auto"
+        className={twMerge(
+          "hs-accordion-group flex w-full flex-col overflow-auto",
+          isMyStore ? "" : "pointer-events-none"
+        )}
         data-hs-accordion-always-open
       >
         <h2>Ordered by chronological update date:</h2>
@@ -99,10 +111,12 @@ export default function Home() {
             )
           )}
       </div>
-      <Button className="rounded-full" data-hs-overlay={`#hs-modal-create`}>
-        <CreateIcon />
-        Create
-      </Button>
+      {isMyStore && (
+        <Button className="rounded-full" data-hs-overlay={`#hs-modal-create`}>
+          <CreateIcon />
+          Create
+        </Button>
+      )}
       <Modal
         id={`hs-modal-create`}
         title="Confirm creation"
@@ -175,6 +189,16 @@ export function Discount({ id, discount, prefix = "" }: DiscountProps) {
       removeDiscount({ storeId: storeId as string, discountId: id });
     },
   });
+  const { data: myStores } = api.stores.myStores.useQuery(
+    undefined,
+    cachedQueryOptions
+  );
+  const [isMyStore, setIsMyStore] = useState(false);
+  useEffect(() => {
+    if (myStores) {
+      setIsMyStore(myStores.some((myStore) => myStore.store.id === storeId));
+    }
+  }, [myStores, storeId]);
 
   const getPath = useCallback(
     <T extends string>(field: T) => `${prefix}${field}` as T,
@@ -257,15 +281,19 @@ export function Discount({ id, discount, prefix = "" }: DiscountProps) {
       </div>
       {id && (
         <>
-          <button
-            className="ml-2 inline" //peer-hover:opacity-100 hover:opacity-100 sm:opacity-0"
-            data-hs-overlay={`#hs-modal-${prefix}`}
-          >
-            <RemoveIcon />
-          </button>
-          <button onClick={() => void handleSave()}>
-            <SaveIcon />
-          </button>
+          {isMyStore && (
+            <>
+              <button
+                className="ml-2 inline" //peer-hover:opacity-100 hover:opacity-100 sm:opacity-0"
+                data-hs-overlay={`#hs-modal-${prefix}`}
+              >
+                <RemoveIcon />
+              </button>
+              <button onClick={() => void handleSave()}>
+                <SaveIcon />
+              </button>
+            </>
+          )}
           <Modal
             id={`hs-modal-${prefix}`}
             title="Confirm deletion"

@@ -66,8 +66,7 @@ export default function Home() {
   const { mutate: purchaseCart, isLoading: isMakingPurchase } =
     api.users.purchaseCart.useMutation({
       ...cachedQueryOptions,
-      onSuccess: (ids) =>
-        router.push(PATHS.receipt.path(ids.paymentTransactionId.toString())),
+      onSuccess: (ids) => router.push(PATHS.myReceipts.path),
     });
   const { data: cartPrice } = api.stores.getCartPrice.useQuery(
     undefined,

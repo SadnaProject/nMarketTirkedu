@@ -34,14 +34,15 @@ export default function Home() {
     register,
     handleSubmit,
     getValues,
-    setValue,
     formState: { errors },
+    watch,
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     mode: "all",
     criteriaMode: "all",
     reValidateMode: "onChange",
   });
+  const email = watch("email"); //! TODO DON'T DELETE. IT MAKES IT WORK
   const router = useRouter();
   const storeId = z.undefined().or(z.string()).parse(router.query.storeId);
   const { data: jobs, refetch: refetchJobsHierarchy } =
@@ -66,6 +67,16 @@ export default function Home() {
     { email: getValues("email") },
     { ...cachedQueryOptions, enabled: false }
   );
+  const { data: myStores } = api.stores.myStores.useQuery(
+    undefined,
+    cachedQueryOptions
+  );
+  const [isMyStore, setIsMyStore] = useState(false);
+  useEffect(() => {
+    if (myStores) {
+      setIsMyStore(myStores.some((myStore) => myStore.store.id === storeId));
+    }
+  }, [myStores, storeId]);
 
   useEffect(() => {
     const refetchJobsHierarchyCallback = () => {
@@ -104,34 +115,38 @@ export default function Home() {
   return (
     <Layout>
       <StoreNavbar storeId={storeId} />
-      <div className="flex w-full max-w-md flex-wrap sm:flex-nowrap">
-        <SmallDropdown
-          options={
-            [
-              { label: "Owner", value: "Owner" },
-              { label: "Manager", value: "Manager" },
-            ] satisfies {
-              label: string;
-              value: RoleType;
-            }[]
-          }
-          {...register("role")}
-          className="rounded-b-none sm:w-40 sm:rounded-b-lg sm:rounded-br-none sm:rounded-tr-none"
-        />
-        <Input
-          placeholder="Email"
-          className="rounded-none"
-          {...register("email")}
-        />
-        <Button
-          glowClassName="w-full"
-          glowContainerClassName="w-full sm:w-auto"
-          className="h-full w-full rounded-t-lg sm:rounded-lg sm:rounded-l-none"
-          onClick={() => void handleAssignment()}
-        >
-          Add
-        </Button>
-      </div>
+      {isMyStore && (
+        <>
+          <div className="flex w-full max-w-md flex-wrap sm:flex-nowrap">
+            <SmallDropdown
+              options={
+                [
+                  { label: "Owner", value: "Owner" },
+                  { label: "Manager", value: "Manager" },
+                ] satisfies {
+                  label: string;
+                  value: RoleType;
+                }[]
+              }
+              {...register("role")}
+              className="rounded-b-none sm:w-40 sm:rounded-b-lg sm:rounded-br-none sm:rounded-tr-none"
+            />
+            <Input
+              placeholder="Email"
+              className="rounded-none"
+              {...register("email")}
+            />
+            <Button
+              glowClassName="w-full"
+              glowContainerClassName="w-full sm:w-auto"
+              className="h-full w-full rounded-t-lg sm:rounded-lg sm:rounded-l-none"
+              onClick={() => void handleAssignment()}
+            >
+              Add
+            </Button>
+          </div>
+        </>
+      )}
       <div className="hs-accordion-group w-full" data-hs-accordion-always-open>
         {jobs && <Job job={jobs} />}
       </div>

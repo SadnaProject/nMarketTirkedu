@@ -1,24 +1,29 @@
-import Gallery from "components/gallery";
-import { type StoreDTO } from "server/domain/Stores/Store";
-import Layout from "./_layout";
-import Link from "next/link";
+import Layout from "pages/_layout";
 import Card from "components/card";
-import { Rating } from "components/star";
-import PATHS, { useGuestRedirect } from "utils/paths";
 import Price from "components/price";
-import { ItemsIcon, TimeIcon } from "components/icons";
+import Link from "next/link";
+import PATHS, { useGuestRedirect } from "utils/paths";
+import { ItemsIcon } from "components/icons";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 import { api } from "server/communication/api";
 import { cachedQueryOptions } from "utils/query";
+import Gallery from "components/gallery";
 
 export default function Home() {
-  const { data: receipts } = api.purchaseHistory.getMyPurchases.useQuery(
-    undefined,
-    cachedQueryOptions
+  useGuestRedirect();
+  const router = useRouter();
+  const { uid } = router.query;
+  const { data: receipts } = api.purchaseHistory.getPurchasesByUser.useQuery(
+    { userId: uid as string },
+    {
+      ...cachedQueryOptions,
+      enabled: !!uid,
+    }
   );
 
   return (
     <Layout>
-      <h1>My Receipts</h1>
       <Gallery
         list={receipts?.slice().reverse() || []}
         getId={(receipt) => receipt.purchaseId}
@@ -36,25 +41,13 @@ export default function Home() {
             </Card>
           </Link>
         )}
+        noItemsCard={
+          <Card className="mt-0 flex h-full w-full max-w-md items-center justify-center">
+            <span>No receipts yet</span>
+          </Card>
+        }
         className="grid-cols-1 lg:grid-cols-4"
       />
     </Layout>
-  );
-}
-
-type StoreCardProps = {
-  store: StoreDTO;
-  role: string;
-};
-
-function StoreCard({ store, role }: StoreCardProps) {
-  return (
-    <Link href={PATHS.store.path(store.id)}>
-      <Card>
-        <h3 className="text-lg font-bold text-slate-800">{store.name}</h3>
-        <span className="mb-2 font-bold text-slate-700">{role}</span>
-        <Rating rating={3.25} votes={5} />
-      </Card>
-    </Link>
   );
 }

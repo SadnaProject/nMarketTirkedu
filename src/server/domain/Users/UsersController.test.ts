@@ -6,7 +6,7 @@ import {
   createTestControllers,
 } from "../helpers/_createControllers";
 import { itUnitIntegration } from "../helpers/_mock";
-import { resetDB } from "server/helpers/_Transactional";
+import { getDB, resetDB } from "server/helpers/_Transactional";
 import { createMockRepos, type createTestRepos } from "./helpers/_HasRepos";
 import { createPromise } from "server/data/Stores/helpers/_data";
 beforeEach(async () => {
@@ -31,16 +31,33 @@ afterEach(async () => {
 });
 describe("add product", () => {
   it("should test the add product functionality ", async () => {
+    const storeId = randomUUID();
+    await getDB().store.create({
+      data: {
+        id: storeId,
+        isActive: true,
+        name: "",
+      },
+    });
+    await getDB().storeProduct.create({
+      data: {
+        id: productId,
+        category: "",
+        description: "",
+        name: "",
+        price: 7,
+        quantity: 7,
+        storeId: storeId,
+      },
+    });
     controllers = createMockControllers("Users");
     await controllers.Users.addUser(userId);
-
     const sizeBefore = (await controllers.Users.getCart(userId)).storeIdToBasket
       .size;
     vi.spyOn(
       controllers.Stores,
       "isProductQuantityInStock"
     ).mockResolvedValueOnce(true);
-    const storeId = randomUUID();
     vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockResolvedValue(
       storeId
     );
@@ -89,20 +106,49 @@ describe("add product", () => {
     ).rejects.toThrow("Quantity cannot be negative");
   });
 });
-
 describe("remove product", () => {
   it("should test the remove product functionality ", async () => {
+    const storeId = randomUUID();
+    await getDB().store.create({
+      data: {
+        id: storeId,
+        isActive: true,
+        name: "",
+      },
+    });
+    await getDB().storeProduct.create({
+      data: {
+        id: productId,
+        category: "",
+        description: "",
+        name: "",
+        price: 7,
+        quantity: 7,
+        storeId: storeId,
+      },
+    });
+    const productId2 = randomUUID();
+    await getDB().storeProduct.create({
+      data: {
+        id: productId2,
+        category: "",
+        description: "",
+        name: "",
+        price: 7,
+        quantity: 7,
+        storeId: storeId,
+      },
+    });
     controllers = createMockControllers("Users");
     await controllers.Users.addUser(userId);
     vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockResolvedValue(
       true
     );
-    const storeId = randomUUID();
     vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockResolvedValue(
       storeId
     );
     await controllers.Users.addProductToCart(userId, productId, 5);
-    const productId2 = randomUUID();
+    // const productId2 = randomUUID();
     await controllers.Users.addProductToCart(userId, productId2, 5);
     await controllers.Users.removeProductFromCart(userId, productId);
     expect(
@@ -142,12 +188,42 @@ describe("remove product", () => {
 
 describe("edit product quantity", () => {
   it("should test the edit product quantity functionality ", async () => {
+    const storeId = randomUUID();
+    await getDB().store.create({
+      data: {
+        id: storeId,
+        isActive: true,
+        name: "",
+      },
+    });
+    await getDB().storeProduct.create({
+      data: {
+        id: productId,
+        category: "",
+        description: "",
+        name: "",
+        price: 7,
+        quantity: 7,
+        storeId: storeId,
+      },
+    });
+    const productId2 = randomUUID();
+    await getDB().storeProduct.create({
+      data: {
+        id: productId2,
+        category: "",
+        description: "",
+        name: "",
+        price: 7,
+        quantity: 7,
+        storeId: storeId,
+      },
+    });
     controllers = createMockControllers("Users");
     await controllers.Users.addUser(userId);
     vi.spyOn(controllers.Stores, "isProductQuantityInStock").mockResolvedValue(
       true
     );
-    const storeId = randomUUID();
     vi.spyOn(controllers.Stores, "getStoreIdByProductId").mockResolvedValue(
       storeId
     );
@@ -157,7 +233,7 @@ describe("edit product quantity", () => {
       productId,
       withoutEditQuantity
     );
-    const productId2 = randomUUID();
+    // const productId2 = randomUUID();
     await controllers.Users.addProductToCart(
       userId,
       productId2,

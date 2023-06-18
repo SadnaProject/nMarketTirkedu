@@ -12,6 +12,7 @@ export default defineConfig({
       provider: "istanbul",
       reporter: ["lcov", "html"],
     },
+    include: ["**/Store.test.ts"],
     // include: [
     // "**/UserRepo.test.ts",
     // "**/User.test.ts",

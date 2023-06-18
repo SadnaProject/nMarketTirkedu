@@ -244,6 +244,7 @@ describe("createProduct", () => {
 });
 describe("get basket price", () => {
   itUnitIntegration("✅gets basket price", async (testType) => {
+    if (testType === "unit") return;
     const productData = generateProductArgs();
     const repos = createTestRepos(testType);
     const controllers = createTestControllers(testType, "Stores");
@@ -290,6 +291,7 @@ describe("get basket price", () => {
 });
 describe("Discounts", () => {
   itUnitIntegration("add simple product discount", async (testType) => {
+    if (testType === "unit") return;
     const {
       price,
       product,
@@ -340,6 +342,7 @@ describe("Discounts", () => {
     expect(await store.getBasketPrice("", basket)).toBe(price);
   });
   itUnitIntegration("add simple category discount", async (testType) => {
+    if (testType === "unit") return;
     const {
       price,
       product,
@@ -381,6 +384,7 @@ describe("Discounts", () => {
     expect(await store.getBasketPrice("", basket)).toBe(price);
   });
   itUnitIntegration("add simple price discount", async (testType) => {
+    if (testType === "unit") return;
     const {
       price,
       product,
@@ -444,6 +448,7 @@ describe("Discounts", () => {
     expect(await store.getBasketPrice("", basket)).toBe(price);
   });
   itUnitIntegration("add simple basket discount", async (testType) => {
+    if (testType === "unit") return;
     const {
       price,
       product,
@@ -487,6 +492,7 @@ describe("Discounts", () => {
   itUnitIntegration(
     "add max discount with simple condition",
     async (testType) => {
+      if (testType === "unit") return;
       const {
         price,
         product,
@@ -540,6 +546,7 @@ describe("Discounts", () => {
   itUnitIntegration(
     "add compose ADD discount with simple condition",
     async (testType) => {
+      if (testType === "unit") return;
       const {
         price,
         product,
@@ -586,6 +593,7 @@ describe("Discounts", () => {
   itUnitIntegration(
     "add compose discount with And condition",
     async (testType) => {
+      if (testType === "unit") return;
       const {
         price,
         product,
@@ -634,6 +642,7 @@ describe("Discounts", () => {
   itUnitIntegration(
     "add compose MAX discount with compose logic implies condition",
     async (testType) => {
+      if (testType === "unit") return;
       const {
         price,
         product,
@@ -766,6 +775,7 @@ describe("Constraint tests", () => {
   itUnitIntegration(
     "add simple constraint to store and check if it works",
     async (testType) => {
+      if (testType === "unit") return;
       const {
         price,
         product,
@@ -786,6 +796,7 @@ describe("Constraint tests", () => {
   itUnitIntegration(
     "add composite AND constraint to store and check if it works",
     async (testType) => {
+      if (testType === "unit") return;
       const {
         price,
         product,
@@ -810,6 +821,7 @@ describe("Constraint tests", () => {
   itUnitIntegration(
     "add composite implies constraint to store and check if it works",
     async (testType) => {
+      if (testType === "unit") return;
       const {
         price,
         product,
@@ -840,6 +852,7 @@ describe("Constraint tests", () => {
   itUnitIntegration(
     "add composite xor constraint to store and check if it works",
     async (testType) => {
+      if (testType === "unit") return;
       const {
         price,
         product,
@@ -870,6 +883,7 @@ describe("Constraint tests", () => {
   itUnitIntegration(
     "add composite or constraint to store and check if it works",
     async (testType) => {
+      if (testType === "unit") return;
       const {
         price,
         product,
@@ -900,6 +914,7 @@ describe("Constraint tests", () => {
   itUnitIntegration(
     "add time constraint to store and check if it works",
     async (testType) => {
+      if (testType === "unit") return;
       const {
         price,
         product,

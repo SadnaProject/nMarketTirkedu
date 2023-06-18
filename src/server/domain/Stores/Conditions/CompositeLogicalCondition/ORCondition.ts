@@ -21,7 +21,7 @@ export class ORCondition implements ICondition {
     return {
       left: this.first.getArgs(),
       right: this.second.getArgs(),
-      subType: "Implies",
+      subType: "Or",
       type: "Composite",
     };
   }

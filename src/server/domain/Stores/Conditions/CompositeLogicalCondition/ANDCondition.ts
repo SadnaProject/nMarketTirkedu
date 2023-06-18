@@ -21,7 +21,7 @@ export class ANDCondition implements ICondition {
     return {
       left: this.first.getArgs(),
       right: this.second.getArgs(),
-      subType: "Implies",
+      subType: "And",
       type: "Composite",
     };
   }

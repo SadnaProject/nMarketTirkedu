@@ -82,7 +82,10 @@ export default function Home() {
     );
   const { data: canRemoveProduct } = api.jobs.getPermissionsOfUser.useQuery(
     { storeId: storeId as string, userId: session?.user.id as string },
-    { ...cachedQueryOptions, enabled: !!storeId }
+    {
+      ...cachedQueryOptions,
+      enabled: !!storeId && session?.user.type === "member",
+    }
   );
   const { mutate: deleteProduct } = api.stores.deleteProduct.useMutation({
     ...cachedQueryOptions,
@@ -196,23 +199,22 @@ export default function Home() {
             Change Cart Quantity
           </Button>
         </div>
-        {session?.user.type === "member" && (
-          <div className="flex items-center justify-center gap-3">
-            <Input
-              className="max-w-[5rem] text-center"
-              {...bidForm.register("price", {
-                setValueAs: (v: string) => (v ? parseInt(v) : 0),
-              })}
-            />
-            <Button
-              onClick={() => void handleCreateBid()}
-              disabled={bidForm.formState.isSubmitting}
-            >
-              <CourtHammerIcon />
-              Create bid
-            </Button>
-          </div>
-        )}
+
+        <div className="flex items-center justify-center gap-3">
+          <Input
+            className="max-w-[5rem] text-center"
+            {...bidForm.register("price", {
+              setValueAs: (v: string) => (v ? parseInt(v) : 0),
+            })}
+          />
+          <Button
+            onClick={() => void handleCreateBid()}
+            disabled={bidForm.formState.isSubmitting}
+          >
+            <CourtHammerIcon />
+            Create bid
+          </Button>
+        </div>
         <Gallery
           className="sm:grid-cols-1 lg:grid-cols-1"
           list={[1, 2, 3, 4, 5]}

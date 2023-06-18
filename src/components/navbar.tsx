@@ -21,11 +21,11 @@ const publicLinks = [
   { name: "Products", path: PATHS.products.path },
   { name: "Stores", path: PATHS.stores.path },
   { name: "My Receipts", path: PATHS.myReceipts.path },
+  { name: "Bids", path: PATHS.bids.path },
 ] as const;
 
 const privateLinks = [
   { name: "My Stores", path: PATHS.myStores.path },
-  { name: "Bids", path: PATHS.bids.path },
 ] as const;
 
 const adminLinks = [

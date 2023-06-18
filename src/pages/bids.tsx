@@ -24,8 +24,6 @@ import { useEffect } from "react";
 import Badge, { GreenBadge, RedBadge } from "components/Badge";
 
 export default function Home() {
-  useGuestRedirect();
-
   const { data: bidsToMe, refetch: refetchBidsToMe } =
     api.users.getBidsToMe.useQuery(undefined, cachedQueryOptions);
   const { data: bidsFromMe, refetch: refetchBidsFromMe } =

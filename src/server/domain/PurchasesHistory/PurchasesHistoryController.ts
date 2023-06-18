@@ -236,6 +236,14 @@ export class PurchasesHistoryController
       price
     );
     await this.addPurchase(CartPurchase.fromDTO(cartPurchase));
+    for (const [storeId, basket] of cart.storeIdToBasket) {
+      await eventEmitter.emitEvent({
+        type: "storePurchase",
+        channel: `storePurchase_${storeId}`,
+        storeId: storeId,
+        message: "Purchase has been done in your store !",
+      });
+    }
     return {
       paymentTransactionId: payTransID,
       deliveryTransactionId: deliveryTransId,

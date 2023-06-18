@@ -22,11 +22,13 @@ export class EventManager extends HasControllers {
       return;
     }
     console.log("subscribe", channel, userId);
-    this.eventEmitter.on(channel, callback);
-    this.channelToUsers.set(channel, [
-      ...(this.channelToUsers.get(channel) || []),
-      userId,
-    ]);
+    if (!this.channelToUsers.has(channel)) {
+      this.eventEmitter.on(channel, callback);
+      this.channelToUsers.set(channel, [
+        ...(this.channelToUsers.get(channel) || []),
+        userId,
+      ]);
+    }
   }
 
   public unsubscribeChannel(channel: Channel, userId: string) {

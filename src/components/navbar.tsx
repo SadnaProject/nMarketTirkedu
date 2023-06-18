@@ -48,6 +48,8 @@ function eventToString(event: Event) {
       return `A bid has been approved`;
     case "bidRejected":
       return `A bid has been rejected`;
+    case "storePurchase":
+      return "A purchase has been made in store";
   }
 }
 

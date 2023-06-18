@@ -49,6 +49,13 @@ export type Event =
       // more data
     }
   | {
+      channel: `storePurchase${string}`;
+      type: "storePurchase";
+      storeId: string;
+      message: string;
+      // more data
+    }
+  | {
       channel: `RejectMakeNewOwner_${string}`;
       type: "makeOwner";
       makeOwnerObjectId: string;

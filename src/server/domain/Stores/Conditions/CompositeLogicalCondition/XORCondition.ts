@@ -24,7 +24,7 @@ export class XORCondition implements ICondition {
     return {
       left: this.first.getArgs(),
       right: this.second.getArgs(),
-      subType: "Implies",
+      subType: "Xor",
       type: "Composite",
     };
   }

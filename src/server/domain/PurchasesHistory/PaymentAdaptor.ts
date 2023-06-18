@@ -59,6 +59,14 @@ export class PaymentAdapter {
       if (data === "-1") {
         throw new Error("payment failed");
       }
+      // if not a number, throw an error
+      if (isNaN(Number(data))) {
+        console.log(data)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "payment failed",
+        });
+      }
       return Number(data);
     } catch (error) {
       throw new TRPCError({

@@ -155,7 +155,11 @@ type ConditionProps = {
   id?: string;
 };
 
-function Condition({ condition, prefix = "", id }: ConditionProps) {
+function Condition({
+  condition = defaultCondition,
+  prefix = "",
+  id,
+}: ConditionProps) {
   const router = useRouter();
   const { storeId } = router.query;
   const {

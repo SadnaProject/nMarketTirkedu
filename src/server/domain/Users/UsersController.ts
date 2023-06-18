@@ -363,6 +363,7 @@ export class UsersController
     const MemberId = await this.Controllers.Auth.register(email, password);
     await this.Repos.Users.addUser(MemberId);
     this.subscribeForUserEvents(MemberId);
+
     return MemberId;
   }
   async login(

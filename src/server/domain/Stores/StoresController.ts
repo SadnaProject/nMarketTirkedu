@@ -800,7 +800,13 @@ export class StoresController
           makeOwnerObjectId: idOfMakeOwnerObject,
           message: "You have a new owner in the store!",
         });
-        await this.subscribeToStoreEvents(targetUserId);
+        eventEmitter.subscribeChannel(`storeChanged_${storeId}`, targetUserId);
+        eventEmitter.subscribeChannel(`bidAdded_${storeId}`, targetUserId);
+        eventEmitter.subscribeChannel(`storePurchase$${storeId}`, targetUserId);
+        eventEmitter.subscribeChannel(
+          `tryToMakeNewOwner_${storeId}`,
+          targetUserId
+        );
       }
       return idOfMakeOwnerObject;
     } else {

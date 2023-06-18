@@ -145,6 +145,19 @@ export class Basket {
     const products = await getDB().basketProduct.findMany({
       where: { userId: userId, storeId: storeId },
     });
+    const toBeRemoved = [];
+    for (const p of products) {
+      const prod = await getDB().storeProduct.findUnique({
+        where: { id: p.storeProductId },
+      });
+      if (!prod) {
+        toBeRemoved.push(p);
+      }
+    }
+    for (const p of toBeRemoved) {
+      const idx = products.indexOf(p);
+      products.splice(idx, 1);
+    }
     b.products = products.map((p) => BasketProduct.createFromDTO(p));
     return b;
   }
@@ -175,17 +188,19 @@ export class Basket {
       where: { userId: userId, storeId: storeId },
     });
     b.products = products;
+    const toBeRemoved = [];
     for (const p of products) {
       const prod = await getDB().storeProduct.findUnique({
         where: { id: p.storeProductId },
       });
       if (!prod) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Store product not found",
-        });
+        toBeRemoved.push(p);
       }
-      b.storeProducts.push(prod);
+      if (prod) b.storeProducts.push(prod);
+    }
+    for (const p of toBeRemoved) {
+      const idx = b.products.indexOf(p);
+      b.products.splice(idx, 1);
     }
     return b;
   }

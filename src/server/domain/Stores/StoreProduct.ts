@@ -6,6 +6,7 @@ import { type Controllers, HasControllers } from "../helpers/_HasController";
 import { Mixin } from "ts-mixer";
 import { type StoreProduct as StoreProductDAO } from "@prisma/client";
 import { Store } from "./Store";
+import { getDB } from "server/helpers/_Transactional";
 
 const nameSchema = z.string().nonempty("Name must be nonempty");
 const quantitySchema = z
@@ -215,6 +216,10 @@ export class StoreProduct extends Mixin(HasRepos, HasControllers) {
 
   public async delete() {
     await this.Repos.Products.deleteProduct(this.Id);
+    //might delete it
+    await getDB().basketProduct.deleteMany({
+      where: { storeProductId: this.id },
+    });
   }
 
   public static getAll(repos: Repos) {

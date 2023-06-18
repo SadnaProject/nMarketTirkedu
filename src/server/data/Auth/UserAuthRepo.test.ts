@@ -82,7 +82,7 @@ describe("get member by id", () => {
   it("❎doesn't find member", async () => {
     // expect(() => repos.Users.getMemberById("made up id")).toThrow();
     await expect(repos.Users.getMemberById("made up id")).rejects.toThrow(
-      "user with id: made up id not found"
+      "user with not found"
     );
   });
 });
@@ -94,7 +94,7 @@ describe("get guest by id", () => {
   });
   it("❎doesn't find guest", () => {
     expect(() => repos.Users.getGuestById("made up id")).toThrow(
-      "User with id: made up id not found"
+      "User with id: not found"
     );
   });
 });
@@ -114,7 +114,7 @@ describe("remove member", () => {
     // expect(() => repos.Users.removeMember(getMemberI(1).UserId)).toThrow();
     const memberId = getMemberI(1).UserId;
     await expect(repos.Users.removeMember(memberId)).rejects.toThrow(
-      "user with id: " + memberId + " not found"
+      "user with id: not found"
     );
     // expect(repos.Users.getAllMembers()).toEqual(members);
     await expect(repos.Users.getAllMembers()).resolves.toEqual(members);
@@ -131,9 +131,7 @@ describe("remove guest", () => {
     const guests = repos.Users.getAllGuests();
     const guestId = getGuestI(1).UserId;
     expect(() => repos.Users.removeGuest(guestId)).toThrow(
-      "User with id: " +
-        guestId +
-        " is not a guest, please try again with a different user"
+      "User is not a guest, please try again…"
     );
     expect(repos.Users.getAllGuests()).toEqual(guests);
   });

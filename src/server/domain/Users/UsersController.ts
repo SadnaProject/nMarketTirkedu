@@ -243,15 +243,44 @@ export class UsersController
     await user.editProductQuantityInCart(productId, storeId, quantity);
   }
   async getCart(userId: string): Promise<CartDTO> {
-    return (await this.Repos.Users.getUser(userId)).Cart;
+    const cart = (await this.Repos.Users.getUser(userId)).Cart;
+    for (const b of cart.storeIdToBasket) {
+      const toBeRemoved = [];
+      const bas = b[1];
+      for (const p of bas.products) {
+        const prod = await getDB().storeProduct.findUnique({
+          where: { id: p.storeProductId },
+        });
+        if (!prod) {
+          toBeRemoved.push(p);
+        }
+      }
+      for (const p of toBeRemoved) {
+        const idx = b[1].products.indexOf(p);
+        b[1].products.splice(idx, 1);
+      }
+    }
+    return cart;
   }
 
   async getCartUI(userId: string): Promise<ExtendedCartDTO> {
     const cart = await (await this.Repos.Users.getUser(userId)).getCartUI();
     for (const b of cart.storeIdToBasket) {
+      const toBeRemoved = [];
       const bas = b[1];
       for (const p of bas.storeProducts) {
-        p.price = await this.Controllers.Stores.getProductPrice(userId, p.id);
+        const prod = await getDB().storeProduct.findUnique({
+          where: { id: p.id },
+        });
+        if (!prod) {
+          toBeRemoved.push(p);
+        }
+        if (prod)
+          p.price = await this.Controllers.Stores.getProductPrice(userId, p.id);
+      }
+      for (const p of toBeRemoved) {
+        const idx = b[1].storeProducts.indexOf(p);
+        b[1].storeProducts.splice(idx, 1);
       }
     }
     return cart;
@@ -329,11 +358,13 @@ export class UsersController
   }
   subscribeForUserEvents(userId: string) {
     eventEmitter.subscribeChannel(`bidAdded_${userId}`, userId);
+    eventEmitter.subscribeChannel(`NewStoreOwner_${userId}`, userId);
   }
   async register(email: string, @censored password: string): Promise<string> {
     const MemberId = await this.Controllers.Auth.register(email, password);
     await this.Repos.Users.addUser(MemberId);
     this.subscribeForUserEvents(MemberId);
+
     return MemberId;
   }
   async login(

@@ -166,7 +166,11 @@ type DiscountProps = {
   id?: string;
 };
 
-export function Discount({ id, discount, prefix = "" }: DiscountProps) {
+export function Discount({
+  id,
+  discount = defaultDiscount,
+  prefix = "",
+}: DiscountProps) {
   const router = useRouter();
   const { storeId } = router.query;
   const {
@@ -341,7 +345,10 @@ type ConditionProps = {
   condition: ConditionArgs;
 };
 
-function Condition({ condition, prefix = "" }: ConditionProps) {
+function Condition({
+  condition = defaultCondition,
+  prefix = "",
+}: ConditionProps) {
   const {
     register,
     formState: { errors }, //! DON'T DELETE THIS LINE. IT MAKES THE UI UPDATE

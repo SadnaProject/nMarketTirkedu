@@ -35,22 +35,23 @@ const adminLinks = [
 ] as const;
 
 function eventToString(event: Event) {
-  switch (event.type) {
-    case "storeChanged":
-      return event.message;
-    case "storePurchase":
-      return `A purchase has been made in store`;
-    case "makeOwner":
-      return `A request for new owner has been made`;
-    case "bidAdded":
-      return `A new bid has been added`;
-    case "bidApproved":
-      return `A bid has been approved`;
-    case "bidRejected":
-      return `A bid has been rejected`;
-    case "storePurchase":
-      return "A purchase has been made in store";
-  }
+  // switch (event.type) {
+  //   case "storeChanged":
+  //     return event.message;
+  //   case "storePurchase":
+  //     return `A purchase has been made in store`;
+  //   case "makeOwner":
+  //     return `A request for new owner has been made`;
+  //   case "bidAdded":
+  //     return `A new bid has been added`;
+  //   case "bidApproved":
+  //     return `A bid has been approved`;
+  //   case "bidRejected":
+  //     return `A bid has been rejected`;
+  //   case "storePurchase":
+  //     return "A purchase has been made in store";
+  // }
+  return event.message;
 }
 
 export default function Navbar() {

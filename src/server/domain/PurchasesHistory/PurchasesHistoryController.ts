@@ -135,12 +135,17 @@ export class PurchasesHistoryController
         storeId
       );
       for (const [productId, product] of purchase.products) {
-        const pro = await this.Controllers.Stores.getProductById(
-          "userId",
-          productId
-        );
-        product.name = pro.name;
-        product.description = pro.description;
+        try {
+          const pro = await this.Controllers.Stores.getProductById(
+            "userId",
+            productId
+          );
+          product.name = pro.name;
+          product.description = pro.description;
+        } catch (e) {
+          product.name = "product not found";
+          product.description = "product not found";
+        }
       }
     }
     return purchaseDTO;
@@ -157,12 +162,17 @@ export class PurchasesHistoryController
           storeId
         );
         for (const [productId, product] of basket.products) {
-          const pro = await this.Controllers.Stores.getProductById(
-            "userId",
-            productId
-          );
-          product.name = pro.name;
-          product.description = pro.description;
+          try {
+            const pro = await this.Controllers.Stores.getProductById(
+              "userId",
+              productId
+            );
+            product.name = pro.name;
+            product.description = pro.description;
+          } catch (e) {
+            product.name = "product not found";
+            product.description = "product not found";
+          }
         }
       }
     }
@@ -422,12 +432,17 @@ export class PurchasesHistoryController
         storeId
       );
       for (const [productId, productPurchase] of basketPurchase.products) {
-        const product = await this.Controllers.Stores.getProductById(
-          "userId",
-          productId
-        );
-        productPurchase.name = product.name;
-        productPurchase.description = product.description;
+        try {
+          const product = await this.Controllers.Stores.getProductById(
+            "userId",
+            productId
+          );
+          productPurchase.name = product.name;
+          productPurchase.description = product.description;
+        } catch (e) {
+          productPurchase.name = "Product not found";
+          productPurchase.description = "Product not found";
+        }
       }
     }
     return purchaseDTO;

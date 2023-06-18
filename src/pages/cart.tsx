@@ -135,7 +135,7 @@ export default function Home() {
                           <div className="flex flex-col items-center justify-between md:flex-row">
                             <Price price={storeProduct.price} />
                             <div className="flex items-center gap-2">
-                              <span className="text-xl">Total</span>
+                              <span className="text-xl">Before Discounts</span>
                               <Price
                                 price={storeProduct.price * product.quantity}
                               />
